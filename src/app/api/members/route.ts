@@ -2,22 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
-// GET /api/positions - list positions
 export async function GET(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await supabaseAdmin
-    .from("positions")
-    .select("*")
+    .from("team_members")
+    .select("*, positions(id, name_th, name_en, name_jp, default_hourly_rate, color)")
     .eq("is_active", true)
-    .order("sort_order", { ascending: true });
+    .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ positions: data ?? [] });
+  return NextResponse.json({ members: data ?? [] });
 }
 
-// POST /api/positions - create position (admin/manager)
 export async function POST(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,27 +24,36 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name_th, name_en, name_jp, default_hourly_rate, color, icon, sort_order } = body;
-    if (!name_en && !name_th) return NextResponse.json({ error: "Name required" }, { status: 400 });
+    const {
+      employee_code, first_name_th, last_name_th, first_name_en, last_name_en,
+      first_name_jp, last_name_jp, position_id, hourly_rate, email, phone,
+      department, user_id,
+    } = body;
+
+    if (!first_name_en && !first_name_th) {
+      return NextResponse.json({ error: "Name required" }, { status: 400 });
+    }
 
     const { data, error } = await supabaseAdmin
-      .from("positions")
+      .from("team_members")
       .insert({
-        name_th: name_th || name_en,
-        name_en: name_en || name_th,
-        name_jp: name_jp || null,
-        default_hourly_rate: default_hourly_rate || 0,
-        color: color || "#003087",
-        icon: icon || "Briefcase",
-        sort_order: sort_order || 0,
+        employee_code: employee_code || null,
+        first_name_th, last_name_th, first_name_en, last_name_en,
+        first_name_jp, last_name_jp,
+        position_id: position_id || null,
+        hourly_rate: hourly_rate || 0,
+        email: email || null,
+        phone: phone || null,
+        department: department || null,
+        user_id: user_id || null,
       })
       .select()
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ position: data }, { status: 201 });
+    return NextResponse.json({ member: data }, { status: 201 });
   } catch (err) {
-    console.error("Create position error:", err);
+    console.error("Create member error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

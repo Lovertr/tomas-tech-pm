@@ -14,7 +14,13 @@ import {
   PieChart, Pie, Cell, AreaChart, Area, LineChart, Line, Legend,
 } from "recharts";
 import { translations, type Lang } from "@/lib/i18n";
-import { mockPositions, mockMembers, mockProjects, mockTasks, mockTimeLogs, monthlyCostData } from "@/lib/mockData";
+import { monthlyCostData } from "@/lib/mockData";
+import { useData, type DBProject, type DBTask, type DBMember, type DBPosition } from "@/lib/useData";
+import ProjectModal from "@/components/modals/ProjectModal";
+import TaskModal from "@/components/modals/TaskModal";
+import MemberModal from "@/components/modals/MemberModal";
+import PositionModal from "@/components/modals/PositionModal";
+import TimeLogModal from "@/components/modals/TimeLogModal";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -30,12 +36,59 @@ const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444"
 
 export default function App() {
   const router = useRouter();
-  const { user: currentUser, isAdmin, logout } = useAuth();
+  const { user: currentUser, isAdmin, logout, hasPermission } = useAuth();
+  const data = useData();
+  // Aliases so existing UI code keeps working (legacy mockData shape)
+  const mockPositions = data.adaptedPositions;
+  const mockMembers = data.adaptedMembers;
+  const mockProjects = data.adaptedProjects;
+  const mockTimeLogs = data.adaptedTimelogs;
+  const tasks = data.adaptedTasks;
   const [lang, setLang] = useState<Lang>("th");
   const [page, setPage] = useState("dashboard");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [tasks, setTasks] = useState(mockTasks);
+
+  // Modal state
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<DBProject | null>(null);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<DBTask | null>(null);
+  const [memberModalOpen, setMemberModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<DBMember | null>(null);
+  const [positionModalOpen, setPositionModalOpen] = useState(false);
+  const [editingPosition, setEditingPosition] = useState<DBPosition | null>(null);
+  const [timelogModalOpen, setTimelogModalOpen] = useState(false);
+
+  const openAddProject = () => { setEditingProject(null); setProjectModalOpen(true); };
+  const openEditProject = (id: string) => {
+    const p = data.projects.find(x => x.id === id) ?? null;
+    setEditingProject(p); setProjectModalOpen(true);
+  };
+  const openAddTask = () => { setEditingTask(null); setTaskModalOpen(true); };
+  const openAddMember = () => { setEditingMember(null); setMemberModalOpen(true); };
+  const openEditMember = (id: string) => {
+    const m = data.members.find(x => x.id === id) ?? null;
+    setEditingMember(m); setMemberModalOpen(true);
+  };
+  const openAddPosition = () => { setEditingPosition(null); setPositionModalOpen(true); };
+  const openEditPosition = (id: string) => {
+    const p = data.positions.find(x => x.id === id) ?? null;
+    setEditingPosition(p); setPositionModalOpen(true);
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    if (!confirm("ลบโครงการนี้ใช่หรือไม่?")) return;
+    try { await data.deleteProject(id); } catch (e) { alert(e instanceof Error ? e.message : "Delete failed"); }
+  };
+  const handleDeleteMember = async (id: string) => {
+    if (!confirm("ลบสมาชิกนี้ใช่หรือไม่? (soft delete)")) return;
+    try { await data.deleteMember(id); } catch (e) { alert(e instanceof Error ? e.message : "Delete failed"); }
+  };
+  const handleDeletePosition = async (id: string) => {
+    if (!confirm("ลบตำแหน่งนี้ใช่หรือไม่? (soft delete)")) return;
+    try { await data.deletePosition(id); } catch (e) { alert(e instanceof Error ? e.message : "Delete failed"); }
+  };
   const [taskFilter, setTaskFilter] = useState("all");
   const [teamTab, setTeamTab] = useState("members");
   const [projFilter, setProjFilter] = useState("all");
@@ -45,15 +98,15 @@ export default function App() {
     const k = lang === "th" ? `${f}_th` : lang === "jp" ? `${f}_jp` : `${f}_en`;
     return (item[k] as string) || (item[`${f}_en`] as string) || "";
   }, [lang]);
-  const getPos = useCallback((pid: string) => mockPositions.find(p => p.id === pid), []);
+  const getPos = useCallback((pid: string) => mockPositions.find(p => p.id === pid), [mockPositions]);
 
-  const approvedLogs = useMemo(() => mockTimeLogs.filter(l => l.status === "approved"), []);
+  const approvedLogs = useMemo(() => mockTimeLogs.filter(l => l.status === "approved"), [mockTimeLogs]);
   const totalCost = useMemo(() => approvedLogs.reduce((s, l) => s + l.hours * l.rate, 0), [approvedLogs]);
   const totalHrs = useMemo(() => approvedLogs.reduce((s, l) => s + l.hours, 0), [approvedLogs]);
 
   const costByProject = useMemo(() => mockProjects.map(p => ({
     name: getName(p).substring(0, 18), cost: approvedLogs.filter(l => l.project_id === p.id).reduce((s, l) => s + l.hours * l.rate, 0), budget: p.budget,
-  })).filter(d => d.cost > 0), [approvedLogs, getName]);
+  })).filter(d => d.cost > 0), [approvedLogs, getName, mockProjects]);
 
   const costByPos = useMemo(() => {
     const m: Record<string, number> = {};
@@ -62,7 +115,7 @@ export default function App() {
       if (mem) { const pos = getPos(mem.position_id); const n = pos ? getName(pos) : "Other"; m[n] = (m[n] || 0) + l.hours * l.rate; }
     });
     return Object.entries(m).map(([name, value]) => ({ name, value }));
-  }, [approvedLogs, getPos, getName]);
+  }, [approvedLogs, getPos, getName, mockMembers]);
 
   const taskStats = useMemo(() => {
     const s: Record<string, number> = { backlog: 0, todo: 0, in_progress: 0, review: 0, done: 0 };
@@ -85,25 +138,26 @@ export default function App() {
     </div>
   );
 
-  // ── Sidebar ──
-  const nav = [
-    { id: "dashboard", icon: LayoutDashboard, label: t.dashboard },
-    { id: "projects", icon: FolderKanban, label: t.projects },
-    { id: "tasks", icon: ListTodo, label: t.tasks },
-    { id: "team", icon: Users, label: t.team },
-    { id: "timelog", icon: Clock, label: t.timeLog },
-    { id: "costs", icon: DollarSign, label: t.costs },
-    { id: "reports", icon: BarChart3, label: t.reports },
-    { id: "settings", icon: Settings, label: t.settings },
+  // ── Sidebar (filtered by permissions) ──
+  const allNav = [
+    { id: "dashboard", icon: LayoutDashboard, label: t.dashboard, perm: null },
+    { id: "projects", icon: FolderKanban, label: t.projects, perm: "can_view_projects" },
+    { id: "tasks", icon: ListTodo, label: t.tasks, perm: null },
+    { id: "team", icon: Users, label: t.team, perm: null },
+    { id: "timelog", icon: Clock, label: t.timeLog, perm: "can_log_time" },
+    { id: "costs", icon: DollarSign, label: t.costs, perm: "can_view_reports" },
+    { id: "reports", icon: BarChart3, label: t.reports, perm: "can_view_reports" },
+    { id: "settings", icon: Settings, label: t.settings, perm: null },
   ];
+  const nav = allNav.filter(n => !n.perm || hasPermission(n.perm));
 
   // ── DASHBOARD ──
   const Dashboard = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl font-bold text-white">{t.welcome}, Tomas Tech!</h1>
+        <div><h1 className="text-2xl font-bold text-white">{t.welcome}, {currentUser?.display_name ?? "..."}!</h1>
           <p className="text-slate-400">{t.overview} — {new Date().toLocaleDateString(lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
-        <button className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>
+        {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>}
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={FolderKanban} label={t.totalProjects} value={mockProjects.length} sub={`${mockProjects.filter(p => p.status === "in_progress").length} ${t.activeProjects}`} color="#003087" trend="+2" />
@@ -137,7 +191,7 @@ export default function App() {
                 <button key={s} onClick={() => setProjFilter(s)} className={`px-3 py-1.5 text-xs font-medium ${projFilter === s ? "text-white" : "text-slate-400"}`} style={projFilter === s ? { background: "#003087" } : { background: "#0F172A" }}>{t[s]}</button>
               ))}
             </div>
-            <button className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>
+            {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -150,7 +204,15 @@ export default function App() {
               <div key={p.id} className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155] hover:shadow-xl transition-all cursor-pointer" onClick={() => { setPage("tasks"); setTaskFilter(p.id); }}>
                 <div className="flex items-start justify-between mb-3">
                   <div><span className="text-xs font-mono text-slate-500">{p.code}</span><h3 className="font-semibold text-white mt-1">{getName(p)}</h3></div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColor[p.status] }}>{t[p.status]}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColor[p.status] }}>{t[p.status]}</span>
+                    {hasPermission("can_manage_projects") && (
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={() => openEditProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button>
+                        {isAdmin && <button onClick={() => handleDeleteProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-red-400"><Trash2 size={14} /></button>}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-slate-400 mb-3">{t.client}: {p.client}</p>
                 <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-slate-400">{t.progress}</span><span className="text-white font-semibold">{p.progress}%</span></div>
@@ -179,7 +241,9 @@ export default function App() {
   const Tasks = () => {
     const cols = ["backlog", "todo", "in_progress", "review", "done"];
     const ft = taskFilter === "all" ? tasks : tasks.filter(tk => tk.project_id === taskFilter);
-    const move = (id: string, to: string) => setTasks(prev => prev.map(tk => tk.id === id ? { ...tk, status: to } : tk));
+    const move = async (id: string, to: string) => {
+      try { await data.updateTask(id, { status: to }); } catch (e) { console.error(e); }
+    };
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -189,7 +253,7 @@ export default function App() {
               <option value="all">{t.all} {t.projects}</option>
               {mockProjects.map(p => <option key={p.id} value={p.id}>{getName(p)}</option>)}
             </select>
-            <button className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addTask}</button>
+            {hasPermission("can_manage_tasks") && <button onClick={openAddTask} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addTask}</button>}
           </div>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-4">
@@ -238,7 +302,7 @@ export default function App() {
   const Team = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-white">{t.team}</h1>
-        <button className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button></div>
+        {hasPermission("can_manage_members") && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
       <div className="flex gap-2">{["members", "positions"].map(tb => (
         <button key={tb} onClick={() => setTeamTab(tb)} className={`px-4 py-2 rounded-xl text-sm font-medium ${teamTab === tb ? "text-white" : "text-slate-400"}`} style={teamTab === tb ? { background: "#003087" } : {}}>{tb === "members" ? t.teamMembers : t.positionMgmt}</button>
       ))}</div>
@@ -263,7 +327,10 @@ export default function App() {
                 </div>
                 <div className="mt-3 flex items-center justify-between pt-3 border-t border-[#334155]">
                   <span className="text-sm font-semibold text-[#003087]">฿{mem.rate}{t.perHour}</span>
-                  <div className="flex gap-1"><button className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button><button className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Eye size={14} /></button></div>
+                  <div className="flex gap-1">
+                    {hasPermission("can_manage_members") && <button onClick={() => openEditMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button>}
+                    {isAdmin && <button onClick={() => handleDeleteMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-red-400"><Trash2 size={14} /></button>}
+                  </div>
                 </div>
               </div>
             );
@@ -282,7 +349,10 @@ export default function App() {
                 <td className="px-5 py-4 text-[#003087] font-semibold">฿{pos.rate}{t.perHour}</td>
                 <td className="px-5 py-4 text-white">{pm.length}</td>
                 <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>
-                <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1"><button className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button><button className="p-1.5 rounded-lg hover:bg-slate-700 text-red-400"><Trash2 size={14} /></button></div></td>
+                <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1">
+                  {hasPermission("can_manage_members") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button>}
+                  {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-red-400"><Trash2 size={14} /></button>}
+                </div></td>
               </tr>);
             })}
           </tbody></table>
@@ -295,7 +365,7 @@ export default function App() {
   const TimeLog = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-white">{t.timeLog}</h1>
-        <button className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button></div>
+        {hasPermission("can_log_time") && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
         <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />
@@ -480,6 +550,55 @@ export default function App() {
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-6"><Page /></main>
       </div>
+
+      {/* Modals */}
+      <ProjectModal
+        open={projectModalOpen}
+        onClose={() => setProjectModalOpen(false)}
+        initial={editingProject}
+        onSubmit={async (payload) => {
+          if (editingProject) await data.updateProject(editingProject.id, payload);
+          else await data.createProject(payload);
+        }}
+      />
+      <TaskModal
+        open={taskModalOpen}
+        onClose={() => setTaskModalOpen(false)}
+        initial={editingTask}
+        projects={data.projects}
+        members={data.members}
+        onSubmit={async (payload) => {
+          if (editingTask) await data.updateTask(editingTask.id, payload);
+          else await data.createTask(payload);
+        }}
+      />
+      <MemberModal
+        open={memberModalOpen}
+        onClose={() => setMemberModalOpen(false)}
+        initial={editingMember}
+        positions={data.positions}
+        onSubmit={async (payload) => {
+          if (editingMember) await data.updateMember(editingMember.id, payload);
+          else await data.createMember(payload);
+        }}
+      />
+      <PositionModal
+        open={positionModalOpen}
+        onClose={() => setPositionModalOpen(false)}
+        initial={editingPosition}
+        onSubmit={async (payload) => {
+          if (editingPosition) await data.updatePosition(editingPosition.id, payload);
+          else await data.createPosition(payload);
+        }}
+      />
+      <TimeLogModal
+        open={timelogModalOpen}
+        onClose={() => setTimelogModalOpen(false)}
+        projects={data.projects}
+        tasks={data.tasks}
+        members={data.members}
+        onSubmit={async (payload) => { await data.createTimelog(payload); }}
+      />
     </div>
   );
 }

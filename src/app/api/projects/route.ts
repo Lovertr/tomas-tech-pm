@@ -2,22 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
-// GET /api/positions - list positions
+// GET /api/projects - list projects
 export async function GET(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await supabaseAdmin
-    .from("positions")
+    .from("projects")
     .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ positions: data ?? [] });
+  return NextResponse.json({ projects: data ?? [] });
 }
 
-// POST /api/positions - create position (admin/manager)
+// POST /api/projects - create project (can_manage_projects)
 export async function POST(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,27 +26,40 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name_th, name_en, name_jp, default_hourly_rate, color, icon, sort_order } = body;
-    if (!name_en && !name_th) return NextResponse.json({ error: "Name required" }, { status: 400 });
+    const {
+      project_code, name_th, name_en, name_jp, description,
+      status, priority, client_name, start_date, end_date,
+      estimated_hours, budget_limit, progress,
+    } = body;
+
+    if (!name_en && !name_th) {
+      return NextResponse.json({ error: "Project name required" }, { status: 400 });
+    }
 
     const { data, error } = await supabaseAdmin
-      .from("positions")
+      .from("projects")
       .insert({
+        project_code: project_code || null,
         name_th: name_th || name_en,
         name_en: name_en || name_th,
         name_jp: name_jp || null,
-        default_hourly_rate: default_hourly_rate || 0,
-        color: color || "#003087",
-        icon: icon || "Briefcase",
-        sort_order: sort_order || 0,
+        description: description || null,
+        status: status || "planning",
+        priority: priority || "medium",
+        client_name: client_name || null,
+        start_date: start_date || null,
+        end_date: end_date || null,
+        estimated_hours: estimated_hours || 0,
+        budget_limit: budget_limit || 0,
+        progress: progress || 0,
       })
       .select()
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ position: data }, { status: 201 });
+    return NextResponse.json({ project: data }, { status: 201 });
   } catch (err) {
-    console.error("Create position error:", err);
+    console.error("Create project error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
