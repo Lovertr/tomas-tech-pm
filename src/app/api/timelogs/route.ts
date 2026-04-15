@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from("time_logs")
-    .select("*")
+    .select("*, projects(id, name_th, name_en, project_code), team_members(id, first_name_th, last_name_th, first_name_en, last_name_en), tasks(id, title)")
     .order("log_date", { ascending: false });
 
   if (projectId) query = query.eq("project_id", projectId);

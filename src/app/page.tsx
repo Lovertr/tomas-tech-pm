@@ -7,7 +7,7 @@ import {
   BarChart3, Settings, ChevronLeft, ChevronRight, Plus, Search, Bell,
   Calendar, TrendingUp, Briefcase, CheckCircle2, AlertCircle,
   Edit3, Trash2, Eye, Download, Sun, Moon, Activity, Target,
-  UserCog, LogOut, UserPlus,
+  UserCog, LogOut, UserPlus, Flame, CheckCheck,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -22,6 +22,9 @@ import MemberModal from "@/components/modals/MemberModal";
 import PositionModal from "@/components/modals/PositionModal";
 import TimeLogModal from "@/components/modals/TimeLogModal";
 import AllocationManager from "@/components/AllocationManager";
+import WorkloadHeatmap from "@/components/WorkloadHeatmap";
+import TimeLogApproval from "@/components/TimeLogApproval";
+import ManpowerReport from "@/components/ManpowerReport";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -146,9 +149,12 @@ export default function App() {
     { id: "tasks", icon: ListTodo, label: t.tasks, perm: null },
     { id: "team", icon: Users, label: t.team, perm: null },
     { id: "allocation", icon: UserPlus, label: "Allocation", perm: "can_view_projects" },
+    { id: "workload", icon: Flame, label: "Workload", perm: "can_view_projects" },
     { id: "timelog", icon: Clock, label: t.timeLog, perm: "can_log_time" },
+    { id: "approval", icon: CheckCheck, label: "Approval", perm: "can_approve_timelog" },
     { id: "costs", icon: DollarSign, label: t.costs, perm: "can_view_reports" },
     { id: "reports", icon: BarChart3, label: t.reports, perm: "can_view_reports" },
+    { id: "manpower", icon: BarChart3, label: "Manpower", perm: "can_view_reports" },
     { id: "settings", icon: Settings, label: t.settings, perm: null },
   ];
   const nav = allNav.filter(n => !n.perm || hasPermission(n.perm));
@@ -494,7 +500,10 @@ export default function App() {
       canEdit={hasPermission("can_manage_projects") || hasPermission("can_manage_members")}
     />
   );
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, projects: Projects, tasks: Tasks, team: Team, allocation: Allocation, timelog: TimeLog, costs: Costs, reports: Reports, settings: SettingsPage };
+  const Workload = () => <WorkloadHeatmap weeks={8} />;
+  const Approval = () => <TimeLogApproval canApprove={["admin","manager","leader"].includes(currentUser?.role ?? "")} />;
+  const Manpower = () => <ManpowerReport positions={data.positions} members={data.members} projects={data.projects} />;
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, projects: Projects, tasks: Tasks, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage };
   const Page = pages[page] || Dashboard;
 
   return (
