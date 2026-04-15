@@ -170,7 +170,7 @@ export default function App() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={FolderKanban} label={t.totalProjects} value={mockProjects.length} sub={`${mockProjects.filter(p => p.status === "in_progress").length} ${t.activeProjects}`} color="#003087" trend="+2" />
         <Stat icon={ListTodo} label={t.totalTasks} value={tasks.length} sub={`${tasks.filter(tk => tk.status === "done").length} ${t.completedTasks}`} color="#00AEEF" />
-        <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} sub={`${totalHrs} ${t.hours}`} color="#F7941D" trend="+12%" />
+        <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} sub={`${totalHrs.toFixed(1)} ${t.hours}`} color="#F7941D" trend="+12%" />
         <Stat icon={Users} label={t.teamMembers} value={mockMembers.length} sub={`${mockPositions.length} ${t.position}`} color="#10B981" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -227,7 +227,7 @@ export default function App() {
                   <div className="w-full h-2 rounded-full bg-slate-700"><div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: p.progress === 100 ? "#10B981" : "linear-gradient(90deg,#003087,#00AEEF)" }} /></div></div>
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.tasks}</div><div className="text-sm font-semibold text-white">{dt}/{pt.length}</div></div>
-                  <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.hours}</div><div className="text-sm font-semibold text-white">{ph}</div></div>
+                  <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.hours}</div><div className="text-sm font-semibold text-white">{ph.toFixed(1)}</div></div>
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">{fmt(pc)}</div></div>
                 </div>
                 <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-slate-400">{t.budget}: {fmt(p.budget)}</span><span style={{ color: pct > 80 ? "#EF4444" : "#10B981" }}>{pct.toFixed(0)}%</span></div>
@@ -329,7 +329,7 @@ export default function App() {
                 </div>
                 <div className="text-xs text-slate-400 mb-3">{mem.dept}</div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.hours}</div><div className="text-sm font-semibold text-white">{mh}</div></div>
+                  <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.hours}</div><div className="text-sm font-semibold text-white">{mh.toFixed(1)}</div></div>
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">฿{mc.toLocaleString()}</div></div>
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.projects}</div><div className="text-sm font-semibold text-white">{mp}</div></div>
                 </div>
@@ -393,7 +393,7 @@ export default function App() {
               <td className="px-4 py-3 text-sm text-slate-400">{pos ? getName(pos) : ""}</td>
               <td className="px-4 py-3 text-sm text-white">{proj ? getName(proj).substring(0, 20) : ""}</td>
               <td className="px-4 py-3 text-sm text-slate-400">{log.date}</td>
-              <td className="px-4 py-3 text-sm font-semibold text-white">{log.hours}h</td>
+              <td className="px-4 py-3 text-sm font-semibold text-white">{Number(log.hours).toFixed(1)}h</td>
               <td className="px-4 py-3 text-sm text-slate-400">฿{log.rate}</td>
               <td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">฿{(log.hours * log.rate).toLocaleString()}</td>
               <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${log.status === "approved" ? "bg-emerald-500/20 text-emerald-400" : "bg-yellow-500/20 text-yellow-400"}`}>{t[log.status]}</span></td>
@@ -424,7 +424,7 @@ export default function App() {
           return (<div key={p.id} className="p-4 rounded-xl border border-[#334155]">
             <div className="flex items-center justify-between mb-2"><div><span className="font-medium text-white">{getName(p)}</span><span className="text-xs text-slate-400 ml-2">{p.code}</span></div><div className="text-right"><span className="font-semibold text-[#F7941D]">{fmt(pc)}</span><span className="text-xs text-slate-400 ml-1">/ {fmt(p.budget)}</span></div></div>
             <div className="w-full h-3 rounded-full bg-slate-700 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 90 ? "#EF4444" : pct > 70 ? "#F7941D" : "linear-gradient(90deg,#003087,#00AEEF)" }} /></div>
-            <div className="flex justify-between mt-2 text-xs text-slate-400"><span>{mc} {t.teamMembers} · {ph} {t.hours}</span><span className={pct > 90 ? "text-red-400" : pct > 70 ? "text-yellow-400" : "text-emerald-400"}>{pct.toFixed(1)}% {t.budgetUsed}</span></div>
+            <div className="flex justify-between mt-2 text-xs text-slate-400"><span>{mc} {t.teamMembers} · {ph.toFixed(1)} {t.hours}</span><span className={pct > 90 ? "text-red-400" : pct > 70 ? "text-yellow-400" : "text-emerald-400"}>{pct.toFixed(1)}% {t.budgetUsed}</span></div>
           </div>);
         })}</div>
       </div>
@@ -461,12 +461,12 @@ export default function App() {
             {mr.map((r, i) => (<tr key={i} className="border-t border-[#334155]">
               <td className="px-4 py-3 text-sm text-slate-400">{i + 1}</td><td className="px-4 py-3 text-sm font-medium text-white">{r.name}</td>
               <td className="px-4 py-3 text-sm text-slate-400">{r.position}</td><td className="px-4 py-3 text-sm text-[#003087]">฿{r.rate}</td>
-              <td className="px-4 py-3 text-sm text-white">{r.hours}h</td><td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">{fmt(r.cost)}</td>
+              <td className="px-4 py-3 text-sm text-white">{Number(r.hours).toFixed(1)}h</td><td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">{fmt(r.cost)}</td>
               <td className="px-4 py-3 text-sm text-white">{r.projects}</td>
             </tr>))}
           </tbody><tfoot><tr className="border-t-2 border-[#334155]">
             <td colSpan={4} className="px-4 py-3 text-sm font-bold text-white">{t.total}</td>
-            <td className="px-4 py-3 text-sm font-bold text-white">{mr.reduce((s, r) => s + r.hours, 0)}h</td>
+            <td className="px-4 py-3 text-sm font-bold text-white">{mr.reduce((s, r) => s + r.hours, 0).toFixed(1)}h</td>
             <td className="px-4 py-3 text-sm font-bold text-[#F7941D]">{fmt(mr.reduce((s, r) => s + r.cost, 0))}</td><td></td>
           </tr></tfoot></table></div>
         </div>
