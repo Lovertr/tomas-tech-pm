@@ -1,10 +1,13 @@
 "use client";
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/useAuth";
 import {
   LayoutDashboard, FolderKanban, ListTodo, Users, Clock, DollarSign,
   BarChart3, Settings, ChevronLeft, ChevronRight, Plus, Search, Bell,
   Calendar, TrendingUp, Briefcase, CheckCircle2, AlertCircle,
   Edit3, Trash2, Eye, Download, Sun, Moon, Activity, Target,
+  UserCog, LogOut,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -26,8 +29,11 @@ const prioColor: Record<string, string> = {
 const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444", "#8B5CF6"];
 
 export default function App() {
+  const router = useRouter();
+  const { user: currentUser, isAdmin, logout } = useAuth();
   const [lang, setLang] = useState<Lang>("th");
   const [page, setPage] = useState("dashboard");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [tasks, setTasks] = useState(mockTasks);
   const [taskFilter, setTaskFilter] = useState("all");
@@ -438,7 +444,36 @@ export default function App() {
               <button key={l} onClick={() => setLang(l)} className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-slate-400"}`} style={lang === l ? { background: "#003087" } : {}}>{l.toUpperCase()}</button>
             ))}</div>
             <button className="p-2 rounded-xl bg-slate-700 relative text-slate-400"><Bell size={18} /><span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center bg-[#F7941D]">3</span></button>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>TT</div>
+            <div className="relative">
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm transition">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
+                  {(currentUser?.display_name ?? "U").charAt(0).toUpperCase()}
+                </div>
+                <span className="hidden md:inline font-medium">{currentUser?.display_name ?? "..."}</span>
+              </button>
+              {userMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setUserMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-slate-800 border border-slate-700 shadow-xl z-40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-700">
+                      <div className="text-sm font-medium text-white">{currentUser?.display_name}</div>
+                      <div className="text-xs text-slate-400">@{currentUser?.username}</div>
+                      <div className="text-xs mt-1 inline-block px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-medium">
+                        {t[currentUser?.role as keyof typeof t] ?? currentUser?.role}
+                      </div>
+                    </div>
+                    {isAdmin && (
+                      <button onClick={() => { setUserMenuOpen(false); router.push("/admin/users"); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 transition">
+                        <UserCog size={16} /> {t.userManagement}
+                      </button>
+                    )}
+                    <button onClick={() => { setUserMenuOpen(false); logout(); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-slate-700 transition border-t border-slate-700">
+                      <LogOut size={16} /> {t.logout}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
