@@ -7,7 +7,7 @@ import {
   BarChart3, Settings, ChevronLeft, ChevronRight, Plus, Search, Bell,
   Calendar, TrendingUp, Briefcase, CheckCircle2, AlertCircle,
   Edit3, Trash2, Eye, Download, Sun, Moon, Activity, Target,
-  UserCog, LogOut,
+  UserCog, LogOut, UserPlus,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -21,6 +21,7 @@ import TaskModal from "@/components/modals/TaskModal";
 import MemberModal from "@/components/modals/MemberModal";
 import PositionModal from "@/components/modals/PositionModal";
 import TimeLogModal from "@/components/modals/TimeLogModal";
+import AllocationManager from "@/components/AllocationManager";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -144,6 +145,7 @@ export default function App() {
     { id: "projects", icon: FolderKanban, label: t.projects, perm: "can_view_projects" },
     { id: "tasks", icon: ListTodo, label: t.tasks, perm: null },
     { id: "team", icon: Users, label: t.team, perm: null },
+    { id: "allocation", icon: UserPlus, label: "Allocation", perm: "can_view_projects" },
     { id: "timelog", icon: Clock, label: t.timeLog, perm: "can_log_time" },
     { id: "costs", icon: DollarSign, label: t.costs, perm: "can_view_reports" },
     { id: "reports", icon: BarChart3, label: t.reports, perm: "can_view_reports" },
@@ -485,7 +487,14 @@ export default function App() {
   );
 
   // ── RENDER ──
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, projects: Projects, tasks: Tasks, team: Team, timelog: TimeLog, costs: Costs, reports: Reports, settings: SettingsPage };
+  const Allocation = () => (
+    <AllocationManager
+      projects={data.projects}
+      members={data.members}
+      canEdit={hasPermission("can_manage_projects") || hasPermission("can_manage_members")}
+    />
+  );
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, projects: Projects, tasks: Tasks, team: Team, allocation: Allocation, timelog: TimeLog, costs: Costs, reports: Reports, settings: SettingsPage };
   const Page = pages[page] || Dashboard;
 
   return (
