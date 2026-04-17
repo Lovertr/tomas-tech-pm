@@ -31,8 +31,9 @@ interface Customer {
 
 interface Contact {
   id: string;
-  name: string;
-  email: string;
+  first_name: string;
+  last_name?: string;
+  email?: string;
   phone?: string;
   position?: string;
   is_primary: boolean;
@@ -204,7 +205,8 @@ export default function CustomersPanel({
   });
 
   const [contactFormData, setContactFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     position: '',
@@ -293,7 +295,7 @@ export default function CustomersPanel({
       const contactsRes = await fetch(`/api/customers/${customer.id}/contacts`);
       if (contactsRes.ok) {
         const data = await contactsRes.json();
-        setContacts(data);
+        setContacts(data.contacts ?? []);
       }
 
       // Fetch detail data (deals, activities, comments)
@@ -331,8 +333,8 @@ export default function CustomersPanel({
 
       if (res.ok) {
         const newContact = await res.json();
-        setContacts([...contacts, newContact]);
-        setContactFormData({ name: '', email: '', phone: '', position: '', is_primary: false });
+        setContacts([...contacts, newContact.contact]);
+        setContactFormData({ first_name: '', last_name: '', email: '', phone: '', position: '', is_primary: false });
         setShowAddContact(false);
       }
     } catch (error) {
@@ -691,7 +693,7 @@ export default function CustomersPanel({
           <div
             className="absolute inset-0 bg-black/30"
             onClick={() => setShowDetail(false)}
-          />
+          ></div>
 
           {/* Side Panel */}
           <div className="relative ml-auto w-full max-w-4xl bg-white shadow-xl flex flex-col">
@@ -892,7 +894,7 @@ export default function CustomersPanel({
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <p className="font-semibold text-gray-900">{contact.name}</p>
+                                  <p className="font-semibold text-gray-900">{contact.first_name} {contact.last_name || ''}</p>
                                   {contact.is_primary && (
                                     <span className="px-2 py-0.5 bg-[#F7941D] text-white text-xs rounded font-medium">
                                       {L('primaryContact', lang)}
@@ -928,19 +930,36 @@ export default function CustomersPanel({
 
                     {showAddContact && (
                       <form onSubmit={handleAddContact} className="mt-4 p-4 bg-gray-50 rounded-lg border border-[#E2E8F0] space-y-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            {L('name', lang)}
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={contactFormData.name}
-                            onChange={(e) =>
-                              setContactFormData({ ...contactFormData, name: e.target.value })
-                            }
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                          />
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {L('name', lang)}
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder={lang === 'th' ? 'ชื่อ' : 'First name'}
+                              value={contactFormData.first_name}
+                              onChange={(e) =>
+                                setContactFormData({ ...contactFormData, first_name: e.target.value })
+                              }
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {lang === 'th' ? 'นามสกุล' : lang === 'jp' ? '姓' : 'Last Name'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={lang === 'th' ? 'นามสกุล' : 'Last name'}
+                              value={contactFormData.last_name}
+                              onChange={(e) =>
+                                setContactFormData({ ...contactFormData, last_name: e.target.value })
+                              }
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                            />
+                          </div>
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -948,7 +967,6 @@ export default function CustomersPanel({
                           </label>
                           <input
                             type="email"
-                            required
                             value={contactFormData.email}
                             onChange={(e) =>
                               setContactFormData({ ...contactFormData, email: e.target.value })
@@ -1004,7 +1022,7 @@ export default function CustomersPanel({
                             type="button"
                             onClick={() => {
                               setShowAddContact(false);
-                              setContactFormData({ name: '', email: '', phone: '', position: '', is_primary: false });
+                              setContactFormData({ first_name: '', last_name: '', email: '', phone: '', position: '', is_primary: false });
                             }}
                             className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded text-sm font-medium"
                           >
