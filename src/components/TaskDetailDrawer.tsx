@@ -53,10 +53,10 @@ const PRIO_COLOR: Record<string, string> = {
 
 // Dependency type labels
 const DEP_TYPES: { value: string; label: string }[] = [
-  { value: "finish_to_start", label: "FS \u2014 \u0E17\u0E33\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E01\u0E48\u0E2D\u0E19\u0E16\u0E36\u0E07\u0E40\u0E23\u0E34\u0E48\u0E21" },
-  { value: "start_to_start", label: "SS \u2014 \u0E40\u0E23\u0E34\u0E48\u0E21\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E01\u0E31\u0E19" },
-  { value: "finish_to_finish", label: "FF \u2014 \u0E40\u0E2A\u0E23\u0E47\u0E08\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E01\u0E31\u0E19" },
-  { value: "start_to_finish", label: "SF \u2014 \u0E40\u0E23\u0E34\u0E48\u0E21\u0E01\u0E48\u0E2D\u0E19\u0E16\u0E36\u0E07\u0E40\u0E2A\u0E23\u0E47\u0E08" },
+  { value: "finish_to_start", label: "FS — ทำเสร็จก่อนถึงเริ่ม" },
+  { value: "start_to_start", label: "SS — เริ่มพร้อมกัน" },
+  { value: "finish_to_finish", label: "FF — เสร็จพร้อมกัน" },
+  { value: "start_to_finish", label: "SF — เริ่มก่อนถึงเสร็จ" },
 ];
 const depTypeShort = (v: string) => {
   if (v === "finish_to_start" || v === "FS") return "FS";
@@ -176,7 +176,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
   };
 
   const deleteComment = async (id: string) => {
-    if (!confirm("\u0E25\u0E1A\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C\u0E19\u0E35\u0E49?")) return;
+    if (!confirm("ลบคอมเมนต์นี้?")) return;
     await fetch(`/api/comments/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -301,12 +301,12 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
           {/* Tabs — horizontally scrollable on mobile */}
           <div className="flex border-b border-[#334155] px-2 md:px-4 gap-0.5 md:gap-1 overflow-x-auto scrollbar-hide">
             {([
-              ["details", "\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14", null],
-              ["comments", "\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C", comments.length],
-              ["checklist", "\u0E40\u0E0A\u0E47\u0E04\u0E25\u0E34\u0E2A\u0E15\u0E4C", checklist.length],
-              ["deps", "\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07", deps.blockedBy.length + deps.blocking.length],
-              ["files", "\u0E44\u0E1F\u0E25\u0E4C", null],
-              ["activity", "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34", activity.length],
+              ["details", "รายละเอียด", null],
+              ["comments", "คอมเมนต์", comments.length],
+              ["checklist", "เช็คลิสต์", checklist.length],
+              ["deps", "งานที่เกี่ยวข้อง", deps.blockedBy.length + deps.blocking.length],
+              ["files", "ไฟล์", null],
+              ["activity", "ประวัติ", activity.length],
             ] as [Tab, string, number | null][]).map(([k, label, count]) => (
               <button
                 key={k}
@@ -328,41 +328,41 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
           {task && tab === "details" && (
             <div className="space-y-4">
-              <Field label="\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14\u0E07\u0E32\u0E19">
+              <Field label="รายละเอียดงาน">
                 <textarea
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm min-h-24"
                   value={task.description ?? ""}
-                  placeholder="\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14\u0E07\u0E32\u0E19..."
+                  placeholder="เพิ่มรายละเอียดงาน..."
                   onChange={(e) => setTask({ ...task, description: e.target.value })}
                   onBlur={(e) => updateTask({ description: e.target.value })}
                 />
                 {task.description && <TranslateButton text={task.description} />}
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="\u0E1C\u0E39\u0E49\u0E23\u0E31\u0E1A\u0E1C\u0E34\u0E14\u0E0A\u0E2D\u0E1A">
+                <Field label="ผู้รับผิดชอบ">
                   <select className={inp} value={task.assignee_id ?? ""} onChange={(e) => updateTask({ assignee_id: e.target.value || null })}>
-                    <option value="">{"\u2014 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E21\u0E2D\u0E1A\u0E2B\u0E21\u0E32\u0E22 \u2014"}</option>
+                    <option value="">{"— ยังไม่ได้มอบหมาย —"}</option>
                     {members.map(m => <option key={m.id} value={m.id}>{memberName(m)}</option>)}
                   </select>
                 </Field>
-                <Field label="\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E40\u0E2A\u0E23\u0E47\u0E08">
+                <Field label="กำหนดเสร็จ">
                   <input type="date" className={inp} value={task.due_date ?? ""}
                     onChange={(e) => updateTask({ due_date: e.target.value || null })} />
                 </Field>
-                <Field label="\u0E27\u0E31\u0E19\u0E40\u0E23\u0E34\u0E48\u0E21">
+                <Field label="วันเริ่ม">
                   <input type="date" className={inp} value={task.start_date ?? ""}
                     onChange={(e) => updateTask({ start_date: e.target.value || null })} />
                 </Field>
-                <Field label="\u0E0A\u0E31\u0E48\u0E27\u0E42\u0E21\u0E07\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13 (hrs)">
+                <Field label="ชั่วโมงประมาณ (hrs)">
                   <input type="number" className={inp} value={task.estimated_hours ?? ""}
                     onChange={(e) => setTask({ ...task, estimated_hours: e.target.value ? Number(e.target.value) : null })}
                     onBlur={(e) => updateTask({ estimated_hours: e.target.value ? Number(e.target.value) : null })} />
                 </Field>
               </div>
               <div className="text-xs text-slate-400 pt-2 border-t border-[#334155]">
-                {"\u0E0A\u0E31\u0E48\u0E27\u0E42\u0E21\u0E07\u0E08\u0E23\u0E34\u0E07"}: <span className="text-slate-200">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
+                {"ชั่วโมงจริง"}: <span className="text-slate-200">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
                 {task.estimated_hours ? ` / ${Number(task.estimated_hours).toFixed(1)}h` : ""}
-                {saving && <span className="ml-2 text-[#00AEEF]">{"\u0E01\u0E33\u0E25\u0E31\u0E07\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01..."}</span>}
+                {saving && <span className="ml-2 text-[#00AEEF]">{"กำลังบันทึก..."}</span>}
               </div>
             </div>
           )}
@@ -372,17 +372,17 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               <div className="flex gap-2">
                 <textarea
                   className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
-                  rows={2} placeholder={"\u0E40\u0E02\u0E35\u0E22\u0E19\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C..."} value={newComment}
+                  rows={2} placeholder="เขียนคอมเมนต์..." value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
                 />
                 <button onClick={addComment} disabled={!newComment.trim() || commentSaving}
                   className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
-                  {commentSaving ? "..." : "\u0E2A\u0E48\u0E07"}
+                  {commentSaving ? "..." : "ส่ง"}
                 </button>
               </div>
               {commentErr && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{commentErr}</div>}
-              {comments.length === 0 && !commentSaving && <div className="text-slate-400 text-sm text-center py-8">{"\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C"}</div>}
+              {comments.length === 0 && !commentSaving && <div className="text-slate-400 text-sm text-center py-8">ยังไม่มีคอมเมนต์</div>}
               {comments.map(c => (
                 <div key={c.id} className="bg-[#0F172A] border border-[#334155] rounded-lg p-3">
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
@@ -403,7 +403,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
             <div className="space-y-2">
               <div className="flex gap-2">
                 <input className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
-                  placeholder={"\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23..."} value={newCheckItem}
+                  placeholder="เพิ่มรายการ..." value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addChecklist()} />
                 <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm">
@@ -412,7 +412,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               </div>
               {checklist.length > 0 && (
                 <div className="text-xs text-slate-400 mb-2">
-                  {checklist.filter(c => c.is_completed).length} / {checklist.length} {"\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27"}
+                  {checklist.filter(c => c.is_completed).length} / {checklist.length} เสร็จแล้ว
                 </div>
               )}
               {checklist.map(item => (
@@ -433,26 +433,26 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
           {tab === "deps" && (
             <div className="space-y-4">
               <div className="bg-[#0F172A] border border-[#334155] rounded-lg p-3 space-y-2">
-                <div className="text-xs text-slate-400 font-medium">{"\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07"}</div>
-                <div className="text-[10px] text-slate-500 -mt-1">{"\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E17\u0E33\u0E01\u0E48\u0E2D\u0E19\u0E08\u0E36\u0E07\u0E40\u0E23\u0E34\u0E48\u0E21\u0E07\u0E32\u0E19\u0E19\u0E35\u0E49\u0E44\u0E14\u0E49"}</div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex gap-2 flex-1 min-w-0">
-                    <select className={inp + " flex-[2] min-w-0"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
-                      {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                    </select>
-                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">{"\u0E40\u0E1E\u0E34\u0E48\u0E21"}</button>
-                  </div>
-                  <select className={inp + " w-full"} value={newDepId} onChange={(e) => setNewDepId(e.target.value)}>
-                    <option value="">{"\u2014 \u0E40\u0E25\u0E37\u0E2D\u0E01\u0E07\u0E32\u0E19 \u2014"}</option>
+                <div className="text-xs text-slate-400 font-medium">เพิ่มงานที่เกี่ยวข้อง</div>
+                <div className="text-[10px] text-slate-500 -mt-1">เลือกงานที่ต้องทำก่อนจึงเริ่มงานนี้ได้</div>
+                <div className="space-y-2">
+                  <select className={inp} value={newDepId} onChange={(e) => setNewDepId(e.target.value)}>
+                    <option value="">— เลือกงาน —</option>
                     {allTasks.filter(t => t.id !== taskId).map(t => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
                   </select>
+                  <div className="flex gap-2">
+                    <select className={inp + " flex-1"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
+                      {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
+                  </div>
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-slate-300 mb-2">{"\u0E15\u0E49\u0E2D\u0E07\u0E23\u0E2D\u0E07\u0E32\u0E19\u0E2D\u0E37\u0E48\u0E19\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E01\u0E48\u0E2D\u0E19"} ({deps.blockedBy.length})</div>
-                {deps.blockedBy.length === 0 && <div className="text-xs text-slate-500">{"\u2014 \u0E44\u0E21\u0E48\u0E21\u0E35 \u2014"}</div>}
+                <div className="text-sm font-medium text-slate-300 mb-2">ต้องรองานอื่นเสร็จก่อน ({deps.blockedBy.length})</div>
+                {deps.blockedBy.length === 0 && <div className="text-xs text-slate-500">— ไม่มี —</div>}
                 {deps.blockedBy.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#0F172A] border border-[#334155] rounded-lg p-2 mb-1">
                     <span className="text-sm text-slate-100">{d.depends?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
@@ -461,8 +461,8 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 ))}
               </div>
               <div>
-                <div className="text-sm font-medium text-slate-300 mb-2">{"\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E23\u0E2D\u0E07\u0E32\u0E19\u0E19\u0E35\u0E49\u0E2D\u0E22\u0E39\u0E48"} ({deps.blocking.length})</div>
-                {deps.blocking.length === 0 && <div className="text-xs text-slate-500">{"\u2014 \u0E44\u0E21\u0E48\u0E21\u0E35 \u2014"}</div>}
+                <div className="text-sm font-medium text-slate-300 mb-2">งานที่รองานนี้อยู่ ({deps.blocking.length})</div>
+                {deps.blocking.length === 0 && <div className="text-xs text-slate-500">— ไม่มี —</div>}
                 {deps.blocking.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#0F172A] border border-[#334155] rounded-lg p-2 mb-1">
                     <span className="text-sm text-slate-100">{d.blocking?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
@@ -479,7 +479,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
           {tab === "activity" && (
             <div className="space-y-2">
-              {activity.length === 0 && <div className="text-slate-400 text-sm text-center py-8">{"\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34"}</div>}
+              {activity.length === 0 && <div className="text-slate-400 text-sm text-center py-8">ยังไม่มีประวัติ</div>}
               {activity.map(a => (
                 <div key={a.id} className="flex gap-3 text-sm bg-[#0F172A] border border-[#334155] rounded-lg p-3">
                   <Activity size={14} className="text-[#00AEEF] mt-0.5 shrink-0" />
