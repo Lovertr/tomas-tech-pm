@@ -23,6 +23,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const body = await req.json();
   const token = randomBytes(24).toString("base64url");
+
+  // Resolve team_member id for created_by FK (points to team_members, not app_users)
+  const { data: tm } = await supabaseAdmin
+    .from("team_members").select("id").eq("user_id", ctx.userId).maybeSingle();
+
   const { data, error } = await supabaseAdmin
     .from("client_portal_tokens")
     .insert({
@@ -32,7 +37,7 @@ export async function POST(req: NextRequest) {
       client_email: body.client_email ?? null,
       expires_at: body.expires_at ?? null,
       active: true,
-      created_by: ctx.userId,
+      created_by: tm?.id ?? null,
     })
     .select()
     .single();

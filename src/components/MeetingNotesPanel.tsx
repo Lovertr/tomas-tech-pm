@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Trash2, Edit3, Calendar, Users, ListChecks, FileText, X, Check } from "lucide-react";
+import { Plus, Trash2, Edit3, Calendar, Users, ListChecks, FileText, X, Check, Mic, Square, Upload, Loader2, Play, Pause, Volume2 } from "lucide-react";
 
 interface ActionItem { text: string; assignee?: string; due?: string; done?: boolean; }
 interface MeetingNote {
   id: string; project_id?: string | null; title: string; meeting_date: string;
   attendees?: string[] | null; agenda?: string | null; notes?: string | null;
   action_items?: ActionItem[] | null; created_by?: string | null; created_at?: string;
+  audio_url?: string | null;
   projects?: { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null } | null;
 }
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
@@ -79,6 +80,7 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
                 <span className="flex items-center gap-1"><ListChecks size={11} /> {aiDone}/{ai.length}</span>
               )}
               {n.notes && <span className="flex items-center gap-1"><FileText size={11} /> notes</span>}
+              {n.audio_url && <span className="flex items-center gap-1 text-purple-400"><Volume2 size={11} /> audio</span>}
             </div>
           </div>
           {canManage && (
@@ -90,6 +92,13 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
         </div>
         {isOpen && (
           <div className="px-4 pb-4 border-t border-[#334155] pt-3 space-y-3">
+            {n.audio_url && (
+              <Section title="บันทึกเสียง" icon={Volume2}>
+                <audio controls className="w-full" src={n.audio_url}>
+                  Your browser does not support audio.
+                </audio>
+              </Section>
+            )}
             {n.attendees && n.attendees.length > 0 && (
               <Section title="ผู้เข้าร่วม" icon={Users}>
                 <div className="flex flex-wrap gap-1.5">
@@ -221,6 +230,113 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
 
+  // Audio recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(initial?.audio_url ?? null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
+
+  // Recording timer
+  const timerRef = { current: null as NodeJS.Timeout | null };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        setAudioBlob(blob);
+        setAudioPreviewUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach(t => t.stop());
+      };
+
+      recorder.start(1000);
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingTime(0);
+      setAudioBlob(null);
+      setAudioPreviewUrl(null);
+
+      const interval = setInterval(() => setRecordingTime(t => t + 1), 1000);
+      timerRef.current = interval;
+    } catch {
+      setErr("ไม่สามารถเข้าถึงไมโครโฟนได้ — กรุณาอนุญาตการใช้งานไมโครโฟน");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+    }
+    setIsRecording(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("audio/")) {
+      setErr("กรุณาเลือกไฟล์เสียง (mp3, wav, m4a, webm)");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setErr("ไฟล์เสียงใหญ่เกิน 20MB");
+      return;
+    }
+    setUploadedFile(file);
+    setAudioBlob(null);
+    setAudioPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const transcribeAudio = async () => {
+    const source = audioBlob || uploadedFile;
+    if (!source) return;
+    setTranscribing(true); setErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("audio", source, uploadedFile?.name || "recording.webm");
+      fd.append("lang", "th");
+      const r = await fetch("/api/ai/transcribe-audio", { method: "POST", body: fd });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Transcription failed");
+      // Put transcript into AI raw for extraction, and also into notes
+      setAiRaw(j.transcript);
+      setForm(f => ({
+        ...f,
+        notes: ((f.notes ?? "") + (f.notes ? "\n\n" : "") + "📝 [Transcript]\n" + j.transcript).trim(),
+      }));
+    } catch (e) { setErr(e instanceof Error ? e.message : "Transcription failed"); }
+    finally { setTranscribing(false); }
+  };
+
+  const uploadAudioToStorage = async (): Promise<string | null> => {
+    const source = audioBlob || uploadedFile;
+    if (!source) return audioUrl;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("audio", source, uploadedFile?.name || "recording.webm");
+      const r = await fetch("/api/upload-audio", { method: "POST", body: fd });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Upload failed");
+      setAudioUrl(j.url);
+      return j.url;
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Upload failed");
+      return audioUrl;
+    } finally { setUploading(false); }
+  };
+
+  const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+
   const runAiExtract = async () => {
     if (!aiRaw.trim()) return;
     setAiBusy(true); setErr(null); setAiSummary(null);
@@ -270,11 +386,18 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
     if (!form.title || !form.meeting_date) { setErr("ต้องระบุชื่อและวันที่"); return; }
     setSaving(true); setErr(null);
     try {
+      // Upload audio if there's a new recording/file
+      let finalAudioUrl = audioUrl;
+      if (audioBlob || uploadedFile) {
+        finalAudioUrl = await uploadAudioToStorage();
+      }
+
+      const payload = { ...form, audio_url: finalAudioUrl };
       const url = initial ? `/api/meeting-notes/${initial.id}` : `/api/meeting-notes`;
       const r = await fetch(url, {
         method: initial ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || "Save failed"); }
       onSaved();
@@ -334,6 +457,55 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
           <label className="block text-xs text-slate-400 mb-1">Agenda</label>
           <textarea rows={2} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
             value={form.agenda ?? ""} onChange={e => setForm({ ...form, agenda: e.target.value })} />
+        </div>
+
+        {/* 🎙 Audio Recording & Upload Section */}
+        <div className="border border-blue-500/30 bg-blue-500/5 rounded-lg p-3 space-y-3">
+          <label className="block text-xs font-semibold text-blue-300">🎙 บันทึกเสียงประชุม — อัดเสียงหรืออัปโหลดไฟล์เสียง แล้วให้ AI ถอดข้อความ</label>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {!isRecording ? (
+              <button type="button" onClick={startRecording}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30 text-xs font-medium">
+                <Mic size={14} /> เริ่มอัดเสียง
+              </button>
+            ) : (
+              <button type="button" onClick={stopRecording}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium animate-pulse">
+                <Square size={14} /> หยุด ({formatTime(recordingTime)})
+              </button>
+            )}
+
+            <span className="text-slate-500 text-xs">หรือ</span>
+
+            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-700 text-xs font-medium cursor-pointer">
+              <Upload size={14} /> อัปโหลดไฟล์เสียง
+              <input type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} />
+            </label>
+          </div>
+
+          {/* Audio preview */}
+          {audioPreviewUrl && (
+            <div className="space-y-2">
+              <audio controls className="w-full h-8" src={audioPreviewUrl} />
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={transcribeAudio} disabled={transcribing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium disabled:opacity-40">
+                  {transcribing ? <><Loader2 size={14} className="animate-spin" /> กำลังถอดเสียง...</> : <>✨ AI ถอดเสียง</>}
+                </button>
+                <button type="button" onClick={() => { setAudioBlob(null); setUploadedFile(null); setAudioPreviewUrl(null); }}
+                  className="text-xs text-slate-400 hover:text-red-400">ลบเสียง</button>
+              </div>
+            </div>
+          )}
+
+          {/* Existing audio URL */}
+          {audioUrl && !audioPreviewUrl && (
+            <div className="flex items-center gap-2 text-xs text-blue-300">
+              <Volume2 size={12} /> มีไฟล์เสียงแนบอยู่แล้ว
+              <audio controls className="h-7 flex-1" src={audioUrl} />
+            </div>
+          )}
         </div>
 
         <div className="border border-purple-500/30 bg-purple-500/5 rounded-lg p-3 space-y-2">

@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     project_id: b.project_id || null, title: b.title, meeting_date: b.meeting_date,
     attendees: b.attendees || [], agenda: b.agenda || null, notes: b.notes || null,
     action_items: b.action_items || [], created_by: ctx.userId,
+    audio_url: b.audio_url || null,
   }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ note: data }, { status: 201 });
