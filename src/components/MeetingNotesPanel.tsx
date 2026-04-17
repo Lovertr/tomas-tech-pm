@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit3, Calendar, Users, ListChecks, FileText, X, Check, Mic, Square, Upload, Loader2, Play, Pause, Volume2 } from "lucide-react";
+import TranslateButton from "./TranslateButton";
 
 interface ActionItem { text: string; assignee?: string; due?: string; done?: boolean; }
 interface MeetingNote {
@@ -108,8 +109,8 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
                 </div>
               </Section>
             )}
-            {n.agenda && <Section title="Agenda" icon={FileText}><div className="text-sm text-slate-300 whitespace-pre-wrap">{n.agenda}</div></Section>}
-            {n.notes && <Section title="บันทึกการประชุม" icon={FileText}><div className="text-sm text-slate-300 whitespace-pre-wrap">{n.notes}</div></Section>}
+            {n.agenda && <Section title="Agenda" icon={FileText}><div className="text-sm text-slate-300 whitespace-pre-wrap">{n.agenda}</div><TranslateButton text={n.agenda} /></Section>}
+            {n.notes && <Section title="บันทึกการประชุม" icon={FileText}><div className="text-sm text-slate-300 whitespace-pre-wrap">{n.notes}</div><TranslateButton text={n.notes} /></Section>}
             {ai.length > 0 && (
               <Section title="Action Items" icon={ListChecks}>
                 <div className="space-y-1">

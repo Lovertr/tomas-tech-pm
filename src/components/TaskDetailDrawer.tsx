@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { X, MessageSquare, CheckSquare, GitBranch, Activity, Play, Square, Trash2, Plus } from "lucide-react";
 import AttachmentsTab from "./AttachmentsTab";
+import TranslateButton from "./TranslateButton";
 
 interface Member { id: string; first_name_th?: string | null; last_name_th?: string | null; first_name_en?: string | null; last_name_en?: string | null; }
 interface Task {
@@ -281,6 +282,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   onChange={(e) => setTask({ ...task, description: e.target.value })}
                   onBlur={(e) => updateTask({ description: e.target.value })}
                 />
+                {task.description && <TranslateButton text={task.description} />}
               </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Assignee">
@@ -335,6 +337,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                     </div>
                   </div>
                   <div className="text-sm text-slate-100 whitespace-pre-wrap">{c.comment}</div>
+                  <TranslateButton text={c.comment} compact />
                 </div>
               ))}
             </div>
