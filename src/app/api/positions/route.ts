@@ -14,7 +14,20 @@ export async function GET(request: NextRequest) {
     .order("sort_order", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ positions: data ?? [] });
+
+  // Strip default_hourly_rate when caller lacks manpower view
+  const { data: lvl } = await supabaseAdmin.rpc("get_user_permission_level", {
+    p_user_id: ctx.userId, p_module_key: "manpower",
+  });
+  const canSeeRates = ((lvl ?? 0) as number) >= 1;
+  const sanitized = !canSeeRates && data
+    ? data.map((p: Record<string, unknown>) => {
+        const { default_hourly_rate: _r, ...rest } = p;
+        return rest;
+      })
+    : data;
+
+  return NextResponse.json({ positions: sanitized ?? [] });
 }
 
 // POST /api/positions - create position (admin/manager)

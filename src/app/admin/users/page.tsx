@@ -6,8 +6,9 @@ import { useAuth } from "@/lib/useAuth";
 import { translations, Lang } from "@/lib/i18n";
 import {
   Users, UserPlus, Pencil, Trash2, KeyRound, Search, ArrowLeft,
-  CheckCircle2, XCircle, Shield, Loader2, X,
+  CheckCircle2, XCircle, Shield, Loader2, X, ShieldCheck,
 } from "lucide-react";
+import PermissionsModal from "@/components/PermissionsModal";
 
 type Role = {
   id: string;
@@ -84,6 +85,7 @@ export default function AdminUsersPage() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
+  const [permsUser, setPermsUser] = useState<AppUser | null>(null);
 
   useEffect(() => {
     if (currentUser?.language) setLang(currentUser.language as Lang);
@@ -375,6 +377,13 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex gap-1">
                           <button
+                            onClick={() => setPermsUser(u)}
+                            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-green-400 transition"
+                            title="จัดการสิทธิ์"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleResetPassword(u)}
                             className="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-orange-400 transition"
                             title={t.resetPassword}
@@ -406,6 +415,16 @@ export default function AdminUsersPage() {
           )}
         </div>
       </div>
+
+      {/* Permissions Modal */}
+      {permsUser && (
+        <PermissionsModal
+          user={{ id: permsUser.id, username: permsUser.username, display_name: permsUser.display_name }}
+          open={!!permsUser}
+          onClose={() => setPermsUser(null)}
+          onSaved={() => showToast("ok", "บันทึกสิทธิ์เรียบร้อย")}
+        />
+      )}
 
       {/* Modal */}
       {showModal && (

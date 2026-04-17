@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import {
   LayoutDashboard, FolderKanban, ListTodo, Users, Clock, DollarSign,
-  BarChart3, Settings, ChevronLeft, ChevronRight, Plus, Search, Bell,
+  BarChart3, Settings, ChevronLeft, ChevronRight, ChevronDown, Plus, Search,
   Calendar, TrendingUp, Briefcase, CheckCircle2, AlertCircle,
   Edit3, Trash2, Eye, Download, Sun, Moon, Activity, Target,
   UserCog, LogOut, UserPlus, Flame, CheckCheck,
@@ -18,6 +18,30 @@ import { monthlyCostData } from "@/lib/mockData";
 import { useData, type DBProject, type DBTask, type DBMember, type DBPosition } from "@/lib/useData";
 import ProjectModal from "@/components/modals/ProjectModal";
 import TaskModal from "@/components/modals/TaskModal";
+import TaskDetailDrawer from "@/components/TaskDetailDrawer";
+import KanbanBoard from "@/components/KanbanBoard";
+import MyTasks from "@/components/MyTasks";
+import FloatingTimer from "@/components/FloatingTimer";
+import GanttChart from "@/components/GanttChart";
+import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2 } from "lucide-react";
+import MilestonesPanel from "@/components/MilestonesPanel";
+import CalendarView from "@/components/CalendarView";
+import SprintPanel from "@/components/SprintPanel";
+import MeetingNotesPanel from "@/components/MeetingNotesPanel";
+import DailyStandupCard from "@/components/DailyStandupCard";
+import NotificationBell from "@/components/NotificationBell";
+import RisksPanel from "@/components/RisksPanel";
+import IssuesPanel from "@/components/IssuesPanel";
+import ChangeRequestsPanel from "@/components/ChangeRequestsPanel";
+import DecisionLogPanel from "@/components/DecisionLogPanel";
+import TemplatesPanel from "@/components/TemplatesPanel";
+import RecurringTasksPanel from "@/components/RecurringTasksPanel";
+import InvoicesPanel from "@/components/InvoicesPanel";
+import FinancePanel from "@/components/FinancePanel";
+import ClientPortalPanel from "@/components/ClientPortalPanel";
+import CommandPalette, { type CommandItem } from "@/components/CommandPalette";
+import ShortcutsHelp from "@/components/ShortcutsHelp";
+import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 import MemberModal from "@/components/modals/MemberModal";
 import PositionModal from "@/components/modals/PositionModal";
 import TimeLogModal from "@/components/modals/TimeLogModal";
@@ -40,7 +64,8 @@ const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444"
 
 export default function App() {
   const router = useRouter();
-  const { user: currentUser, isAdmin, logout, hasPermission } = useAuth();
+  const { user: currentUser, isAdmin, logout, hasPermission, canView, canCreate, canDelete, moduleLevel } = useAuth();
+  void canCreate; void canDelete; void moduleLevel;
   const data = useData();
   // Aliases so existing UI code keeps working (legacy mockData shape)
   const mockPositions = data.adaptedPositions;
@@ -52,17 +77,24 @@ export default function App() {
   const [page, setPage] = useState("dashboard");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (k: string) => setCollapsedGroups(s => ({ ...s, [k]: !s[k] }));
 
   // Modal state
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<DBProject | null>(null);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<DBTask | null>(null);
+  const [drawerTaskId, setDrawerTaskId] = useState<string | null>(null);
+  const [boardRefreshKey, setBoardRefreshKey] = useState(0);
+  const [ganttProjectId, setGanttProjectId] = useState<string>("");
   const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<DBMember | null>(null);
   const [positionModalOpen, setPositionModalOpen] = useState(false);
   const [editingPosition, setEditingPosition] = useState<DBPosition | null>(null);
   const [timelogModalOpen, setTimelogModalOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const openAddProject = () => { setEditingProject(null); setProjectModalOpen(true); };
   const openEditProject = (id: string) => {
@@ -106,7 +138,7 @@ export default function App() {
 
   const approvedLogs = useMemo(() => mockTimeLogs.filter(l => l.status === "approved"), [mockTimeLogs]);
   const totalCost = useMemo(() => approvedLogs.reduce((s, l) => s + l.hours * l.rate, 0), [approvedLogs]);
-  const totalHrs = useMemo(() => approvedLogs.reduce((s, l) => s + l.hours, 0), [approvedLogs]);
+  const totalHrs = useMemo(() => Math.round(approvedLogs.reduce((s, l) => s + l.hours, 0) * 10) / 10, [approvedLogs]);
 
   const costByProject = useMemo(() => mockProjects.map(p => ({
     name: getName(p).substring(0, 18), cost: approvedLogs.filter(l => l.project_id === p.id).reduce((s, l) => s + l.hours * l.rate, 0), budget: p.budget,
@@ -142,22 +174,91 @@ export default function App() {
     </div>
   );
 
-  // ── Sidebar (filtered by permissions) ──
+  // ── Sidebar (grouped + filtered by granular per-module permissions) ──
+  // module = key in permission_modules table; level 0 hides the menu entirely
   const allNav = [
-    { id: "dashboard", icon: LayoutDashboard, label: t.dashboard, perm: null },
-    { id: "projects", icon: FolderKanban, label: t.projects, perm: "can_view_projects" },
-    { id: "tasks", icon: ListTodo, label: t.tasks, perm: null },
-    { id: "team", icon: Users, label: t.team, perm: null },
-    { id: "allocation", icon: UserPlus, label: "Allocation", perm: "can_view_projects" },
-    { id: "workload", icon: Flame, label: "Workload", perm: "can_view_projects" },
-    { id: "timelog", icon: Clock, label: t.timeLog, perm: "can_log_time" },
-    { id: "approval", icon: CheckCheck, label: "Approval", perm: "can_approve_timelog" },
-    { id: "costs", icon: DollarSign, label: t.costs, perm: "can_view_reports" },
-    { id: "reports", icon: BarChart3, label: t.reports, perm: "can_view_reports" },
-    { id: "manpower", icon: BarChart3, label: "Manpower", perm: "can_view_reports" },
-    { id: "settings", icon: Settings, label: t.settings, perm: null },
+    // Core / ภาพรวม
+    { id: "dashboard", icon: LayoutDashboard, label: t.dashboard, module: "dashboard", group: "core" },
+    { id: "mytasks", icon: Inbox, label: t.myTasks, module: "mytasks", group: "core" },
+    // Planning / การวางแผน
+    { id: "projects", icon: FolderKanban, label: t.projects, module: "projects", group: "planning" },
+    { id: "tasks", icon: ListTodo, label: t.tasks, module: "tasks", group: "planning" },
+    { id: "gantt", icon: GanttIcon, label: t.gantt, module: "gantt", group: "planning" },
+    { id: "milestones", icon: Flag, label: t.milestones, module: "milestones", group: "planning" },
+    { id: "calendar", icon: CalendarDays, label: t.calendar, module: "calendar", group: "planning" },
+    { id: "sprint", icon: Zap, label: t.sprint, module: "sprint", group: "planning" },
+    { id: "meetings", icon: NotebookPen, label: t.meetings, module: "meetings", group: "planning" },
+    // Tracking / ติดตามและควบคุม
+    { id: "risks", icon: ShieldAlert, label: t.risks, module: "risks", group: "tracking" },
+    { id: "issues", icon: Bug, label: t.issues, module: "issues", group: "tracking" },
+    { id: "changes", icon: GitPullRequest, label: t.changeRequests, module: "change_requests", group: "tracking" },
+    { id: "decisions", icon: Lightbulb, label: t.decisions, module: "decisions", group: "tracking" },
+    { id: "templates", icon: FileStack, label: t.templates, module: "templates", group: "tracking" },
+    { id: "recurring", icon: Repeat, label: t.recurring, module: "recurring", group: "tracking" },
+    // People / ทีมและทรัพยากร
+    { id: "team", icon: Users, label: t.team, module: "team", group: "people" },
+    { id: "allocation", icon: UserPlus, label: t.allocation, module: "allocation", group: "people" },
+    { id: "workload", icon: Flame, label: t.workload, module: "workload", group: "people" },
+    { id: "timelog", icon: Clock, label: t.timeLog, module: "timelog", group: "people" },
+    { id: "approval", icon: CheckCheck, label: t.approval, module: "approval", group: "people" },
+    { id: "manpower", icon: BarChart3, label: t.manpower, module: "manpower", group: "people" },
+    // Finance / การเงิน
+    { id: "invoices", icon: Receipt, label: t.invoices, module: "invoices", group: "finance" },
+    { id: "finance", icon: Wallet, label: t.finance, module: "finance", group: "finance" },
+    { id: "costs", icon: DollarSign, label: t.costs, module: "costs", group: "finance" },
+    { id: "client_portal", icon: Link2, label: t.clientPortal, module: "client_portal", group: "finance" },
+    // Reports & Admin
+    { id: "reports", icon: BarChart3, label: t.reports, module: "reports", group: "reports" },
+    { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
   ];
-  const nav = allNav.filter(n => !n.perm || hasPermission(n.perm));
+  const nav = allNav.filter(n => canView(n.module));
+
+  // Group definitions for sidebar (label by language + display order)
+  const NAV_GROUPS: { key: string; label: string; }[] = [
+    { key: "core",     label: lang === "en" ? "Overview"   : lang === "jp" ? "概要"       : "ภาพรวม" },
+    { key: "planning", label: lang === "en" ? "Planning"   : lang === "jp" ? "計画"       : "การวางแผน" },
+    { key: "tracking", label: lang === "en" ? "Tracking"   : lang === "jp" ? "追跡"       : "ติดตาม & ควบคุม" },
+    { key: "people",   label: lang === "en" ? "Team"       : lang === "jp" ? "チーム"     : "ทีม & เวลา" },
+    { key: "finance",  label: lang === "en" ? "Finance"    : lang === "jp" ? "財務"       : "การเงิน" },
+    { key: "reports",  label: lang === "en" ? "Reports"    : lang === "jp" ? "レポート"   : "รายงาน" },
+    { key: "admin",    label: lang === "en" ? "System"     : lang === "jp" ? "システム"   : "ระบบ" },
+  ];
+  const groupedNav = NAV_GROUPS
+    .map(g => ({ ...g, items: nav.filter(n => n.group === g.key) }))
+    .filter(g => g.items.length > 0);
+
+  // ── KEYBOARD SHORTCUTS ──
+  useKeyboardShortcuts({
+    onCommandPalette: () => setPaletteOpen(true),
+    onHelp: () => setHelpOpen(true),
+    onNewTask: () => { setEditingTask(null); setTaskModalOpen(true); },
+    onEscape: () => {
+      if (paletteOpen) setPaletteOpen(false);
+      else if (helpOpen) setHelpOpen(false);
+      else if (taskModalOpen) setTaskModalOpen(false);
+      else if (projectModalOpen) setProjectModalOpen(false);
+    },
+    onGoto: (pageId) => setPage(pageId),
+  });
+
+  const paletteItems: CommandItem[] = [
+    ...nav.map(n => ({
+      id: `nav-${n.id}`, label: `ไปที่ ${n.label}`, group: "Navigation",
+      keywords: n.id, action: () => setPage(n.id),
+    })),
+    { id: "new-task", label: "สร้างงานใหม่", hint: "เปิด Task Modal", group: "Actions", keywords: "task new add",
+      action: () => { setEditingTask(null); setTaskModalOpen(true); } },
+    ...(hasPermission("can_manage_projects") ? [{ id: "new-project", label: "สร้างโครงการใหม่", group: "Actions", keywords: "project new add",
+      action: () => openAddProject() }] : []),
+    { id: "show-help", label: "ดู Keyboard Shortcuts", group: "ช่วยเหลือ", keywords: "help shortcut keyboard",
+      action: () => setHelpOpen(true) },
+    ...data.projects.slice(0, 30).map(p => ({
+      id: `proj-${p.id}`, label: `${p.project_code} — ${p.name_th || p.name_en}`,
+      hint: "เปิดโครงการ", group: "Projects",
+      keywords: `${p.project_code} ${p.name_th} ${p.name_en}`,
+      action: () => { setTaskFilter(p.id); setPage("tasks"); },
+    })),
+  ];
 
   // ── DASHBOARD ──
   const Dashboard = () => (
@@ -167,21 +268,30 @@ export default function App() {
           <p className="text-slate-400">{t.overview} — {new Date().toLocaleDateString(lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
         {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>}
       </div>
+      <DailyStandupCard lang={lang} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={FolderKanban} label={t.totalProjects} value={mockProjects.length} sub={`${mockProjects.filter(p => p.status === "in_progress").length} ${t.activeProjects}`} color="#003087" trend="+2" />
         <Stat icon={ListTodo} label={t.totalTasks} value={tasks.length} sub={`${tasks.filter(tk => tk.status === "done").length} ${t.completedTasks}`} color="#00AEEF" />
-        <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} sub={`${totalHrs.toFixed(1)} ${t.hours}`} color="#F7941D" trend="+12%" />
+        {canView("costs")
+          ? <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} sub={`${totalHrs.toFixed(1)} ${t.hours}`} color="#F7941D" trend="+12%" />
+          : <Stat icon={Clock} label={t.hours} value={totalHrs.toFixed(1)} sub={t.approval} color="#F7941D" />}
         <Stat icon={Users} label={t.teamMembers} value={mockMembers.length} sub={`${mockPositions.length} ${t.position}`} color="#10B981" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.costByProject}</h3>
-          <ResponsiveContainer width="100%" height={250}><BarChart data={costByProject}><CartesianGrid strokeDasharray="3 3" stroke="#334155" /><XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Bar dataKey="cost" fill="#003087" radius={[8, 8, 0, 0]} name={t.cost} /><Bar dataKey="budget" fill="#F7941D" radius={[8, 8, 0, 0]} name={t.budget} opacity={0.4} /></BarChart></ResponsiveContainer></div>
+        {canView("costs") && (
+          <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.costByProject}</h3>
+            <ResponsiveContainer width="100%" height={250}><BarChart data={costByProject}><CartesianGrid strokeDasharray="3 3" stroke="#334155" /><XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Bar dataKey="cost" fill="#003087" radius={[8, 8, 0, 0]} name={t.cost} /><Bar dataKey="budget" fill="#F7941D" radius={[8, 8, 0, 0]} name={t.budget} opacity={0.4} /></BarChart></ResponsiveContainer></div>
+        )}
         <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.taskDistribution}</h3>
           <ResponsiveContainer width="100%" height={250}><PieChart><Pie data={taskStats} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={4} dataKey="value" label={({ name, value }: { name?: string; value: number }) => `${name || ''}: ${value}`}>{taskStats.map((e, i) => <Cell key={i} fill={e.fill} />)}</Pie><Tooltip contentStyle={tipStyle} /></PieChart></ResponsiveContainer></div>
-        <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.monthlyCost}</h3>
-          <ResponsiveContainer width="100%" height={250}><AreaChart data={monthlyCostData}><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#003087" stopOpacity={0.3} /><stop offset="95%" stopColor="#003087" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#334155" /><XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 12 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Area type="monotone" dataKey="cost" stroke="#003087" fill="url(#cg)" strokeWidth={2.5} name={t.cost} /></AreaChart></ResponsiveContainer></div>
-        <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.costByPosition}</h3>
-          <ResponsiveContainer width="100%" height={250}><PieChart><Pie data={costByPos} cx="50%" cy="50%" outerRadius={95} paddingAngle={3} dataKey="value" label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}>{costByPos.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /></PieChart></ResponsiveContainer></div>
+        {canView("costs") && (
+          <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.monthlyCost}</h3>
+            <ResponsiveContainer width="100%" height={250}><AreaChart data={monthlyCostData}><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#003087" stopOpacity={0.3} /><stop offset="95%" stopColor="#003087" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#334155" /><XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 12 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Area type="monotone" dataKey="cost" stroke="#003087" fill="url(#cg)" strokeWidth={2.5} name={t.cost} /></AreaChart></ResponsiveContainer></div>
+        )}
+        {canView("costs") && (
+          <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155]"><h3 className="font-semibold text-white mb-4">{t.costByPosition}</h3>
+            <ResponsiveContainer width="100%" height={250}><PieChart><Pie data={costByPos} cx="50%" cy="50%" outerRadius={95} paddingAngle={3} dataKey="value" label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}>{costByPos.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /></PieChart></ResponsiveContainer></div>
+        )}
       </div>
     </div>
   );
@@ -225,13 +335,17 @@ export default function App() {
                 <p className="text-sm text-slate-400 mb-3">{t.client}: {p.client}</p>
                 <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-slate-400">{t.progress}</span><span className="text-white font-semibold">{p.progress}%</span></div>
                   <div className="w-full h-2 rounded-full bg-slate-700"><div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: p.progress === 100 ? "#10B981" : "linear-gradient(90deg,#003087,#00AEEF)" }} /></div></div>
-                <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className={`grid ${canView("costs") ? "grid-cols-3" : "grid-cols-2"} gap-2 mb-3`}>
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.tasks}</div><div className="text-sm font-semibold text-white">{dt}/{pt.length}</div></div>
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.hours}</div><div className="text-sm font-semibold text-white">{ph.toFixed(1)}</div></div>
-                  <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">{fmt(pc)}</div></div>
+                  {canView("costs") && (
+                    <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">{fmt(pc)}</div></div>
+                  )}
                 </div>
-                <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-slate-400">{t.budget}: {fmt(p.budget)}</span><span style={{ color: pct > 80 ? "#EF4444" : "#10B981" }}>{pct.toFixed(0)}%</span></div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-700"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 80 ? "#EF4444" : "#F7941D" }} /></div></div>
+                {canView("costs") && (
+                  <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-slate-400">{t.budget}: {fmt(p.budget)}</span><span style={{ color: pct > 80 ? "#EF4444" : "#10B981" }}>{pct.toFixed(0)}%</span></div>
+                    <div className="w-full h-1.5 rounded-full bg-slate-700"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 80 ? "#EF4444" : "#F7941D" }} /></div></div>
+                )}
                 <div className="flex items-center justify-between">
                   <div className="flex -space-x-2">{p.members.slice(0, 4).map(mId => { const mem = mockMembers.find(m => m.id === mId); return mem ? <div key={mId} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-[#1E293B]" style={{ background: getPos(mem.position_id)?.color || "#003087" }}>{mem.avatar}</div> : null; })}</div>
                   <div className="flex items-center gap-1.5 text-xs text-slate-400"><Calendar size={12} />{p.endDate}</div>
@@ -245,13 +359,202 @@ export default function App() {
     );
   };
 
+  // ── MY TASKS ──
+  const MyTasksPage = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-white">งานของฉัน</h1>
+      </div>
+      <MyTasks
+        onTaskClick={(id) => setDrawerTaskId(id)}
+        refreshKey={boardRefreshKey}
+      />
+    </div>
+  );
+
+  // ── GANTT ──
+  const GanttPage = () => {
+    const pid = ganttProjectId || data.projects[0]?.id || "";
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h1 className="text-2xl font-bold text-white">Gantt Chart</h1>
+          <select value={pid} onChange={e => setGanttProjectId(e.target.value)}
+            className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+            {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+          </select>
+        </div>
+        <GanttChart
+          projectId={pid}
+          onTaskClick={(id) => setDrawerTaskId(id)}
+          refreshKey={boardRefreshKey}
+        />
+      </div>
+    );
+  };
+
+  // ── MILESTONES ──
+  const MilestonesPage = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-white">Milestones</h1>
+        <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+          <option value="all">{t.all} {t.projects}</option>
+          {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+        </select>
+      </div>
+      <MilestonesPanel
+        projects={data.projects}
+        filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")}
+        refreshKey={boardRefreshKey}
+      />
+    </div>
+  );
+
+  // ── CALENDAR ──
+  const CalendarPage = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-white">Calendar</h1>
+        <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+          <option value="all">{t.all} {t.projects}</option>
+          {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+        </select>
+      </div>
+      <CalendarView
+        projects={data.projects}
+        filterProjectId={taskFilter}
+        onTaskClick={(id) => setDrawerTaskId(id)}
+        refreshKey={boardRefreshKey}
+      />
+    </div>
+  );
+
+  // ── SPRINT ──
+  const SprintPage = () => {
+    const pid = ganttProjectId || data.projects[0]?.id || "";
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h1 className="text-2xl font-bold text-white">Sprint Board</h1>
+          <select value={pid} onChange={e => setGanttProjectId(e.target.value)}
+            className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+            {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+          </select>
+        </div>
+        <SprintPanel
+          projects={data.projects}
+          filterProjectId={pid}
+          onTaskClick={(id) => setDrawerTaskId(id)}
+          canManage={hasPermission("can_manage_projects")}
+          refreshKey={boardRefreshKey}
+        />
+      </div>
+    );
+  };
+
+  // ── MEETINGS ──
+  const MeetingsPage = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-white">Meeting Notes</h1>
+        <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+          <option value="all">{t.all} {t.projects}</option>
+          {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+        </select>
+      </div>
+      <MeetingNotesPanel
+        projects={data.projects}
+        filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")}
+        refreshKey={boardRefreshKey}
+      />
+    </div>
+  );
+
+  // ── RISKS / ISSUES / CHANGE REQUESTS / DECISIONS ──
+  const ProjectFilterHeader = ({ title }: { title: string }) => (
+    <div className="flex items-center justify-between flex-wrap gap-3">
+      <h1 className="text-2xl font-bold text-white">{title}</h1>
+      <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
+        className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+        <option value="all">{t.all} {t.projects}</option>
+        {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+      </select>
+    </div>
+  );
+
+  const RisksPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Risk Register" />
+      <RisksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const IssuesPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Issue Log" />
+      <IssuesPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const ChangesPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Change Requests" />
+      <ChangeRequestsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} canApprove={hasPermission("can_approve_timelog")}
+        refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const DecisionsPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Decision Log" />
+      <DecisionLogPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+
+  const TemplatesPage = () => (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-white">Templates</h1>
+      <TemplatesPanel projects={data.projects} canManage={hasPermission("can_manage_projects")}
+        refreshKey={boardRefreshKey} onProjectCreated={() => setBoardRefreshKey(k => k + 1)} />
+    </div>
+  );
+  const RecurringPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Recurring Tasks" />
+      <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+
+  const InvoicesPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="ใบแจ้งหนี้ / Invoices" />
+      <InvoicesPanel projects={data.projects} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const FinancePage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Finance — P&L / EVM" />
+      <FinancePanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const ClientPortalPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title="Client Portal — ลิงก์สำหรับลูกค้า" />
+      <ClientPortalPanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} />
+    </div>
+  );
+
   // ── TASKS (KANBAN) ──
   const Tasks = () => {
-    const cols = ["backlog", "todo", "in_progress", "review", "done"];
-    const ft = taskFilter === "all" ? tasks : tasks.filter(tk => tk.project_id === taskFilter);
-    const move = async (id: string, to: string) => {
-      try { await data.updateTask(id, { status: to }); } catch (e) { console.error(e); }
-    };
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -264,44 +567,15 @@ export default function App() {
             {hasPermission("can_manage_tasks") && <button onClick={openAddTask} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addTask}</button>}
           </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {cols.map(col => {
-            const ct = ft.filter(tk => tk.status === col);
-            return (
-              <div key={col} className="min-w-[280px] flex-shrink-0">
-                <div className="flex items-center justify-between mb-3 px-1">
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: statusColor[col] }} /><span className="font-semibold text-sm text-white">{t[col]}</span><span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{ct.length}</span></div>
-                </div>
-                <div className="space-y-3 p-2 rounded-2xl min-h-[400px] bg-[#0F172A]/60">
-                  {ct.map(task => {
-                    const asg = mockMembers.find(m => m.id === task.assignee);
-                    const proj = mockProjects.find(p => p.id === task.project_id);
-                    const ci = cols.indexOf(col);
-                    return (
-                      <div key={task.id} className="kanban-card bg-[#1E293B] rounded-xl p-4 border border-[#334155]">
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ background: `${statusColor[proj?.status || "planning"]}20`, color: statusColor[proj?.status || "planning"] }}>{proj?.code}</span>
-                          <div className="flex gap-1">
-                            {ci > 0 && <button onClick={() => move(task.id, cols[ci - 1])} className="p-1 rounded text-slate-400 hover:text-blue-400"><ChevronLeft size={14} /></button>}
-                            {ci < cols.length - 1 && <button onClick={() => move(task.id, cols[ci + 1])} className="p-1 rounded text-slate-400 hover:text-blue-400"><ChevronRight size={14} /></button>}
-                          </div>
-                        </div>
-                        <h4 className="text-sm font-medium text-white mb-2">{task.title}</h4>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {asg && <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: getPos(asg.position_id)?.color || "#003087" }}>{asg.avatar[0]}</div>}
-                            <span className="text-xs text-slate-400">{task.hours}h</span>
-                          </div>
-                          <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ background: prioColor[task.priority] }} /><span className="text-xs text-slate-400">{task.dueDate?.slice(5)}</span></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <KanbanBoard
+          projects={data.projects}
+          members={data.members}
+          filterProjectId={taskFilter}
+          onTaskClick={(id) => setDrawerTaskId(id)}
+          onAddTask={() => openAddTask()}
+          refreshKey={boardRefreshKey}
+          canManage={hasPermission("can_manage_tasks")}
+        />
       </div>
     );
   };
@@ -328,13 +602,17 @@ export default function App() {
                   <div><h3 className="font-semibold text-white">{getName(mem)}</h3><p className="text-sm" style={{ color: pos?.color }}>{pos ? getName(pos) : ""}</p></div>
                 </div>
                 <div className="text-xs text-slate-400 mb-3">{mem.dept}</div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className={`grid ${canView("manpower") ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.hours}</div><div className="text-sm font-semibold text-white">{mh.toFixed(1)}</div></div>
-                  <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">฿{mc.toLocaleString()}</div></div>
+                  {canView("manpower") && (
+                    <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">฿{mc.toLocaleString()}</div></div>
+                  )}
                   <div className="text-center p-2 rounded-lg bg-slate-700/50"><div className="text-xs text-slate-400">{t.projects}</div><div className="text-sm font-semibold text-white">{mp}</div></div>
                 </div>
                 <div className="mt-3 flex items-center justify-between pt-3 border-t border-[#334155]">
-                  <span className="text-sm font-semibold text-[#003087]">฿{mem.rate}{t.perHour}</span>
+                  {canView("manpower")
+                    ? <span className="text-sm font-semibold text-[#003087]">฿{mem.rate}{t.perHour}</span>
+                    : <span className="text-xs text-slate-500">{mem.dept}</span>}
                   <div className="flex gap-1">
                     {hasPermission("can_manage_members") && <button onClick={() => openEditMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button>}
                     {isAdmin && <button onClick={() => handleDeleteMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-red-400"><Trash2 size={14} /></button>}
@@ -347,16 +625,16 @@ export default function App() {
       ) : (
         <div className="bg-[#1E293B] rounded-2xl border border-[#334155] overflow-hidden">
           <table className="w-full"><thead><tr className="bg-slate-700/50">
-            {[t.position, t.hourlyRate, t.teamMembers, t.totalCost, t.actions].map(h => <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase">{h}</th>)}
+            {[t.position, ...(canView("manpower") ? [t.hourlyRate] : []), t.teamMembers, ...(canView("manpower") ? [t.totalCost] : []), t.actions].map(h => <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase">{h}</th>)}
           </tr></thead><tbody>
             {mockPositions.map(pos => {
               const pm = mockMembers.filter(m => m.position_id === pos.id);
               const pc = approvedLogs.filter(l => pm.some(m => m.id === l.member_id)).reduce((s, l) => s + l.hours * l.rate, 0);
               return (<tr key={pos.id} className="border-t border-[#334155] hover:bg-slate-700/30">
                 <td className="px-5 py-4"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${pos.color}20` }}><Briefcase size={16} style={{ color: pos.color }} /></div><span className="font-medium text-white">{getName(pos)}</span></div></td>
-                <td className="px-5 py-4 text-[#003087] font-semibold">฿{pos.rate}{t.perHour}</td>
+                {canView("manpower") && <td className="px-5 py-4 text-[#003087] font-semibold">฿{pos.rate}{t.perHour}</td>}
                 <td className="px-5 py-4 text-white">{pm.length}</td>
-                <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>
+                {canView("manpower") && <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>}
                 <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1">
                   {hasPermission("can_manage_members") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400"><Edit3 size={14} /></button>}
                   {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-700 text-red-400"><Trash2 size={14} /></button>}
@@ -376,13 +654,13 @@ export default function App() {
         {hasPermission("can_log_time") && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
-        <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />
+        {canView("costs") && <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />}
         <Stat icon={CheckCircle2} label={t.approved} value={mockTimeLogs.filter(l => l.status === "approved").length} color="#10B981" />
         <Stat icon={AlertCircle} label={t.pending} value={mockTimeLogs.filter(l => l.status === "pending").length} color="#F59E0B" />
       </div>
       <div className="bg-[#1E293B] rounded-2xl border border-[#334155] overflow-x-auto">
         <table className="w-full"><thead><tr className="bg-slate-700/50">
-          {[t.name, t.position, t.projects, "Date", t.hours, t.rate, t.cost, t.status].map(h => <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase">{h}</th>)}
+          {[t.name, t.position, t.projects, "Date", t.hours, ...(canView("costs") ? [t.rate, t.cost] : []), t.status].map(h => <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase">{h}</th>)}
         </tr></thead><tbody>
           {mockTimeLogs.map(log => {
             const mem = mockMembers.find(m => m.id === log.member_id);
@@ -394,8 +672,8 @@ export default function App() {
               <td className="px-4 py-3 text-sm text-white">{proj ? getName(proj).substring(0, 20) : ""}</td>
               <td className="px-4 py-3 text-sm text-slate-400">{log.date}</td>
               <td className="px-4 py-3 text-sm font-semibold text-white">{Number(log.hours).toFixed(1)}h</td>
-              <td className="px-4 py-3 text-sm text-slate-400">฿{log.rate}</td>
-              <td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">฿{(log.hours * log.rate).toLocaleString()}</td>
+              {canView("costs") && <td className="px-4 py-3 text-sm text-slate-400">฿{log.rate}</td>}
+              {canView("costs") && <td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">฿{(log.hours * log.rate).toLocaleString()}</td>}
               <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${log.status === "approved" ? "bg-emerald-500/20 text-emerald-400" : "bg-yellow-500/20 text-yellow-400"}`}>{t[log.status]}</span></td>
             </tr>);
           })}
@@ -503,7 +781,7 @@ export default function App() {
   const Workload = () => <WorkloadHeatmap weeks={8} />;
   const Approval = () => <TimeLogApproval canApprove={["admin","manager","leader"].includes(currentUser?.role ?? "")} />;
   const Manpower = () => <ManpowerReport positions={data.positions} members={data.members} projects={data.projects} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, projects: Projects, tasks: Tasks, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage };
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage };
   const Page = pages[page] || Dashboard;
 
   return (
@@ -514,11 +792,31 @@ export default function App() {
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>TT</div>
           {sidebarOpen && <div><div className="font-bold text-sm text-white">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>}
         </div>
-        <nav className="flex-1 p-3 space-y-1">{nav.map(item => (
-          <button key={item.id} onClick={() => setPage(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-slate-400 hover:text-white hover:bg-slate-800"}`} style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
-            <item.icon size={20} />{sidebarOpen && <span>{item.label}</span>}
-          </button>
-        ))}</nav>
+        <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3 sidebar-scroll">
+          {groupedNav.map(g => {
+            const collapsed = !!collapsedGroups[g.key];
+            return (
+              <div key={g.key} className="space-y-1">
+                {sidebarOpen ? (
+                  <button onClick={() => toggleGroup(g.key)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-400 transition">
+                    <span>{g.label}</span>
+                    {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                  </button>
+                ) : (
+                  <div className="h-px bg-[#1E293B] mx-2 my-2" />
+                )}
+                {!collapsed && g.items.map(item => (
+                  <button key={item.id} onClick={() => setPage(item.id)} title={!sidebarOpen ? item.label : undefined}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
+                    style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
+                    <item.icon size={20} />{sidebarOpen && <span className="truncate">{item.label}</span>}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </nav>
         <div className="p-3 border-t border-[#334155]"><button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white text-sm">{sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}</button></div>
       </div>
 
@@ -531,7 +829,26 @@ export default function App() {
             <div className="flex items-center gap-1 rounded-lg p-1 bg-[#0F172A]">{(["th", "en", "jp"] as const).map(l => (
               <button key={l} onClick={() => setLang(l)} className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-slate-400"}`} style={lang === l ? { background: "#003087" } : {}}>{l.toUpperCase()}</button>
             ))}</div>
-            <button className="p-2 rounded-xl bg-slate-700 relative text-slate-400"><Bell size={18} /><span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center bg-[#F7941D]">3</span></button>
+            <button onClick={() => setPaletteOpen(true)}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1E293B] border border-[#334155] text-slate-300 hover:border-cyan-500 text-xs"
+              title="Command Palette (Ctrl+K)">
+              <span>ค้นหา / คำสั่ง</span>
+              <kbd className="text-[10px] font-mono border border-[#334155] rounded px-1.5 py-0.5">Ctrl K</kbd>
+            </button>
+            <NotificationBell onNavigate={(link) => {
+              // Parse link patterns: /tasks/:id, /milestones, /meetings, /sprint, etc.
+              if (link.startsWith("/tasks/")) {
+                const tid = link.split("/")[2];
+                if (tid) setDrawerTaskId(tid);
+              } else if (link === "/tasks") setPage("tasks");
+              else if (link === "/milestones") setPage("milestones");
+              else if (link === "/meetings") setPage("meetings");
+              else if (link === "/calendar") setPage("calendar");
+              else if (link === "/sprint") setPage("sprint");
+              else if (link === "/approval") setPage("approval");
+              else if (link === "/mytasks") setPage("mytasks");
+              else if (link.startsWith("/")) router.push(link);
+            }} />
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm transition">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
@@ -588,6 +905,7 @@ export default function App() {
         onSubmit={async (payload) => {
           if (editingTask) await data.updateTask(editingTask.id, payload);
           else await data.createTask(payload);
+          setBoardRefreshKey(k => k + 1);
         }}
       />
       <MemberModal
@@ -617,6 +935,21 @@ export default function App() {
         members={data.members}
         onSubmit={async (payload) => { await data.createTimelog(payload); }}
       />
+      <TaskDetailDrawer
+        open={!!drawerTaskId}
+        taskId={drawerTaskId}
+        onClose={() => setDrawerTaskId(null)}
+        onChange={() => { data.refetchTasks?.(); setBoardRefreshKey(k => k + 1); }}
+        members={data.members}
+        allTasks={data.tasks}
+      />
+      <FloatingTimer
+        onOpenTask={(id) => setDrawerTaskId(id)}
+        refreshKey={boardRefreshKey}
+        onChange={() => { data.refetchTimelogs?.(); setBoardRefreshKey(k => k + 1); }}
+      />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} items={paletteItems} />
+      <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

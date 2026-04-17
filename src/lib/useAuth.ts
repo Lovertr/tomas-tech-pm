@@ -20,8 +20,11 @@ export interface AuthUser {
   must_change_password: boolean;
 }
 
+export type ModulePerms = Record<string, number>;
+
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [perms, setPerms] = useState<ModulePerms>({});
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
@@ -30,11 +33,19 @@ export function useAuth() {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        // load granular per-module permissions
+        try {
+          const pr = await fetch('/api/permissions/me');
+          if (pr.ok) {
+            const pd = await pr.json();
+            setPerms(pd.permissions ?? {});
+          }
+        } catch {/* ignore */}
       } else {
-        setUser(null);
+        setUser(null); setPerms({});
       }
     } catch {
-      setUser(null);
+      setUser(null); setPerms({});
     } finally {
       setLoading(false);
     }
@@ -43,6 +54,15 @@ export function useAuth() {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // Granular permission checks per module
+  // Levels: 0=none 1=view 2=comment 3=edit 4=create 5=full
+  const moduleLevel = (key: string): number => perms[key] ?? 0;
+  const canView = (key: string) => moduleLevel(key) >= 1;
+  const canComment = (key: string) => moduleLevel(key) >= 2;
+  const canEdit = (key: string) => moduleLevel(key) >= 3;
+  const canCreate = (key: string) => moduleLevel(key) >= 4;
+  const canDelete = (key: string) => moduleLevel(key) >= 5;
 
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -109,5 +129,13 @@ export function useAuth() {
     isManager,
     isLeader,
     refetch: fetchUser,
+    // Granular module permissions
+    perms,
+    moduleLevel,
+    canView,
+    canComment,
+    canEdit,
+    canCreate,
+    canDelete,
   };
 }

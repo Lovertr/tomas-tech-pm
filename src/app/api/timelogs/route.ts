@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getAuthContext } from "@/lib/auth-server";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
 
 export async function GET(request: NextRequest) {
   const ctx = await getAuthContext(request);
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   if (memberId) query = query.eq("team_member_id", memberId);
   if (status) query = query.eq("status", status);
 
-  // Members only see their own logs
+  // Members: only see their own logs (project scoping handled via existing team_member_id logic)
   if (ctx.role === "member") {
     const { data: tm } = await supabaseAdmin
       .from("team_members").select("id").eq("user_id", ctx.userId).maybeSingle();

@@ -1,0 +1,28 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthContext } from "@/lib/auth-server";
+
+const ALLOWED = ["title", "description", "severity", "status", "assigned_to", "resolved_at"];
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+  const body = await req.json();
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  for (const k of ALLOWED) if (k in body) update[k] = body[k];
+  if (body.status === "resolved" && !body.resolved_at) update.resolved_at = new Date().toISOString();
+  const { data, error } = await supabaseAdmin.from("issues").update(update).eq("id", id).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ issue: data });
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!["admin", "manager", "leader"].includes(ctx.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { id } = await params;
+  const { error } = await supabaseAdmin.from("issues").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}

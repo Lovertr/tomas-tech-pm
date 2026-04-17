@@ -19,11 +19,14 @@ export default function TaskModal({ open, onClose, initial, projects, members, o
   const [form, setForm] = useState<Partial<DBTask>>({});
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiHint, setAiHint] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setForm(initial ?? { status: "todo", priority: "medium" });
       setErr(null);
+      setAiHint(null);
     }
   }, [open, initial]);
 
@@ -91,7 +94,32 @@ export default function TaskModal({ open, onClose, initial, projects, members, o
           </div>
           <div>
             <label className={fieldLabel}>ชั่วโมงประมาณ</label>
-            <input type="number" className={fieldInput} value={form.estimated_hours ?? ""} onChange={(e) => set("estimated_hours", e.target.value ? Number(e.target.value) : null)} />
+            <div className="flex gap-2">
+              <input type="number" className={fieldInput} value={form.estimated_hours ?? ""} onChange={(e) => set("estimated_hours", e.target.value ? Number(e.target.value) : null)} />
+              <button
+                type="button"
+                title="AI suggest"
+                disabled={!form.title || aiBusy}
+                onClick={async () => {
+                  setAiBusy(true); setErr(null);
+                  try {
+                    const r = await fetch("/api/ai/estimate-task", {
+                      method: "POST", headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ title: form.title, description: form.description, project_id: form.project_id }),
+                    });
+                    const j = await r.json();
+                    if (!r.ok) throw new Error(j.error || "AI failed");
+                    set("estimated_hours", j.estimated_hours);
+                    setAiHint(`AI: ${j.estimated_hours}h (${j.confidence}) — ${j.reasoning}`);
+                  } catch (e) { setErr(e instanceof Error ? e.message : "AI failed"); }
+                  finally { setAiBusy(false); }
+                }}
+                className="px-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-medium disabled:opacity-40 whitespace-nowrap"
+              >
+                {aiBusy ? "..." : "✨ AI"}
+              </button>
+            </div>
+            {aiHint && <div className="text-xs text-purple-300 mt-1">{aiHint}</div>}
           </div>
         </div>
 

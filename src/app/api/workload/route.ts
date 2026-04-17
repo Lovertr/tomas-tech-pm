@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getAuthContext } from "@/lib/auth-server";
+import { requirePermission, getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
 
 // GET /api/workload?start=YYYY-MM-DD&end=YYYY-MM-DD
 // Returns: per-member allocation % + actual hours logged within [start,end]
 // Used by Workload Heatmap
 export async function GET(request: NextRequest) {
-  const ctx = await getAuthContext(request);
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await requirePermission(request, "workload", 1);
+  if ("error" in ctx) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
 
   const start = request.nextUrl.searchParams.get("start");
   const end = request.nextUrl.searchParams.get("end");
@@ -15,20 +15,48 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "start and end required (YYYY-MM-DD)" }, { status: 400 });
   }
 
-  // Fetch all active members
-  const { data: members, error: e1 } = await supabaseAdmin
+  // Get the auth context for role check
+  const authCtx = await getAuthContext(request);
+  if (!authCtx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // For members: only show their own workload
+  let membersQuery = supabaseAdmin
     .from("team_members")
     .select("id, first_name_en, last_name_en, first_name_th, last_name_th, weekly_capacity_hours, position_id, positions(color, name_en, name_th)")
     .eq("is_active", true);
+
+  if (authCtx.role === "member") {
+    membersQuery = membersQuery.eq("user_id", authCtx.userId);
+  }
+
+  // Fetch members
+  const { data: members, error: e1 } = await membersQuery;
   if (e1) return NextResponse.json({ error: e1.message }, { status: 500 });
 
   // Allocations overlapping the range
-  const { data: allocations, error: e2 } = await supabaseAdmin
+  let allocationsQuery = supabaseAdmin
     .from("project_members")
     .select("id, project_id, team_member_id, allocation_pct, start_date, end_date, projects(name_en, name_th, project_code)")
     .eq("is_active", true)
     .lte("start_date", end)
     .or(`end_date.is.null,end_date.gte.${start}`);
+
+  // For members: filter to their own allocations or accessible projects
+  if (authCtx.role === "member") {
+    const { data: tm } = await supabaseAdmin.from("team_members").select("id").eq("user_id", authCtx.userId).maybeSingle();
+    if (tm?.id) {
+      const accessible = await getAccessibleProjectIds(authCtx);
+      if (accessible !== null && accessible.length > 0) {
+        allocationsQuery = allocationsQuery.or(`team_member_id.eq.${tm.id},project_id.in.(${accessible.join(",")})`);
+      } else {
+        allocationsQuery = allocationsQuery.eq("team_member_id", tm.id);
+      }
+    } else {
+      allocationsQuery = allocationsQuery.eq("team_member_id", "");
+    }
+  }
+
+  const { data: allocations, error: e2 } = await allocationsQuery;
   if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
 
   // Actual approved timelog hours within range, grouped by member

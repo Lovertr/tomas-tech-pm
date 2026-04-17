@@ -1,0 +1,203 @@
+"use client";
+import { useEffect, useState, useCallback } from "react";
+import { Calendar, AlertCircle, CheckCircle2, Clock, Play, Square, ChevronRight } from "lucide-react";
+
+interface Task {
+  id: string; title: string; status: string; priority: string;
+  due_date?: string | null; estimated_hours?: number | null; actual_hours?: number | null;
+  project_id: string;
+  projects?: { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null };
+}
+
+const PRIO_DOT: Record<string, string> = {
+  urgent: "bg-red-500", high: "bg-orange-400", medium: "bg-blue-400", low: "bg-slate-400",
+};
+const STATUS_COLOR: Record<string, string> = {
+  backlog: "bg-slate-500/20 text-slate-300", todo: "bg-blue-500/20 text-blue-300",
+  in_progress: "bg-yellow-500/20 text-yellow-300", review: "bg-purple-500/20 text-purple-300",
+};
+
+interface Props {
+  onTaskClick: (id: string) => void;
+  refreshKey?: number;
+}
+
+export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState<{ id: string; task_id?: string; started_at: string } | null>(null);
+  const [now, setNow] = useState(Date.now());
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [t, tm] = await Promise.all([
+        fetch("/api/my-tasks").then(r => r.ok ? r.json() : { tasks: [] }),
+        fetch("/api/timers").then(r => r.ok ? r.json() : { timer: null }),
+      ]);
+      setTasks(t.tasks ?? []);
+      setTimer(tm.timer ?? null);
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll, refreshKey]);
+
+  useEffect(() => {
+    if (!timer) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [timer]);
+
+  const elapsed = (start: string) => {
+    const s = Math.max(0, Math.floor((now - new Date(start).getTime()) / 1000));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  };
+
+  const startTimer = async (task: Task) => {
+    const r = await fetch("/api/timers", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task_id: task.id, project_id: task.project_id }),
+    });
+    if (r.ok) { const d = await r.json(); setTimer(d.timer ?? d); window.dispatchEvent(new Event("timer:changed")); }
+  };
+  const stopTimer = async () => {
+    const r = await fetch("/api/timers/stop", { method: "POST" });
+    if (r.ok) { setTimer(null); fetchAll(); window.dispatchEvent(new Event("timer:changed")); }
+  };
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const in3days = new Date(today); in3days.setDate(in3days.getDate() + 3);
+  const in7days = new Date(today); in7days.setDate(in7days.getDate() + 7);
+
+  const groups = {
+    overdue: [] as Task[], today: [] as Task[], next3: [] as Task[], next7: [] as Task[], later: [] as Task[], noDate: [] as Task[],
+  };
+  tasks.forEach(t => {
+    if (!t.due_date) { groups.noDate.push(t); return; }
+    const d = new Date(t.due_date); d.setHours(0, 0, 0, 0);
+    if (d < today) groups.overdue.push(t);
+    else if (d.getTime() === today.getTime()) groups.today.push(t);
+    else if (d <= in3days) groups.next3.push(t);
+    else if (d <= in7days) groups.next7.push(t);
+    else groups.later.push(t);
+  });
+
+  const total = tasks.length;
+  const inProgress = tasks.filter(t => t.status === "in_progress").length;
+  const overdue = groups.overdue.length;
+  const dueToday = groups.today.length;
+
+  const renderRow = (t: Task) => {
+    const isMyTimer = timer?.task_id === t.id;
+    const proj = t.projects;
+    const due = t.due_date ? new Date(t.due_date) : null;
+    return (
+      <div
+        key={t.id}
+        onClick={() => onTaskClick(t.id)}
+        className="group bg-[#1E293B] border border-[#334155] hover:border-[#00AEEF]/60 rounded-xl p-4 cursor-pointer transition-colors flex items-center gap-3"
+      >
+        <span className={`w-2 h-2 rounded-full shrink-0 ${PRIO_DOT[t.priority] || "bg-slate-400"}`} title={t.priority} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">{proj?.project_code || "—"}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status] || "bg-slate-500/20 text-slate-300"}`}>{t.status}</span>
+          </div>
+          <div className="text-sm text-white truncate">{t.title}</div>
+          <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+            {due && <span className="flex items-center gap-1"><Calendar size={11} />{due.toLocaleDateString("th-TH", { month: "short", day: "numeric" })}</span>}
+            {t.estimated_hours ? <span className="flex items-center gap-1"><Clock size={11} />{Number(t.estimated_hours).toFixed(1)}h</span> : null}
+            {(t.actual_hours ?? 0) > 0 && <span className="text-slate-500">spent {Number(t.actual_hours).toFixed(1)}h</span>}
+          </div>
+        </div>
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          {isMyTimer ? (
+            <button onClick={stopTimer} className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-md">
+              <Square size={12} /> {elapsed(timer!.started_at)}
+            </button>
+          ) : (
+            <button onClick={() => startTimer(t)} disabled={!!timer} title={timer ? "มี timer ทำงานอยู่" : "Start timer"}
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-300 hover:bg-green-500/30 rounded-md disabled:opacity-40 disabled:cursor-not-allowed">
+              <Play size={12} />
+            </button>
+          )}
+          <ChevronRight size={16} className="text-slate-500 group-hover:text-white" />
+        </div>
+      </div>
+    );
+  };
+
+  const Section = ({ title, items, accent }: { title: string; items: Task[]; accent: string }) => {
+    if (!items.length) return null;
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 px-1">
+          <div className="w-1 h-4 rounded-full" style={{ background: accent }} />
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
+          <span className="text-xs text-slate-400">({items.length})</span>
+        </div>
+        <div className="space-y-2">{items.map(renderRow)}</div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="งานทั้งหมด" value={total} icon={CheckCircle2} color="#00AEEF" />
+        <StatCard label="กำลังทำ" value={inProgress} icon={Clock} color="#F7941D" />
+        <StatCard label="ครบกำหนดวันนี้" value={dueToday} icon={Calendar} color="#A855F7" />
+        <StatCard label="เลยกำหนด" value={overdue} icon={AlertCircle} color="#EF4444" />
+      </div>
+
+      {/* Active timer banner */}
+      {timer && (
+        <div className="flex items-center justify-between bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <div>
+              <div className="text-sm font-medium text-white">Timer running</div>
+              <div className="text-xs text-slate-400">{tasks.find(t => t.id === timer.task_id)?.title || "task"}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-lg text-green-300">{elapsed(timer.started_at)}</span>
+            <button onClick={stopTimer} className="px-3 py-1.5 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-md text-xs font-medium flex items-center gap-1">
+              <Square size={14} /> Stop
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading && tasks.length === 0 && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {!loading && tasks.length === 0 && (
+        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl">
+          <CheckCircle2 size={48} className="mx-auto text-green-400 mb-3" />
+          <div className="text-lg font-semibold text-white">ไม่มีงานค้าง</div>
+          <div className="text-sm text-slate-400 mt-1">เคลียร์งานหมดแล้ว ดีมาก</div>
+        </div>
+      )}
+
+      <Section title="เลยกำหนด" items={groups.overdue} accent="#EF4444" />
+      <Section title="วันนี้" items={groups.today} accent="#F7941D" />
+      <Section title="3 วันข้างหน้า" items={groups.next3} accent="#00AEEF" />
+      <Section title="7 วันข้างหน้า" items={groups.next7} accent="#3B82F6" />
+      <Section title="ภายหลัง" items={groups.later} accent="#64748B" />
+      <Section title="ไม่กำหนดวัน" items={groups.noDate} accent="#475569" />
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: React.ComponentType<{ size?: number; color?: string }>; color: string }) {
+  return (
+    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+      <div className="flex items-center justify-between mb-2">
+        <Icon size={18} color={color} />
+        <span className="text-2xl font-bold text-white">{value}</span>
+      </div>
+      <div className="text-xs text-slate-400">{label}</div>
+    </div>
+  );
+}

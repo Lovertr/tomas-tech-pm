@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getAuthContext } from "@/lib/auth-server";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
+
+// GET /api/projects/[id] - fetch single project (scoped for role=member)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await getAuthContext(request);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+
+  const accessible = await getAccessibleProjectIds(ctx);
+  if (accessible !== null && !accessible.includes(id)) {
+    return NextResponse.json({ error: "Forbidden: not your project" }, { status: 403 });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("projects").select("*").eq("id", id).maybeSingle();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  return NextResponse.json({ project: data });
+}
 
 const ALLOWED = [
   "project_code", "name_th", "name_en", "name_jp", "description",

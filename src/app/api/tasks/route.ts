@@ -1,15 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getAuthContext } from "@/lib/auth-server";
+import { getAuthContext, getScopedAccess } from "@/lib/auth-server";
 
-// GET /api/tasks - list all tasks (optionally filter by project_id)
+// GET /api/tasks - list tasks (scoped for role=member: only assigned to them
+// or in projects they have access to)
 export async function GET(request: NextRequest) {
-  const ctx = await getAuthContext(request);
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const scope = await getScopedAccess(request);
+  if ("error" in scope) return NextResponse.json({ error: scope.error }, { status: scope.status });
+  const { ctx, projectIds, memberId } = scope;
 
   const projectId = request.nextUrl.searchParams.get("project_id");
   let query = supabaseAdmin.from("tasks").select("*").order("created_at", { ascending: false });
   if (projectId) query = query.eq("project_id", projectId);
+
+  if (ctx.role === "member") {
+    if (!memberId) return NextResponse.json({ tasks: [] });
+    const ids = projectIds ?? [];
+    // visible if assigned to me OR in any project I can access
+    if (ids.length === 0) {
+      query = query.eq("assignee_id", memberId);
+    } else {
+      query = query.or(`assignee_id.eq.${memberId},project_id.in.(${ids.join(",")})`);
+    }
+  }
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

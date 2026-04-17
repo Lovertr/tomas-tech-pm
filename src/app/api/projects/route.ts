@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getAuthContext } from "@/lib/auth-server";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
 
-// GET /api/projects - list projects
+// GET /api/projects - list projects (scoped for role=member)
 export async function GET(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("projects")
     .select("*")
     .eq("is_archived", false)
     .order("created_at", { ascending: false });
 
+  // Member-level users only see projects they're allocated to or have tasks in
+  const accessible = await getAccessibleProjectIds(ctx);
+  if (accessible !== null) {
+    if (accessible.length === 0) return NextResponse.json({ projects: [] });
+    query = query.in("id", accessible);
+  }
+
+  const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ projects: data ?? [] });
 }

@@ -1,6 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getAuthContext } from "@/lib/auth-server";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
+
+// GET /api/tasks/[id] - fetch single task (scoped for role=member)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await getAuthContext(request);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const { data, error } = await supabaseAdmin
+    .from("tasks")
+    .select("*, projects(id, project_code, name_th, name_en), assignee:team_members!tasks_assignee_id_fkey(id, first_name_th, last_name_th, first_name_en, last_name_en, user_id), reporter:team_members!tasks_reporter_id_fkey(id, first_name_th, last_name_th, first_name_en, last_name_en)")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Task not found" }, { status: 404 });
+
+  // Member-level access check: must be assignee or in their accessible projects
+  if (ctx.role === "member") {
+    const assigneeUserId = (data.assignee as { user_id?: string } | null)?.user_id;
+    if (assigneeUserId !== ctx.userId) {
+      const accessible = await getAccessibleProjectIds(ctx);
+      if (accessible && !accessible.includes(data.project_id)) {
+        return NextResponse.json({ error: "Forbidden: not your task" }, { status: 403 });
+      }
+    }
+  }
+
+  return NextResponse.json({ task: data });
+}
 
 const ALLOWED = [
   "title", "description", "status", "priority", "assignee_id",

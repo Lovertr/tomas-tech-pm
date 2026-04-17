@@ -11,15 +11,23 @@ interface Props {
   onSubmit: (payload: Partial<DBMember>) => Promise<void>;
 }
 
+interface BasicUser { id: string; username: string; display_name: string | null; display_name_th: string | null; }
+
 export default function MemberModal({ open, onClose, initial, positions, onSubmit }: Props) {
   const [form, setForm] = useState<Partial<DBMember>>({});
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [users, setUsers] = useState<BasicUser[]>([]);
 
   useEffect(() => {
     if (open) {
       setForm(initial ?? { hourly_rate: 0 });
       setErr(null);
+      // Load user list for the link dropdown (admin/manager only — silently 403 otherwise)
+      fetch("/api/users/basic")
+        .then(r => r.ok ? r.json() : { users: [] })
+        .then(d => setUsers(d.users ?? []))
+        .catch(() => setUsers([]));
     }
   }, [open, initial]);
 
@@ -108,6 +116,29 @@ export default function MemberModal({ open, onClose, initial, positions, onSubmi
             <input className={fieldInput} value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
           </div>
         </div>
+
+        {users.length > 0 && (
+          <div className="border-t border-[#334155] pt-3">
+            <label className={fieldLabel}>
+              🔗 ผูกกับ User Account
+              <span className="text-xs text-slate-500 font-normal ml-2">
+                (เพื่อให้ AI Standup, MyTasks, Timer ทำงานในมุมของบุคคลนี้)
+              </span>
+            </label>
+            <select
+              className={fieldInput}
+              value={form.user_id ?? ""}
+              onChange={(e) => set("user_id", e.target.value || null)}
+            >
+              <option value="">— ไม่ผูก —</option>
+              {users.map(u => (
+                <option key={u.id} value={u.id}>
+                  {u.username} — {u.display_name_th || u.display_name || u.username}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
