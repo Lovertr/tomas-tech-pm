@@ -37,12 +37,13 @@ interface Contact {
   is_primary: boolean;
 }
 
-const statusColors = {
+const statusColors: Record<string, { bg: string; text: string; badge: string }> = {
   active: { bg: 'bg-green-900', text: 'text-green-200', badge: '#22C55E' },
   inactive: { bg: 'bg-gray-900', text: 'text-gray-200', badge: '#6B7280' },
   prospect: { bg: 'bg-blue-900', text: 'text-blue-200', badge: '#3B82F6' },
   churned: { bg: 'bg-red-900', text: 'text-red-200', badge: '#EF4444' },
 };
+const defaultStatusColor = { bg: 'bg-gray-900', text: 'text-gray-200', badge: '#6B7280' };
 
 const L = (key: string, lang: Lang = 'th'): string => {
   const panelText: Record<string, Record<Lang, string>> = {
@@ -375,8 +376,8 @@ export default function CustomersPanel({
                     <span
                       className="px-2 py-1 rounded text-xs font-medium"
                       style={{
-                        backgroundColor: statusColors[customer.status].badge + '20',
-                        color: statusColors[customer.status].badge,
+                        backgroundColor: (statusColors[customer.status] ?? defaultStatusColor).badge + '20',
+                        color: (statusColors[customer.status] ?? defaultStatusColor).badge,
                       }}
                     >
                       {customer.status}

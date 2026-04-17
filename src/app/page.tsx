@@ -59,6 +59,7 @@ import AllocationManager from "@/components/AllocationManager";
 import WorkloadHeatmap from "@/components/WorkloadHeatmap";
 import TimeLogApproval from "@/components/TimeLogApproval";
 import ManpowerReport from "@/components/ManpowerReport";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -1039,7 +1040,7 @@ export default function App() {
         </div>
 
         {/* Content — less padding on mobile, extra bottom padding for bottom nav */}
-        <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6"><Page /></main>
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6"><ErrorBoundary key={page}><Page /></ErrorBoundary></main>
       </div>
 
       {/* Mobile Bottom Navigation */}
