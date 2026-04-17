@@ -66,7 +66,7 @@ export default function SalesActivitiesPanel({
 
   const [formData, setFormData] = useState({
     deal_id: '',
-    type: 'note' as const,
+    type: 'note' as 'call' | 'email' | 'meeting' | 'note' | 'task' | 'demo' | 'follow_up',
     description: '',
     date: new Date().toISOString().split('T')[0],
   });

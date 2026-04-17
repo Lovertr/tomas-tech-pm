@@ -59,7 +59,7 @@ export default function DealsPipelinePanel({
     title: '',
     customer_id: '',
     value: 0,
-    stage: 'prospect' as const,
+    stage: 'prospect' as 'prospect' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost',
     expected_close_date: '',
     probability: 50,
     notes: '',
