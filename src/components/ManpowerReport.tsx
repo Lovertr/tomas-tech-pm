@@ -221,7 +221,7 @@ export default function ManpowerReport({ positions, members, projects }: Props) 
           <h2 className="text-lg font-semibold">Manpower Report</h2>
         </div>
         <button onClick={exportXLSX} disabled={logs.length === 0}
-          className="flex items-center gap-1.5 px-3 py-2 bg-[#F7941D] hover:bg-[#FFA630] disabled:opacity-50 text-gray-900 text-sm font-medium rounded-lg">
+          className="flex items-center gap-1.5 px-3 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg">
           <Download size={16} /> Export Excel
         </button>
       </div>
@@ -246,7 +246,7 @@ export default function ManpowerReport({ positions, members, projects }: Props) 
         <div className="text-xs text-gray-500 ml-2">{loading ? "Loading..." : `${logs.length} entries`}</div>
       </div>
 
-      {err && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3">{err}</div>}
+      {err && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">{err}</div>}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card icon={Users} label="Total Hours" value={totals.hours.toFixed(1)} sub={`${totals.entries} entries`} />
@@ -277,10 +277,10 @@ export default function ManpowerReport({ positions, members, projects }: Props) 
                 <tr key={i} className="border-t border-gray-300">
                   <td className="px-4 py-2 text-gray-900">{projName(p.project)}</td>
                   <td className="px-4 py-2 text-right text-gray-600">{p.hours.toFixed(1)}</td>
-                  <td className="px-4 py-2 text-right text-[#F7941D] font-medium">฿{Math.round(p.cost).toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right text-orange-600 font-medium">฿{Math.round(p.cost).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right text-gray-600">฿{Math.round(p.billable).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right text-gray-500">{budget > 0 ? `฿${Math.round(budget).toLocaleString()}` : "—"}</td>
-                  <td className={`px-4 py-2 text-right font-medium ${over ? "text-red-400" : "text-gray-600"}`}>
+                  <td className={`px-4 py-2 text-right font-medium ${over ? "text-red-600" : "text-gray-600"}`}>
                     {budget > 0 ? `${pct.toFixed(1)}%${over ? " ⚠" : ""}` : "—"}
                   </td>
                 </tr>
@@ -308,7 +308,7 @@ export default function ManpowerReport({ positions, members, projects }: Props) 
                 <td className="px-4 py-2 text-gray-900">{memName(m.member)}</td>
                 <td className="px-4 py-2 text-gray-600" style={{ color: m.position?.color ?? undefined }}>{posName(m.position)}</td>
                 <td className="px-4 py-2 text-right text-gray-600">{m.hours.toFixed(1)}</td>
-                <td className="px-4 py-2 text-right text-[#F7941D] font-medium">฿{Math.round(m.cost).toLocaleString()}</td>
+                <td className="px-4 py-2 text-right text-orange-600 font-medium">฿{Math.round(m.cost).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right text-gray-600">฿{m.hours > 0 ? Math.round(m.cost / m.hours).toLocaleString() : "—"}</td>
               </tr>
             ))}
@@ -333,7 +333,7 @@ export default function ManpowerReport({ positions, members, projects }: Props) 
                 <td className="px-4 py-2 text-gray-900" style={{ color: p.position?.color ?? undefined }}>{posName(p.position)}</td>
                 <td className="px-4 py-2 text-right text-gray-600">{p.memberCount.size}</td>
                 <td className="px-4 py-2 text-right text-gray-600">{p.hours.toFixed(1)}</td>
-                <td className="px-4 py-2 text-right text-[#F7941D] font-medium">฿{Math.round(p.cost).toLocaleString()}</td>
+                <td className="px-4 py-2 text-right text-orange-600 font-medium">฿{Math.round(p.cost).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

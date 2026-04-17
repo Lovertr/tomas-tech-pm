@@ -24,11 +24,11 @@ export default function DailyStandupCard({ lang = "th" }: { lang?: string }) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-2xl p-4">
+    <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-purple-400" />
-          <h3 className="text-sm font-semibold text-white">AI Daily Standup</h3>
+          <Sparkles size={16} className="text-purple-600" />
+          <h3 className="text-sm font-semibold text-gray-900">AI Daily Standup</h3>
           {meta && <span className="text-xs text-gray-500">— {meta.logs_count} logs · {meta.open_tasks_count} open tasks</span>}
         </div>
         <button onClick={generate} disabled={busy}
@@ -36,9 +36,9 @@ export default function DailyStandupCard({ lang = "th" }: { lang?: string }) {
           {busy ? <><Loader2 size={12} className="animate-spin" /> Generating...</> : <>✨ {text ? "Regenerate" : "Generate"}</>}
         </button>
       </div>
-      {err && <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded px-2 py-1.5">{err}</div>}
+      {err && <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">{err}</div>}
       {text && (
-        <div className="text-sm text-slate-200 whitespace-pre-wrap mt-2 max-h-64 overflow-y-auto">
+        <div className="text-sm text-slate-700 whitespace-pre-wrap mt-2 max-h-64 overflow-y-auto">
           {text}
         </div>
       )}

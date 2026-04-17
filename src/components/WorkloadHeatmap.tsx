@@ -140,7 +140,7 @@ export default function WorkloadHeatmap({ weeks: weeksCount = 8 }: Props) {
         <span className="px-2 py-0.5 rounded" style={{ background: "#FEE2E2", color: "#B91C1C", border: "1px solid #DC2626" }}>&gt;110% Over ⚠</span>
       </div>
 
-      {err && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3">{err}</div>}
+      {err && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">{err}</div>}
 
       <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">

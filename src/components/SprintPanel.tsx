@@ -7,7 +7,7 @@ interface Task { id: string; title: string; status: string; estimated_hours?: nu
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
 
 const STATUS_COLORS: Record<string, string> = {
-  planned: "bg-slate-200 text-slate-700", active: "bg-green-100 text-green-700",
+  planned: "bg-gray-200 text-gray-700", active: "bg-green-100 text-green-700",
   completed: "bg-blue-100 text-blue-700", cancelled: "bg-red-100 text-red-700",
 };
 
@@ -88,7 +88,7 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
         <div className="flex items-center gap-2 overflow-x-auto">
           {sprints.map(s => (
             <button key={s.id} onClick={() => setActiveSprintId(s.id)}
-              className={`px-3 py-2 rounded-lg text-sm whitespace-nowrap border transition-colors ${activeSprintId === s.id ? "bg-[#003087] border-[#003087] text-white" : "border-[#E2E8F0] text-gray-700 hover:text-gray-900"}`}>
+              className={`px-3 py-2 rounded-lg text-sm whitespace-nowrap border transition-colors ${activeSprintId === s.id ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 text-gray-700 hover:text-gray-900"}`}>
               {s.name}
               <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLORS[s.status]}`}>{s.status}</span>
             </button>
@@ -96,7 +96,7 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
           {!sprints.length && !loading && <span className="text-xs text-gray-500">ยังไม่มี sprint</span>}
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm flex items-center gap-2">
+          <button onClick={() => setCreating(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm flex items-center gap-2">
             <Plus size={16} /> New Sprint
           </button>
         )}

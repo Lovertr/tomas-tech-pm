@@ -17,12 +17,12 @@ export default function ShortcutsHelp({ open, onClose }: { open: boolean; onClos
           {SHORTCUTS_HELP.map(s => (
             <div key={s.keys} className="flex items-center justify-between text-sm">
               <span className="text-gray-800">{s.label}</span>
-              <kbd className="text-[11px] font-mono text-blue-700 border border-[#E2E8F0] bg-slate-50 rounded px-2 py-0.5">{s.keys}</kbd>
+              <kbd className="text-[11px] font-mono text-blue-600 border border-gray-300 bg-gray-50 rounded px-2 py-0.5">{s.keys}</kbd>
             </div>
           ))}
         </div>
         <div className="border-t border-[#E5E7EB] px-5 py-3 text-[11px] text-gray-600 text-center">
-          กด <kbd className="border border-[#E2E8F0] rounded px-1.5">?</kbd> เพื่อเปิดหน้านี้ทุกที่
+          กด <kbd className="border border-gray-300 rounded px-1.5">?</kbd> เพื่อเปิดหน้านี้ทุกที่
         </div>
       </div>
     </div>

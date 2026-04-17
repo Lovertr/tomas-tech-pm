@@ -82,7 +82,7 @@ export default function TranslateButton({ text, className = "", compact = false 
       </div>
 
       {error && (
-        <div className="mt-1 text-xs text-red-400 flex items-center gap-1">
+        <div className="mt-1 text-xs text-red-600 flex items-center gap-1">
           {error}
           <button onClick={close}><X size={10} /></button>
         </div>

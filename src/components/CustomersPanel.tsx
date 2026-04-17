@@ -38,12 +38,12 @@ interface Contact {
 }
 
 const statusColors: Record<string, { bg: string; text: string; badge: string }> = {
-  active: { bg: 'bg-green-900', text: 'text-green-200', badge: '#22C55E' },
-  inactive: { bg: 'bg-gray-900', text: 'text-gray-200', badge: '#6B7280' },
-  prospect: { bg: 'bg-blue-900', text: 'text-blue-200', badge: '#3B82F6' },
-  churned: { bg: 'bg-red-900', text: 'text-red-200', badge: '#EF4444' },
+  active: { bg: 'bg-green-50', text: 'text-green-700', badge: '#16A34A' },
+  inactive: { bg: 'bg-gray-50', text: 'text-gray-700', badge: '#4B5563' },
+  prospect: { bg: 'bg-blue-50', text: 'text-blue-700', badge: '#2563EB' },
+  churned: { bg: 'bg-red-50', text: 'text-red-700', badge: '#DC2626' },
 };
-const defaultStatusColor = { bg: 'bg-gray-900', text: 'text-gray-200', badge: '#6B7280' };
+const defaultStatusColor = { bg: 'bg-gray-50', text: 'text-gray-700', badge: '#4B5563' };
 
 const L = (key: string, lang: Lang = 'th'): string => {
   const panelText: Record<string, Record<Lang, string>> = {
@@ -302,7 +302,7 @@ export default function CustomersPanel({
                 resetForm();
                 setShowForm(true);
               }}
-              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2"
             >
               <Plus size={16} />
               {L('addCustomer', lang)}
@@ -319,11 +319,11 @@ export default function CustomersPanel({
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <p className="text-gray-500 text-sm">{L('activeCustomers', lang)}</p>
-          <p className="text-3xl font-bold text-green-400 mt-2">{stats.active}</p>
+          <p className="text-3xl font-bold text-green-700 mt-2">{stats.active}</p>
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <p className="text-gray-500 text-sm">{L('prospects', lang)}</p>
-          <p className="text-3xl font-bold text-blue-400 mt-2">{stats.prospect}</p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">{stats.prospect}</p>
         </div>
       </div>
 
@@ -346,7 +346,7 @@ export default function CustomersPanel({
               onClick={() => setStatusFilter(status)}
               className={`px-3 py-2 rounded-lg text-sm transition ${
                 statusFilter === status
-                  ? 'bg-[#003087] text-gray-900'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-[#FFFFFF] text-gray-700 border border-[#E2E8F0]'
               }`}
             >
@@ -399,7 +399,7 @@ export default function CustomersPanel({
                       }}
                       className="p-2 hover:bg-[#E2E8F0] rounded-lg transition"
                     >
-                      <Edit2 size={16} className="text-blue-400" />
+                      <Edit2 size={16} className="text-blue-600" />
                     </button>
                     <button
                       onClick={(e) => {
@@ -408,7 +408,7 @@ export default function CustomersPanel({
                       }}
                       className="p-2 hover:bg-[#E2E8F0] rounded-lg transition"
                     >
-                      <Trash2 size={16} className="text-red-400" />
+                      <Trash2 size={16} className="text-red-600" />
                     </button>
                   </div>
                 )}
@@ -552,7 +552,7 @@ export default function CustomersPanel({
               <div className="flex gap-2 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                 >
                   {L('save', lang)}
                 </button>
@@ -562,7 +562,7 @@ export default function CustomersPanel({
                     setShowForm(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('cancel', lang)}
                 </button>
@@ -654,7 +654,7 @@ export default function CustomersPanel({
                 {canManage && (
                   <button
                     onClick={() => setShowAddContact(true)}
-                    className="px-3 py-1 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded text-xs flex items-center gap-1"
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs flex items-center gap-1"
                   >
                     <Plus size={14} />
                     {L('addContact', lang)}
@@ -778,7 +778,7 @@ export default function CustomersPanel({
                   <div className="flex gap-2">
                     <button
                       type="submit"
-                      className="flex-1 px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded text-sm font-medium"
+                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium"
                     >
                       {L('save', lang)}
                     </button>
@@ -788,7 +788,7 @@ export default function CustomersPanel({
                         setShowAddContact(false);
                         setContactFormData({ name: '', email: '', phone: '', position: '', is_primary: false });
                       }}
-                      className="flex-1 px-3 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded text-sm font-medium"
+                      className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded text-sm font-medium"
                     >
                       {L('cancel', lang)}
                     </button>
@@ -801,13 +801,13 @@ export default function CustomersPanel({
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => handleEditCustomer(selectedCustomer)}
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                 >
                   {L('edit', lang)}
                 </button>
                 <button
                   onClick={() => setShowDetail(false)}
-                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('close', lang)}
                 </button>

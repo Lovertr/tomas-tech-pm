@@ -99,13 +99,13 @@ export default function TimeLogApproval({ canApprove }: Props) {
         {(["pending", "approved", "rejected"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === t ? "text-white" : "text-gray-500 hover:text-gray-600"}`}
-            style={tab === t ? { background: t === "pending" ? "#B45309" : t === "approved" ? "#15803D" : "#B91C1C" } : {}}>
+            style={tab === t ? { background: t === "pending" ? "#D97706" : t === "approved" ? "#16A34A" : "#DC2626" } : {}}>
             {t === "pending" ? "Pending" : t === "approved" ? "Approved" : "Rejected"}
           </button>
         ))}
       </div>
 
-      {err && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3 flex items-center gap-2"><AlertCircle size={16} /> {err}</div>}
+      {err && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3 flex items-center gap-2"><AlertCircle size={16} /> {err}</div>}
 
       <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
@@ -141,19 +141,19 @@ export default function TimeLogApproval({ canApprove }: Props) {
                     <td className="px-4 py-3 text-gray-500">{r.tasks?.title || "—"}</td>
                     <td className="px-4 py-3 text-right text-gray-900 font-medium">{Number(r.hours).toFixed(2)}</td>
                     <td className="px-4 py-3 text-right text-gray-600">฿{Number(r.hourly_rate_at_log).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-[#F7941D] font-medium">฿{amount.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right text-orange-600 font-medium">฿{amount.toLocaleString()}</td>
                     <td className="px-4 py-3 text-gray-500 max-w-xs truncate" title={r.description ?? ""}>{r.description || "—"}</td>
                     {tab === "rejected" && <td className="px-4 py-3 text-red-600">{r.rejection_reason || "—"}</td>}
                     {canApprove && tab === "pending" && (
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button disabled={busyId === r.id}
                           onClick={() => approve(r.id)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-green-500/20 border border-green-500/40 text-green-300 text-xs hover:bg-green-500/30 disabled:opacity-50 mr-1">
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-green-50 border border-green-200 text-green-700 text-xs hover:bg-green-100 disabled:opacity-50 mr-1">
                           <Check size={12} /> Approve
                         </button>
                         <button disabled={busyId === r.id}
                           onClick={() => openReject(r.id)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-500/20 border border-red-500/40 text-red-300 text-xs hover:bg-red-500/30 disabled:opacity-50">
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs hover:bg-red-100 disabled:opacity-50">
                           <X size={12} /> Reject
                         </button>
                       </td>

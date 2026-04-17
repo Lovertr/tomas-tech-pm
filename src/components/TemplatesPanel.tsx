@@ -45,55 +45,55 @@ export default function TemplatesPanel({ projects, canManage = true, refreshKey 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex rounded-xl overflow-hidden border border-[#E5E7EB]">
+        <div className="flex rounded-xl overflow-hidden border border-gray-300">
           {(["project", "task"] as const).map(k => (
             <button key={k} onClick={() => setTab(k)}
-              className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === k ? "text-white" : "text-slate-600"}`}
-              style={tab === k ? { background: "#003087" } : { background: "#F5F5F5" }}>
+              className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === k ? "text-white" : "text-gray-600"}`}
+              style={tab === k ? { background: "rgb(59, 130, 246)" } : { background: "#F3F4F6" }}>
               {k === "project" ? <><FileStack size={14} /> Project Templates</> : <><ListChecks size={14} /> Task Templates</>}
             </button>
           ))}
         </div>
         {canManage && (
           tab === "project"
-            ? <button onClick={() => setSaveProjectModal(true)} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            ? <button onClick={() => setSaveProjectModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center gap-2">
                 <Plus size={16} /> บันทึกจากโครงการ
               </button>
-            : <button onClick={() => setSaveTasksModal(true)} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            : <button onClick={() => setSaveTasksModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center gap-2">
                 <Plus size={16} /> สร้าง Task Template
               </button>
         )}
       </div>
 
-      {loading && <div className="text-center text-slate-600 py-12">Loading...</div>}
+      {loading && <div className="text-center text-gray-600 py-12">Loading...</div>}
 
       {tab === "project" && !loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {!pTpls.length && (
-            <div className="col-span-full text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-slate-600">
-              <FileStack size={40} className="mx-auto mb-3 text-slate-600" />ยังไม่มี project template
+            <div className="col-span-full text-center py-16 bg-white border border-gray-300 rounded-2xl text-gray-600">
+              <FileStack size={40} className="mx-auto mb-3 text-gray-600" />ยังไม่มี project template
             </div>
           )}
           {pTpls.map(t => (
-            <div key={t.id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-4 flex flex-col">
+            <div key={t.id} className="bg-white border border-gray-300 rounded-xl p-4 flex flex-col">
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-[#003087]/30 flex items-center justify-center"><FileStack size={18} className="text-[#00AEEF]" /></div>
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center"><FileStack size={18} className="text-cyan-600" /></div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-slate-900 text-sm">{t.name}</div>
-                  {t.category && <div className="text-[10px] inline-block mt-1 px-1.5 py-0.5 bg-[#F7941D]/20 text-[#F7941D] rounded">{t.category}</div>}
+                  <div className="font-medium text-gray-900 text-sm">{t.name}</div>
+                  {t.category && <div className="text-[10px] inline-block mt-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">{t.category}</div>}
                 </div>
               </div>
-              {t.description && <div className="text-xs text-slate-600 mb-3 line-clamp-2">{t.description}</div>}
-              <div className="text-xs text-slate-600 mb-3 flex gap-3">
+              {t.description && <div className="text-xs text-gray-600 mb-3 line-clamp-2">{t.description}</div>}
+              <div className="text-xs text-gray-600 mb-3 flex gap-3">
                 <span>{t.template_data?.tasks?.length ?? 0} tasks</span>
                 <span>{t.template_data?.milestones?.length ?? 0} milestones</span>
               </div>
               <div className="flex gap-2 mt-auto">
-                <button onClick={() => setCloneTpl(t)} className="flex-1 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                <button onClick={() => setCloneTpl(t)} className="flex-1 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
                   <FolderPlus size={12} /> สร้างโครงการ
                 </button>
                 {canManage && (
-                  <button onClick={() => removeP(t.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                  <button onClick={() => removeP(t.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>
                 )}
               </div>
             </div>
@@ -104,22 +104,22 @@ export default function TemplatesPanel({ projects, canManage = true, refreshKey 
       {tab === "task" && !loading && (
         <div className="space-y-2">
           {!tTpls.length && (
-            <div className="text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-slate-600">
-              <ListChecks size={40} className="mx-auto mb-3 text-slate-600" />ยังไม่มี task template
+            <div className="text-center py-16 bg-white border border-gray-300 rounded-2xl text-gray-600">
+              <ListChecks size={40} className="mx-auto mb-3 text-gray-600" />ยังไม่มี task template
             </div>
           )}
           {tTpls.map(t => (
-            <div key={t.id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center"><ListChecks size={18} className="text-purple-400" /></div>
+            <div key={t.id} className="bg-white border border-gray-300 rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center"><ListChecks size={18} className="text-purple-700" /></div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-slate-900 text-sm">{t.name}</div>
-                {t.description && <div className="text-xs text-slate-600 mt-0.5">{t.description}</div>}
-                <div className="text-xs text-slate-600 mt-1">{t.tasks_data?.length ?? 0} tasks</div>
+                <div className="font-medium text-gray-900 text-sm">{t.name}</div>
+                {t.description && <div className="text-xs text-gray-600 mt-0.5">{t.description}</div>}
+                <div className="text-xs text-gray-600 mt-1">{t.tasks_data?.length ?? 0} tasks</div>
               </div>
-              <button onClick={() => setApplyTpl(t)} className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-xs font-medium flex items-center gap-1">
+              <button onClick={() => setApplyTpl(t)} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium flex items-center gap-1">
                 <Copy size={12} /> ใช้กับโครงการ
               </button>
-              {canManage && <button onClick={() => removeT(t.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>}
+              {canManage && <button onClick={() => removeT(t.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>}
             </div>
           ))}
         </div>
@@ -143,18 +143,18 @@ export default function TemplatesPanel({ projects, canManage = true, refreshKey 
 
 function ModalFrame({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl border border-gray-300 w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         {children}
       </div>
     </div>
   );
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div><label className="block text-xs text-slate-700 mb-1">{label}</label>{children}</div>;
+  return <div><label className="block text-xs text-gray-700 mb-1">{label}</label>{children}</div>;
 }
-const inp = "w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm";
+const inp = "w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm";
 
 function SaveProjectModal({ projects, onClose, onSaved }: { projects: Project[]; onClose: () => void; onSaved: () => void }) {
   const [pid, setPid] = useState(""); const [name, setName] = useState(""); const [cat, setCat] = useState(""); const [desc, setDesc] = useState("");
@@ -183,10 +183,10 @@ function SaveProjectModal({ projects, onClose, onSaved }: { projects: Project[];
       <Field label="ชื่อ Template *"><input className={inp} value={name} onChange={e => setName(e.target.value)} /></Field>
       <Field label="หมวดหมู่"><input className={inp} placeholder="เช่น MES, WMS, PLC" value={cat} onChange={e => setCat(e.target.value)} /></Field>
       <Field label="คำอธิบาย"><textarea rows={3} className={inp} value={desc} onChange={e => setDesc(e.target.value)} /></Field>
-      {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+      {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
       <div className="flex justify-end gap-2 pt-2">
-        <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
-        <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
+        <button onClick={onClose} className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm">ยกเลิก</button>
+        <button onClick={submit} disabled={busy} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
       </div>
     </ModalFrame>
   );
@@ -227,15 +227,15 @@ function CloneProjectModal({ tpl, onClose, onSaved }: { tpl: ProjectTemplate; on
         <Field label="วันสิ้นสุด"><input type="date" className={inp} value={end} onChange={e => setEnd(e.target.value)} /></Field>
       </div>
       <Field label="งบประมาณ (THB)"><input type="number" className={inp} value={budget} onChange={e => setBudget(e.target.value)} /></Field>
-      <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
         <input type="checkbox" checked={copyAlloc} onChange={e => setCopyAlloc(e.target.checked)} /> คัดลอกการจัดสรรทีมด้วย
       </label>
-      <div className="text-xs text-slate-600 bg-[#F5F5F5] rounded-lg p-3 flex items-center gap-2">
-        <Sparkles size={14} className="text-[#F7941D]" />จะสร้าง {tpl.template_data?.tasks?.length ?? 0} tasks + {tpl.template_data?.milestones?.length ?? 0} milestones
+      <div className="text-xs text-gray-600 bg-gray-50 rounded-lg p-3 flex items-center gap-2">
+        <Sparkles size={14} className="text-orange-600" />จะสร้าง {tpl.template_data?.tasks?.length ?? 0} tasks + {tpl.template_data?.milestones?.length ?? 0} milestones
       </div>
-      {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+      {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
       <div className="flex justify-end gap-2 pt-2">
-        <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
+        <button onClick={onClose} className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm">ยกเลิก</button>
         <button onClick={submit} disabled={busy} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังสร้าง..." : "สร้างโครงการ"}</button>
       </div>
     </ModalFrame>
@@ -268,10 +268,10 @@ function SaveTasksModal({ projects, onClose, onSaved }: { projects: Project[]; o
           {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
         </select>
       </Field>
-      {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+      {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
       <div className="flex justify-end gap-2 pt-2">
-        <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
-        <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
+        <button onClick={onClose} className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm">ยกเลิก</button>
+        <button onClick={submit} disabled={busy} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
       </div>
     </ModalFrame>
   );
@@ -302,11 +302,11 @@ function ApplyTasksModal({ tpl, projects, onClose, onSaved }: { tpl: TaskTemplat
         </select>
       </Field>
       <Field label="วันเริ่มต้น"><input type="date" className={inp} value={start} onChange={e => setStart(e.target.value)} /></Field>
-      <div className="text-xs text-slate-600 bg-[#F5F5F5] rounded-lg p-3">จะเพิ่ม {tpl.tasks_data?.length ?? 0} tasks (ห่างกันวันละ 3 วัน หากไม่มี due_date)</div>
-      {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+      <div className="text-xs text-gray-600 bg-gray-50 rounded-lg p-3">จะเพิ่ม {tpl.tasks_data?.length ?? 0} tasks (ห่างกันวันละ 3 วัน หากไม่มี due_date)</div>
+      {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
       <div className="flex justify-end gap-2 pt-2">
-        <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
-        <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังเพิ่ม..." : "เพิ่ม Tasks"}</button>
+        <button onClick={onClose} className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm">ยกเลิก</button>
+        <button onClick={submit} disabled={busy} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังเพิ่ม..." : "เพิ่ม Tasks"}</button>
       </div>
     </ModalFrame>
   );

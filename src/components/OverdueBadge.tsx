@@ -28,21 +28,21 @@ export default function OverdueBadge({ date, completed = false, size = "sm" }: {
 
   if (diff < 0) {
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full font-medium ${px}`} style={{ background: "#7F1D1D40", color: "#FCA5A5", border: "1px solid #7F1D1D" }}>
+      <span className={`inline-flex items-center gap-1 rounded-full font-medium ${px}`} style={{ background: "#FEE2E2", color: "#DC2626", border: "1px solid #FECACA" }}>
         <AlertTriangle size={ic} /> เกิน {Math.abs(diff)} วัน
       </span>
     );
   }
   if (diff === 0) {
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full font-medium ${px}`} style={{ background: "#F7941D40", color: "#FED7AA", border: "1px solid #F7941D" }}>
+      <span className={`inline-flex items-center gap-1 rounded-full font-medium ${px}`} style={{ background: "#FEF3C7", color: "#D97706", border: "1px solid #FCD34D" }}>
         <Clock size={ic} /> ครบกำหนดวันนี้
       </span>
     );
   }
   if (diff <= 3) {
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full font-medium ${px}`} style={{ background: "#CA8A0440", color: "#FDE68A", border: "1px solid #CA8A04" }}>
+      <span className={`inline-flex items-center gap-1 rounded-full font-medium ${px}`} style={{ background: "#FEF08A", color: "#CA8A04", border: "1px solid #FADE50" }}>
         <Clock size={ic} /> อีก {diff} วัน
       </span>
     );

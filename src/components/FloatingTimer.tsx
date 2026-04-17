@@ -91,7 +91,7 @@ export default function FloatingTimer({ onOpenTask, refreshKey = 0, onChange }: 
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 text-gray-900 rounded-full shadow-2xl hover:shadow-green-500/30 transition-all"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full shadow-2xl hover:shadow-lg transition-all"
         title={taskTitle}
       >
         <Clock size={14} className="animate-pulse" />
@@ -101,9 +101,9 @@ export default function FloatingTimer({ onOpenTask, refreshKey = 0, onChange }: 
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 w-80 bg-white border border-green-500/40 rounded-2xl shadow-2xl shadow-green-500/10 overflow-hidden">
+    <div className="fixed bottom-6 right-6 z-40 w-80 bg-white border border-green-300 rounded-2xl shadow-2xl overflow-hidden">
       {/* Header strip */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/10 border-b border-green-500/30">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-green-100 border-b border-green-300">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           <span className="text-[11px] font-medium text-green-700 uppercase tracking-wide">Timer running</span>
@@ -136,7 +136,7 @@ export default function FloatingTimer({ onOpenTask, refreshKey = 0, onChange }: 
           <button
             onClick={stop}
             disabled={stopping}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-sm font-medium disabled:opacity-50"
           >
             <Square size={14} /> {stopping ? "..." : "Stop"}
           </button>

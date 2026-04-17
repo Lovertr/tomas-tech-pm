@@ -145,7 +145,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
         {canManage && (
           <button
             onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2"
+            className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
             <Plus size={16} /> {L('record_transaction')}
           </button>
@@ -158,7 +158,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
             key={f}
             onClick={() => setFilterType(f)}
             className={`px-4 py-1.5 text-xs font-medium ${filterType === f ? "text-gray-900" : "text-slate-500"}`}
-            style={filterType === f ? { background: "#003087" } : { background: "#F1F5F9" }}
+            style={filterType === f ? { background: "#2563EB" } : { background: "#F1F5F9" }}
           >
             {f === "all" ? L('all_filter') : f === "income" ? L('income_filter') : L('expense_filter')}
           </button>
@@ -181,12 +181,12 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
               <div className="flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: isIncome ? "#22C55E25" : "#EF444425" }}
+                  style={{ background: isIncome ? "#DCFCE7" : "#FEE2E2" }}
                 >
                   {isIncome ? (
-                    <ArrowDownLeft size={18} className="text-green-400" />
+                    <ArrowDownLeft size={18} className="text-green-600" />
                   ) : (
-                    <ArrowUpRight size={18} className="text-red-400" />
+                    <ArrowUpRight size={18} className="text-red-600" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -197,7 +197,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                         {txn.projects.project_code}
                       </span>
                     )}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded text-gray-900" style={{ background: isIncome ? "#22C55E40" : "#EF444440" }}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded text-gray-900" style={{ background: isIncome ? "#D1FAE5" : "#FECACA" }}>
                       {isIncome ? L('income_label') : L('expense_label')}
                     </span>
                   </div>
@@ -213,7 +213,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className={`text-sm font-bold ${isIncome ? "text-green-400" : "text-red-400"}`}>
+                  <div className={`text-sm font-bold ${isIncome ? "text-green-600" : "text-red-600"}`}>
                     {isIncome ? "+" : "-"}
                     {fmtMoney(txn.amount)}
                   </div>
@@ -223,7 +223,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                     <button onClick={() => setEditingId(txn.id)} className="p-1.5 text-slate-500 hover:text-gray-900" title={L('edit_title')}>
                       <Edit2 size={14} />
                     </button>
-                    <button onClick={() => remove(txn.id)} className="p-1.5 text-red-400 hover:text-red-300">
+                    <button onClick={() => remove(txn.id)} className="p-1.5 text-red-600 hover:text-red-700">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -331,7 +331,7 @@ function CreateTransactionModal({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -428,7 +428,7 @@ function CreateTransactionModal({
           />
         </Field>
 
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
 
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:text-gray-900 text-sm">
@@ -437,7 +437,7 @@ function CreateTransactionModal({
           <button
             onClick={submit}
             disabled={busy}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"
           >
             {busy ? L('recording') : L('save_button')}
           </button>
@@ -485,7 +485,7 @@ function EditTransactionForm({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600";
 
   return (
     <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
@@ -530,7 +530,7 @@ function EditTransactionForm({
         <button
           onClick={submit}
           disabled={busy}
-          className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50"
+          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50"
         >
           {busy ? L('saving') : L('save_button')}
         </button>

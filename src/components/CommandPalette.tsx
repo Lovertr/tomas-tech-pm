@@ -87,13 +87,13 @@ export default function CommandPalette({ open, onClose, items }: { open: boolean
                     key={it.id}
                     onClick={() => { it.action(); onClose(); }}
                     onMouseEnter={() => setIdx(runIdx)}
-                    className={`w-full text-left px-4 py-2 flex items-center justify-between text-sm transition ${active ? "bg-[#003087]/20 text-slate-900" : "text-slate-700 hover:bg-[#F5F5F5]"}`}
+                    className={`w-full text-left px-4 py-2 flex items-center justify-between text-sm transition ${active ? "bg-blue-100 text-slate-900" : "text-slate-700 hover:bg-gray-100"}`}
                   >
                     <div>
                       <div className="font-medium">{it.label}</div>
                       {it.hint && <div className="text-[11px] text-slate-600">{it.hint}</div>}
                     </div>
-                    {active && <ArrowRight size={14} className="text-orange-400" />}
+                    {active && <ArrowRight size={14} className="text-orange-600" />}
                   </button>
                 );
               })}

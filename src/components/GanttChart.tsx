@@ -14,8 +14,8 @@ interface Milestone { id: string; title: string; due_date: string; status: strin
 interface Dep { id: string; task_id: string; depends_on_task_id: string; dependency_type: string; }
 
 const STATUS_BAR: Record<string, string> = {
-  backlog: "#64748B", todo: "#3B82F6", in_progress: "#F7941D",
-  review: "#A855F7", done: "#22C55E", cancelled: "#475569",
+  backlog: "#64748B", todo: "#3B82F6", in_progress: "#F59E0B",
+  review: "#A855F7", done: "#22C55E", cancelled: "#6B7280",
 };
 
 type Zoom = "day" | "week" | "month";

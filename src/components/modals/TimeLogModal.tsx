@@ -102,10 +102,10 @@ export default function TimeLogModal({ open, onClose, projects, tasks, members, 
         </div>
         <div className="flex items-center gap-2">
           <input id="billable" type="checkbox" checked={form.is_billable ?? true} onChange={(e) => set("is_billable", e.target.checked)} />
-          <label htmlFor="billable" className="text-sm text-slate-300">เรียกเก็บเงินได้ (billable)</label>
+          <label htmlFor="billable" className="text-sm text-gray-700">เรียกเก็บเงินได้ (billable)</label>
         </div>
 
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className={btnGhost}>ยกเลิก</button>
           <button onClick={submit} disabled={saving} className={btnPrimary}>{saving ? "กำลังบันทึก..." : "บันทึก"}</button>

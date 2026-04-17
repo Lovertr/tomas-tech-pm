@@ -9,10 +9,10 @@ interface Milestone {
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
 
 const STATUS_META: Record<string, { color: string; bg: string; label: string; icon: typeof CheckCircle2 }> = {
-  pending:     { color: "#94A3B8", bg: "bg-slate-500/20 text-gray-600", label: "Pending",     icon: Clock },
-  in_progress: { color: "#F7941D", bg: "bg-orange-500/20 text-orange-600", label: "In Progress", icon: Flag },
-  completed:   { color: "#22C55E", bg: "bg-green-500/20 text-green-300",   label: "Completed",  icon: CheckCircle2 },
-  missed:      { color: "#EF4444", bg: "bg-red-500/20 text-red-300",       label: "Missed",     icon: AlertTriangle },
+  pending:     { color: "#6B7280", bg: "bg-gray-100 text-gray-700", label: "Pending",     icon: Clock },
+  in_progress: { color: "#F59E0B", bg: "bg-amber-100 text-amber-700", label: "In Progress", icon: Flag },
+  completed:   { color: "#22C55E", bg: "bg-green-100 text-green-700",   label: "Completed",  icon: CheckCircle2 },
+  missed:      { color: "#EF4444", bg: "bg-red-100 text-red-600",       label: "Missed",     icon: AlertTriangle },
 };
 
 interface Props {
@@ -94,7 +94,7 @@ export default function MilestonesPanel({ projects, filterProjectId = "all", can
                 {diff < 0 ? `เลย ${Math.abs(diff)} วัน` : diff === 0 ? "วันนี้" : `อีก ${diff} วัน`}
               </span>
             )}
-            {m.completed_at && <span className="ml-2 text-green-400">เสร็จ {new Date(m.completed_at).toLocaleDateString("th-TH")}</span>}
+            {m.completed_at && <span className="ml-2 text-green-700">เสร็จ {new Date(m.completed_at).toLocaleDateString("th-TH")}</span>}
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -105,7 +105,7 @@ export default function MilestonesPanel({ projects, filterProjectId = "all", can
             </select>
           )}
           {canManage && <button onClick={() => setEditing(m)} className="p-1.5 text-gray-500 hover:text-gray-900"><Edit3 size={14} /></button>}
-          {canManage && <button onClick={() => remove(m.id)} className="p-1.5 text-red-600 hover:text-red-300"><Trash2 size={14} /></button>}
+          {canManage && <button onClick={() => remove(m.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>}
         </div>
       </div>
     );
@@ -234,7 +234,7 @@ function MilestoneModal({ initial, projects, defaultProjectId, onClose, onSaved 
             </select>
           </div>
         </div>
-        {err && <div className="text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50">

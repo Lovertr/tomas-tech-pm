@@ -346,7 +346,7 @@ export default function SalesActivitiesPanel({
                 resetForm();
                 setShowForm(true);
               }}
-              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2"
             >
               <Plus size={16} />
               {L('addActivity')}
@@ -363,15 +363,15 @@ export default function SalesActivitiesPanel({
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <p className="text-gray-500 text-sm">{L('stats.call')}</p>
-          <p className="text-3xl font-bold text-blue-400 mt-2">{stats.byType['call']}</p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">{stats.byType['call']}</p>
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <p className="text-gray-500 text-sm">{L('stats.email')}</p>
-          <p className="text-3xl font-bold text-orange-400 mt-2">{stats.byType['email']}</p>
+          <p className="text-3xl font-bold text-orange-600 mt-2">{stats.byType['email']}</p>
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <p className="text-gray-500 text-sm">{L('stats.meeting')}</p>
-          <p className="text-3xl font-bold text-purple-400 mt-2">{stats.byType['meeting']}</p>
+          <p className="text-3xl font-bold text-purple-600 mt-2">{stats.byType['meeting']}</p>
         </div>
       </div>
 
@@ -381,7 +381,7 @@ export default function SalesActivitiesPanel({
           <select
             value={filterDealId}
             onChange={(e) => setFilterDealId(e.target.value)}
-            className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+            className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
           >
             <option value="">{L('filters.all')}</option>
             {deals.map((deal) => (
@@ -450,7 +450,7 @@ export default function SalesActivitiesPanel({
                                 onClick={() => handleDeleteActivity(activity.id)}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition ml-2"
                               >
-                                <Trash2 size={16} className="text-red-400" />
+                                <Trash2 size={16} className="text-red-600" />
                               </button>
                             )}
                           </div>
@@ -517,7 +517,7 @@ export default function SalesActivitiesPanel({
                   required
                   value={formData.deal_id}
                   onChange={(e) => setFormData({ ...formData, deal_id: e.target.value })}
-                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
                 >
                   <option value="">{L('form.dealPlaceholder')}</option>
                   {deals.map((deal) => (
@@ -535,7 +535,7 @@ export default function SalesActivitiesPanel({
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
                 >
                   {Object.entries(activityTypeConfig).map(([key, value]) => (
                     <option key={key} value={key}>
@@ -554,7 +554,7 @@ export default function SalesActivitiesPanel({
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
                 />
               </div>
 
@@ -568,7 +568,7 @@ export default function SalesActivitiesPanel({
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600 resize-none"
                   rows={4}
                   placeholder={L('form.descriptionPlaceholder')}
                 />
@@ -577,7 +577,7 @@ export default function SalesActivitiesPanel({
               <div className="flex gap-2 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                 >
                   {L('form.save')}
                 </button>

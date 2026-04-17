@@ -178,7 +178,7 @@ export default function App() {
     <div className="bg-[#FFFFFF] rounded-2xl p-3 md:p-5 border border-[#E2E8F0] hover:shadow-lg transition-all">
       <div className="flex items-start justify-between">
         <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center" style={{ background: `${color}25` }}><I size={18} className="md:hidden" style={{ color }} /><I size={22} className="hidden md:block" style={{ color }} /></div>
-        {trend && <span className="text-[10px] md:text-xs font-medium text-emerald-400 flex items-center gap-1"><TrendingUp size={12} />{trend}</span>}
+        {trend && <span className="text-[10px] md:text-xs font-medium text-emerald-600 flex items-center gap-1"><TrendingUp size={12} />{trend}</span>}
       </div>
       <div className="mt-2 md:mt-3 text-lg md:text-2xl font-bold text-gray-800 truncate">{value}</div>
       <div className="text-xs md:text-sm text-gray-500 truncate">{label}</div>
@@ -350,7 +350,7 @@ export default function App() {
                     {hasPermission("can_manage_projects") && (
                       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => openEditProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>
-                        {isAdmin && <button onClick={() => handleDeleteProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-400"><Trash2 size={14} /></button>}
+                        {isAdmin && <button onClick={() => handleDeleteProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
                       </div>
                     )}
                   </div>
@@ -700,7 +700,7 @@ export default function App() {
                     : <span className="text-xs text-slate-500">{mem.dept}</span>}
                   <div className="flex gap-1">
                     {hasPermission("can_manage_members") && <button onClick={() => openEditMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
-                    {isAdmin && <button onClick={() => handleDeleteMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-400"><Trash2 size={14} /></button>}
+                    {isAdmin && <button onClick={() => handleDeleteMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
                   </div>
                 </div>
               </div>
@@ -722,7 +722,7 @@ export default function App() {
                 {canView("manpower") && <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>}
                 <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1">
                   {hasPermission("can_manage_members") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
-                  {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-400"><Trash2 size={14} /></button>}
+                  {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
                 </div></td>
               </tr>);
             })}
@@ -759,7 +759,7 @@ export default function App() {
               <td className="px-4 py-3 text-sm font-semibold text-gray-800">{Number(log.hours).toFixed(1)}h</td>
               {canView("costs") && <td className="px-4 py-3 text-sm text-gray-500">฿{log.rate}</td>}
               {canView("costs") && <td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">฿{(log.hours * log.rate).toLocaleString()}</td>}
-              <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${log.status === "approved" ? "bg-emerald-500/20 text-emerald-400" : "bg-yellow-500/20 text-yellow-400"}`}>{t[log.status]}</span></td>
+              <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${log.status === "approved" ? "bg-emerald-100 text-emerald-600" : "bg-yellow-100 text-yellow-600"}`}>{t[log.status]}</span></td>
             </tr>);
           })}
         </tbody></table>
@@ -771,7 +771,7 @@ export default function App() {
   const Costs = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.costs}</h1>
-        <button className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 bg-slate-100 text-slate-200"><Download size={16} />{t.export}</button></div>
+        <button className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 bg-[#003087] text-white"><Download size={16} />{t.export}</button></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />
         <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
@@ -787,7 +787,7 @@ export default function App() {
           return (<div key={p.id} className="p-4 rounded-xl border border-[#E2E8F0]">
             <div className="flex items-center justify-between mb-2"><div><span className="font-medium text-gray-800">{getName(p)}</span><span className="text-xs text-gray-500 ml-2">{p.code}</span></div><div className="text-right"><span className="font-semibold text-[#F7941D]">{fmt(pc)}</span><span className="text-xs text-gray-500 ml-1">/ {fmt(p.budget)}</span></div></div>
             <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 90 ? "#EF4444" : pct > 70 ? "#F7941D" : "linear-gradient(90deg,#003087,#00AEEF)" }} /></div>
-            <div className="flex justify-between mt-2 text-xs text-gray-500"><span>{mc} {t.teamMembers} · {ph.toFixed(1)} {t.hours}</span><span className={pct > 90 ? "text-red-400" : pct > 70 ? "text-yellow-400" : "text-emerald-400"}>{pct.toFixed(1)}% {t.budgetUsed}</span></div>
+            <div className="flex justify-between mt-2 text-xs text-gray-500"><span>{mc} {t.teamMembers} · {ph.toFixed(1)} {t.hours}</span><span className={pct > 90 ? "text-red-600" : pct > 70 ? "text-yellow-600" : "text-emerald-600"}>{pct.toFixed(1)}% {t.budgetUsed}</span></div>
           </div>);
         })}</div>
       </div>

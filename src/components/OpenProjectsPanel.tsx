@@ -110,7 +110,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
   if (loading) {
     return (
       <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] p-6">
-        <div className="text-center text-gray-400 py-8">Loading...</div>
+        <div className="text-center text-gray-500 py-8">Loading...</div>
       </div>
     );
   }
@@ -118,8 +118,8 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
   if (projects.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-r from-[#003087] to-[#0040B0] rounded-2xl p-5">
-      <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+    <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
+      <h3 className="text-[#003087] font-bold text-lg mb-4 flex items-center gap-2">
         <Briefcase size={20} />
         {L('title')}
       </h3>
@@ -178,7 +178,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
                   <button
                     onClick={() => handleApply(p.id)}
                     disabled={applying}
-                    className="px-3 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-white rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50"
+                    className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50"
                   >
                     {applying ? '...' : L('join')}
                   </button>

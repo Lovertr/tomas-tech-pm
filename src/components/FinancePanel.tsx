@@ -56,13 +56,13 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex rounded-xl overflow-hidden border border-[#E5E7EB]">
           <button onClick={() => setTab("pnl")}
-            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "pnl" ? "text-slate-900" : "text-slate-600"}`}
-            style={tab === "pnl" ? { background: "#003087" } : { background: "#F5F5F5" }}>
+            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "pnl" ? "text-white" : "text-slate-600"}`}
+            style={tab === "pnl" ? { background: "#2563EB" } : { background: "#F5F5F5" }}>
             <BarChart3 size={14} /> P&L
           </button>
           <button onClick={() => setTab("evm")}
-            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "evm" ? "text-slate-900" : "text-slate-600"}`}
-            style={tab === "evm" ? { background: "#003087" } : { background: "#F5F5F5" }}>
+            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "evm" ? "text-white" : "text-slate-600"}`}
+            style={tab === "evm" ? { background: "#2563EB" } : { background: "#F5F5F5" }}>
             <Activity size={14} /> EVM
           </button>
         </div>
@@ -108,11 +108,11 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                     <tr key={r.project_id} className="border-t border-[#E5E7EB]">
                       <td className="px-4 py-3"><span className="text-[10px] font-mono text-slate-600">{r.project_code}</span><div className="text-slate-900">{r.name}</div></td>
                       <td className="px-4 py-3 text-right text-slate-700">{fmtMoney(r.budget)}</td>
-                      <td className="px-4 py-3 text-right text-cyan-300">{fmtMoney(r.revenue)}</td>
-                      <td className="px-4 py-3 text-right text-red-300">{fmtMoney(r.total_cost)}</td>
-                      <td className={`px-4 py-3 text-right font-medium ${r.gross_profit >= 0 ? "text-green-300" : "text-red-300"}`}>{fmtMoney(r.gross_profit)}</td>
-                      <td className={`px-4 py-3 text-right ${r.margin_pct >= 20 ? "text-green-300" : r.margin_pct >= 0 ? "text-yellow-300" : "text-red-300"}`}>{fmtPct(r.margin_pct)}</td>
-                      <td className="px-4 py-3 text-right text-orange-300">{fmtMoney(r.outstanding)}</td>
+                      <td className="px-4 py-3 text-right text-cyan-600">{fmtMoney(r.revenue)}</td>
+                      <td className="px-4 py-3 text-right text-red-600">{fmtMoney(r.total_cost)}</td>
+                      <td className={`px-4 py-3 text-right font-medium ${r.gross_profit >= 0 ? "text-green-600" : "text-red-600"}`}>{fmtMoney(r.gross_profit)}</td>
+                      <td className={`px-4 py-3 text-right ${r.margin_pct >= 20 ? "text-green-600" : r.margin_pct >= 0 ? "text-amber-600" : "text-red-600"}`}>{fmtPct(r.margin_pct)}</td>
+                      <td className="px-4 py-3 text-right text-orange-600">{fmtMoney(r.outstanding)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -121,11 +121,11 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                     <tr>
                       <td className="px-4 py-3 text-slate-900">รวม</td>
                       <td className="px-4 py-3 text-right text-slate-700">{fmtMoney(t.budget)}</td>
-                      <td className="px-4 py-3 text-right text-cyan-300">{fmtMoney(t.revenue)}</td>
-                      <td className="px-4 py-3 text-right text-red-300">{fmtMoney(t.cost)}</td>
-                      <td className={`px-4 py-3 text-right ${t.profit >= 0 ? "text-green-300" : "text-red-300"}`}>{fmtMoney(t.profit)}</td>
+                      <td className="px-4 py-3 text-right text-cyan-600">{fmtMoney(t.revenue)}</td>
+                      <td className="px-4 py-3 text-right text-red-600">{fmtMoney(t.cost)}</td>
+                      <td className={`px-4 py-3 text-right ${t.profit >= 0 ? "text-green-600" : "text-red-600"}`}>{fmtMoney(t.profit)}</td>
                       <td className="px-4 py-3 text-right text-slate-900">{fmtPct(totalMargin)}</td>
-                      <td className="px-4 py-3 text-right text-orange-300">{fmtMoney(t.outstanding)}</td>
+                      <td className="px-4 py-3 text-right text-orange-600">{fmtMoney(t.outstanding)}</td>
                     </tr>
                   </tfoot>
                 )}

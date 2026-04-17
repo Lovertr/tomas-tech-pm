@@ -103,8 +103,8 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  {cr.cr_code && <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1E40AF]/30 text-[#00AEEF]">{cr.cr_code}</span>}
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-slate-700">{cr.projects?.project_code || "—"}</span>
+                  {cr.cr_code && <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-100 text-blue-600">{cr.cr_code}</span>}
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 text-slate-700">{cr.projects?.project_code || "—"}</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded text-slate-900" style={{ background: STATUS_COLOR[cr.status] }}>{STATUS_LBL[cr.status]}</span>
                 </div>
                 <div className="text-sm font-medium text-slate-900">{cr.title}</div>
@@ -122,10 +122,10 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
                 )}
                 <div className="flex items-center gap-3 mt-2 text-xs flex-wrap">
                   {cr.impact_budget != null && (
-                    <span className="flex items-center gap-1 text-orange-300"><DollarSign size={11} /> {fmtMoney(cr.impact_budget)}</span>
+                    <span className="flex items-center gap-1 text-orange-600"><DollarSign size={11} /> {fmtMoney(cr.impact_budget)}</span>
                   )}
                   {cr.impact_schedule_days != null && (
-                    <span className="flex items-center gap-1 text-purple-300"><Calendar size={11} /> {cr.impact_schedule_days} วัน</span>
+                    <span className="flex items-center gap-1 text-purple-700"><Calendar size={11} /> {cr.impact_schedule_days} วัน</span>
                   )}
                   <span className="text-slate-500">โดย: {memberName(memberMap.get(cr.requested_by ?? ""))}</span>
                   {cr.requested_at && <span className="flex items-center gap-1 text-slate-500"><Clock size={11} /> {new Date(cr.requested_at).toLocaleDateString("th-TH")}</span>}
@@ -134,23 +134,23 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
               {canManage && (
                 <div className="flex items-center gap-1">
                   <button onClick={() => setEditing(cr)} className="p-1.5 text-gray-500 hover:text-slate-900"><Edit3 size={14} /></button>
-                  <button onClick={() => remove(cr.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                  <button onClick={() => remove(cr.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>
                 </div>
               )}
             </div>
             {canApprove && cr.status === "pending" && (
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E5E7EB]">
-                <button onClick={() => decide(cr, "approved")} className="flex-1 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                <button onClick={() => decide(cr, "approved")} className="flex-1 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
                   <Check size={12} /> อนุมัติ
                 </button>
-                <button onClick={() => decide(cr, "rejected")} className="flex-1 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
+                <button onClick={() => decide(cr, "rejected")} className="flex-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1">
                   <X size={12} /> ปฏิเสธ
                 </button>
               </div>
             )}
             {canManage && cr.status === "approved" && (
               <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
-                <button onClick={() => decide(cr, "implemented")} className="w-full px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg text-xs font-medium">
+                <button onClick={() => decide(cr, "implemented")} className="w-full px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-medium">
                   มาร์คว่าดำเนินการแล้ว
                 </button>
               </div>
@@ -255,7 +255,7 @@ function CRModal({ initial, projects, members, defaultProjectId, onClose, onSave
             {members.map(m => <option key={m.id} value={m.id}>{memberName(m)}</option>)}
           </select>
         </Field>
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#1E40AF] hover:bg-[#2563EB] text-slate-900 rounded-lg text-sm disabled:opacity-50">

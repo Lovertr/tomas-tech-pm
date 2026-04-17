@@ -7,7 +7,7 @@ interface Task { id: string; title: string; status: string; priority: string; du
 interface Milestone { id: string; title: string; due_date: string; status: string; project_id: string; }
 interface Meeting { id: string; title: string; meeting_date: string; project_id: string; }
 
-const PRIO_DOT: Record<string, string> = { urgent: "bg-red-500", high: "bg-orange-400", medium: "bg-blue-400", low: "bg-slate-400" };
+const PRIO_DOT: Record<string, string> = { urgent: "bg-red-600", high: "bg-orange-600", medium: "bg-blue-600", low: "bg-slate-600" };
 
 interface Props {
   projects: Project[];
@@ -80,7 +80,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
           <button onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); }} className="ml-2 px-3 py-1 text-xs bg-gray-50 text-gray-600 hover:text-gray-900 rounded-lg border border-gray-300">วันนี้</button>
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400" /> Task</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-600" /> Task</span>
           <span className="flex items-center gap-1"><Flag size={11} className="text-orange-600" /> Milestone</span>
           <span className="flex items-center gap-1"><CalIcon size={11} className="text-purple-600" /> Meeting</span>
         </div>
@@ -96,7 +96,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
       {/* Grid */}
       <div className="grid grid-cols-7 auto-rows-fr">
         {grid.map((c, i) => {
-          if (!c.date) return <div key={i} className="border-b border-r border-gray-300 bg-gray-50/40 min-h-24" />;
+          if (!c.date) return <div key={i} className="border-b border-r border-gray-300 bg-gray-50 min-h-24" />;
           const k = dayKey(c.date);
           const ev = eventsByDay.get(k);
           const isToday = c.date.getTime() === today.getTime();
@@ -104,7 +104,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
           const dow = c.date.getDay();
           return (
             <div key={i} onClick={() => setSelected(k)}
-              className={`border-b border-r border-gray-300 min-h-24 p-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${isSel ? "bg-blue-600/20 ring-1 ring-blue-500" : ""}`}>
+              className={`border-b border-r border-gray-300 min-h-24 p-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${isSel ? "bg-blue-100 ring-1 ring-blue-500" : ""}`}>
               <div className={`text-xs font-medium mb-1 ${isToday ? "inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-gray-900" : dow === 0 ? "text-red-600" : dow === 6 ? "text-blue-600" : "text-gray-600"}`}>
                 {c.date.getDate()}
               </div>
@@ -137,7 +137,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
 
       {/* Selected day detail */}
       {selectedDay && selected && (
-        <div className="border-t border-gray-300 p-4 space-y-2 bg-gray-50/40">
+        <div className="border-t border-gray-300 p-4 space-y-2 bg-gray-50">
           <div className="text-sm font-semibold text-gray-900 mb-2">
             {new Date(selected).toLocaleDateString("th-TH", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </div>

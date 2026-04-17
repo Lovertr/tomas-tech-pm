@@ -105,7 +105,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                 <div className="flex items-center gap-4 text-[11px] text-slate-600 mt-2">
                   <span><Eye size={10} className="inline mr-1" />เปิดดู {r.access_count ?? 0} ครั้ง</span>
                   <span>เปิดล่าสุด: {fmtDate(r.last_accessed_at)}</span>
-                  {r.expires_at && <span className="text-orange-400">หมดอายุ: {fmtDate(r.expires_at)}</span>}
+                  {r.expires_at && <span className="text-orange-600">หมดอายุ: {fmtDate(r.expires_at)}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                 </button>
                 <a href={linkFor(r.token)} target="_blank" rel="noopener noreferrer" title="เปิดดู"
                   className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-blue-500">
-                  <ExternalLink size={14} className="text-slate-300" />
+                  <ExternalLink size={14} className="text-slate-600" />
                 </a>
                 <button onClick={() => toggleActive(r)} title={r.active ? "หยุดใช้งาน" : "เปิดใช้งาน"}
                   className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-orange-500">
@@ -123,7 +123,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                 </button>
                 <button onClick={() => remove(r)} title="ลบ"
                   className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-red-500">
-                  <Trash2 size={14} className="text-red-400" />
+                  <Trash2 size={14} className="text-red-600" />
                 </button>
               </div>
             </div>

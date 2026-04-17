@@ -87,9 +87,9 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
           const isOpen = expanded.has(d.id);
           return (
             <div key={d.id} className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl overflow-hidden">
-              <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-[#22304A]" onClick={() => toggle(d.id)}>
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-purple-500/20">
-                  <Lightbulb size={18} className="text-purple-400" />
+              <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-gray-100" onClick={() => toggle(d.id)}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-purple-100">
+                  <Lightbulb size={18} className="text-purple-700" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -125,7 +125,7 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
                   {d.decision && (
                     <div>
                       <div className="text-[10px] uppercase tracking-wide text-slate-600 mb-1">Decision</div>
-                      <div className="text-sm text-gray-900 whitespace-pre-wrap bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">{d.decision}</div>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap bg-purple-50 border border-purple-200 rounded-lg p-3">{d.decision}</div>
                       <TranslateButton text={d.decision} compact />
                     </div>
                   )}
@@ -237,7 +237,7 @@ function DecisionModal({ initial, projects, members, defaultProjectId, onClose, 
               onChange={e => setForm({ ...form, decided_at: e.target.value || null })} />
           </Field>
         </div>
-        {err && <div className="text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50">

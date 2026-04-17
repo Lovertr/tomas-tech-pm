@@ -162,15 +162,15 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
               <div className="flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: isOver ? "#EF444425" : "#22C55E25" }}
+                  style={{ background: isOver ? "#FEE2E2" : "#DCFCE7" }}
                 >
-                  {isOver ? <TrendingDown size={18} className="text-red-400" /> : <TrendingUp size={18} className="text-green-400" />}
+                  {isOver ? <TrendingDown size={18} className="text-red-600" /> : <TrendingUp size={18} className="text-green-700" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-sm font-medium text-white">{L(budget.category) || budget.category}</span>
+                    <span className="text-sm font-medium text-gray-900">{L(budget.category) || budget.category}</span>
                     {budget.projects && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-slate-300">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
                         {budget.projects.project_code}
                       </span>
                     )}
@@ -186,19 +186,19 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className={`text-sm font-bold ${isOver ? "text-red-400" : "text-green-400"}`}>{isOver ? "-" : "+"}{fmtMoney(Math.abs(variance))}</div>
+                  <div className={`text-sm font-bold ${isOver ? "text-red-600" : "text-green-700"}`}>{isOver ? "-" : "+"}{fmtMoney(Math.abs(variance))}</div>
                   <div className="text-[10px] text-gray-500">{varPercent}%</div>
                 </div>
                 {canManage && (
                   <div className="flex items-center gap-1 ml-3">
                     <button
                       onClick={() => setEditingId(budget.id)}
-                      className="p-1.5 text-gray-500 hover:text-white"
+                      className="p-1.5 text-gray-500 hover:text-gray-900"
                       title={L('edit_title')}
                     >
                       <Edit2 size={14} />
                     </button>
-                    <button onClick={() => remove(budget.id)} className="p-1.5 text-red-400 hover:text-red-300">
+                    <button onClick={() => remove(budget.id)} className="p-1.5 text-red-600 hover:text-red-700">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -298,7 +298,7 @@ function CreateBudgetModal({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -306,7 +306,7 @@ function CreateBudgetModal({
         className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">{L('edit_modal_title')}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{L('edit_modal_title')}</h3>
         <Field label={L('project_label') + " *"}>
           <select
             className={inp}
@@ -366,10 +366,10 @@ function CreateBudgetModal({
           />
         </Field>
 
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
+          <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:text-gray-900 text-sm">
             {L('cancel_button')}
           </button>
           <button
@@ -422,7 +422,7 @@ function EditBudgetForm({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
     <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
@@ -453,7 +453,7 @@ function EditBudgetForm({
         />
       </Field>
       <div className="flex justify-end gap-2">
-        <button onClick={onClose} className="px-3 py-1.5 text-slate-300 hover:text-white text-sm">
+        <button onClick={onClose} className="px-3 py-1.5 text-slate-600 hover:text-gray-900 text-sm">
           {L('cancel_button')}
         </button>
         <button

@@ -27,11 +27,11 @@ const COLS: { key: string; label: string; color: string }[] = [
 ];
 
 const PRIO_DOT: Record<string, string> = {
-  low: "bg-slate-400", medium: "bg-blue-400", high: "bg-orange-400", urgent: "bg-red-500",
+  low: "bg-slate-600", medium: "bg-blue-600", high: "bg-orange-600", urgent: "bg-red-600",
 };
 const PRIO_RING: Record<string, string> = {
-  urgent: "ring-1 ring-red-500/40",
-  high: "ring-1 ring-orange-400/30",
+  urgent: "ring-1 ring-red-600/40",
+  high: "ring-1 ring-orange-600/30",
   medium: "", low: "",
 };
 
@@ -109,8 +109,8 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
     const days = Math.floor((d.getTime() - now.getTime()) / 86400000);
     const label = d.toLocaleDateString("th-TH", { month: "short", day: "numeric" });
     let cls = "text-slate-600";
-    if (days < 0) cls = "text-red-400";
-    else if (days <= 3) cls = "text-orange-400";
+    if (days < 0) cls = "text-red-600";
+    else if (days <= 3) cls = "text-orange-600";
     return { label, cls };
   };
 
@@ -140,7 +140,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
               )}
             </div>
             <div
-              className={`space-y-3 p-2 rounded-2xl min-h-[400px] transition-colors ${isOver ? "bg-[#003087]/20 ring-2 ring-[#00AEEF]/40" : "bg-slate-50"}`}
+              className={`space-y-3 p-2 rounded-2xl min-h-[400px] transition-colors ${isOver ? "bg-blue-50 ring-2 ring-blue-300" : "bg-gray-50"}`}
             >
               {loading && colTasks.length === 0 && <div className="text-xs text-gray-500 text-center py-6">Loading...</div>}
               {colTasks.map(task => {
@@ -155,16 +155,16 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     onDragStart={(e) => onDragStart(e, task.id)}
                     onDragEnd={() => setDragId(null)}
                     onClick={() => onTaskClick(task.id)}
-                    className={`group bg-[#FFFFFF] rounded-xl p-3 border border-[#E5E7EB] cursor-pointer hover:border-[#00AEEF]/60 transition-all ${PRIO_RING[task.priority] || ""} ${dragId === task.id ? "opacity-40" : ""} ${savingId === task.id ? "ring-2 ring-yellow-400/30" : ""}`}
+                    className={`group bg-[#FFFFFF] rounded-xl p-3 border border-[#E5E7EB] cursor-pointer hover:border-[#00AEEF] transition-all ${PRIO_RING[task.priority] || ""} ${dragId === task.id ? "opacity-40" : ""} ${savingId === task.id ? "ring-2 ring-yellow-400" : ""}`}
                   >
                     {/* top row: project code + priority */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-slate-700">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 text-slate-700">
                         {proj?.project_code || "—"}
                       </span>
                       <div className="flex items-center gap-1">
                         {isBlocked && (
-                          <span title={`Blocked by ${task._blocked_by}`} className="flex items-center gap-0.5 text-red-400 text-[10px]">
+                          <span title={`Blocked by ${task._blocked_by}`} className="flex items-center gap-0.5 text-red-600 text-[10px]">
                             <Lock size={10} /> {task._blocked_by}
                           </span>
                         )}
@@ -181,7 +181,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     {!!task.tags?.length && (
                       <div className="flex flex-wrap gap-1 mb-2">
                         {task.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-[#003087]/30 text-blue-300">#{tag}</span>
+                          <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">#{tag}</span>
                         ))}
                       </div>
                     )}

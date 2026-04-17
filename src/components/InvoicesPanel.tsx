@@ -13,6 +13,7 @@ interface Project { id: string; project_code?: string | null; name_th?: string |
 
 const STATUS_LBL: Record<string, string> = { draft: "ร่าง", sent: "ส่งแล้ว", paid: "ชำระแล้ว", overdue: "เกินกำหนด", cancelled: "ยกเลิก" };
 const STATUS_COLOR: Record<string, string> = { draft: "#94A3B8", sent: "#00AEEF", paid: "#22C55E", overdue: "#EF4444", cancelled: "#64748B" };
+const STATUS_BG_COLOR: Record<string, string> = { draft: "#DBEAFE", sent: "#D1F5FF", paid: "#DCFCE7", overdue: "#FEE2E2", cancelled: "#E2E8F0" };
 
 const fmtMoney = (n?: number | null) =>
   new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(Number(n ?? 0));
@@ -116,7 +117,7 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
       <div className="space-y-2">
         {filtered.map(inv => (
           <div key={inv.id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${STATUS_COLOR[inv.status]}25` }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: STATUS_BG_COLOR[inv.status] }}>
               {inv.status === "paid" ? <CheckCircle2 size={18} style={{ color: STATUS_COLOR[inv.status] }} /> :
                 inv.status === "overdue" ? <AlertCircle size={18} style={{ color: STATUS_COLOR[inv.status] }} /> :
                 <FileText size={18} style={{ color: STATUS_COLOR[inv.status] }} />}
@@ -141,12 +142,12 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
               <div className="flex items-center gap-1 ml-3">
                 <button onClick={() => printInvoice(inv)} className="p-1.5 text-slate-600 hover:text-slate-900" title="พิมพ์"><Printer size={14} /></button>
                 {inv.status === "draft" && (
-                  <button onClick={() => updateStatus(inv, "sent")} className="px-2 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs flex items-center gap-1"><Send size={11} /> ส่ง</button>
+                  <button onClick={() => updateStatus(inv, "sent")} className="px-2 py-1.5 bg-blue-100 text-blue-600 rounded text-xs flex items-center gap-1"><Send size={11} /> ส่ง</button>
                 )}
                 {["sent", "overdue"].includes(inv.status) && (
-                  <button onClick={() => updateStatus(inv, "paid")} className="px-2 py-1.5 bg-green-500/20 text-green-300 rounded text-xs flex items-center gap-1"><DollarSign size={11} /> รับชำระ</button>
+                  <button onClick={() => updateStatus(inv, "paid")} className="px-2 py-1.5 bg-green-100 text-green-700 rounded text-xs flex items-center gap-1"><DollarSign size={11} /> รับชำระ</button>
                 )}
-                <button onClick={() => remove(inv.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                <button onClick={() => remove(inv.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>
               </div>
             )}
           </div>
@@ -230,7 +231,7 @@ function CreateInvoiceModal({ projects, defaultProjectId, onClose, onSaved }: {
         </div>
         <Field label="หมายเหตุ"><textarea rows={2} className={inp} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></Field>
         <div className="text-xs text-slate-600 bg-[#F5F5F5] rounded-lg p-3">ระบบจะรวบรวม time logs ที่ <strong>approved + billable</strong> ในช่วงเวลานี้มาคำนวณยอด subtotal × hourly_rate อัตโนมัติ</div>
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังสร้าง..." : "สร้าง"}</button>

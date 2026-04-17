@@ -10,11 +10,11 @@ interface Task {
 }
 
 const PRIO_DOT: Record<string, string> = {
-  urgent: "bg-red-500", high: "bg-orange-400", medium: "bg-blue-400", low: "bg-slate-400",
+  urgent: "bg-red-600", high: "bg-orange-600", medium: "bg-blue-600", low: "bg-gray-600",
 };
 const STATUS_COLOR: Record<string, string> = {
-  backlog: "bg-slate-500/20 text-gray-600", todo: "bg-blue-500/20 text-blue-700",
-  in_progress: "bg-yellow-500/20 text-yellow-700", review: "bg-purple-500/20 text-purple-700",
+  backlog: "bg-gray-100 text-gray-700", todo: "bg-blue-100 text-blue-700",
+  in_progress: "bg-amber-100 text-amber-700", review: "bg-purple-100 text-purple-700",
 };
 
 interface Props {
@@ -101,8 +101,8 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
         <span className={`w-2 h-2 rounded-full shrink-0 ${PRIO_DOT[t.priority] || "bg-slate-400"}`} title={t.priority} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-gray-600">{proj?.project_code || "—"}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status] || "bg-slate-500/20 text-gray-600"}`}>{t.status}</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{proj?.project_code || "—"}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status] || "bg-gray-100 text-gray-600"}`}>{t.status}</span>
           </div>
           <div className="text-sm text-gray-900 truncate">{t.title}</div>
           <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
@@ -113,12 +113,12 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           {isMyTimer ? (
-            <button onClick={stopTimer} className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-md">
+            <button onClick={stopTimer} className="flex items-center gap-1 px-2 py-1 text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded-md border border-red-200">
               <Square size={12} /> {elapsed(timer!.started_at)}
             </button>
           ) : (
             <button onClick={() => startTimer(t)} disabled={!!timer} title={timer ? "มี timer ทำงานอยู่" : "Start timer"}
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-700 hover:bg-green-500/30 rounded-md disabled:opacity-40 disabled:cursor-not-allowed">
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-green-50 text-green-700 hover:bg-green-100 rounded-md border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed">
               <Play size={12} />
             </button>
           )}
@@ -154,7 +154,7 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
 
       {/* Active timer banner */}
       {timer && (
-        <div className="flex items-center justify-between bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl px-4 py-3">
+        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <div>
@@ -164,7 +164,7 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
           </div>
           <div className="flex items-center gap-3">
             <span className="font-mono text-lg text-green-700">{elapsed(timer.started_at)}</span>
-            <button onClick={stopTimer} className="px-3 py-1.5 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-md text-xs font-medium flex items-center gap-1">
+            <button onClick={stopTimer} className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-xs font-medium flex items-center gap-1">
               <Square size={14} /> Stop
             </button>
           </div>

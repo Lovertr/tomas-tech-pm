@@ -213,7 +213,7 @@ export default function SalesReportPanel({
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">{L('totalDeals')}</p>
-            <DollarSign size={20} className="text-blue-400" />
+            <DollarSign size={20} className="text-blue-700" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{reportData.summary.totalDeals}</p>
           <p className="text-xs text-gray-500 mt-2">
@@ -224,9 +224,9 @@ export default function SalesReportPanel({
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">{L('closed')}</p>
-            <CheckCircle size={20} className="text-green-400" />
+            <CheckCircle size={20} className="text-green-700" />
           </div>
-          <p className="text-3xl font-bold text-green-400">{reportData.summary.wonCount}</p>
+          <p className="text-3xl font-bold text-green-700">{reportData.summary.wonCount}</p>
           <p className="text-xs text-gray-500 mt-2">
             ฿{(reportData.summary.wonValue / 1000).toFixed(0)}K
           </p>
@@ -235,9 +235,9 @@ export default function SalesReportPanel({
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">{L('conversionRate')}</p>
-            <TrendingUp size={20} className="text-orange-400" />
+            <TrendingUp size={20} className="text-orange-700" />
           </div>
-          <p className="text-3xl font-bold text-orange-400">
+          <p className="text-3xl font-bold text-orange-700">
             {reportData.summary.conversionRate}%
           </p>
         </div>
@@ -245,17 +245,17 @@ export default function SalesReportPanel({
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">{L('lost')}</p>
-            <AlertCircle size={20} className="text-red-400" />
+            <AlertCircle size={20} className="text-red-700" />
           </div>
-          <p className="text-3xl font-bold text-red-400">{reportData.summary.lostCount}</p>
+          <p className="text-3xl font-bold text-red-700">{reportData.summary.lostCount}</p>
         </div>
 
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">{L('avgDealSize')}</p>
-            <DollarSign size={20} className="text-purple-400" />
+            <DollarSign size={20} className="text-purple-700" />
           </div>
-          <p className="text-2xl font-bold text-purple-400">
+          <p className="text-2xl font-bold text-purple-700">
             ฿{reportData.summary.totalDeals > 0
               ? ((reportData.summary.totalPipeline / reportData.summary.totalDeals) / 1000).toFixed(0)
               : 0}K
@@ -356,7 +356,7 @@ export default function SalesReportPanel({
                   >
                     <td className="py-3 px-4 text-gray-900">{customer.name}</td>
                     <td className="text-right py-3 px-4">
-                      <span className="font-semibold text-green-400">
+                      <span className="font-semibold text-green-700">
                         ฿{(customer.total / 1000).toFixed(0)}K
                       </span>
                     </td>

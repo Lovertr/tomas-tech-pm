@@ -42,13 +42,13 @@ const PRIO_LABEL: Record<string, string> = {
   low: "Low", medium: "Medium", high: "High", urgent: "Urgent",
 };
 const STATUS_COLOR: Record<string, string> = {
-  backlog: "bg-slate-500/20 text-slate-600", todo: "bg-blue-500/20 text-blue-300",
-  in_progress: "bg-yellow-500/20 text-yellow-300", review: "bg-purple-500/20 text-purple-300",
-  done: "bg-green-500/20 text-green-300",
+  backlog: "bg-gray-100 text-gray-700", todo: "bg-blue-100 text-blue-700",
+  in_progress: "bg-amber-100 text-amber-700", review: "bg-purple-100 text-purple-700",
+  done: "bg-green-100 text-green-700",
 };
 const PRIO_COLOR: Record<string, string> = {
-  low: "bg-slate-500/20 text-slate-600", medium: "bg-blue-500/20 text-blue-300",
-  high: "bg-orange-500/20 text-orange-300", urgent: "bg-red-500/20 text-red-300",
+  low: "bg-gray-100 text-gray-700", medium: "bg-blue-100 text-blue-700",
+  high: "bg-orange-100 text-orange-700", urgent: "bg-red-100 text-red-600",
 };
 
 // Dependency type labels
@@ -287,11 +287,11 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 </select>
                 {/* Timer */}
                 {isMyTimer ? (
-                  <button onClick={stopTimer} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-md text-xs font-medium">
+                  <button onClick={stopTimer} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-xs font-medium">
                     <Square size={14} /> Stop {elapsedStr()}
                   </button>
                 ) : (
-                  <button onClick={startTimer} disabled={!!timer} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-300 hover:bg-green-500/30 rounded-md text-xs font-medium disabled:opacity-50">
+                  <button onClick={startTimer} disabled={!!timer} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-xs font-medium disabled:opacity-50">
                     <Play size={14} /> {timer ? "Timer busy" : "Start timer"}
                   </button>
                 )}
@@ -312,7 +312,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 key={k}
                 onClick={() => setTab(k)}
                 className={`px-2.5 md:px-3 py-2 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                  tab === k ? "border-[#F7941D] text-gray-900" : "border-transparent text-slate-500 hover:text-slate-200"
+                  tab === k ? "border-[#F7941D] text-gray-900" : "border-transparent text-slate-500 hover:text-gray-700"
                 }`}
               >
                 {label} {count !== null && count > 0 && <span className="ml-1 text-[10px] md:text-xs text-slate-500">{count}</span>}
@@ -360,7 +360,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 </Field>
               </div>
               <div className="text-xs text-slate-500 pt-2 border-t border-[#E2E8F0]">
-                {"ชั่วโมงจริง"}: <span className="text-slate-200">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
+                {"ชั่วโมงจริง"}: <span className="text-gray-700">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
                 {task.estimated_hours ? ` / ${Number(task.estimated_hours).toFixed(1)}h` : ""}
                 {saving && <span className="ml-2 text-[#00AEEF]">{"กำลังบันทึก..."}</span>}
               </div>
@@ -377,19 +377,19 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
                 />
                 <button onClick={addComment} disabled={!newComment.trim() || commentSaving}
-                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
+                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
                   {commentSaving ? "..." : "ส่ง"}
                 </button>
               </div>
-              {commentErr && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{commentErr}</div>}
+              {commentErr && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{commentErr}</div>}
               {comments.length === 0 && !commentSaving && <div className="text-slate-500 text-sm text-center py-8">ยังไม่มีคอมเมนต์</div>}
               {comments.map(c => (
                 <div key={c.id} className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3">
                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span className="text-slate-200 font-medium">{authorLabel(c.author)}</span>
+                    <span className="text-gray-700 font-medium">{authorLabel(c.author)}</span>
                     <div className="flex items-center gap-2">
                       <span>{new Date(c.created_at).toLocaleString("th-TH")}</span>
-                      <button onClick={() => deleteComment(c.id)} className="text-red-400 hover:text-red-300"><Trash2 size={12} /></button>
+                      <button onClick={() => deleteComment(c.id)} className="text-red-700 hover:text-red-800"><Trash2 size={12} /></button>
                     </div>
                   </div>
                   <div className="text-sm text-slate-100 whitespace-pre-wrap">{c.content}</div>
@@ -422,7 +422,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   <span className={`flex-1 text-sm ${item.is_completed ? "line-through text-slate-500" : "text-slate-100"}`}>
                     {item.title}
                   </span>
-                  <button onClick={() => deleteCheck(item.id)} className="opacity-0 group-hover:opacity-100 text-red-400">
+                  <button onClick={() => deleteCheck(item.id)} className="opacity-0 group-hover:opacity-100 text-red-700">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -456,7 +456,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 {deps.blockedBy.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2 mb-1">
                     <span className="text-sm text-slate-100">{d.depends?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
-                    <button onClick={() => removeDep(d.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                    <button onClick={() => removeDep(d.id)} className="text-red-700 hover:text-red-800"><Trash2 size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -466,7 +466,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 {deps.blocking.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2 mb-1">
                     <span className="text-sm text-slate-100">{d.blocking?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
-                    <button onClick={() => removeDep(d.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                    <button onClick={() => removeDep(d.id)} className="text-red-700 hover:text-red-800"><Trash2 size={14} /></button>
                   </div>
                 ))}
               </div>

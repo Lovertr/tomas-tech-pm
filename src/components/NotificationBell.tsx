@@ -112,7 +112,7 @@ export default function NotificationBell({ onNavigate }: Props) {
               </div>
               <div className="flex items-center gap-1">
                 {unread.length > 0 && (
-                  <button onClick={markAllRead} className="text-xs text-[#00AEEF] hover:text-gray-700 flex items-center gap-1">
+                  <button onClick={markAllRead} className="text-xs text-cyan-600 hover:text-gray-700 flex items-center gap-1">
                     <CheckCheck size={12} /> อ่านทั้งหมด
                   </button>
                 )}
@@ -137,8 +137,8 @@ export default function NotificationBell({ onNavigate }: Props) {
                 const Icon = meta.icon;
                 return (
                   <button key={n.id} onClick={() => click(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors flex gap-3 ${
-                      n.is_read ? "" : "bg-[#003087]/5"
+                    className={`w-full text-left px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors flex gap-3 ${
+                      n.is_read ? "" : "bg-blue-50"
                     }`}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                       style={{ background: `${meta.color}10` }}>
@@ -149,7 +149,7 @@ export default function NotificationBell({ onNavigate }: Props) {
                         <div className={`flex-1 text-sm ${n.is_read ? "text-gray-500" : "text-gray-900 font-medium"} truncate`}>
                           {n.title}
                         </div>
-                        {!n.is_read && <span className="w-2 h-2 rounded-full bg-[#00AEEF] mt-1.5 shrink-0" />}
+                        {!n.is_read && <span className="w-2 h-2 rounded-full bg-cyan-500 mt-1.5 shrink-0" />}
                       </div>
                       {n.message && (
                         <div className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.message}</div>

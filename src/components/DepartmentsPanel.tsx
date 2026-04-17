@@ -294,15 +294,15 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {departments.map(d => (
             <div key={d.id}
-              className={`bg-[#FFFFFF] border rounded-2xl p-4 hover:shadow-lg transition-all ${d.is_active ? "border-[#E2E8F0]" : "border-red-900/40 opacity-60"}`}>
+              className={`bg-[#FFFFFF] border rounded-2xl p-4 hover:shadow-lg transition-all ${d.is_active ? "border-[#E2E8F0]" : "border-red-300 opacity-60"}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-[#003087]/20 text-[#00AEEF] text-xs font-mono rounded">
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs font-mono rounded">
                       {d.code}
                     </span>
                     {!d.is_active && (
-                      <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">{L('inactive_badge')}</span>
+                      <span className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] rounded">{L('inactive_badge')}</span>
                     )}
                   </div>
                   <h3 className="text-gray-900 font-semibold mt-1">{d.name_th}</h3>
@@ -312,15 +312,15 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                 {canManage && (
                   <div className="flex items-center gap-1">
                     <button onClick={() => openPerms(d)}
-                      className="p-1.5 text-purple-400 hover:bg-purple-400/10 rounded-lg" title={L('perm_tooltip')}>
+                      className="p-1.5 text-purple-600 hover:bg-purple-100 rounded-lg" title={L('perm_tooltip')}>
                       <Shield size={14} />
                     </button>
                     <button onClick={() => openEdit(d)}
-                      className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded-lg" title={L('edit_tooltip')}>
+                      className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg" title={L('edit_tooltip')}>
                       <Edit3 size={14} />
                     </button>
                     <button onClick={() => deleteDept(d.id)}
-                      className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg" title={L('delete_tooltip')}>
+                      className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg" title={L('delete_tooltip')}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -401,7 +401,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
             </div>
             <div className="border-t border-[#E2E8F0] px-5 py-3 flex justify-end gap-2">
               <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm text-slate-300 hover:text-gray-900">{L('form_cancel')}</button>
+                className="px-4 py-2 text-sm text-slate-600 hover:text-gray-900">{L('form_cancel')}</button>
               <button onClick={saveDept}
                 className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2">
                 <Save size={14} /> {editingId ? L('form_update') : L('form_create')}
@@ -471,12 +471,12 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
               {groupedModules.map(g => {
                 const isCollapsed = collapsedCats[g.cat];
                 return (
-                  <div key={g.cat} className="bg-[#F1F5F9]/40 border border-[#E2E8F0] rounded-xl">
+                  <div key={g.cat} className="bg-gray-50 border border-[#E2E8F0] rounded-xl">
                     <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b border-[#E2E8F0] cursor-pointer gap-2"
                       onClick={() => toggleCat(g.cat)}>
                       <div className="flex items-center gap-2 min-w-0">
                         {isCollapsed ? <ChevronRight size={14} className="text-slate-500 shrink-0" /> : <ChevronDown size={14} className="text-slate-500 shrink-0" />}
-                        <h4 className="text-sm font-semibold text-purple-400 truncate">{CATEGORY_LABEL[g.cat] || g.cat}</h4>
+                        <h4 className="text-sm font-semibold text-purple-700 truncate">{CATEGORY_LABEL[g.cat] || g.cat}</h4>
                         <span className="text-[10px] text-slate-500 shrink-0">({g.items.length})</span>
                       </div>
                       <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
@@ -528,11 +528,11 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
 
             {/* footer */}
             <div className="border-t border-[#E2E8F0] px-3 md:px-5 py-3 flex items-center justify-between gap-2">
-              <div className="text-xs text-slate-500 truncate">
-                {permDirty ? <span className="text-purple-400">{L('perm_changes_pending')}</span> : L('perm_no_changes')}
+              <div className="text-xs text-slate-600 truncate">
+                {permDirty ? <span className="text-purple-700">{L('perm_changes_pending')}</span> : L('perm_no_changes')}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button onClick={() => setPermDeptId(null)} className="px-3 md:px-4 py-2 text-sm text-slate-300 hover:text-gray-900">{L('form_cancel')}</button>
+                <button onClick={() => setPermDeptId(null)} className="px-3 md:px-4 py-2 text-sm text-slate-600 hover:text-gray-900">{L('form_cancel')}</button>
                 <button onClick={savePerms} disabled={permSaving || !permDirty}
                   className="px-3 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 whitespace-nowrap">
                   <Save size={14} /> {permSaving ? L('perm_saving') : L('perm_save')}

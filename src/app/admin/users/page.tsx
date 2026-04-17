@@ -221,10 +221,10 @@ export default function AdminUsersPage() {
 
   const roleBadge = (role: string) => {
     const colors: Record<string, string> = {
-      admin: "bg-red-500/10 text-red-600 border-red-500/30",
-      manager: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-      leader: "bg-purple-500/10 text-purple-600 border-purple-500/30",
-      member: "bg-gray-500/10 text-gray-600 border-gray-500/30",
+      admin: "bg-red-100 text-red-600 border-red-200",
+      manager: "bg-blue-100 text-blue-600 border-blue-200",
+      leader: "bg-purple-100 text-purple-600 border-purple-200",
+      member: "bg-gray-100 text-gray-600 border-gray-200",
     };
     return colors[role] ?? colors.member;
   };
@@ -277,8 +277,8 @@ export default function AdminUsersPage() {
         <div
           className={`fixed top-20 right-6 z-50 px-4 py-3 rounded-lg border shadow-xl flex items-center gap-2 ${
             toast.type === "ok"
-              ? "bg-green-500/10 border-green-500/40 text-green-600"
-              : "bg-red-500/10 border-red-500/40 text-red-600"
+              ? "bg-green-100 border-green-200 text-green-600"
+              : "bg-red-100 border-red-200 text-red-600"
           }`}
         >
           {toast.type === "ok" ? (

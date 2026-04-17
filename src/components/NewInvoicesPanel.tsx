@@ -70,6 +70,15 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "#64748B",
 };
 
+const STATUS_BG_COLOR: Record<string, string> = {
+  draft: "#CBD5E1",
+  sent: "#CFFAFE",
+  partially_paid: "#FED7AA",
+  paid: "#DCFCE7",
+  overdue: "#FEE2E2",
+  cancelled: "#E2E8F0",
+};
+
 const fmtMoney = (n?: number | null) =>
   new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB", maximumFractionDigits: 0 }).format(Number(n ?? 0));
 
@@ -218,7 +227,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
       {loading && !items.length && <div className="text-center text-gray-500 py-12">Loading...</div>}
       {!loading && !items.length && (
         <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-gray-500">
-          <FileText size={40} className="mx-auto mb-3 text-slate-300" />
+          <FileText size={40} className="mx-auto mb-3 text-slate-600" />
           {L('no_invoices')}
         </div>
       )}
@@ -234,12 +243,12 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
               <div className="flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: `${STATUS_COLORS[statusToShow]}25` }}
+                  style={{ background: STATUS_BG_COLOR[statusToShow] }}
                 >
                   {statusToShow === "paid" ? (
                     <CheckCircle2 size={18} style={{ color: STATUS_COLORS[statusToShow] }} />
                   ) : isOverdue ? (
-                    <AlertCircle size={18} className="text-red-400" />
+                    <AlertCircle size={18} className="text-red-600" />
                   ) : (
                     <FileText size={18} style={{ color: STATUS_COLORS[statusToShow] }} />
                   )}
@@ -256,7 +265,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                     {inv.customer_name && <span>{inv.customer_name} · </span>}
                     {L('issued')} {new Date(inv.invoice_date).toLocaleDateString("th-TH")}
                     {inv.due_date && (
-                      <span className={isOverdue ? " text-red-400 font-medium" : ""}>
+                      <span className={isOverdue ? " text-red-600 font-medium" : ""}>
                         · {L('due')} {new Date(inv.due_date).toLocaleDateString("th-TH")}
                       </span>
                     )}
@@ -282,7 +291,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                     {inv.status === "draft" && (
                       <button
                         onClick={() => updateStatus(inv, "sent")}
-                        className="px-2 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs flex items-center gap-1"
+                        className="px-2 py-1.5 bg-blue-100 text-blue-600 rounded text-xs flex items-center gap-1"
                       >
                         <Send size={11} /> {L('send_button')}
                       </button>
@@ -293,12 +302,12 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                           const amt = prompt(panelText["record_payment"]?.[lang] ?? panelText["record_payment"]?.th ?? "Record Payment");
                           if (amt) recordPayment(inv, Number(amt));
                         }}
-                        className="px-2 py-1.5 bg-green-500/20 text-green-300 rounded text-xs flex items-center gap-1"
+                        className="px-2 py-1.5 bg-green-100 text-green-700 rounded text-xs flex items-center gap-1"
                       >
                         <CheckCircle2 size={11} /> {L('record_payment')}
                       </button>
                     )}
-                    <button onClick={() => remove(inv.id)} className="p-1.5 text-red-400 hover:text-red-300">
+                    <button onClick={() => remove(inv.id)} className="p-1.5 text-red-600 hover:text-red-700">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -347,7 +356,7 @@ function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice
     <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
       <div className="bg-[#F1F5F9] rounded-lg p-3 space-y-2">
         {invoice.items?.map((item, idx) => (
-          <div key={item.id || idx} className="flex justify-between text-sm text-slate-700">
+          <div key={item.id || idx} className="flex justify-between text-sm text-slate-600">
             <div className="flex-1">
               <div>{item.description}</div>
               <div className="text-[10px] text-gray-500">
@@ -363,12 +372,12 @@ function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice
           <span>{fmtMoney(invoice.subtotal)}</span>
         </div>
         {invoice.discount > 0 && (
-          <div className="flex justify-between text-orange-300">
+          <div className="flex justify-between text-orange-600">
             <span>{L('discount')}</span>
             <span>-{fmtMoney(invoice.discount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-cyan-300">
+        <div className="flex justify-between text-cyan-700">
           <span>{L('vat')} {invoice.vat_pct}%</span>
           <span>{fmtMoney(invoice.vat_amount)}</span>
         </div>
@@ -377,13 +386,13 @@ function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice
           <span>{fmtMoney(invoice.total)}</span>
         </div>
         {invoice.paid_amount && Number(invoice.paid_amount) > 0 && (
-          <div className="flex justify-between text-green-300 pt-1">
+          <div className="flex justify-between text-green-700 pt-1">
             <span>{L('paid')}</span>
             <span>{fmtMoney(invoice.paid_amount)}</span>
           </div>
         )}
         {invoice.paid_amount && Number(invoice.paid_amount) < Number(invoice.total) && (
-          <div className="flex justify-between text-orange-300">
+          <div className="flex justify-between text-orange-600">
             <span>{L('outstanding_balance')}</span>
             <span>{fmtMoney(Number(invoice.total) - Number(invoice.paid_amount))}</span>
           </div>
@@ -480,7 +489,7 @@ function CreateInvoiceModal({
         className="bg-white rounded-2xl border border-[#E2E8F0] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">{L('modal_title')}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{L('modal_title')}</h3>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={L('invoice_no')}>
@@ -611,7 +620,7 @@ function CreateInvoiceModal({
                     const newItems = form.items.filter((_, i) => i !== idx);
                     setForm({ ...form, items: newItems });
                   }}
-                  className="col-span-2 p-1.5 text-red-400 hover:text-red-300"
+                  className="col-span-2 p-1.5 text-red-600 hover:text-red-700"
                 >
                   <X size={14} />
                 </button>
@@ -621,7 +630,7 @@ function CreateInvoiceModal({
           <button
             type="button"
             onClick={() => setForm({ ...form, items: [...form.items, { description: "", qty: 1, unit_price: 0 }] })}
-            className="mt-2 text-xs text-blue-400 hover:text-blue-300"
+            className="mt-2 text-xs text-blue-600 hover:text-blue-700"
           >
             + {L('add_item')}
           </button>
@@ -643,25 +652,25 @@ function CreateInvoiceModal({
             <span>{fmtMoney(subtotal)}</span>
           </div>
           {form.discount > 0 && (
-            <div className="flex justify-between text-orange-300">
+            <div className="flex justify-between text-orange-600">
               <span>{L('discount')}</span>
               <span>-{fmtMoney(form.discount)}</span>
             </div>
           )}
-          <div className="flex justify-between text-cyan-300">
+          <div className="flex justify-between text-cyan-700">
             <span>{L('vat')} {form.vat_pct}%</span>
             <span>{fmtMoney(vat)}</span>
           </div>
-          <div className="flex justify-between text-white font-bold pt-2 border-t border-[#E2E8F0]">
+          <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-[#E2E8F0]">
             <span>{L('total')}</span>
             <span>{fmtMoney(total)}</span>
           </div>
         </div>
 
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
+          <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:text-gray-900 text-sm">
             {L('cancel_button')}
           </button>
           <button

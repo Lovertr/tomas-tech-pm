@@ -303,7 +303,7 @@ export default function DealsPipelinePanel({
         />
         <button
           onClick={() => { /* filters are live */ }}
-          className="p-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg"
+          className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"
         >
           <Search size={16} />
         </button>
@@ -382,7 +382,7 @@ export default function DealsPipelinePanel({
                         {canManage && !mine && (
                           <div className="flex gap-1 pt-2 mt-2 border-t border-gray-100 opacity-0 hover:opacity-100 transition">
                             <button onClick={(e) => { e.stopPropagation(); handleEditDeal(deal); }}
-                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded text-xs flex items-center justify-center gap-1">
+                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
                               <Edit2 size={10} /> {lang === 'th' ? 'แก้ไข' : lang === 'jp' ? '編集' : 'Edit'}
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }}
@@ -474,7 +474,7 @@ export default function DealsPipelinePanel({
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button type="submit" className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium">{L('save')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium">{L('save')}</button>
                 <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
                   className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
               </div>
