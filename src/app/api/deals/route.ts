@@ -1,0 +1,29 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthContext } from "@/lib/auth-server";
+
+export async function GET(req: NextRequest) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const stage = req.nextUrl.searchParams.get("stage");
+  const customerId = req.nextUrl.searchParams.get("customer_id");
+  let q = supabaseAdmin.from("deals")
+    .select("*, customers(id, company_name), owner:app_users!owner_id(id, email)")
+    .order("updated_at", { ascending: false });
+  if (stage && stage !== "all") q = q.eq("stage", stage);
+  if (customerId) q = q.eq("customer_id", customerId);
+  const { data, error } = await q;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ deals: data ?? [] });
+}
+
+export async function POST(req: NextRequest) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await req.json();
+  if (!body.title?.trim()) return NextResponse.json({ error: "title required" }, { status: 400 });
+  const { data, error } = await supabaseAdmin.from("deals")
+    .insert({ ...body, owner_id: body.owner_id || ctx.userId }).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ deal: data }, { status: 201 });
+}

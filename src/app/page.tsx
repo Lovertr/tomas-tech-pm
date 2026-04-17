@@ -23,7 +23,7 @@ import KanbanBoard from "@/components/KanbanBoard";
 import MyTasks from "@/components/MyTasks";
 import FloatingTimer from "@/components/FloatingTimer";
 import GanttChart from "@/components/GanttChart";
-import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2 } from "lucide-react";
+import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon } from "lucide-react";
 import MilestonesPanel from "@/components/MilestonesPanel";
 import CalendarView from "@/components/CalendarView";
 import SprintPanel from "@/components/SprintPanel";
@@ -39,6 +39,14 @@ import RecurringTasksPanel from "@/components/RecurringTasksPanel";
 import InvoicesPanel from "@/components/InvoicesPanel";
 import FinancePanel from "@/components/FinancePanel";
 import ClientPortalPanel from "@/components/ClientPortalPanel";
+import ProjectBudgetPanel from "@/components/ProjectBudgetPanel";
+import TransactionsPanel from "@/components/TransactionsPanel";
+import QuotationsPanel from "@/components/QuotationsPanel";
+import NewInvoicesPanel from "@/components/NewInvoicesPanel";
+import CustomersPanel from "@/components/CustomersPanel";
+import DealsPipelinePanel from "@/components/DealsPipelinePanel";
+import SalesActivitiesPanel from "@/components/SalesActivitiesPanel";
+import SalesReportPanel from "@/components/SalesReportPanel";
 import CommandPalette, { type CommandItem } from "@/components/CommandPalette";
 import ShortcutsHelp from "@/components/ShortcutsHelp";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
@@ -203,10 +211,19 @@ export default function App() {
     { id: "approval", icon: CheckCheck, label: t.approval, module: "approval", group: "people" },
     { id: "manpower", icon: BarChart3, label: t.manpower, module: "manpower", group: "people" },
     // Finance / การเงิน
+    { id: "project_budget", icon: PiggyBank, label: t.projectBudget, module: "finance", group: "finance" },
+    { id: "transactions", icon: ArrowLeftRight, label: t.transactions, module: "finance", group: "finance" },
+    { id: "quotations", icon: FileText, label: t.quotations, module: "finance", group: "finance" },
+    { id: "new_invoices", icon: HandCoins, label: t.newInvoices, module: "finance", group: "finance" },
     { id: "invoices", icon: Receipt, label: t.invoices, module: "invoices", group: "finance" },
     { id: "finance", icon: Wallet, label: t.finance, module: "finance", group: "finance" },
     { id: "costs", icon: DollarSign, label: t.costs, module: "costs", group: "finance" },
     { id: "client_portal", icon: Link2, label: t.clientPortal, module: "client_portal", group: "finance" },
+    // CRM & Sales / การขาย
+    { id: "customers", icon: Building2, label: t.customers, module: "finance", group: "crm" },
+    { id: "deals_pipeline", icon: GitBranch, label: t.dealsPipeline, module: "finance", group: "crm" },
+    { id: "sales_activities", icon: PhoneCall, label: t.salesActivities, module: "finance", group: "crm" },
+    { id: "sales_report", icon: PieChartIcon, label: t.salesReport, module: "finance", group: "crm" },
     // Reports & Admin
     { id: "reports", icon: BarChart3, label: t.reports, module: "reports", group: "reports" },
     { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
@@ -220,6 +237,7 @@ export default function App() {
     { key: "tracking", label: lang === "en" ? "Tracking"   : lang === "jp" ? "追跡"       : "ติดตาม & ควบคุม" },
     { key: "people",   label: lang === "en" ? "Team"       : lang === "jp" ? "チーム"     : "ทีม & เวลา" },
     { key: "finance",  label: lang === "en" ? "Finance"    : lang === "jp" ? "財務"       : "การเงิน" },
+    { key: "crm",      label: lang === "en" ? "CRM & Sales": lang === "jp" ? "CRM・営業"  : "CRM & การขาย" },
     { key: "reports",  label: lang === "en" ? "Reports"    : lang === "jp" ? "レポート"   : "รายงาน" },
     { key: "admin",    label: lang === "en" ? "System"     : lang === "jp" ? "システム"   : "ระบบ" },
   ];
@@ -553,6 +571,60 @@ export default function App() {
     </div>
   );
 
+  // ── NEW FINANCE PAGES ──
+  const ProjectBudgetPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title={t.projectBudget} />
+      <ProjectBudgetPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const TransactionsPage = () => (
+    <div className="space-y-6">
+      <ProjectFilterHeader title={t.transactions} />
+      <TransactionsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const QuotationsPage = () => (
+    <div className="space-y-6">
+      <QuotationsPanel projects={data.projects} members={data.members}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const NewInvoicesPage = () => (
+    <div className="space-y-6">
+      <NewInvoicesPanel projects={data.projects} members={data.members}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+
+  // ── CRM PAGES ──
+  const CustomersPage = () => (
+    <div className="space-y-6">
+      <CustomersPanel projects={data.projects} members={data.members}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const DealsPipelinePage = () => (
+    <div className="space-y-6">
+      <DealsPipelinePanel projects={data.projects} members={data.members}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const SalesActivitiesPage = () => (
+    <div className="space-y-6">
+      <SalesActivitiesPanel projects={data.projects} members={data.members}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+  const SalesReportPage = () => (
+    <div className="space-y-6">
+      <SalesReportPanel projects={data.projects} members={data.members}
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+    </div>
+  );
+
   // ── TASKS (KANBAN) ──
   const Tasks = () => {
     return (
@@ -781,7 +853,7 @@ export default function App() {
   const Workload = () => <WorkloadHeatmap weeks={8} />;
   const Approval = () => <TimeLogApproval canApprove={["admin","manager","leader"].includes(currentUser?.role ?? "")} />;
   const Manpower = () => <ManpowerReport positions={data.positions} members={data.members} projects={data.projects} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage };
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, new_invoices: NewInvoicesPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)

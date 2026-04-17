@@ -6,13 +6,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const { data, error } = await supabaseAdmin.from("invoices")
+  const { data, error } = await supabaseAdmin.from("quotations")
     .select("*, customers(id, company_name, address, tax_id, phone, email)")
     .eq("id", id).single();
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
-  const { data: items } = await supabaseAdmin.from("invoice_items")
-    .select("*").eq("invoice_id", id).order("sort_order");
-  return NextResponse.json({ invoice: data, items: items ?? [] });
+  const { data: items } = await supabaseAdmin.from("quotation_items")
+    .select("*").eq("quotation_id", id).order("sort_order");
+  return NextResponse.json({ quotation: data, items: items ?? [] });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -33,24 +33,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     body.discount_amount = discountAmt;
     body.vat_amount = vatAmt;
     body.total = afterDiscount + vatAmt;
-    await supabaseAdmin.from("invoice_items").delete().eq("invoice_id", id);
+    await supabaseAdmin.from("quotation_items").delete().eq("quotation_id", id);
     if (items.length > 0) {
-      await supabaseAdmin.from("invoice_items").insert(
-        items.map((it: Record<string, unknown>, i: number) => ({ ...it, invoice_id: id, sort_order: i, id: undefined }))
+      await supabaseAdmin.from("quotation_items").insert(
+        items.map((it: Record<string, unknown>, i: number) => ({ ...it, quotation_id: id, sort_order: i, id: undefined }))
       );
     }
   }
 
-  const { data, error } = await supabaseAdmin.from("invoices").update(body).eq("id", id).select().single();
+  const { data, error } = await supabaseAdmin.from("quotations").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ invoice: data });
+  return NextResponse.json({ quotation: data });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const { error } = await supabaseAdmin.from("invoices").delete().eq("id", id);
+  const { error } = await supabaseAdmin.from("quotations").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

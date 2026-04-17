@@ -53,6 +53,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     recurring: "งานประจำ", invoices: "ใบแจ้งหนี้", finance: "การเงิน (P&L/EVM)",
     clientPortal: "พอร์ทัลลูกค้า", allocation: "จัดสรรทีม", workload: "โหลดงาน",
     approval: "อนุมัติเวลา", manpower: "กำลังคน",
+    projectBudget: "งบประมาณโครงการ", transactions: "รายรับ-รายจ่าย",
+    quotations: "ใบเสนอราคา", newInvoices: "ใบแจ้งหนี้ (ใหม่)",
+    customers: "ลูกค้า", dealsPipeline: "Pipeline การขาย",
+    salesActivities: "กิจกรรมการขาย", salesReport: "รายงานการขาย",
   },
   en: {
     appName: "TOMAS TECH PM", dashboard: "Dashboard", projects: "Projects", tasks: "Tasks",
@@ -106,6 +110,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     recurring: "Recurring", invoices: "Invoices", finance: "Finance (P&L/EVM)",
     clientPortal: "Client Portal", allocation: "Allocation", workload: "Workload",
     approval: "Approval", manpower: "Manpower",
+    projectBudget: "Project Budget", transactions: "Transactions",
+    quotations: "Quotations", newInvoices: "Invoices (New)",
+    customers: "Customers", dealsPipeline: "Sales Pipeline",
+    salesActivities: "Sales Activities", salesReport: "Sales Report",
   },
   jp: {
     appName: "TOMAS TECH PM", dashboard: "ダッシュボード", projects: "プロジェクト", tasks: "タスク",
@@ -159,5 +167,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     recurring: "定期タスク", invoices: "請求書", finance: "財務 (P&L/EVM)",
     clientPortal: "クライアントポータル", allocation: "割り当て", workload: "ワークロード",
     approval: "承認", manpower: "人員",
+    projectBudget: "プロジェクト予算", transactions: "収支",
+    quotations: "見積書", newInvoices: "請求書（新）",
+    customers: "顧客", dealsPipeline: "営業パイプライン",
+    salesActivities: "営業活動", salesReport: "営業レポート",
   },
 };
