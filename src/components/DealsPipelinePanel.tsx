@@ -186,8 +186,9 @@ export default function DealsPipelinePanel({
     return acc;
   }, {} as Record<string, Deal[]>);
 
-  const summary = {
-    totalPipeline: deals.reduce((sum, d) => sum + d.value, 0),
+  const totalPipeline = deals.reduce((sum, d) => sum + d.value, 0);
+  const summary: { totalPipeline: number; wonValue: number; wonCount: number; totalDeals: number; conversionRate: string; avgDealSize: number } = {
+    totalPipeline,
     wonValue: deals
       .filter((d) => d.stage === 'won')
       .reduce((sum, d) => sum + d.value, 0),
@@ -197,7 +198,7 @@ export default function DealsPipelinePanel({
       deals.length > 0
         ? ((deals.filter((d) => d.stage === 'won').length / deals.length) * 100).toFixed(1)
         : '0',
-    avgDealSize: deals.length > 0 ? Math.round(summary.totalPipeline / deals.length) : 0,
+    avgDealSize: deals.length > 0 ? Math.round(totalPipeline / deals.length) : 0,
   };
 
   return (
