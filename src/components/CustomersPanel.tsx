@@ -69,7 +69,7 @@ export default function CustomersPanel({
     email: '',
     website: '',
     notes: '',
-    status: 'prospect' as const,
+    status: 'prospect' as 'active' | 'inactive' | 'prospect' | 'churned',
   });
 
   const [contactFormData, setContactFormData] = useState({

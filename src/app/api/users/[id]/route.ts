@@ -23,6 +23,7 @@ export async function PATCH(
       "email",
       "phone",
       "department",
+      "department_id",
       "role_id",
       "position_id",
       "language",

@@ -7,9 +7,10 @@ interface Module { key: string; label_th: string; label_en: string; category: st
 interface User { id: string; username: string; display_name: string; }
 
 const CATEGORY_LABEL: Record<string, string> = {
-  core: "หลัก", planning: "การวางแผน", finance: "การเงิน", people: "ทีม/บุคลากร", admin: "ระบบ",
+  core: "หลัก", planning: "การวางแผน", tracking: "ติดตาม", finance: "การเงิน",
+  crm: "CRM & การขาย", people: "ทีม/บุคลากร", admin: "ระบบ",
 };
-const CATEGORY_ORDER = ["core", "planning", "people", "finance", "admin"];
+const CATEGORY_ORDER = ["core", "planning", "tracking", "people", "finance", "crm", "admin"];
 const LEVELS = [0, 1, 2, 3, 4, 5] as const;
 
 interface Props {

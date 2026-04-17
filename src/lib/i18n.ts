@@ -57,6 +57,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     quotations: "ใบเสนอราคา", newInvoices: "ใบแจ้งหนี้ (ใหม่)",
     customers: "ลูกค้า", dealsPipeline: "Pipeline การขาย",
     salesActivities: "กิจกรรมการขาย", salesReport: "รายงานการขาย",
+    departments: "แผนก",
   },
   en: {
     appName: "TOMAS TECH PM", dashboard: "Dashboard", projects: "Projects", tasks: "Tasks",
@@ -114,6 +115,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     quotations: "Quotations", newInvoices: "Invoices (New)",
     customers: "Customers", dealsPipeline: "Sales Pipeline",
     salesActivities: "Sales Activities", salesReport: "Sales Report",
+    departments: "Departments",
   },
   jp: {
     appName: "TOMAS TECH PM", dashboard: "ダッシュボード", projects: "プロジェクト", tasks: "タスク",
@@ -171,5 +173,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     quotations: "見積書", newInvoices: "請求書（新）",
     customers: "顧客", dealsPipeline: "営業パイプライン",
     salesActivities: "営業活動", salesReport: "営業レポート",
+    departments: "部門",
   },
 };
