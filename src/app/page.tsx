@@ -7,7 +7,7 @@ import {
   BarChart3, Settings, ChevronLeft, ChevronRight, ChevronDown, Plus, Search,
   Calendar, TrendingUp, Briefcase, CheckCircle2, AlertCircle,
   Edit3, Trash2, Eye, Download, Sun, Moon, Activity, Target,
-  UserCog, LogOut, UserPlus, Flame, CheckCheck,
+  UserCog, LogOut, UserPlus, Flame, CheckCheck, X,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
