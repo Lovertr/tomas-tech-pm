@@ -91,6 +91,8 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
   const [deps, setDeps] = useState<{ blockedBy: DepItem[]; blocking: DepItem[] }>({ blockedBy: [], blocking: [] });
   const [newDepId, setNewDepId] = useState("");
   const [newDepType, setNewDepType] = useState("finish_to_start");
+  const [commentErr, setCommentErr] = useState<string | null>(null);
+  const [commentSaving, setCommentSaving] = useState(false);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [timer, setTimer] = useState<{ id: string; started_at: string; task_id?: string } | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -153,11 +155,24 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
   const addComment = async () => {
     if (!taskId || !newComment.trim()) return;
-    const r = await fetch(`/api/tasks/${taskId}/comments`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: newComment.trim() }),
-    });
-    if (r.ok) { setNewComment(""); fetchAll(); }
+    setCommentSaving(true); setCommentErr(null);
+    try {
+      const r = await fetch(`/api/tasks/${taskId}/comments`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newComment.trim() }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        throw new Error(d.error || `Error ${r.status}`);
+      }
+      setNewComment("");
+      // Fetch comments immediately inline for faster feedback
+      const cr = await fetch(`/api/tasks/${taskId}/comments`);
+      if (cr.ok) { const cd = await cr.json(); setComments(cd.comments ?? []); }
+      onChange?.();
+    } catch (e) {
+      setCommentErr(e instanceof Error ? e.message : "บันทึกล้มเหลว");
+    } finally { setCommentSaving(false); }
   };
 
   const deleteComment = async (id: string) => {
@@ -361,12 +376,13 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
                 />
-                <button onClick={addComment} disabled={!newComment.trim()}
-                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50">
-                  {"\u0E2A\u0E48\u0E07"}
+                <button onClick={addComment} disabled={!newComment.trim() || commentSaving}
+                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
+                  {commentSaving ? "..." : "\u0E2A\u0E48\u0E07"}
                 </button>
               </div>
-              {comments.length === 0 && <div className="text-slate-400 text-sm text-center py-8">{"\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C"}</div>}
+              {commentErr && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{commentErr}</div>}
+              {comments.length === 0 && !commentSaving && <div className="text-slate-400 text-sm text-center py-8">{"\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C"}</div>}
               {comments.map(c => (
                 <div key={c.id} className="bg-[#0F172A] border border-[#334155] rounded-lg p-3">
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
@@ -419,17 +435,19 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               <div className="bg-[#0F172A] border border-[#334155] rounded-lg p-3 space-y-2">
                 <div className="text-xs text-slate-400 font-medium">{"\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07"}</div>
                 <div className="text-[10px] text-slate-500 -mt-1">{"\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E17\u0E33\u0E01\u0E48\u0E2D\u0E19\u0E08\u0E36\u0E07\u0E40\u0E23\u0E34\u0E48\u0E21\u0E07\u0E32\u0E19\u0E19\u0E35\u0E49\u0E44\u0E14\u0E49"}</div>
-                <div className="flex gap-2">
-                  <select className={inp + " flex-1"} value={newDepId} onChange={(e) => setNewDepId(e.target.value)}>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex gap-2 flex-1 min-w-0">
+                    <select className={inp + " flex-[2] min-w-0"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
+                      {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">{"\u0E40\u0E1E\u0E34\u0E48\u0E21"}</button>
+                  </div>
+                  <select className={inp + " w-full"} value={newDepId} onChange={(e) => setNewDepId(e.target.value)}>
                     <option value="">{"\u2014 \u0E40\u0E25\u0E37\u0E2D\u0E01\u0E07\u0E32\u0E19 \u2014"}</option>
                     {allTasks.filter(t => t.id !== taskId).map(t => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
                   </select>
-                  <select className={inp + " w-48"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
-                    {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                  <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap">{"\u0E40\u0E1E\u0E34\u0E48\u0E21"}</button>
                 </div>
               </div>
               <div>

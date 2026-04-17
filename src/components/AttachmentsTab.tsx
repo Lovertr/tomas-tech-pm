@@ -54,18 +54,23 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
     setErr(null); setUploading(true);
     try {
       for (const f of Array.from(files)) {
+        if (f.size > 25 * 1024 * 1024) {
+          throw new Error(`ไฟล์ ${f.name} ใหญ่เกิน 25MB`);
+        }
         const fd = new FormData();
         fd.append("file", f);
         const r = await fetch(`/api/tasks/${taskId}/attachments`, { method: "POST", body: fd });
         if (!r.ok) {
           const d = await r.json().catch(() => ({}));
-          throw new Error(d.error || `Upload failed: ${f.name}`);
+          throw new Error(d.error || `Upload failed: ${f.name} (${r.status})`);
         }
       }
       await fetchAll();
       onChange?.();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Upload failed");
+      // Still try to refresh in case some files uploaded
+      await fetchAll();
     } finally { setUploading(false); }
   };
 
@@ -137,10 +142,27 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
                 </div>
               </div>
               {a.url && (
-                <a href={a.url} target="_blank" rel="noopener noreferrer" download={a.file_name}
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const res = await fetch(a.url!);
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.download = a.file_name;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(url);
+                    } catch {
+                      window.open(a.url!, "_blank");
+                    }
+                  }}
                   className="p-1.5 text-slate-400 hover:text-white" title="ดาวน์โหลด">
                   <Download size={16} />
-                </a>
+                </button>
               )}
               {canManage && (
                 <button onClick={() => remove(a.id)} className="p-1.5 text-red-400 hover:text-red-300" title="ลบ">
