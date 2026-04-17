@@ -215,7 +215,6 @@ export default function App() {
     { id: "project_budget", icon: PiggyBank, label: t.projectBudget, module: "project_budget", group: "finance" },
     { id: "transactions", icon: ArrowLeftRight, label: t.transactions, module: "transactions", group: "finance" },
     { id: "quotations", icon: FileText, label: t.quotations, module: "quotations", group: "finance" },
-    { id: "new_invoices", icon: HandCoins, label: t.newInvoices, module: "new_invoices", group: "finance" },
     { id: "invoices", icon: Receipt, label: t.invoices, module: "invoices", group: "finance" },
     { id: "finance", icon: Wallet, label: t.finance, module: "finance", group: "finance" },
     { id: "costs", icon: DollarSign, label: t.costs, module: "costs", group: "finance" },
@@ -578,26 +577,26 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title={t.projectBudget} />
       <ProjectBudgetPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const TransactionsPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title={t.transactions} />
       <TransactionsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const QuotationsPage = () => (
     <div className="space-y-6">
       <QuotationsPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const NewInvoicesPage = () => (
     <div className="space-y-6">
       <NewInvoicesPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
@@ -605,32 +604,32 @@ export default function App() {
   const CustomersPage = () => (
     <div className="space-y-6">
       <CustomersPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const DealsPipelinePage = () => (
     <div className="space-y-6">
       <DealsPipelinePanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const SalesActivitiesPage = () => (
     <div className="space-y-6">
       <SalesActivitiesPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const SalesReportPage = () => (
     <div className="space-y-6">
       <SalesReportPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
   // ── DEPARTMENTS ──
   const DepartmentsPage = () => (
     <div className="space-y-6">
-      <DepartmentsPanel canManage={isAdmin} />
+      <DepartmentsPanel canManage={isAdmin} lang={lang} />
     </div>
   );
 
@@ -862,7 +861,7 @@ export default function App() {
   const Workload = () => <WorkloadHeatmap weeks={8} />;
   const Approval = () => <TimeLogApproval canApprove={["admin","manager","leader"].includes(currentUser?.role ?? "")} />;
   const Manpower = () => <ManpowerReport positions={data.positions} members={data.members} projects={data.projects} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, new_invoices: NewInvoicesPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage };
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)

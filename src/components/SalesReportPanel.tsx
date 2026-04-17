@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { Lang } from '@/lib/i18n';
 import {
   BarChart,
   Bar,
@@ -25,6 +26,7 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
 interface SalesReportData {
@@ -45,13 +47,13 @@ interface SalesReportData {
 
 const COLORS = ['#003087', '#F7941D', '#00AEEF', '#10B981', '#6366F1', '#EF4444', '#8B5CF6'];
 
-const stageNames: Record<string, string> = {
-  prospect: 'ผู้สนใจ',
-  qualification: 'ประเมิน',
-  proposal: 'เสนอให้',
-  negotiation: 'เจรจา',
-  won: 'ปิดข้อมูล',
-  lost: 'สูญหาย',
+const stageNamesI18n: Record<string, Record<string, string>> = {
+  prospect:      { th: 'ลูกค้าเป้าหมาย', en: 'Prospect',     jp: '見込み客' },
+  qualification: { th: 'คุณสมบัติ',       en: 'Qualification', jp: '適格性評価' },
+  proposal:      { th: 'เสนอราคา',        en: 'Proposal',      jp: '提案' },
+  negotiation:   { th: 'เจรจาต่อรอง',     en: 'Negotiation',   jp: '交渉' },
+  won:           { th: 'ปิดการขาย',        en: 'Won',           jp: '受注' },
+  lost:          { th: 'ไม่สำเร็จ',        en: 'Lost',          jp: '失注' },
 };
 
 export default function SalesReportPanel({
@@ -60,7 +62,82 @@ export default function SalesReportPanel({
   filterProjectId,
   canManage = true,
   refreshKey = 0,
+  lang = 'th',
 }: Props) {
+  const L = (key: string) => {
+    const panelText: Record<Lang, Record<string, string>> = {
+      th: {
+        loading: 'กำลังโหลด...',
+        noData: 'ไม่พบข้อมูล',
+        title: 'รายงานการขาย',
+        subtitle: 'สรุปประสิทธิภาพการขายและแนวโน้ม',
+        translateText: 'รายงานการขาย — สรุปประสิทธิภาพการขายและแนวโน้ม',
+        totalDeals: 'ดีลทั้งหมด',
+        pipeline: 'มูลค่ารวม Pipeline',
+        closed: 'ปิดการขายได้',
+        conversionRate: 'อัตราปิดการขาย',
+        lost: 'ไม่สำเร็จ',
+        avgDealSize: 'มูลค่าเฉลี่ยต่อดีล',
+        dealsByStage: 'ดีลตามขั้นตอน',
+        valueByStage: 'มูลค่าตามขั้นตอน',
+        monthlyRevenue: 'แนวโน้มรายได้รายเดือน',
+        topCustomers: 'ลูกค้าชั้นนำ',
+        customerName: 'ชื่อลูกค้า',
+        value: 'มูลค่า',
+        deals: 'ดีล',
+        recentActivities: 'กิจกรรมล่าสุด',
+        refresh: 'รีเฟรช',
+        export: 'ส่งออก PDF',
+      },
+      en: {
+        loading: 'Loading...',
+        noData: 'No data available',
+        title: 'Sales Report',
+        subtitle: 'Sales performance and trend summary',
+        translateText: 'Sales Report — Sales performance and trend summary',
+        totalDeals: 'Total Deals',
+        pipeline: 'Pipeline',
+        closed: 'Closed Won',
+        conversionRate: 'Conversion Rate',
+        lost: 'Lost',
+        avgDealSize: 'Avg Deal Size',
+        dealsByStage: 'Deals by Stage',
+        valueByStage: 'Value by Stage',
+        monthlyRevenue: 'Monthly Revenue Trend',
+        topCustomers: 'Top Customers',
+        customerName: 'Customer Name',
+        value: 'Value',
+        deals: 'Deals',
+        recentActivities: 'Recent Activities',
+        refresh: 'Refresh',
+        export: 'Export PDF',
+      },
+      jp: {
+        loading: '読み込み中...',
+        noData: 'データが見つかりません',
+        title: '売上レポート',
+        subtitle: '売上パフォーマンスとトレンドの要約',
+        translateText: '売上レポート — 売上パフォーマンスとトレンドの要約',
+        totalDeals: '総取引件数',
+        pipeline: 'パイプライン',
+        closed: '完了',
+        conversionRate: 'コンバージョン率',
+        lost: '失敗',
+        avgDealSize: '平均取引額',
+        dealsByStage: 'ステージ別の取引',
+        valueByStage: 'ステージ別の価値',
+        monthlyRevenue: '月間収益トレンド',
+        topCustomers: 'トップ顧客',
+        customerName: '顧客名',
+        value: '価値',
+        deals: '取引',
+        recentActivities: '最近のアクティビティ',
+        refresh: '更新',
+        export: 'PDF をエクスポート',
+      },
+    };
+    return panelText[lang][key] || key;
+  };
   const [reportData, setReportData] = useState<SalesReportData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -86,7 +163,7 @@ export default function SalesReportPanel({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-400">กำลังโหลด...</p>
+        <p className="text-gray-400">{L('loading')}</p>
       </div>
     );
   }
@@ -94,20 +171,20 @@ export default function SalesReportPanel({
   if (!reportData) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-400">ไม่พบข้อมูล</p>
+        <p className="text-gray-400">{L('noData')}</p>
       </div>
     );
   }
 
   const stageChartData = Object.entries(reportData.stageCount).map(([stage, count]) => ({
-    name: stageNames[stage] || stage,
+    name: stageNamesI18n[stage]?.[lang] ?? stage,
     value: count,
   }));
 
   const pieChartData = Object.entries(reportData.stageValue)
     .filter(([_, value]) => value > 0)
     .map(([stage, value]) => ({
-      name: stageNames[stage] || stage,
+      name: stageNamesI18n[stage]?.[lang] ?? stage,
       value: Math.round(value),
     }));
 
@@ -123,11 +200,11 @@ export default function SalesReportPanel({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">รายงานการขาย</h2>
-          <p className="text-gray-400 text-sm mt-1">สรุปประสิทธิภาพการขายและแนวโน้ม</p>
+          <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
+          <p className="text-gray-400 text-sm mt-1">{L('subtitle')}</p>
         </div>
         <div>
-          <TranslateButton text="รายงานการขาย — สรุปประสิทธิภาพการขายและแนวโน้ม" />
+          <TranslateButton text={L('translateText')} />
         </div>
       </div>
 
@@ -135,18 +212,18 @@ export default function SalesReportPanel({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">จำหน่ายสินค้า</p>
+            <p className="text-gray-400 text-sm">{L('totalDeals')}</p>
             <DollarSign size={20} className="text-blue-400" />
           </div>
           <p className="text-3xl font-bold text-white">{reportData.summary.totalDeals}</p>
           <p className="text-xs text-gray-500 mt-2">
-            ท่อรวม: ฿{(reportData.summary.totalPipeline / 1000).toFixed(0)}K
+            {L('pipeline')}: ฿{(reportData.summary.totalPipeline / 1000).toFixed(0)}K
           </p>
         </div>
 
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">ปิดข้อมูล</p>
+            <p className="text-gray-400 text-sm">{L('closed')}</p>
             <CheckCircle size={20} className="text-green-400" />
           </div>
           <p className="text-3xl font-bold text-green-400">{reportData.summary.wonCount}</p>
@@ -157,7 +234,7 @@ export default function SalesReportPanel({
 
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">อัตราแปลง</p>
+            <p className="text-gray-400 text-sm">{L('conversionRate')}</p>
             <TrendingUp size={20} className="text-orange-400" />
           </div>
           <p className="text-3xl font-bold text-orange-400">
@@ -167,7 +244,7 @@ export default function SalesReportPanel({
 
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">สูญหาย</p>
+            <p className="text-gray-400 text-sm">{L('lost')}</p>
             <AlertCircle size={20} className="text-red-400" />
           </div>
           <p className="text-3xl font-bold text-red-400">{reportData.summary.lostCount}</p>
@@ -175,7 +252,7 @@ export default function SalesReportPanel({
 
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">ขนาดเฉลี่ย</p>
+            <p className="text-gray-400 text-sm">{L('avgDealSize')}</p>
             <DollarSign size={20} className="text-purple-400" />
           </div>
           <p className="text-2xl font-bold text-purple-400">
@@ -190,7 +267,7 @@ export default function SalesReportPanel({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Stage Count Bar Chart */}
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <h3 className="font-semibold text-white mb-4">จำหน่ายสินค้าตามขั้นตอน</h3>
+          <h3 className="font-semibold text-white mb-4">{L('dealsByStage')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={stageChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -204,7 +281,7 @@ export default function SalesReportPanel({
 
         {/* Stage Value Pie Chart */}
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <h3 className="font-semibold text-white mb-4">มูลค่าตามขั้นตอน</h3>
+          <h3 className="font-semibold text-white mb-4">{L('valueByStage')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -231,7 +308,7 @@ export default function SalesReportPanel({
 
       {/* Monthly Revenue Area Chart */}
       <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-        <h3 className="font-semibold text-white mb-4">แนวโน้มรายได้รายเดือน</h3>
+        <h3 className="font-semibold text-white mb-4">{L('monthlyRevenue')}</h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={reportData.monthlyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -254,21 +331,21 @@ export default function SalesReportPanel({
 
       {/* Top Customers */}
       <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-        <h3 className="font-semibold text-white mb-4">ลูกค้าชั้นนำ</h3>
+        <h3 className="font-semibold text-white mb-4">{L('topCustomers')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#334155]">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">ชื่อลูกค้า</th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">มูลค่า</th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">จำหน่ายสินค้า</th>
+                <th className="text-left py-3 px-4 text-gray-400 font-medium">{L('customerName')}</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">{L('value')}</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">{L('deals')}</th>
               </tr>
             </thead>
             <tbody>
               {reportData.topCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="text-center py-8 text-gray-500">
-                    ไม่มีข้อมูล
+                    {L('noData')}
                   </td>
                 </tr>
               ) : (
@@ -294,10 +371,10 @@ export default function SalesReportPanel({
 
       {/* Recent Activities */}
       <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-        <h3 className="font-semibold text-white mb-4">กิจกรรมล่าสุด</h3>
+        <h3 className="font-semibold text-white mb-4">{L('recentActivities')}</h3>
         <div className="space-y-3">
           {reportData.recentActivities.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">ไม่มีข้อมูล</div>
+            <div className="text-center py-8 text-gray-500">{L('noData')}</div>
           ) : (
             reportData.recentActivities.map((activity) => (
               <div
@@ -322,13 +399,13 @@ export default function SalesReportPanel({
           onClick={fetchReport}
           className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium transition"
         >
-          รีเฟรช
+          {L('refresh')}
         </button>
         <button
           disabled
           className="flex-1 px-4 py-2 bg-[#334155] text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed"
         >
-          ส่งออก PDF
+          {L('export')}
         </button>
       </div>
     </div>

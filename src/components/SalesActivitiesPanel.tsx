@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { Lang } from '@/lib/i18n';
 import {
   Plus,
   Phone,
@@ -21,6 +22,7 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
 interface DealActivity {
@@ -50,13 +52,156 @@ const activityTypeConfig = {
   follow_up: { name: 'ติดตาม', icon: Clock, color: '#10B981', bg: '#064E3B' },
 };
 
+type ActivityType = 'call' | 'email' | 'meeting' | 'note' | 'task' | 'demo' | 'follow_up';
+
+const panelText = {
+  th: {
+    title: 'กิจกรรมการขาย',
+    subtitle: 'ติดตามกิจกรรมการขายและการโต้ตอบ',
+    headerTranslate: 'กิจกรรมการขาย — ติดตามกิจกรรมการขายและการโต้ตอบ',
+    addActivity: 'เพิ่มกิจกรรม',
+    stats: {
+      total: 'ทั้งหมด',
+      call: 'โทรศัพท์',
+      email: 'อีเมล',
+      meeting: 'ประชุม',
+    },
+    filters: {
+      all: 'ทั้งหมด',
+      groupByDate: 'จัดกลุ่มตามวันที่',
+    },
+    activities: {
+      loading: 'กำลังโหลด...',
+      noActivities: 'ไม่พบกิจกรรม',
+      allActivities: 'ทั้งหมด',
+      by: 'โดย',
+    },
+    form: {
+      title: 'เพิ่มกิจกรรมใหม่',
+      dealLabel: 'ดีล *',
+      dealPlaceholder: 'เลือกดีล',
+      typeLabel: 'ประเภทกิจกรรม *',
+      dateLabel: 'วันที่ *',
+      descriptionLabel: 'คำอธิบาย *',
+      descriptionPlaceholder: 'อธิบายกิจกรรมในรายละเอียด...',
+      save: 'บันทึก',
+      cancel: 'ยกเลิก',
+    },
+    activityTypes: {
+      call: 'โทรศัพท์',
+      email: 'อีเมล',
+      meeting: 'ประชุม',
+      note: 'บันทึก',
+      task: 'งาน',
+      demo: 'สาธิต',
+      follow_up: 'ติดตาม',
+    },
+    confirmDelete: 'ยืนยันการลบ?',
+  },
+  en: {
+    title: 'Sales Activities',
+    subtitle: 'Track sales activities and interactions',
+    headerTranslate: 'Sales Activities — Track sales activities and interactions',
+    addActivity: 'Add Activity',
+    stats: {
+      total: 'Total',
+      call: 'Call',
+      email: 'Email',
+      meeting: 'Meeting',
+    },
+    filters: {
+      all: 'All',
+      groupByDate: 'Group by Date',
+    },
+    activities: {
+      loading: 'Loading...',
+      noActivities: 'No activities found',
+      allActivities: 'All',
+      by: 'by',
+    },
+    form: {
+      title: 'Add New Activity',
+      dealLabel: 'Deal *',
+      dealPlaceholder: 'Select a deal',
+      typeLabel: 'Activity Type *',
+      dateLabel: 'Date *',
+      descriptionLabel: 'Description *',
+      descriptionPlaceholder: 'Describe the activity in detail...',
+      save: 'Save',
+      cancel: 'Cancel',
+    },
+    activityTypes: {
+      call: 'Call',
+      email: 'Email',
+      meeting: 'Meeting',
+      note: 'Note',
+      task: 'Task',
+      demo: 'Demo',
+      follow_up: 'Follow-up',
+    },
+    confirmDelete: 'Confirm deletion?',
+  },
+  jp: {
+    title: '営業活動',
+    subtitle: '営業活動と相互作用を追跡',
+    headerTranslate: '営業活動 — 営業活動と相互作用を追跡',
+    addActivity: '活動を追加',
+    stats: {
+      total: '合計',
+      call: '電話',
+      email: 'メール',
+      meeting: '会議',
+    },
+    filters: {
+      all: 'すべて',
+      groupByDate: '日付でグループ化',
+    },
+    activities: {
+      loading: '読み込み中...',
+      noActivities: '活動が見つかりません',
+      allActivities: 'すべて',
+      by: 'による',
+    },
+    form: {
+      title: '新規活動を追加',
+      dealLabel: '取引 *',
+      dealPlaceholder: '取引を選択',
+      typeLabel: '活動タイプ *',
+      dateLabel: '日付 *',
+      descriptionLabel: '説明 *',
+      descriptionPlaceholder: '活動の詳細を説明してください...',
+      save: '保存',
+      cancel: 'キャンセル',
+    },
+    activityTypes: {
+      call: '電話',
+      email: 'メール',
+      meeting: '会議',
+      note: 'メモ',
+      task: 'タスク',
+      demo: 'デモ',
+      follow_up: 'フォローアップ',
+    },
+    confirmDelete: '削除を確認しますか？',
+  },
+};
+
 export default function SalesActivitiesPanel({
   projects,
   members,
   filterProjectId,
   canManage = true,
   refreshKey = 0,
+  lang = 'th',
 }: Props) {
+  const L = (key: string) => {
+    const keys = key.split('.');
+    let value: any = panelText[lang];
+    for (const k of keys) {
+      value = value?.[k];
+    }
+    return value || key;
+  };
   const [activities, setActivities] = useState<DealActivity[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -145,7 +290,7 @@ export default function SalesActivitiesPanel({
   };
 
   const handleDeleteActivity = async (id: string) => {
-    if (!confirm('ยืนยันการลบ?')) return;
+    if (!confirm(L('confirmDelete'))) return;
     try {
       const res = await fetch(`/api/deal-activities/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -176,7 +321,7 @@ export default function SalesActivitiesPanel({
         acc[dateStr].push(activity);
         return acc;
       }, {} as Record<string, DealActivity[]>)
-    : { 'ทั้งหมด': filteredActivities };
+    : { [L('activities.allActivities')]: filteredActivities };
 
   const stats = {
     total: activities.length,
@@ -190,11 +335,11 @@ export default function SalesActivitiesPanel({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">กิจกรรมการขาย</h2>
-          <p className="text-gray-400 text-sm mt-1">ติดตามกิจกรรมการขายและการโต้ตอบ</p>
+          <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
+          <p className="text-gray-400 text-sm mt-1">{L('subtitle')}</p>
         </div>
         <div className="flex gap-2">
-          <TranslateButton text="กิจกรรมการขาย — ติดตามกิจกรรมการขายและการโต้ตอบ" />
+          <TranslateButton text={L('headerTranslate')} />
           {canManage && (
             <button
               onClick={() => {
@@ -204,7 +349,7 @@ export default function SalesActivitiesPanel({
               className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm flex items-center gap-2"
             >
               <Plus size={16} />
-              เพิ่มกิจกรรม
+              {L('addActivity')}
             </button>
           )}
         </div>
@@ -213,19 +358,19 @@ export default function SalesActivitiesPanel({
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ทั้งหมด</p>
+          <p className="text-gray-400 text-sm">{L('stats.total')}</p>
           <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">สาย</p>
+          <p className="text-gray-400 text-sm">{L('stats.call')}</p>
           <p className="text-3xl font-bold text-blue-400 mt-2">{stats.byType['call']}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">อีเมล</p>
+          <p className="text-gray-400 text-sm">{L('stats.email')}</p>
           <p className="text-3xl font-bold text-orange-400 mt-2">{stats.byType['email']}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">การประชุม</p>
+          <p className="text-gray-400 text-sm">{L('stats.meeting')}</p>
           <p className="text-3xl font-bold text-purple-400 mt-2">{stats.byType['meeting']}</p>
         </div>
       </div>
@@ -238,7 +383,7 @@ export default function SalesActivitiesPanel({
             onChange={(e) => setFilterDealId(e.target.value)}
             className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
           >
-            <option value="">ทั้งหมด</option>
+            <option value="">{L('filters.all')}</option>
             {deals.map((deal) => (
               <option key={deal.id} value={deal.id}>
                 {deal.title} - {deal.customer_name}
@@ -253,16 +398,16 @@ export default function SalesActivitiesPanel({
             onChange={(e) => setGroupByDate(e.target.checked)}
             className="rounded"
           />
-          จัดกลุ่มตามวันที่
+          {L('filters.groupByDate')}
         </label>
       </div>
 
       {/* Activities Timeline */}
       <div className="space-y-6">
         {loading ? (
-          <div className="text-center py-8 text-gray-400">กำลังโหลด...</div>
+          <div className="text-center py-8 text-gray-400">{L('activities.loading')}</div>
         ) : Object.entries(groupedActivities).length === 0 ? (
-          <div className="text-center py-8 text-gray-400">ไม่พบกิจกรรม</div>
+          <div className="text-center py-8 text-gray-400">{L('activities.noActivities')}</div>
         ) : (
           Object.entries(groupedActivities).map(([dateLabel, dateActivities]) => (
             <div key={dateLabel}>
@@ -326,7 +471,7 @@ export default function SalesActivitiesPanel({
                             </span>
                             {activity.performer && (
                               <span className="text-xs text-gray-400">
-                                โดย {activity.performer}
+                                {L('activities.by')} {activity.performer}
                               </span>
                             )}
                           </div>
@@ -351,7 +496,7 @@ export default function SalesActivitiesPanel({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">เพิ่มกิจกรรมใหม่</h3>
+              <h3 className="text-xl font-bold text-white">{L('form.title')}</h3>
               <button
                 onClick={() => {
                   setShowForm(false);
@@ -366,7 +511,7 @@ export default function SalesActivitiesPanel({
             <form onSubmit={handleAddActivity} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  จำหน่ายสินค้า *
+                  {L('form.dealLabel')}
                 </label>
                 <select
                   required
@@ -374,7 +519,7 @@ export default function SalesActivitiesPanel({
                   onChange={(e) => setFormData({ ...formData, deal_id: e.target.value })}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
                 >
-                  <option value="">เลือกจำหน่ายสินค้า</option>
+                  <option value="">{L('form.dealPlaceholder')}</option>
                   {deals.map((deal) => (
                     <option key={deal.id} value={deal.id}>
                       {deal.title} - {deal.customer_name}
@@ -385,7 +530,7 @@ export default function SalesActivitiesPanel({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  ประเภทกิจกรรม *
+                  {L('form.typeLabel')}
                 </label>
                 <select
                   value={formData.type}
@@ -394,7 +539,7 @@ export default function SalesActivitiesPanel({
                 >
                   {Object.entries(activityTypeConfig).map(([key, value]) => (
                     <option key={key} value={key}>
-                      {value.name}
+                      {L(`activityTypes.${key as ActivityType}`)}
                     </option>
                   ))}
                 </select>
@@ -402,7 +547,7 @@ export default function SalesActivitiesPanel({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  วันที่ *
+                  {L('form.dateLabel')}
                 </label>
                 <input
                   type="date"
@@ -415,7 +560,7 @@ export default function SalesActivitiesPanel({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  คำอธิบาย *
+                  {L('form.descriptionLabel')}
                 </label>
                 <textarea
                   required
@@ -425,7 +570,7 @@ export default function SalesActivitiesPanel({
                   }
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087] resize-none"
                   rows={4}
-                  placeholder="อธิบายกิจกรรมในรายละเอียด..."
+                  placeholder={L('form.descriptionPlaceholder')}
                 />
               </div>
 
@@ -434,7 +579,7 @@ export default function SalesActivitiesPanel({
                   type="submit"
                   className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
                 >
-                  บันทึก
+                  {L('form.save')}
                 </button>
                 <button
                   type="button"
@@ -444,7 +589,7 @@ export default function SalesActivitiesPanel({
                   }}
                   className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
                 >
-                  ยกเลิก
+                  {L('form.cancel')}
                 </button>
               </div>
             </form>

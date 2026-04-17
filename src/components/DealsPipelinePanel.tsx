@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, X, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, GripVertical, User } from 'lucide-react';
 import TranslateButton from './TranslateButton';
+import type { Lang } from '@/lib/i18n';
 
 interface Props {
   projects: { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null }[];
@@ -10,6 +11,7 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
 interface Deal {
@@ -21,7 +23,8 @@ interface Deal {
   stage: 'prospect' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost';
   expected_close_date?: string;
   probability?: number;
-  owner?: string;
+  owner_id?: string;
+  owner_name?: string;
   notes?: string;
 }
 
@@ -30,16 +33,61 @@ interface Customer {
   company_name: string;
 }
 
-const stageConfig = {
-  prospect: { name: 'ผู้สนใจ', color: '#6B7280', order: 1 },
-  qualification: { name: 'ประเมิน', color: '#3B82F6', order: 2 },
-  proposal: { name: 'เสนอให้', color: '#F7941D', order: 3 },
-  negotiation: { name: 'เจรจา', color: '#8B5CF6', order: 4 },
-  won: { name: 'ปิดข้อมูล', color: '#22C55E', order: 5 },
-  lost: { name: 'สูญหาย', color: '#EF4444', order: 6 },
+interface Member {
+  id: string;
+  display_name?: string;
+  first_name_th?: string | null;
+  last_name_th?: string | null;
+  first_name_en?: string | null;
+  last_name_en?: string | null;
+}
+
+const stageLabels: Record<string, Record<string, string>> = {
+  prospect:      { th: 'ลูกค้าเป้าหมาย', en: 'Prospect',      jp: '見込み客' },
+  qualification: { th: 'คุณสมบัติ',       en: 'Qualification',  jp: '適格性評価' },
+  proposal:      { th: 'เสนอราคา',        en: 'Proposal',       jp: '提案' },
+  negotiation:   { th: 'เจรจาต่อรอง',     en: 'Negotiation',    jp: '交渉' },
+  won:           { th: 'ปิดการขาย',        en: 'Won',            jp: '受注' },
+  lost:          { th: 'ไม่สำเร็จ',        en: 'Lost',           jp: '失注' },
 };
 
-const stageKeys = Object.keys(stageConfig) as Array<keyof typeof stageConfig>;
+const stageColors: Record<string, string> = {
+  prospect: '#6B7280', qualification: '#3B82F6', proposal: '#F7941D',
+  negotiation: '#8B5CF6', won: '#22C55E', lost: '#EF4444',
+};
+
+const panelText: Record<string, Record<string, string>> = {
+  title:         { th: 'Pipeline การขาย',                   en: 'Sales Pipeline',                  jp: '営業パイプライン' },
+  subtitle:      { th: 'ติดตามดีลในแต่ละขั้นตอน',             en: 'Track deals through each stage',  jp: '各段階のディールを追跡' },
+  addDeal:       { th: '+ สร้างดีลใหม่',                     en: '+ New Deal',                      jp: '+ 新規ディール' },
+  totalPipeline: { th: 'มูลค่ารวม Pipeline',                 en: 'Total Pipeline',                  jp: 'パイプライン合計' },
+  wonDeals:      { th: 'ปิดการขายได้',                       en: 'Won Deals',                       jp: '受注済み' },
+  conversionRate:{ th: 'อัตราการปิดการขาย',                  en: 'Conversion Rate',                 jp: 'コンバージョン率' },
+  avgDealSize:   { th: 'มูลค่าเฉลี่ยต่อดีล',                 en: 'Avg Deal Size',                   jp: '平均ディール規模' },
+  deals:         { th: 'ดีล',                                en: 'deals',                           jp: 'ディール' },
+  allCustomers:  { th: 'ลูกค้าทั้งหมด',                      en: 'All Customers',                   jp: 'すべての顧客' },
+  noDeals:       { th: 'ไม่มีดีล',                           en: 'No deals',                        jp: 'ディールなし' },
+  editBtn:       { th: 'แก้ไข',                              en: 'Edit',                            jp: '編集' },
+  deleteBtn:     { th: 'ลบ',                                 en: 'Delete',                          jp: '削除' },
+  nextStage:     { th: 'เลื่อนขั้น',                          en: 'Advance',                         jp: '次へ' },
+  editDeal:      { th: 'แก้ไขดีล',                           en: 'Edit Deal',                       jp: 'ディール編集' },
+  newDeal:       { th: 'สร้างดีลใหม่',                       en: 'New Deal',                        jp: '新規ディール' },
+  dealTitle:     { th: 'ชื่อดีล',                             en: 'Deal Title',                      jp: 'ディール名' },
+  customer:      { th: 'ลูกค้า',                             en: 'Customer',                        jp: '顧客' },
+  selectCustomer:{ th: 'เลือกลูกค้า',                        en: 'Select customer',                 jp: '顧客を選択' },
+  value:         { th: 'มูลค่า (฿)',                          en: 'Value (฿)',                       jp: '金額 (฿)' },
+  stage:         { th: 'ขั้นตอน',                             en: 'Stage',                           jp: 'ステージ' },
+  owner:         { th: 'ผู้รับผิดชอบ',                        en: 'Owner',                           jp: '担当者' },
+  selectOwner:   { th: 'เลือกผู้รับผิดชอบ',                   en: 'Select owner',                    jp: '担当者を選択' },
+  closeDate:     { th: 'วันปิดการขายที่คาดหวัง',               en: 'Expected Close Date',             jp: '予定クローズ日' },
+  probability:   { th: 'ความน่าจะเป็น (%)',                   en: 'Probability (%)',                 jp: '確率 (%)' },
+  notes:         { th: 'หมายเหตุ',                            en: 'Notes',                           jp: '備考' },
+  save:          { th: 'บันทึก',                              en: 'Save',                            jp: '保存' },
+  cancel:        { th: 'ยกเลิก',                             en: 'Cancel',                          jp: 'キャンセル' },
+  confirmDelete: { th: 'ยืนยันการลบดีลนี้?',                  en: 'Delete this deal?',               jp: 'このディールを削除しますか？' },
+};
+
+const stageKeys: Array<'prospect' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost'> = ['prospect', 'qualification', 'proposal', 'negotiation', 'won', 'lost'];
 
 export default function DealsPipelinePanel({
   projects,
@@ -47,9 +95,14 @@ export default function DealsPipelinePanel({
   filterProjectId,
   canManage = true,
   refreshKey = 0,
+  lang = 'th',
 }: Props) {
+  const L = (key: string) => panelText[key]?.[lang] ?? panelText[key]?.th ?? key;
+  const stageName = (s: string) => stageLabels[s]?.[lang] ?? stageLabels[s]?.th ?? s;
+
   const [deals, setDeals] = useState<Deal[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,6 +111,7 @@ export default function DealsPipelinePanel({
   const [formData, setFormData] = useState({
     title: '',
     customer_id: '',
+    owner_id: '',
     value: 0,
     stage: 'prospect' as 'prospect' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost',
     expected_close_date: '',
@@ -68,6 +122,7 @@ export default function DealsPipelinePanel({
   useEffect(() => {
     fetchDeals();
     fetchCustomers();
+    fetchMembers();
   }, [filterProjectId, refreshKey]);
 
   const fetchDeals = async () => {
@@ -79,7 +134,8 @@ export default function DealsPipelinePanel({
         const mapped = (json.deals ?? []).map((d: Record<string, unknown>) => ({
           ...d,
           customer_name: (d.customers as { company_name?: string })?.company_name ?? '',
-          owner: (d.owner as { email?: string })?.email ?? '',
+          owner_id: d.owner_id ?? '',
+          owner_name: (d.owner as { display_name?: string })?.display_name ?? '',
         }));
         setDeals(mapped);
       }
@@ -99,6 +155,18 @@ export default function DealsPipelinePanel({
       }
     } catch (error) {
       console.error('Failed to fetch customers:', error);
+    }
+  };
+
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const json = await res.json();
+        setAllMembers(json.users ?? []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch members:', error);
     }
   };
 
@@ -125,7 +193,7 @@ export default function DealsPipelinePanel({
   };
 
   const handleDeleteDeal = async (id: string) => {
-    if (!confirm('ยืนยันการลบ?')) return;
+    if (!confirm(L('confirmDelete'))) return;
     try {
       const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -156,6 +224,7 @@ export default function DealsPipelinePanel({
     setFormData({
       title: '',
       customer_id: '',
+      owner_id: '',
       value: 0,
       stage: 'prospect',
       expected_close_date: '',
@@ -170,6 +239,7 @@ export default function DealsPipelinePanel({
     setFormData({
       title: deal.title,
       customer_id: deal.customer_id,
+      owner_id: deal.owner_id || '',
       value: deal.value,
       stage: deal.stage,
       expected_close_date: deal.expected_close_date || '',
@@ -205,21 +275,18 @@ export default function DealsPipelinePanel({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">ท่อจัดการจำหน่ายสินค้า</h2>
-          <p className="text-gray-400 text-sm mt-1">ติดตามการจัดการจำหน่ายสินค้าในแต่ละขั้นตอน</p>
+          <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
+          <p className="text-gray-400 text-sm mt-1">{L('subtitle')}</p>
         </div>
         <div className="flex gap-2">
-          <TranslateButton text="Pipeline การขาย — ติดตามดีลในแต่ละขั้นตอน" />
+          <TranslateButton text={`${L('title')} — ${L('subtitle')}`} />
           {canManage && (
             <button
-              onClick={() => {
-                resetForm();
-                setShowForm(true);
-              }}
+              onClick={() => { resetForm(); setShowForm(true); }}
               className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm flex items-center gap-2"
             >
               <Plus size={16} />
-              จำหน่ายสินค้าใหม่
+              {L('addDeal')}
             </button>
           )}
         </div>
@@ -228,28 +295,22 @@ export default function DealsPipelinePanel({
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ท่อรวม</p>
-          <p className="text-2xl font-bold text-white mt-2">
-            ฿{(summary.totalPipeline / 1000).toFixed(0)}K
-          </p>
-          <p className="text-xs text-gray-500 mt-1">{summary.totalDeals} ข้อมูล</p>
+          <p className="text-gray-400 text-sm">{L('totalPipeline')}</p>
+          <p className="text-2xl font-bold text-white mt-2">฿{(summary.totalPipeline / 1000).toFixed(0)}K</p>
+          <p className="text-xs text-gray-500 mt-1">{summary.totalDeals} {L('deals')}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ปิดข้อมูล</p>
-          <p className="text-2xl font-bold text-green-400 mt-2">
-            ฿{(summary.wonValue / 1000).toFixed(0)}K
-          </p>
-          <p className="text-xs text-gray-500 mt-1">{summary.wonCount} ข้อมูล</p>
+          <p className="text-gray-400 text-sm">{L('wonDeals')}</p>
+          <p className="text-2xl font-bold text-green-400 mt-2">฿{(summary.wonValue / 1000).toFixed(0)}K</p>
+          <p className="text-xs text-gray-500 mt-1">{summary.wonCount} {L('deals')}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">อัตราแปลง</p>
+          <p className="text-gray-400 text-sm">{L('conversionRate')}</p>
           <p className="text-2xl font-bold text-blue-400 mt-2">{summary.conversionRate}%</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ขนาดข้อมูลเฉลี่ย</p>
-          <p className="text-2xl font-bold text-orange-400 mt-2">
-            ฿{(summary.avgDealSize / 1000).toFixed(0)}K
-          </p>
+          <p className="text-gray-400 text-sm">{L('avgDealSize')}</p>
+          <p className="text-2xl font-bold text-orange-400 mt-2">฿{(summary.avgDealSize / 1000).toFixed(0)}K</p>
         </div>
       </div>
 
@@ -260,11 +321,9 @@ export default function DealsPipelinePanel({
           onChange={(e) => setCustomerFilter(e.target.value)}
           className="w-full md:w-64 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
         >
-          <option value="">ทั้งหมด</option>
+          <option value="">{L('allCustomers')}</option>
           {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>
-              {customer.company_name}
-            </option>
+            <option key={customer.id} value={customer.id}>{customer.company_name}</option>
           ))}
         </select>
       </div>
@@ -272,116 +331,71 @@ export default function DealsPipelinePanel({
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
         {stageKeys.map((stage) => (
-          <div
-            key={stage}
-            className="flex-shrink-0 w-full md:min-w-[350px] lg:min-w-[280px]"
-          >
-            <div
-              className="rounded-xl border-2 bg-[#0F172A] overflow-hidden"
-              style={{ borderColor: stageConfig[stage].color + '40' }}
-            >
-              {/* Stage Header */}
-              <div
-                className="p-3 text-white font-semibold flex items-center justify-between"
-                style={{ backgroundColor: stageConfig[stage].color + '20' }}
-              >
-                <span>{stageConfig[stage].name}</span>
-                <span
-                  className="text-xs rounded-full w-6 h-6 flex items-center justify-center"
-                  style={{ backgroundColor: stageConfig[stage].color, color: '#0F172A' }}
-                >
+          <div key={stage} className="flex-shrink-0 w-full md:min-w-[350px] lg:min-w-[280px]">
+            <div className="rounded-xl border-2 bg-[#0F172A] overflow-hidden" style={{ borderColor: stageColors[stage] + '40' }}>
+              <div className="p-3 text-white font-semibold flex items-center justify-between" style={{ backgroundColor: stageColors[stage] + '20' }}>
+                <span>{stageName(stage)}</span>
+                <span className="text-xs rounded-full w-6 h-6 flex items-center justify-center" style={{ backgroundColor: stageColors[stage], color: '#0F172A' }}>
                   {dealsByStage[stage].length}
                 </span>
               </div>
-
-              {/* Stage Value */}
-              <div
-                className="px-3 py-2 border-b border-[#334155] text-xs text-gray-400"
-                style={{ backgroundColor: stageConfig[stage].color + '10' }}
-              >
+              <div className="px-3 py-2 border-b border-[#334155] text-xs text-gray-400" style={{ backgroundColor: stageColors[stage] + '10' }}>
                 ฿{(dealsByStage[stage].reduce((sum, d) => sum + d.value, 0) / 1000).toFixed(0)}K
               </div>
-
-              {/* Deal Cards */}
               <div className="p-2 space-y-2 min-h-[400px]">
                 {dealsByStage[stage].length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 text-sm">ไม่มีข้อมูล</div>
+                  <div className="text-center py-8 text-gray-500 text-sm">{L('noDeals')}</div>
                 ) : (
                   dealsByStage[stage].map((deal) => (
-                    <div
-                      key={deal.id}
-                      className="bg-[#1E293B] border border-[#334155] rounded-lg p-3 hover:border-[#003087] transition group"
-                    >
+                    <div key={deal.id} className="bg-[#1E293B] border border-[#334155] rounded-lg p-3 hover:border-[#003087] transition group">
                       <div className="space-y-2">
-                        {/* Title */}
                         <div className="flex items-start gap-2">
                           <GripVertical size={14} className="text-gray-500 mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
-                            <h4 className="font-medium text-white text-sm line-clamp-2">
-                              {deal.title}
-                            </h4>
+                            <h4 className="font-medium text-white text-sm line-clamp-2">{deal.title}</h4>
                             <p className="text-xs text-gray-400 mt-1">{deal.customer_name}</p>
                           </div>
                         </div>
-
-                        {/* Value */}
                         <div className="flex items-center justify-between">
-                          <span
-                            className="text-sm font-semibold px-2 py-1 rounded"
-                            style={{
-                              color: stageConfig[deal.stage].color,
-                              backgroundColor: stageConfig[deal.stage].color + '20',
-                            }}
-                          >
+                          <span className="text-sm font-semibold px-2 py-1 rounded" style={{ color: stageColors[deal.stage], backgroundColor: stageColors[deal.stage] + '20' }}>
                             ฿{(deal.value / 1000).toFixed(0)}K
                           </span>
-                          {deal.probability && (
-                            <span className="text-xs text-gray-400">
-                              {deal.probability}%
-                            </span>
+                          {deal.probability != null && (
+                            <span className="text-xs text-gray-400">{deal.probability}%</span>
                           )}
                         </div>
-
-                        {/* Date */}
+                        {/* Owner */}
+                        {deal.owner_name && (
+                          <div className="flex items-center gap-1 text-xs text-slate-400">
+                            <User size={11} />
+                            <span>{deal.owner_name}</span>
+                          </div>
+                        )}
                         {deal.expected_close_date && (
                           <p className="text-xs text-gray-400">
-                            {new Date(deal.expected_close_date).toLocaleDateString('th-TH')}
+                            {new Date(deal.expected_close_date).toLocaleDateString(lang === 'jp' ? 'ja-JP' : lang === 'en' ? 'en-US' : 'th-TH')}
                           </p>
                         )}
-
-                        {/* Actions */}
                         {canManage && (
                           <div className="flex gap-1 pt-2 border-t border-[#334155] opacity-0 group-hover:opacity-100 transition">
-                            <button
-                              onClick={() => handleEditDeal(deal)}
-                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1"
-                            >
-                              <Edit2 size={12} />
-                              แก้ไข
+                            <button onClick={() => handleEditDeal(deal)} className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
+                              <Edit2 size={12} />{L('editBtn')}
                             </button>
-                            <button
-                              onClick={() => handleDeleteDeal(deal.id)}
-                              className="flex-1 px-2 py-1 bg-red-900 hover:bg-red-800 text-white rounded text-xs flex items-center justify-center gap-1"
-                            >
-                              <Trash2 size={12} />
-                              ลบ
+                            <button onClick={() => handleDeleteDeal(deal.id)} className="flex-1 px-2 py-1 bg-red-900 hover:bg-red-800 text-white rounded text-xs flex items-center justify-center gap-1">
+                              <Trash2 size={12} />{L('deleteBtn')}
                             </button>
                           </div>
                         )}
-
-                        {/* Stage Buttons */}
                         {canManage && stage !== 'won' && stage !== 'lost' && (
                           <div className="flex gap-1 pt-2">
                             <button
                               onClick={() => {
                                 const nextStageIndex = stageKeys.indexOf(stage) + 1;
-                                if (nextStageIndex < stageKeys.length) {
-                                  handleChangeStage(deal.id, stageKeys[nextStageIndex]);
-                                }
+                                if (nextStageIndex < stageKeys.length) handleChangeStage(deal.id, stageKeys[nextStageIndex]);
                               }}
                               className="flex-1 px-2 py-1 bg-[#F7941D] hover:bg-[#FF9D2D] text-black rounded text-xs font-medium"
                             >
-                              ต่อไป
+                              {L('nextStage')}
                             </button>
                           </div>
                         )}
@@ -401,15 +415,9 @@ export default function DealsPipelinePanel({
           <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-white">
-                {selectedDeal ? 'แก้ไขจำหน่ายสินค้า' : 'เพิ่มจำหน่ายสินค้าใหม่'}
+                {selectedDeal ? L('editDeal') : L('newDeal')}
               </h3>
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  resetForm();
-                }}
-                className="text-gray-400 hover:text-white"
-              >
+              <button onClick={() => { setShowForm(false); resetForm(); }} className="text-gray-400 hover:text-white">
                 <X size={24} />
               </button>
             </div>
@@ -417,129 +425,66 @@ export default function DealsPipelinePanel({
             <form onSubmit={handleSaveDeal} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    ชื่อจำหน่ายสินค้า *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
-                  />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('dealTitle')} *</label>
+                  <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    ลูกค้า *
-                  </label>
-                  <select
-                    required
-                    value={formData.customer_id}
-                    onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
-                  >
-                    <option value="">เลือกลูกค้า</option>
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.company_name}
-                      </option>
-                    ))}
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('customer')} *</label>
+                  <select required value={formData.customer_id} onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]">
+                    <option value="">{L('selectCustomer')}</option>
+                    {customers.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    มูลค่า (฿) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.value}
-                    onChange={(e) =>
-                      setFormData({ ...formData, value: parseFloat(e.target.value) })
-                    }
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    ขั้นตอน *
-                  </label>
-                  <select
-                    value={formData.stage}
-                    onChange={(e) => setFormData({ ...formData, stage: e.target.value as any })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
-                  >
-                    {stageKeys.map((stage) => (
-                      <option key={stage} value={stage}>
-                        {stageConfig[stage].name}
-                      </option>
-                    ))}
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('owner')}</label>
+                  <select value={formData.owner_id} onChange={(e) => setFormData({ ...formData, owner_id: e.target.value })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]">
+                    <option value="">{L('selectOwner')}</option>
+                    {allMembers.map((m) => <option key={m.id} value={m.id}>{m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    วันปิดที่คาดหวัง
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.expected_close_date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, expected_close_date: e.target.value })
-                    }
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
-                  />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('value')} *</label>
+                  <input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    ความน่าจะเป็น (%) *
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.probability}
-                    onChange={(e) =>
-                      setFormData({ ...formData, probability: parseInt(e.target.value) })
-                    }
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
-                  />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('stage')} *</label>
+                  <select value={formData.stage} onChange={(e) => setFormData({ ...formData, stage: e.target.value as Deal['stage'] })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]">
+                    {stageKeys.map((s) => <option key={s} value={s}>{stageName(s)}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('closeDate')}</label>
+                  <input type="date" value={formData.expected_close_date} onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('probability')} *</label>
+                  <input type="number" min="0" max="100" value={formData.probability} onChange={(e) => setFormData({ ...formData, probability: parseInt(e.target.value) })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    หมายเหตุ
-                  </label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087] resize-none"
-                    rows={3}
-                  />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('notes')}</label>
+                  <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
                 </div>
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
-                >
-                  บันทึก
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    resetForm();
-                  }}
-                  className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
-                >
-                  ยกเลิก
-                </button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium">{L('save')}</button>
+                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
+                  className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium">{L('cancel')}</button>
               </div>
             </form>
           </div>

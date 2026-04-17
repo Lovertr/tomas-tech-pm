@@ -1,4 +1,5 @@
 "use client";
+import type { Lang } from '@/lib/i18n';
 import { useEffect, useState, useCallback } from "react";
 import {
   Building2, Plus, Edit3, Trash2, Users, Shield, Save, X, Search,
@@ -43,12 +44,59 @@ const LEVELS = [0, 1, 2, 3, 4, 5] as const;
 
 interface Props {
   canManage: boolean;
+  lang?: Lang;
 }
 
-export default function DepartmentsPanel({ canManage }: Props) {
+export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
+  /* ─── Localization ─── */
+  const panelText = {
+    header_title: { th: 'จัดการแผนก', en: 'Manage Departments', jp: '部門管理' },
+    header_subtitle: { th: ' แผนก', en: ' Department', jp: ' 部門' },
+    add_button: { th: 'เพิ่มแผนก', en: 'Add Department', jp: '部門を追加' },
+    inactive_badge: { th: 'ปิดใช้งาน', en: 'Inactive', jp: '非アクティブ' },
+    members_label: { th: 'คน', en: 'members', jp: '人' },
+    head_label: { th: 'หัวหน้า:', en: 'Head:', jp: 'リーダー:' },
+    perm_tooltip: { th: 'จัดการสิทธิ์แผนก', en: 'Manage Department Permissions', jp: '部門のアクセス権限を管理' },
+    edit_tooltip: { th: 'แก้ไข', en: 'Edit', jp: '編集' },
+    delete_tooltip: { th: 'ลบ', en: 'Delete', jp: '削除' },
+    delete_confirm: { th: 'ลบแผนกนี้ใช่หรือไม่?', en: 'Delete this department?', jp: 'この部門を削除してもよろしいですか?' },
+    form_title_add: { th: 'เพิ่มแผนกใหม่', en: 'Add New Department', jp: '新しい部門を追加' },
+    form_title_edit: { th: 'แก้ไขแผนก', en: 'Edit Department', jp: '部門を編集' },
+    form_code_label: { th: 'รหัสแผนก *', en: 'Department Code *', jp: '部門コード *' },
+    form_code_placeholder: { th: 'เช่น SW, INFRA', en: 'e.g., SW, INFRA', jp: '例：SW、INFRA' },
+    form_status_label: { th: 'สถานะ', en: 'Status', jp: 'ステータス' },
+    form_status_active: { th: 'ใช้งาน', en: 'Active', jp: 'アクティブ' },
+    form_status_inactive: { th: 'ปิดใช้งาน', en: 'Inactive', jp: '非アクティブ' },
+    form_name_th_label: { th: 'ชื่อแผนก (ไทย) *', en: 'Department Name (Thai) *', jp: '部門名（タイ語）*' },
+    form_name_th_placeholder: { th: 'ฝ่ายพัฒนาซอฟต์แวร์', en: 'Software Development', jp: 'ソフトウェア開発部' },
+    form_name_en_label: { th: 'ชื่อแผนก (English)', en: 'Department Name (English)', jp: '部門名（英語）' },
+    form_name_en_placeholder: { th: 'Software Development', en: 'Software Development', jp: 'Software Development' },
+    form_name_jp_label: { th: 'ชื่อแผนก (日本語)', en: 'Department Name (Japanese)', jp: '部門名（日本語）' },
+    form_name_jp_placeholder: { th: 'ソフトウェア開発部', en: 'Software Development Department', jp: 'ソフトウェア開発部' },
+    form_head_label: { th: 'หัวหน้าแผนก', en: 'Department Head', jp: '部門長' },
+    form_head_unspecified: { th: '-- ไม่ระบุ --', en: '-- Not Specified --', jp: '-- 指定なし --' },
+    form_cancel: { th: 'ยกเลิก', en: 'Cancel', jp: 'キャンセル' },
+    form_create: { th: 'สร้างแผนก', en: 'Create Department', jp: '部門を作成' },
+    form_update: { th: 'อัปเดต', en: 'Update', jp: '更新' },
+    perm_title: { th: 'สิทธิ์ประจำแผนก', en: 'Department Permissions', jp: '部門権限' },
+    perm_subtitle: { th: 'สิทธิ์นี้จะเป็นค่า default ของสมาชิกในแผนก (สามารถ override ได้เป็นรายบุคคล)', en: 'These permissions are the default for department members (can be overridden individually)', jp: 'これらの権限は部門メンバーのデフォルトです（個別にオーバーライド可能）' },
+    perm_search_placeholder: { th: 'ค้นหาเมนู...', en: 'Search modules...', jp: 'モジュールを検索...' },
+    perm_set_all: { th: 'ตั้งทั้งหมด:', en: 'Set All:', jp: 'すべて設定:' },
+    perm_reset_all: { th: 'รีเซ็ตทั้งหมด', en: 'Reset All', jp: 'すべてリセット' },
+    perm_reset_confirm: { th: 'รีเซ็ตสิทธิ์แผนกนี้ทั้งหมด?', en: 'Reset all permissions for this department?', jp: 'この部門のすべての権限をリセットしてもよろしいですか?' },
+    perm_legend_label: { th: 'ระดับสิทธิ์:', en: 'Permission Level:', jp: 'アクセスレベル:' },
+    perm_set_category: { th: 'ตั้งหมวดนี้:', en: 'Set Category:', jp: 'カテゴリを設定:' },
+    perm_no_changes: { th: 'ไม่มีการเปลี่ยนแปลง', en: 'No changes', jp: '変更なし' },
+    perm_changes_pending: { th: '● มีการเปลี่ยนแปลงที่ยังไม่บันทึก', en: '● Pending changes', jp: '● 保存待機中の変更' },
+    perm_save: { th: 'บันทึกสิทธิ์แผนก', en: 'Save Permissions', jp: '権限を保存' },
+    perm_saving: { th: 'กำลังบันทึก...', en: 'Saving...', jp: '保存中...' },
+  };
+
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
+
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(false);
   const [allUsers, setAllUsers] = useState<AppUser[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -133,7 +181,7 @@ export default function DepartmentsPanel({ canManage }: Props) {
   };
 
   const deleteDept = async (id: string) => {
-    if (!confirm("ลบแผนกนี้ใช่หรือไม่?")) return;
+    if (!confirm(L('delete_confirm'))) return;
     const res = await fetch(`/api/departments/${id}`, { method: "DELETE" });
     if (res.ok) {
       fetchDepartments();
@@ -197,7 +245,7 @@ export default function DepartmentsPanel({ canManage }: Props) {
   };
 
   const resetPerms = () => {
-    if (!confirm("รีเซ็ตสิทธิ์แผนกนี้ทั้งหมด?")) return;
+    if (!confirm(L('perm_reset_confirm'))) return;
     const next: Record<string, number> = {};
     modules.forEach(m => { next[m.key] = 0; });
     setDeptPerms(next);
@@ -224,14 +272,14 @@ export default function DepartmentsPanel({ canManage }: Props) {
             <Building2 size={20} className="text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">จัดการแผนก</h2>
-            <p className="text-xs text-slate-400">{departments.length} แผนก</p>
+            <h2 className="text-lg font-bold text-white">{L('header_title')}</h2>
+            <p className="text-xs text-slate-400">{departments.length}{L('header_subtitle')}</p>
           </div>
         </div>
         {canManage && (
           <button onClick={openAdd}
             className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
-            <Plus size={16} /> เพิ่มแผนก
+            <Plus size={16} /> {L('add_button')}
           </button>
         )}
       </div>
@@ -251,7 +299,7 @@ export default function DepartmentsPanel({ canManage }: Props) {
                       {d.code}
                     </span>
                     {!d.is_active && (
-                      <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">ปิดใช้งาน</span>
+                      <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">{L('inactive_badge')}</span>
                     )}
                   </div>
                   <h3 className="text-white font-semibold mt-1">{d.name_th}</h3>
@@ -261,24 +309,24 @@ export default function DepartmentsPanel({ canManage }: Props) {
                 {canManage && (
                   <div className="flex items-center gap-1">
                     <button onClick={() => openPerms(d)}
-                      className="p-1.5 text-purple-400 hover:bg-purple-400/10 rounded-lg" title="จัดการสิทธิ์แผนก">
+                      className="p-1.5 text-purple-400 hover:bg-purple-400/10 rounded-lg" title={L('perm_tooltip')}>
                       <Shield size={14} />
                     </button>
                     <button onClick={() => openEdit(d)}
-                      className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded-lg" title="แก้ไข">
+                      className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded-lg" title={L('edit_tooltip')}>
                       <Edit3 size={14} />
                     </button>
                     <button onClick={() => deleteDept(d.id)}
-                      className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg" title="ลบ">
+                      className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg" title={L('delete_tooltip')}>
                       <Trash2 size={14} />
                     </button>
                   </div>
                 )}
               </div>
               <div className="flex items-center gap-4 text-xs text-slate-400">
-                <span className="flex items-center gap-1"><Users size={12} /> {d.member_count} คน</span>
+                <span className="flex items-center gap-1"><Users size={12} /> {d.member_count} {L('members_label')}</span>
                 {d.head && (
-                  <span className="truncate">หัวหน้า: {d.head.display_name}</span>
+                  <span className="truncate">{L('head_label')} {d.head.display_name}</span>
                 )}
               </div>
             </div>
@@ -292,56 +340,56 @@ export default function DepartmentsPanel({ canManage }: Props) {
           <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-[#334155] px-5 py-4">
               <h3 className="text-white font-bold text-lg">
-                {editingId ? "แก้ไขแผนก" : "เพิ่มแผนกใหม่"}
+                {editingId ? L('form_title_edit') : L('form_title_add')}
               </h3>
               <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white"><X size={20} /></button>
             </div>
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">รหัสแผนก *</label>
+                  <label className="text-xs text-slate-400 mb-1 block">{L('form_code_label')}</label>
                   <input value={formData.code}
                     onChange={e => setFormData(p => ({ ...p, code: e.target.value }))}
                     className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
-                    placeholder="เช่น SW, INFRA" />
+                    placeholder={L('form_code_placeholder')} />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">สถานะ</label>
+                  <label className="text-xs text-slate-400 mb-1 block">{L('form_status_label')}</label>
                   <select value={formData.is_active ? "true" : "false"}
                     onChange={e => setFormData(p => ({ ...p, is_active: e.target.value === "true" }))}
                     className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white">
-                    <option value="true">ใช้งาน</option>
-                    <option value="false">ปิดใช้งาน</option>
+                    <option value="true">{L('form_status_active')}</option>
+                    <option value="false">{L('form_status_inactive')}</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">ชื่อแผนก (ไทย) *</label>
+                <label className="text-xs text-slate-400 mb-1 block">{L('form_name_th_label')}</label>
                 <input value={formData.name_th}
                   onChange={e => setFormData(p => ({ ...p, name_th: e.target.value }))}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
-                  placeholder="ฝ่ายพัฒนาซอฟต์แวร์" />
+                  placeholder={L('form_name_th_placeholder')} />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">ชื่อแผนก (English)</label>
+                <label className="text-xs text-slate-400 mb-1 block">{L('form_name_en_label')}</label>
                 <input value={formData.name_en}
                   onChange={e => setFormData(p => ({ ...p, name_en: e.target.value }))}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
-                  placeholder="Software Development" />
+                  placeholder={L('form_name_en_placeholder')} />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">ชื่อแผนก (日本語)</label>
+                <label className="text-xs text-slate-400 mb-1 block">{L('form_name_jp_label')}</label>
                 <input value={formData.name_jp}
                   onChange={e => setFormData(p => ({ ...p, name_jp: e.target.value }))}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
-                  placeholder="ソフトウェア開発部" />
+                  placeholder={L('form_name_jp_placeholder')} />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">หัวหน้าแผนก</label>
+                <label className="text-xs text-slate-400 mb-1 block">{L('form_head_label')}</label>
                 <select value={formData.head_user_id}
                   onChange={e => setFormData(p => ({ ...p, head_user_id: e.target.value }))}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white">
-                  <option value="">-- ไม่ระบุ --</option>
+                  <option value="">{L('form_head_unspecified')}</option>
                   {allUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.display_name} ({u.email})</option>
                   ))}
@@ -350,10 +398,10 @@ export default function DepartmentsPanel({ canManage }: Props) {
             </div>
             <div className="border-t border-[#334155] px-5 py-3 flex justify-end gap-2">
               <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm text-slate-300 hover:text-white">ยกเลิก</button>
+                className="px-4 py-2 text-sm text-slate-300 hover:text-white">{L('form_cancel')}</button>
               <button onClick={saveDept}
                 className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2">
-                <Save size={14} /> {editingId ? "อัปเดต" : "สร้างแผนก"}
+                <Save size={14} /> {editingId ? L('form_update') : L('form_create')}
               </button>
             </div>
           </div>
@@ -372,9 +420,9 @@ export default function DepartmentsPanel({ canManage }: Props) {
                   <Shield size={20} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-lg">สิทธิ์ประจำแผนก</h3>
+                  <h3 className="text-white font-bold text-lg">{L('perm_title')}</h3>
                   <div className="text-xs text-slate-400">{permDeptName}</div>
-                  <div className="text-[10px] text-slate-500">สิทธิ์นี้จะเป็นค่า default ของสมาชิกในแผนก (สามารถ override ได้เป็นรายบุคคล)</div>
+                  <div className="text-[10px] text-slate-500">{L('perm_subtitle')}</div>
                 </div>
               </div>
               <button onClick={() => setPermDeptId(null)} className="text-slate-400 hover:text-white"><X size={20} /></button>
@@ -384,11 +432,11 @@ export default function DepartmentsPanel({ canManage }: Props) {
             <div className="px-5 py-3 border-b border-[#334155] flex items-center gap-3 flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input value={permFilter} onChange={e => setPermFilter(e.target.value)} placeholder="ค้นหาเมนู..."
+                <input value={permFilter} onChange={e => setPermFilter(e.target.value)} placeholder={L('perm_search_placeholder')}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg pl-9 pr-3 py-1.5 text-sm text-white" />
               </div>
               <div className="flex items-center gap-1 text-xs">
-                <span className="text-slate-400 mr-1">ตั้งทั้งหมด:</span>
+                <span className="text-slate-400 mr-1">{L('perm_set_all')}</span>
                 {LEVELS.map(l => (
                   <button key={l} onClick={() => setAllPermLevel(l)}
                     className="px-2 py-1 rounded text-[10px] font-medium hover:opacity-80"
@@ -399,13 +447,13 @@ export default function DepartmentsPanel({ canManage }: Props) {
               </div>
               <button onClick={resetPerms} disabled={permSaving}
                 className="px-3 py-1.5 text-xs text-slate-300 hover:text-white border border-[#334155] rounded-lg flex items-center gap-1 disabled:opacity-50">
-                <RotateCcw size={12} /> รีเซ็ตทั้งหมด
+                <RotateCcw size={12} /> {L('perm_reset_all')}
               </button>
             </div>
 
             {/* legend */}
             <div className="px-5 py-2 border-b border-[#334155] flex items-center gap-3 flex-wrap text-[10px]">
-              <span className="text-slate-500">ระดับสิทธิ์:</span>
+              <span className="text-slate-500">{L('perm_legend_label')}</span>
               {LEVELS.map(l => (
                 <span key={l} className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full" style={{ background: PERM_COLOR[l] }} />
@@ -428,7 +476,7 @@ export default function DepartmentsPanel({ canManage }: Props) {
                         <span className="text-[10px] text-slate-500">({g.items.length})</span>
                       </div>
                       <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                        <span className="text-[10px] text-slate-500 mr-1">ตั้งหมวดนี้:</span>
+                        <span className="text-[10px] text-slate-500 mr-1">{L('perm_set_category')}</span>
                         {LEVELS.map(l => (
                           <button key={l} onClick={() => setCategoryPermLevel(g.cat, l)}
                             className="w-5 h-5 rounded text-[10px] font-bold hover:scale-110 transition"
@@ -476,13 +524,13 @@ export default function DepartmentsPanel({ canManage }: Props) {
             {/* footer */}
             <div className="border-t border-[#334155] px-5 py-3 flex items-center justify-between">
               <div className="text-xs text-slate-500">
-                {permDirty ? <span className="text-purple-400">● มีการเปลี่ยนแปลงที่ยังไม่บันทึก</span> : "ไม่มีการเปลี่ยนแปลง"}
+                {permDirty ? <span className="text-purple-400">{L('perm_changes_pending')}</span> : L('perm_no_changes')}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setPermDeptId(null)} className="px-4 py-2 text-sm text-slate-300 hover:text-white">ยกเลิก</button>
+                <button onClick={() => setPermDeptId(null)} className="px-4 py-2 text-sm text-slate-300 hover:text-white">{L('form_cancel')}</button>
                 <button onClick={savePerms} disabled={permSaving || !permDirty}
                   className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
-                  <Save size={14} /> {permSaving ? "กำลังบันทึก..." : "บันทึกสิทธิ์แผนก"}
+                  <Save size={14} /> {permSaving ? L('perm_saving') : L('perm_save')}
                 </button>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit2, FileText, Send, CheckCircle2, AlertCircle, Eye, X } from "lucide-react";
+import type { Lang } from '@/lib/i18n';
 import TranslateButton from "./TranslateButton";
 
 interface InvoiceItem {
@@ -78,9 +79,59 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
-export default function NewInvoicesPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0 }: Props) {
+const panelText = {
+  "draft_label": { th: "ร่าง", en: "Draft", jp: "ドラフト" },
+  "sent_label": { th: "ส่งแล้ว", en: "Sent", jp: "送信済み" },
+  "paid_label": { th: "ชำระแล้ว", en: "Paid", jp: "支払済み" },
+  "overdue_label": { th: "เกินกำหนด", en: "Overdue", jp: "期限超過" },
+  "outstanding_label": { th: "ค้างชำระ", en: "Outstanding", jp: "未払い" },
+  "create_invoice": { th: "สร้างใบแจ้งหนี้", en: "Create Invoice", jp: "請求書を作成" },
+  "no_invoices": { th: "ยังไม่มีใบแจ้งหนี้", en: "No invoices yet", jp: "請求書がまだありません" },
+  "view_details": { th: "ดูรายละเอียด", en: "View Details", jp: "詳細を表示" },
+  "send_button": { th: "ส่ง", en: "Send", jp: "送信" },
+  "record_payment": { th: "รับชำระ", en: "Record Payment", jp: "支払いを記録" },
+  "delete_confirm": { th: "ลบใบแจ้งหนี้นี้?", en: "Delete this invoice?", jp: "この請求書を削除しますか?" },
+  "issued": { th: "ออก:", en: "Issued:", jp: "発行日:" },
+  "due": { th: "กำหนด:", en: "Due:", jp: "期日:" },
+  "recorded": { th: "ชำระ", en: "Recorded", jp: "記録済み" },
+  "outstanding": { th: "ค้าง", en: "Outstanding", jp: "未払い" },
+  "complete": { th: "เสร็จ", en: "Complete", jp: "完了" },
+  "all_outstanding": { th: "ค้างชำระทั้งหมด", en: "All Outstanding", jp: "全て未払い" },
+  "subtotal": { th: "ยอดรวม", en: "Subtotal", jp: "小計" },
+  "discount": { th: "ส่วนลด", en: "Discount", jp: "割引" },
+  "vat": { th: "VAT", en: "VAT", jp: "VAT" },
+  "total": { th: "รวมทั้งสิ้น", en: "Total", jp: "合計" },
+  "paid": { th: "ชำระแล้ว", en: "Paid", jp: "支払済み" },
+  "outstanding_balance": { th: "ค้างชำระ", en: "Outstanding", jp: "未払い" },
+  "close_button": { th: "ปิด", en: "Close", jp: "閉じる" },
+  "modal_title": { th: "สร้างใบแจ้งหนี้", en: "Create Invoice", jp: "請求書を作成" },
+  "invoice_no": { th: "เลขที่ใบแจ้งหนี้", en: "Invoice No.", jp: "請求書番号" },
+  "project_label": { th: "โครงการ", en: "Project", jp: "プロジェクト" },
+  "select_placeholder": { th: "— เลือก —", en: "— Select —", jp: "— 選択 —" },
+  "invoice_name": { th: "ชื่อใบแจ้งหนี้", en: "Invoice Name", jp: "請求書名" },
+  "customer_label": { th: "ลูกค้า", en: "Customer", jp: "顧客" },
+  "invoice_date": { th: "วันออก", en: "Invoice Date", jp: "発行日" },
+  "due_date": { th: "กำหนดชำระ", en: "Due Date", jp: "期日" },
+  "vat_pct": { th: "VAT %", en: "VAT %", jp: "VAT %" },
+  "items_label": { th: "รายการ", en: "Items", jp: "項目" },
+  "description": { th: "รายละเอียด", en: "Description", jp: "説明" },
+  "quantity": { th: "จำนวน", en: "Quantity", jp: "数量" },
+  "unit_price": { th: "ราคา", en: "Unit Price", jp: "単価" },
+  "add_item": { th: "เพิ่มรายการ", en: "Add Item", jp: "項目を追加" },
+  "discount_label": { th: "ส่วนลด (หรือ 0)", en: "Discount (or 0)", jp: "割引（または0）" },
+  "cancel_button": { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
+  "create_button": { th: "สร้าง", en: "Create", jp: "作成" },
+  "creating": { th: "กำลังสร้าง...", en: "Creating...", jp: "作成中..." },
+  "must_enter_name": { th: "ต้องป้อนชื่อ", en: "Must enter name", jp: "名前を入力してください" },
+  "must_select_customer": { th: "ต้องเลือกลูกค้า", en: "Must select customer", jp: "顧客を選択してください" },
+  "must_have_items": { th: "ต้องมีรายการอย่างน้อย 1 รายการ", en: "Must have at least 1 item", jp: "最低1つのアイテムが必要です" },
+};
+
+export default function NewInvoicesPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0, lang = 'th' }: Props) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [items, setItems] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -106,7 +157,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
   }, [fetchAll, refreshKey]);
 
   const remove = async (id: string) => {
-    if (!confirm("ลบใบแจ้งหนี้นี้?")) return;
+    if (!confirm(L('delete_confirm'))) return;
     await fetch(`/api/invoices/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -148,18 +199,18 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 flex-1">
-          <Stat label="ร่าง" value={String(stats.draft)} color="#94A3B8" />
-          <Stat label="ส่งแล้ว" value={String(stats.sent)} color="#00AEEF" />
-          <Stat label="ชำระแล้ว" value={String(stats.paid)} color="#22C55E" />
-          <Stat label="เกินกำหนด" value={String(stats.overdue)} color="#EF4444" />
-          <Stat label="ค้างชำระ" value={fmtMoney(stats.outstanding)} color="#F7941D" />
+          <Stat label={L('draft_label')} value={String(stats.draft)} color="#94A3B8" />
+          <Stat label={L('sent_label')} value={String(stats.sent)} color="#00AEEF" />
+          <Stat label={L('paid_label')} value={String(stats.paid)} color="#22C55E" />
+          <Stat label={L('overdue_label')} value={String(stats.overdue)} color="#EF4444" />
+          <Stat label={L('outstanding_label')} value={fmtMoney(stats.outstanding)} color="#F7941D" />
         </div>
         {canManage && (
           <button
             onClick={() => setCreating(true)}
             className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
-            <Plus size={16} /> สร้างใบแจ้งหนี้
+            <Plus size={16} /> {L('create_invoice')}
           </button>
         )}
       </div>
@@ -168,7 +219,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
       {!loading && !items.length && (
         <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
           <FileText size={40} className="mx-auto mb-3 text-slate-600" />
-          ยังไม่มีใบแจ้งหนี้
+          {L('no_invoices')}
         </div>
       )}
 
@@ -203,10 +254,10 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                   <div className="text-sm text-white font-medium mb-0.5">{inv.title}</div>
                   <div className="text-xs text-slate-400">
                     {inv.customer_name && <span>{inv.customer_name} · </span>}
-                    ออก: {new Date(inv.invoice_date).toLocaleDateString("th-TH")}
+                    {L('issued')} {new Date(inv.invoice_date).toLocaleDateString("th-TH")}
                     {inv.due_date && (
                       <span className={isOverdue ? " text-red-400 font-medium" : ""}>
-                        · กำหนด: {new Date(inv.due_date).toLocaleDateString("th-TH")}
+                        · {L('due')} {new Date(inv.due_date).toLocaleDateString("th-TH")}
                       </span>
                     )}
                   </div>
@@ -215,8 +266,8 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                   <div className="text-base font-bold text-white">{fmtMoney(inv.total)}</div>
                   <div className="text-[10px] text-slate-500">
                     {inv.paid_amount && Number(inv.paid_amount) > 0
-                      ? `ชำระ ${fmtMoney(inv.paid_amount)} / ${outstandingAmount > 0 ? fmtMoney(outstandingAmount) + " ค้าง" : "เสร็จ"}`
-                      : "ค้างชำระทั้งหมด"}
+                      ? `${L('recorded')} ${fmtMoney(inv.paid_amount)} / ${outstandingAmount > 0 ? fmtMoney(outstandingAmount) + " " + L('outstanding') : L('complete')}`
+                      : L('all_outstanding')}
                   </div>
                 </div>
                 {canManage && (
@@ -224,7 +275,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                     <button
                       onClick={() => setViewingId(inv.id)}
                       className="p-1.5 text-slate-400 hover:text-white"
-                      title="ดูรายละเอียด"
+                      title={L('view_details')}
                     >
                       <Eye size={14} />
                     </button>
@@ -233,18 +284,18 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                         onClick={() => updateStatus(inv, "sent")}
                         className="px-2 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs flex items-center gap-1"
                       >
-                        <Send size={11} /> ส่ง
+                        <Send size={11} /> {L('send_button')}
                       </button>
                     )}
                     {["sent", "overdue", "partially_paid"].includes(inv.status) && (
                       <button
                         onClick={() => {
-                          const amt = prompt("ป้อนจำนวนที่ชำระ");
+                          const amt = prompt(panelText["record_payment"]?.[lang] ?? panelText["record_payment"]?.th ?? "Record Payment");
                           if (amt) recordPayment(inv, Number(amt));
                         }}
                         className="px-2 py-1.5 bg-green-500/20 text-green-300 rounded text-xs flex items-center gap-1"
                       >
-                        <CheckCircle2 size={11} /> รับชำระ
+                        <CheckCircle2 size={11} /> {L('record_payment')}
                       </button>
                     )}
                     <button onClick={() => remove(inv.id)} className="p-1.5 text-red-400 hover:text-red-300">
@@ -255,7 +306,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
               </div>
 
               {viewingId === inv.id && (
-                <InvoiceDetailView invoice={inv} onClose={() => setViewingId(null)} />
+                <InvoiceDetailView invoice={inv} onClose={() => setViewingId(null)} lang={lang} />
               )}
             </div>
           );
@@ -272,6 +323,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
             setCreating(false);
             fetchAll();
           }}
+          lang={lang}
         />
       )}
     </div>
@@ -289,7 +341,8 @@ function Stat({ label, value, color }: { label: string; value: string; color: st
   );
 }
 
-function InvoiceDetailView({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
+function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice; onClose: () => void; lang?: Lang }) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   return (
     <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
       <div className="bg-[#0F172A] rounded-lg p-3 space-y-2">
@@ -306,38 +359,38 @@ function InvoiceDetailView({ invoice, onClose }: { invoice: Invoice; onClose: ()
       </div>
       <div className="space-y-1 text-sm">
         <div className="flex justify-between text-slate-400">
-          <span>ยอดรวม</span>
+          <span>{L('subtotal')}</span>
           <span>{fmtMoney(invoice.subtotal)}</span>
         </div>
         {invoice.discount > 0 && (
           <div className="flex justify-between text-orange-300">
-            <span>ส่วนลด</span>
+            <span>{L('discount')}</span>
             <span>-{fmtMoney(invoice.discount)}</span>
           </div>
         )}
         <div className="flex justify-between text-cyan-300">
-          <span>VAT {invoice.vat_pct}%</span>
+          <span>{L('vat')} {invoice.vat_pct}%</span>
           <span>{fmtMoney(invoice.vat_amount)}</span>
         </div>
         <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
-          <span>รวมทั้งสิ้น</span>
+          <span>{L('total')}</span>
           <span>{fmtMoney(invoice.total)}</span>
         </div>
         {invoice.paid_amount && Number(invoice.paid_amount) > 0 && (
           <div className="flex justify-between text-green-300 pt-1">
-            <span>ชำระแล้ว</span>
+            <span>{L('paid')}</span>
             <span>{fmtMoney(invoice.paid_amount)}</span>
           </div>
         )}
         {invoice.paid_amount && Number(invoice.paid_amount) < Number(invoice.total) && (
           <div className="flex justify-between text-orange-300">
-            <span>ค้างชำระ</span>
+            <span>{L('outstanding_balance')}</span>
             <span>{fmtMoney(Number(invoice.total) - Number(invoice.paid_amount))}</span>
           </div>
         )}
       </div>
       <button onClick={onClose} className="w-full px-3 py-1.5 text-slate-300 hover:text-white text-sm">
-        ปิด
+        {L('close_button')}
       </button>
     </div>
   );
@@ -349,13 +402,16 @@ function CreateInvoiceModal({
   defaultProjectId,
   onClose,
   onSaved,
+  lang = 'th',
 }: {
   projects: Project[];
   customers: Customer[];
   defaultProjectId?: string;
   onClose: () => void;
   onSaved: () => void;
+  lang?: Lang;
 }) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [form, setForm] = useState({
     invoice_no: "",
     title: "",
@@ -378,15 +434,15 @@ function CreateInvoiceModal({
 
   const submit = async () => {
     if (!form.title) {
-      setErr("ต้องป้อนชื่อ");
+      setErr(L('must_enter_name'));
       return;
     }
     if (!form.customer_name) {
-      setErr("ต้องเลือกลูกค้า");
+      setErr(L('must_select_customer'));
       return;
     }
     if (form.items.length === 0 || !form.items[0].description) {
-      setErr("ต้องมีรายการอย่างน้อย 1 รายการ");
+      setErr(L('must_have_items'));
       return;
     }
     setBusy(true);
@@ -424,10 +480,10 @@ function CreateInvoiceModal({
         className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">สร้างใบแจ้งหนี้</h3>
+        <h3 className="text-lg font-semibold text-white">{L('modal_title')}</h3>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="เลขที่ใบแจ้งหนี้">
+          <Field label={L('invoice_no')}>
             <input
               type="text"
               className={inp}
@@ -436,13 +492,13 @@ function CreateInvoiceModal({
               placeholder="INV-2026-001"
             />
           </Field>
-          <Field label="โครงการ">
+          <Field label={L('project_label')}>
             <select
               className={inp}
               value={form.project_id}
               onChange={(e) => setForm({ ...form, project_id: e.target.value })}
             >
-              <option value="">— เลือก —</option>
+              <option value="">{L('select_placeholder')}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.project_code} — {p.name_th || p.name_en}
@@ -452,7 +508,7 @@ function CreateInvoiceModal({
           </Field>
         </div>
 
-        <Field label="ชื่อใบแจ้งหนี้ *">
+        <Field label={L('invoice_name')}>
           <input
             type="text"
             className={inp}
@@ -462,7 +518,7 @@ function CreateInvoiceModal({
           />
         </Field>
 
-        <Field label="ลูกค้า *">
+        <Field label={L('customer_label')}>
           <select
             className={inp}
             value={form.customer_id}
@@ -475,7 +531,7 @@ function CreateInvoiceModal({
               });
             }}
           >
-            <option value="">— เลือก —</option>
+            <option value="">{L('select_placeholder')}</option>
             {customers.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name_th || c.name_en}
@@ -485,7 +541,7 @@ function CreateInvoiceModal({
         </Field>
 
         <div className="grid grid-cols-3 gap-3">
-          <Field label="วันออก">
+          <Field label={L('invoice_date')}>
             <input
               type="date"
               className={inp}
@@ -493,7 +549,7 @@ function CreateInvoiceModal({
               onChange={(e) => setForm({ ...form, invoice_date: e.target.value })}
             />
           </Field>
-          <Field label="กำหนดชำระ">
+          <Field label={L('due_date')}>
             <input
               type="date"
               className={inp}
@@ -501,7 +557,7 @@ function CreateInvoiceModal({
               onChange={(e) => setForm({ ...form, due_date: e.target.value })}
             />
           </Field>
-          <Field label="VAT %">
+          <Field label={L('vat_pct')}>
             <input
               type="number"
               className={inp}
@@ -512,7 +568,7 @@ function CreateInvoiceModal({
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-2">รายการ *</label>
+          <label className="block text-xs text-slate-400 mb-2">{L('items_label')}</label>
           <div className="space-y-2">
             {form.items.map((item, idx) => (
               <div key={idx} className="grid grid-cols-12 gap-2">
@@ -525,7 +581,7 @@ function CreateInvoiceModal({
                     newItems[idx].description = e.target.value;
                     setForm({ ...form, items: newItems });
                   }}
-                  placeholder="รายละเอียด"
+                  placeholder={L('description')}
                 />
                 <input
                   type="number"
@@ -536,7 +592,7 @@ function CreateInvoiceModal({
                     newItems[idx].qty = Number(e.target.value);
                     setForm({ ...form, items: newItems });
                   }}
-                  placeholder="จำนวน"
+                  placeholder={L('quantity')}
                 />
                 <input
                   type="number"
@@ -547,7 +603,7 @@ function CreateInvoiceModal({
                     newItems[idx].unit_price = Number(e.target.value);
                     setForm({ ...form, items: newItems });
                   }}
-                  placeholder="ราคา"
+                  placeholder={L('unit_price')}
                 />
                 <button
                   type="button"
@@ -567,11 +623,11 @@ function CreateInvoiceModal({
             onClick={() => setForm({ ...form, items: [...form.items, { description: "", qty: 1, unit_price: 0 }] })}
             className="mt-2 text-xs text-blue-400 hover:text-blue-300"
           >
-            + เพิ่มรายการ
+            + {L('add_item')}
           </button>
         </div>
 
-        <Field label="ส่วนลด (หรือ 0)">
+        <Field label={L('discount_label')}>
           <input
             type="number"
             className={inp}
@@ -583,21 +639,21 @@ function CreateInvoiceModal({
 
         <div className="bg-[#0F172A] rounded-lg p-3 space-y-1 text-sm">
           <div className="flex justify-between text-slate-400">
-            <span>ยอดรวม</span>
+            <span>{L('subtotal')}</span>
             <span>{fmtMoney(subtotal)}</span>
           </div>
           {form.discount > 0 && (
             <div className="flex justify-between text-orange-300">
-              <span>ส่วนลด</span>
+              <span>{L('discount')}</span>
               <span>-{fmtMoney(form.discount)}</span>
             </div>
           )}
           <div className="flex justify-between text-cyan-300">
-            <span>VAT {form.vat_pct}%</span>
+            <span>{L('vat')} {form.vat_pct}%</span>
             <span>{fmtMoney(vat)}</span>
           </div>
           <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
-            <span>รวมทั้งสิ้น</span>
+            <span>{L('total')}</span>
             <span>{fmtMoney(total)}</span>
           </div>
         </div>
@@ -606,14 +662,14 @@ function CreateInvoiceModal({
 
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
-            ยกเลิก
+            {L('cancel_button')}
           </button>
           <button
             onClick={submit}
             disabled={busy}
             className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
-            {busy ? "กำลังสร้าง..." : "สร้าง"}
+            {busy ? L('creating') : L('create_button')}
           </button>
         </div>
       </div>

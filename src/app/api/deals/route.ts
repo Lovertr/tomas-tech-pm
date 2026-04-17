@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const stage = req.nextUrl.searchParams.get("stage");
   const customerId = req.nextUrl.searchParams.get("customer_id");
   let q = supabaseAdmin.from("deals")
-    .select("*, customers(id, company_name), owner:app_users!owner_id(id, email)")
+    .select("*, customers(id, company_name), owner:app_users!owner_id(id, email, display_name)")
     .order("updated_at", { ascending: false });
   if (stage && stage !== "all") q = q.eq("stage", stage);
   if (customerId) q = q.eq("customer_id", customerId);

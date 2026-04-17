@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X } from 'lucide-react';
+import type { Lang } from '@/lib/i18n';
 import TranslateButton from './TranslateButton';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
 interface Customer {
@@ -42,12 +44,69 @@ const statusColors = {
   churned: { bg: 'bg-red-900', text: 'text-red-200', badge: '#EF4444' },
 };
 
+const L = (key: string, lang: Lang = 'th'): string => {
+  const panelText: Record<string, Record<Lang, string>> = {
+    title: { th: 'ลูกค้า', en: 'Customers', jp: '顧客' },
+    subtitle: { th: 'จัดการข้อมูลลูกค้าและติดต่อ', en: 'Manage customer information and contacts', jp: '顧客情報と連絡先を管理' },
+    addCustomer: { th: 'เพิ่มลูกค้า', en: 'Add Customer', jp: '顧客を追加' },
+    total: { th: 'ทั้งหมด', en: 'Total', jp: '合計' },
+    activeCustomers: { th: 'ลูกค้าใช้งาน', en: 'Active Customers', jp: 'アクティブな顧客' },
+    prospects: { th: 'ผู้สนใจ', en: 'Prospects', jp: '見込み客' },
+    searchPlaceholder: { th: 'ค้นหาชื่อบริษัท...', en: 'Search company name...', jp: '会社名を検索...' },
+    all: { th: 'ทั้งหมด', en: 'All', jp: 'すべて' },
+    loading: { th: 'กำลังโหลด...', en: 'Loading...', jp: '読み込み中...' },
+    noCustomers: { th: 'ไม่พบลูกค้า', en: 'No customers found', jp: '顧客が見つかりません' },
+    industry: { th: 'สาขา:', en: 'Industry:', jp: '業界:' },
+    contacts: { th: 'ติดต่อ:', en: 'Contacts:', jp: '連絡先:' },
+    phone: { th: 'โทร:', en: 'Phone:', jp: '電話:' },
+    email: { th: 'อีเมล:', en: 'Email:', jp: 'メール:' },
+    editCustomer: { th: 'แก้ไขลูกค้า', en: 'Edit Customer', jp: '顧客を編集' },
+    addNewCustomer: { th: 'เพิ่มลูกค้าใหม่', en: 'Add New Customer', jp: '新しい顧客を追加' },
+    companyName: { th: 'ชื่อบริษัท *', en: 'Company Name *', jp: '会社名 *' },
+    industryField: { th: 'สาขาอุตสาหกรรม', en: 'Industry', jp: '業界' },
+    status: { th: 'สถานะ *', en: 'Status *', jp: 'ステータス *' },
+    taxId: { th: 'เลขประจำตัวผู้เสียภาษี', en: 'Tax ID', jp: '税ID' },
+    phoneField: { th: 'โทรศัพท์', en: 'Phone', jp: '電話' },
+    emailField: { th: 'อีเมล', en: 'Email', jp: 'メール' },
+    website: { th: 'เว็บไซต์', en: 'Website', jp: 'ウェブサイト' },
+    address: { th: 'ที่อยู่', en: 'Address', jp: 'アドレス' },
+    notes: { th: 'หมายเหตุ', en: 'Notes', jp: 'メモ' },
+    prospect: { th: 'ผู้สนใจ', en: 'Prospect', jp: '見込み客' },
+    active: { th: 'ใช้งาน', en: 'Active', jp: 'アクティブ' },
+    inactive: { th: 'ไม่ใช้งาน', en: 'Inactive', jp: '非アクティブ' },
+    churned: { th: 'หมดสัญญา', en: 'Churned', jp: '解約' },
+    save: { th: 'บันทึก', en: 'Save', jp: '保存' },
+    cancel: { th: 'ยกเลิก', en: 'Cancel', jp: 'キャンセル' },
+    confirmDelete: { th: 'ยืนยันการลบ?', en: 'Confirm delete?', jp: '削除を確認しますか？' },
+    customerInfo: { th: 'ข้อมูลลูกค้า', en: 'Customer Information', jp: '顧客情報' },
+    taxLabel: { th: 'เลขประจำตัวผู้เสียภาษี:', en: 'Tax ID:', jp: '税ID:' },
+    phoneLabel: { th: 'โทร:', en: 'Phone:', jp: '電話:' },
+    emailLabel: { th: 'อีเมล:', en: 'Email:', jp: 'メール:' },
+    addressLabel: { th: 'ที่อยู่:', en: 'Address:', jp: 'アドレス:' },
+    websiteLabel: { th: 'เว็บไซต์:', en: 'Website:', jp: 'ウェブサイト:' },
+    notesLabel: { th: 'หมายเหตุ:', en: 'Notes:', jp: 'メモ:' },
+    contactsList: { th: 'ติดต่อ', en: 'Contacts', jp: '連絡先' },
+    addContact: { th: 'เพิ่ม', en: 'Add', jp: '追加' },
+    noContacts: { th: 'ไม่มีติดต่อ', en: 'No contacts', jp: '連絡先がありません' },
+    primaryContact: { th: 'หลัก', en: 'Primary', jp: 'プライマリ' },
+    name: { th: 'ชื่อ *', en: 'Name *', jp: '名前 *' },
+    emailRequired: { th: 'อีเมล *', en: 'Email *', jp: 'メール *' },
+    phoneOptional: { th: 'โทรศัพท์', en: 'Phone', jp: '電話' },
+    position: { th: 'ตำแหน่ง', en: 'Position', jp: 'ポジション' },
+    isPrimary: { th: 'ติดต่อหลัก', en: 'Primary Contact', jp: 'プライマリ連絡先' },
+    edit: { th: 'แก้ไข', en: 'Edit', jp: '編集' },
+    close: { th: 'ปิด', en: 'Close', jp: '閉じる' },
+  };
+  return panelText[key]?.[lang] || key;
+};
+
 export default function CustomersPanel({
   projects,
   members,
   filterProjectId,
   canManage = true,
   refreshKey = 0,
+  lang = 'th',
 }: Props) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
@@ -142,7 +201,7 @@ export default function CustomersPanel({
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    if (!confirm('ยืนยันการลบ?')) return;
+    if (!confirm(L('confirmDelete', lang))) return;
     try {
       const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -231,11 +290,11 @@ export default function CustomersPanel({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">ลูกค้า</h2>
-          <p className="text-gray-400 text-sm mt-1">จัดการข้อมูลลูกค้าและติดต่อ</p>
+          <h2 className="text-2xl font-bold text-white">{L('title', lang)}</h2>
+          <p className="text-gray-400 text-sm mt-1">{L('subtitle', lang)}</p>
         </div>
         <div className="flex gap-2">
-          <TranslateButton text="ลูกค้า — จัดการข้อมูลลูกค้าและติดต่อ" />
+          <TranslateButton text={`${L('title', lang)} — ${L('subtitle', lang)}`} />
           {canManage && (
             <button
               onClick={() => {
@@ -245,7 +304,7 @@ export default function CustomersPanel({
               className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm flex items-center gap-2"
             >
               <Plus size={16} />
-              เพิ่มลูกค้า
+              {L('addCustomer', lang)}
             </button>
           )}
         </div>
@@ -254,15 +313,15 @@ export default function CustomersPanel({
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ทั้งหมด</p>
+          <p className="text-gray-400 text-sm">{L('total', lang)}</p>
           <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ลูกค้าใช้งาน</p>
+          <p className="text-gray-400 text-sm">{L('activeCustomers', lang)}</p>
           <p className="text-3xl font-bold text-green-400 mt-2">{stats.active}</p>
         </div>
         <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">ผู้สนใจ</p>
+          <p className="text-gray-400 text-sm">{L('prospects', lang)}</p>
           <p className="text-3xl font-bold text-blue-400 mt-2">{stats.prospect}</p>
         </div>
       </div>
@@ -273,7 +332,7 @@ export default function CustomersPanel({
           <Search className="absolute left-3 top-3 text-gray-500" size={18} />
           <input
             type="text"
-            placeholder="ค้นหาชื่อบริษัท..."
+            placeholder={L('searchPlaceholder', lang)}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-[#0F172A] border border-[#334155] rounded-lg pl-10 pr-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
@@ -290,7 +349,7 @@ export default function CustomersPanel({
                   : 'bg-[#1E293B] text-gray-300 border border-[#334155]'
               }`}
             >
-              {status === 'all' ? 'ทั้งหมด' : status}
+              {status === 'all' ? L('all', lang) : L(status, lang)}
             </button>
           ))}
         </div>
@@ -299,9 +358,9 @@ export default function CustomersPanel({
       {/* Customer List */}
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-8 text-gray-400">กำลังโหลด...</div>
+          <div className="text-center py-8 text-gray-400">{L('loading', lang)}</div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">ไม่พบลูกค้า</div>
+          <div className="text-center py-8 text-gray-400">{L('noCustomers', lang)}</div>
         ) : (
           filteredCustomers.map((customer) => (
             <div
@@ -324,10 +383,10 @@ export default function CustomersPanel({
                     </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-400 mb-2">
-                    {customer.industry && <p>สาขา: {customer.industry}</p>}
-                    <p>ติดต่อ: {customer.contact_count ?? 0}</p>
-                    {customer.phone && <p>โทร: {customer.phone}</p>}
-                    {customer.email && <p>อีเมล: {customer.email}</p>}
+                    {customer.industry && <p>{L('industry', lang)} {customer.industry}</p>}
+                    <p>{L('contacts', lang)} {customer.contact_count ?? 0}</p>
+                    {customer.phone && <p>{L('phone', lang)} {customer.phone}</p>}
+                    {customer.email && <p>{L('email', lang)} {customer.email}</p>}
                   </div>
                 </div>
                 {canManage && (
@@ -364,7 +423,7 @@ export default function CustomersPanel({
           <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-white">
-                {selectedCustomer ? 'แก้ไขลูกค้า' : 'เพิ่มลูกค้าใหม่'}
+                {selectedCustomer ? L('editCustomer', lang) : L('addNewCustomer', lang)}
               </h3>
               <button
                 onClick={() => {
@@ -381,7 +440,7 @@ export default function CustomersPanel({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    ชื่อบริษัท *
+                    {L('companyName', lang)}
                   </label>
                   <input
                     type="text"
@@ -395,7 +454,7 @@ export default function CustomersPanel({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    สาขาอุตสาหกรรม
+                    {L('industryField', lang)}
                   </label>
                   <input
                     type="text"
@@ -406,7 +465,7 @@ export default function CustomersPanel({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    สถานะ *
+                    {L('status', lang)}
                   </label>
                   <select
                     value={formData.status}
@@ -415,15 +474,15 @@ export default function CustomersPanel({
                     }
                     className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
                   >
-                    <option value="prospect">ผู้สนใจ</option>
-                    <option value="active">ใช้งาน</option>
-                    <option value="inactive">ไม่ใช้งาน</option>
-                    <option value="churned">หมดสัญญา</option>
+                    <option value="prospect">{L('prospect', lang)}</option>
+                    <option value="active">{L('active', lang)}</option>
+                    <option value="inactive">{L('inactive', lang)}</option>
+                    <option value="churned">{L('churned', lang)}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    เลขประจำตัวผู้เสียภาษี
+                    {L('taxId', lang)}
                   </label>
                   <input
                     type="text"
@@ -434,7 +493,7 @@ export default function CustomersPanel({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    โทรศัพท์
+                    {L('phoneField', lang)}
                   </label>
                   <input
                     type="tel"
@@ -445,7 +504,7 @@ export default function CustomersPanel({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    อีเมล
+                    {L('emailField', lang)}
                   </label>
                   <input
                     type="email"
@@ -456,7 +515,7 @@ export default function CustomersPanel({
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    เว็บไซต์
+                    {L('website', lang)}
                   </label>
                   <input
                     type="url"
@@ -467,7 +526,7 @@ export default function CustomersPanel({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    ที่อยู่
+                    {L('address', lang)}
                   </label>
                   <input
                     type="text"
@@ -478,7 +537,7 @@ export default function CustomersPanel({
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    หมายเหตุ
+                    {L('notes', lang)}
                   </label>
                   <textarea
                     value={formData.notes}
@@ -494,7 +553,7 @@ export default function CustomersPanel({
                   type="submit"
                   className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
                 >
-                  บันทึก
+                  {L('save', lang)}
                 </button>
                 <button
                   type="button"
@@ -504,7 +563,7 @@ export default function CustomersPanel({
                   }}
                   className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
                 >
-                  ยกเลิก
+                  {L('cancel', lang)}
                 </button>
               </div>
             </form>
@@ -528,17 +587,17 @@ export default function CustomersPanel({
 
             {/* Customer Info */}
             <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4 mb-4">
-              <h4 className="font-semibold text-white mb-3">ข้อมูลลูกค้า</h4>
+              <h4 className="font-semibold text-white mb-3">{L('customerInfo', lang)}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 {selectedCustomer.industry && (
                   <div>
-                    <span className="text-gray-400">สาขา:</span>
+                    <span className="text-gray-400">{L('industry', lang)}</span>
                     <p className="text-white">{selectedCustomer.industry}</p>
                   </div>
                 )}
                 {selectedCustomer.tax_id && (
                   <div>
-                    <span className="text-gray-400">เลขประจำตัวผู้เสียภาษี:</span>
+                    <span className="text-gray-400">{L('taxLabel', lang)}</span>
                     <p className="text-white">{selectedCustomer.tax_id}</p>
                   </div>
                 )}
@@ -546,7 +605,7 @@ export default function CustomersPanel({
                   <div className="flex items-center gap-2">
                     <Phone size={16} className="text-gray-400" />
                     <div>
-                      <span className="text-gray-400">โทร:</span>
+                      <span className="text-gray-400">{L('phoneLabel', lang)}</span>
                       <p className="text-white">{selectedCustomer.phone}</p>
                     </div>
                   </div>
@@ -555,7 +614,7 @@ export default function CustomersPanel({
                   <div className="flex items-center gap-2">
                     <Mail size={16} className="text-gray-400" />
                     <div>
-                      <span className="text-gray-400">อีเมล:</span>
+                      <span className="text-gray-400">{L('emailLabel', lang)}</span>
                       <p className="text-white">{selectedCustomer.email}</p>
                     </div>
                   </div>
@@ -564,7 +623,7 @@ export default function CustomersPanel({
                   <div className="flex items-center gap-2 md:col-span-2">
                     <MapPin size={16} className="text-gray-400" />
                     <div>
-                      <span className="text-gray-400">ที่อยู่:</span>
+                      <span className="text-gray-400">{L('addressLabel', lang)}</span>
                       <p className="text-white">{selectedCustomer.address}</p>
                     </div>
                   </div>
@@ -573,7 +632,7 @@ export default function CustomersPanel({
                   <div className="flex items-center gap-2 md:col-span-2">
                     <Globe size={16} className="text-gray-400" />
                     <div>
-                      <span className="text-gray-400">เว็บไซต์:</span>
+                      <span className="text-gray-400">{L('websiteLabel', lang)}</span>
                       <p className="text-white">{selectedCustomer.website}</p>
                     </div>
                   </div>
@@ -581,7 +640,7 @@ export default function CustomersPanel({
               </div>
               {selectedCustomer.notes && (
                 <div className="mt-3 pt-3 border-t border-[#334155]">
-                  <span className="text-gray-400 text-sm">หมายเหตุ:</span>
+                  <span className="text-gray-400 text-sm">{L('notesLabel', lang)}</span>
                   <p className="text-white text-sm">{selectedCustomer.notes}</p>
                 </div>
               )}
@@ -590,21 +649,21 @@ export default function CustomersPanel({
             {/* Contacts */}
             <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="font-semibold text-white">ติดต่อ ({contacts.length})</h4>
+                <h4 className="font-semibold text-white">{L('contactsList', lang)} ({contacts.length})</h4>
                 {canManage && (
                   <button
                     onClick={() => setShowAddContact(true)}
                     className="px-3 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center gap-1"
                   >
                     <Plus size={14} />
-                    เพิ่ม
+                    {L('addContact', lang)}
                   </button>
                 )}
               </div>
 
               <div className="space-y-2">
                 {contacts.length === 0 ? (
-                  <p className="text-gray-400 text-sm">ไม่มีติดต่อ</p>
+                  <p className="text-gray-400 text-sm">{L('noContacts', lang)}</p>
                 ) : (
                   contacts.map((contact) => (
                     <div
@@ -617,7 +676,7 @@ export default function CustomersPanel({
                             <p className="font-medium text-white">{contact.name}</p>
                             {contact.is_primary && (
                               <span className="px-2 py-0.5 bg-[#F7941D] text-black text-xs rounded">
-                                หลัก
+                                {L('primaryContact', lang)}
                               </span>
                             )}
                           </div>
@@ -652,7 +711,7 @@ export default function CustomersPanel({
                 <form onSubmit={handleAddContact} className="mt-4 p-4 bg-[#0F172A] rounded-lg border border-[#334155] space-y-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      ชื่อ *
+                      {L('name', lang)}
                     </label>
                     <input
                       type="text"
@@ -666,7 +725,7 @@ export default function CustomersPanel({
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      อีเมล *
+                      {L('emailRequired', lang)}
                     </label>
                     <input
                       type="email"
@@ -680,7 +739,7 @@ export default function CustomersPanel({
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      โทรศัพท์
+                      {L('phoneOptional', lang)}
                     </label>
                     <input
                       type="tel"
@@ -693,7 +752,7 @@ export default function CustomersPanel({
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-300 mb-1">
-                      ตำแหน่ง
+                      {L('position', lang)}
                     </label>
                     <input
                       type="text"
@@ -713,14 +772,14 @@ export default function CustomersPanel({
                       }
                       className="rounded"
                     />
-                    ติดต่อหลัก
+                    {L('isPrimary', lang)}
                   </label>
                   <div className="flex gap-2">
                     <button
                       type="submit"
                       className="flex-1 px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-sm font-medium"
                     >
-                      บันทึก
+                      {L('save', lang)}
                     </button>
                     <button
                       type="button"
@@ -730,7 +789,7 @@ export default function CustomersPanel({
                       }}
                       className="flex-1 px-3 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded text-sm font-medium"
                     >
-                      ยกเลิก
+                      {L('cancel', lang)}
                     </button>
                   </div>
                 </form>
@@ -743,13 +802,13 @@ export default function CustomersPanel({
                   onClick={() => handleEditCustomer(selectedCustomer)}
                   className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
                 >
-                  แก้ไข
+                  {L('edit', lang)}
                 </button>
                 <button
                   onClick={() => setShowDetail(false)}
                   className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
                 >
-                  ปิด
+                  {L('close', lang)}
                 </button>
               </div>
             )}

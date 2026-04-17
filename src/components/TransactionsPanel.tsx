@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import type { Lang } from '@/lib/i18n';
 import TranslateButton from "./TranslateButton";
 
 interface Transaction {
@@ -53,9 +54,50 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
-export default function TransactionsPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0 }: Props) {
+const panelText = {
+  "total_income": { th: "รายได้รวม", en: "Total Income", jp: "総収入" },
+  "total_expense": { th: "ค่าใช้จ่ายรวม", en: "Total Expense", jp: "総支出" },
+  "net_label": { th: "สุทธิ", en: "Net", jp: "純利益" },
+  "record_transaction": { th: "บันทึกธุรกรรม", en: "Record Transaction", jp: "取引を記録" },
+  "all_filter": { th: "ทั้งหมด", en: "All", jp: "すべて" },
+  "income_filter": { th: "รายได้", en: "Income", jp: "収入" },
+  "expense_filter": { th: "ค่าใช้จ่าย", en: "Expense", jp: "支出" },
+  "no_transactions": { th: "ยังไม่มีธุรกรรม", en: "No transactions yet", jp: "取引がまだありません" },
+  "income_label": { th: "รายได้", en: "Income", jp: "収入" },
+  "expense_label": { th: "ค่าใช้จ่าย", en: "Expense", jp: "支出" },
+  "reference_no": { th: "เลขที่:", en: "Ref #:", jp: "参照番号:" },
+  "modal_title": { th: "บันทึกธุรกรรม", en: "Record Transaction", jp: "取引を記録" },
+  "project_label": { th: "โครงการ", en: "Project", jp: "プロジェクト" },
+  "select_placeholder": { th: "— เลือก —", en: "— Select —", jp: "— 選択 —" },
+  "type_label": { th: "ประเภท", en: "Type", jp: "タイプ" },
+  "category_label": { th: "หมวดหมู่", en: "Category", jp: "カテゴリー" },
+  "amount_label": { th: "จำนวนเงิน", en: "Amount", jp: "金額" },
+  "transaction_date": { th: "วันที่ธุรกรรม", en: "Transaction Date", jp: "取引日" },
+  "reference_label": { th: "เลขที่อ้างอิง", en: "Reference No.", jp: "参照番号" },
+  "description_label": { th: "รายละเอียด", en: "Description", jp: "説明" },
+  "cancel_button": { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
+  "save_button": { th: "บันทึก", en: "Save", jp: "保存" },
+  "saving": { th: "บันทึก...", en: "Saving...", jp: "保存中..." },
+  "recording": { th: "กำลังบันทึก...", en: "Recording...", jp: "記録中..." },
+  "delete_confirm": { th: "ลบรายการนี้?", en: "Delete this item?", jp: "このアイテムを削除しますか?" },
+  "edit_title": { th: "แก้ไข", en: "Edit", jp: "編集" },
+  "must_select_project": { th: "ต้องเลือกโครงการ", en: "Must select a project", jp: "プロジェクトを選択してください" },
+  "enter_amount": { th: "กรุณาป้อนจำนวนเงิน", en: "Please enter an amount", jp: "金額を入力してください" },
+  "labor": { th: "ค่าแรงงาน", en: "Labor", jp: "人件費" },
+  "material": { th: "วัสดุ", en: "Material", jp: "材料費" },
+  "travel": { th: "ค่าเดินทาง", en: "Travel", jp: "旅費" },
+  "utility": { th: "ค่าสาธารณูปโภค", en: "Utility", jp: "公共料金" },
+  "other": { th: "อื่นๆ", en: "Other", jp: "その他" },
+  "service_fee": { th: "ค่าบริการ", en: "Service Fee", jp: "サービス料" },
+  "hardware_sale": { th: "ขายฮาร์ดแวร์", en: "Hardware Sale", jp: "ハードウェア販売" },
+  "software_license": { th: "ใบอนุญาตซอฟต์แวร์", en: "Software License", jp: "ソフトウェアライセンス" },
+};
+
+export default function TransactionsPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0, lang = 'th' }: Props) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -81,7 +123,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
   }, [fetchAll, refreshKey]);
 
   const remove = async (id: string) => {
-    if (!confirm("ลบรายการนี้?")) return;
+    if (!confirm(L('delete_confirm'))) return;
     await fetch(`/api/fin-transactions/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -96,16 +138,16 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
-          <Stat label="รายได้รวม" value={fmtMoney(stats.totalIncome)} color="#22C55E" />
-          <Stat label="ค่าใช้จ่ายรวม" value={fmtMoney(stats.totalExpense)} color="#EF4444" />
-          <Stat label="สุทธิ" value={fmtMoney(stats.net)} color={stats.net >= 0 ? "#00AEEF" : "#F7941D"} />
+          <Stat label={L('total_income')} value={fmtMoney(stats.totalIncome)} color="#22C55E" />
+          <Stat label={L('total_expense')} value={fmtMoney(stats.totalExpense)} color="#EF4444" />
+          <Stat label={L('net_label')} value={fmtMoney(stats.net)} color={stats.net >= 0 ? "#00AEEF" : "#F7941D"} />
         </div>
         {canManage && (
           <button
             onClick={() => setCreating(true)}
             className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
-            <Plus size={16} /> บันทึกธุรกรรม
+            <Plus size={16} /> {L('record_transaction')}
           </button>
         )}
       </div>
@@ -118,7 +160,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
             className={`px-4 py-1.5 text-xs font-medium ${filterType === f ? "text-white" : "text-slate-400"}`}
             style={filterType === f ? { background: "#003087" } : { background: "#0F172A" }}
           >
-            {f === "all" ? "ทั้งหมด" : f === "income" ? "รายได้" : "ค่าใช้จ่าย"}
+            {f === "all" ? L('all_filter') : f === "income" ? L('income_filter') : L('expense_filter')}
           </button>
         ))}
       </div>
@@ -127,7 +169,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
       {!loading && !filtered.length && (
         <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
           <ArrowUpRight size={40} className="mx-auto mb-3 text-slate-600" />
-          ยังไม่มีธุรกรรม
+          {L('no_transactions')}
         </div>
       )}
 
@@ -156,12 +198,12 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                       </span>
                     )}
                     <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: isIncome ? "#22C55E40" : "#EF444440" }}>
-                      {isIncome ? "รายได้" : "ค่าใช้จ่าย"}
+                      {isIncome ? L('income_label') : L('expense_label')}
                     </span>
                   </div>
                   <div className="text-xs text-slate-400">
                     {new Date(txn.transaction_date).toLocaleDateString("th-TH")}
-                    {txn.reference_no && <span> · เลขที่: {txn.reference_no}</span>}
+                    {txn.reference_no && <span> · {L('reference_no')} {txn.reference_no}</span>}
                     {txn.description && (
                       <>
                         <br />
@@ -178,7 +220,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                 </div>
                 {canManage && (
                   <div className="flex items-center gap-1 ml-3">
-                    <button onClick={() => setEditingId(txn.id)} className="p-1.5 text-slate-400 hover:text-white" title="แก้ไข">
+                    <button onClick={() => setEditingId(txn.id)} className="p-1.5 text-slate-400 hover:text-white" title={L('edit_title')}>
                       <Edit2 size={14} />
                     </button>
                     <button onClick={() => remove(txn.id)} className="p-1.5 text-red-400 hover:text-red-300">
@@ -197,6 +239,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                     setEditingId(null);
                     fetchAll();
                   }}
+                  lang={lang}
                 />
               )}
             </div>
@@ -213,6 +256,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
             setCreating(false);
             fetchAll();
           }}
+          lang={lang}
         />
       )}
     </div>
@@ -235,12 +279,15 @@ function CreateTransactionModal({
   defaultProjectId,
   onClose,
   onSaved,
+  lang = 'th',
 }: {
   projects: Project[];
   defaultProjectId?: string;
   onClose: () => void;
   onSaved: () => void;
+  lang?: Lang;
 }) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [form, setForm] = useState({
     project_id: defaultProjectId ?? "",
     type: "income" as "income" | "expense",
@@ -257,11 +304,11 @@ function CreateTransactionModal({
 
   const submit = async () => {
     if (!form.project_id) {
-      setErr("ต้องเลือกโครงการ");
+      setErr(L('must_select_project'));
       return;
     }
     if (!form.amount || form.amount <= 0) {
-      setErr("กรุณาป้อนจำนวนเงิน");
+      setErr(L('enter_amount'));
       return;
     }
     setBusy(true);
@@ -292,15 +339,15 @@ function CreateTransactionModal({
         className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">บันทึกธุรกรรม</h3>
+        <h3 className="text-lg font-semibold text-white">{L('modal_title')}</h3>
 
-        <Field label="โครงการ *">
+        <Field label={L('project_label') + " *"}>
           <select
             className={inp}
             value={form.project_id}
             onChange={(e) => setForm({ ...form, project_id: e.target.value })}
           >
-            <option value="">— เลือก —</option>
+            <option value="">{L('select_placeholder')}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.project_code} — {p.name_th || p.name_en}
@@ -310,7 +357,7 @@ function CreateTransactionModal({
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="ประเภท *">
+          <Field label={L('type_label') + " *"}>
             <select
               className={inp}
               value={form.type}
@@ -323,11 +370,11 @@ function CreateTransactionModal({
                 });
               }}
             >
-              <option value="income">รายได้</option>
-              <option value="expense">ค่าใช้จ่าย</option>
+              <option value="income">{L('income_label')}</option>
+              <option value="expense">{L('expense_label')}</option>
             </select>
           </Field>
-          <Field label="หมวดหมู่ *">
+          <Field label={L('category_label') + " *"}>
             <select
               className={inp}
               value={form.category}
@@ -335,14 +382,14 @@ function CreateTransactionModal({
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
-                  {CATEGORY_LABELS[cat]}
+                  {L(cat)}
                 </option>
               ))}
             </select>
           </Field>
         </div>
 
-        <Field label="จำนวนเงิน *">
+        <Field label={L('amount_label') + " *"}>
           <input
             type="number"
             className={inp}
@@ -353,7 +400,7 @@ function CreateTransactionModal({
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="วันที่ธุรกรรม">
+          <Field label={L('transaction_date')}>
             <input
               type="date"
               className={inp}
@@ -361,7 +408,7 @@ function CreateTransactionModal({
               onChange={(e) => setForm({ ...form, transaction_date: e.target.value })}
             />
           </Field>
-          <Field label="เลขที่อ้างอิง">
+          <Field label={L('reference_label')}>
             <input
               type="text"
               className={inp}
@@ -372,7 +419,7 @@ function CreateTransactionModal({
           </Field>
         </div>
 
-        <Field label="รายละเอียด">
+        <Field label={L('description_label')}>
           <textarea
             rows={2}
             className={inp}
@@ -385,14 +432,14 @@ function CreateTransactionModal({
 
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
-            ยกเลิก
+            {L('cancel_button')}
           </button>
           <button
             onClick={submit}
             disabled={busy}
             className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
-            {busy ? "กำลังบันทึก..." : "บันทึก"}
+            {busy ? L('recording') : L('save_button')}
           </button>
         </div>
       </div>
@@ -405,12 +452,15 @@ function EditTransactionForm({
   projects,
   onClose,
   onSaved,
+  lang = 'th',
 }: {
   transaction: Transaction;
   projects: Project[];
   onClose: () => void;
   onSaved: () => void;
+  lang?: Lang;
 }) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [form, setForm] = useState({
     amount: transaction.amount,
     reference_no: transaction.reference_no ?? "",
@@ -440,7 +490,7 @@ function EditTransactionForm({
   return (
     <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        <Field label="จำนวนเงิน">
+        <Field label={L('amount_label')}>
           <input
             type="number"
             className={inp}
@@ -448,7 +498,7 @@ function EditTransactionForm({
             onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
           />
         </Field>
-        <Field label="วันที่">
+        <Field label={L('transaction_date')}>
           <input
             type="date"
             className={inp}
@@ -457,7 +507,7 @@ function EditTransactionForm({
           />
         </Field>
       </div>
-      <Field label="เลขที่อ้างอิง">
+      <Field label={L('reference_label')}>
         <input
           type="text"
           className={inp}
@@ -465,7 +515,7 @@ function EditTransactionForm({
           onChange={(e) => setForm({ ...form, reference_no: e.target.value })}
         />
       </Field>
-      <Field label="รายละเอียด">
+      <Field label={L('description_label')}>
         <textarea
           rows={1}
           className={inp}
@@ -475,14 +525,14 @@ function EditTransactionForm({
       </Field>
       <div className="flex justify-end gap-2">
         <button onClick={onClose} className="px-3 py-1.5 text-slate-300 hover:text-white text-sm">
-          ยกเลิก
+          {L('cancel_button')}
         </button>
         <button
           onClick={submit}
           disabled={busy}
           className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
         >
-          {busy ? "บันทึก..." : "บันทึก"}
+          {busy ? L('saving') : L('save_button')}
         </button>
       </div>
     </div>

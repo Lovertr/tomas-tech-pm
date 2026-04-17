@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit2, FileText, Send, CheckCircle2, X, Eye } from "lucide-react";
+import type { Lang } from "@/lib/i18n";
 import TranslateButton from "./TranslateButton";
 
 interface QuotationItem {
@@ -73,9 +74,53 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
-export default function QuotationsPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0 }: Props) {
+const panelText = {
+  draft: { th: "ร่าง", en: "Draft", jp: "下書き" },
+  sent: { th: "ส่งแล้ว", en: "Sent", jp: "送信済み" },
+  approved: { th: "อนุมัติ", en: "Approved", jp: "承認済み" },
+  rejected: { th: "ปฏิเสธ", en: "Rejected", jp: "却下" },
+  expired: { th: "หมดอายุ", en: "Expired", jp: "期限切れ" },
+  totalValue: { th: "มูลค่ารวม", en: "Total Value", jp: "合計金額" },
+  createQuotation: { th: "สร้างอัตราการเสนอราคา", en: "Create Quotation", jp: "見積書を作成" },
+  noQuotations: { th: "ยังไม่มีอัตราการเสนอราคา", en: "No quotations yet", jp: "見積書がまだありません" },
+  deleteConfirm: { th: "ลบอัตราการเสนอราคานี้?", en: "Delete this quotation?", jp: "この見積書を削除しますか？" },
+  viewDetails: { th: "ดูรายละเอียด", en: "View details", jp: "詳細を表示" },
+  send: { th: "ส่ง", en: "Send", jp: "送信" },
+  approveBtn: { th: "อนุมัติ", en: "Approve", jp: "承認する" },
+  close: { th: "ปิด", en: "Close", jp: "閉じる" },
+  subtotal: { th: "ยอดรวม", en: "Subtotal", jp: "小計" },
+  discount: { th: "ส่วนลด", en: "Discount", jp: "割引" },
+  vat: { th: "VAT", en: "VAT", jp: "VAT" },
+  totalAmount: { th: "รวมทั้งสิ้น", en: "Total", jp: "合計" },
+  createTitle: { th: "สร้างอัตราการเสนอราคา", en: "Create Quotation", jp: "見積書を作成" },
+  quotationNo: { th: "เลขที่อัตราการเสนอราคา", en: "Quotation No.", jp: "見積書番号" },
+  date: { th: "วันที่", en: "Date", jp: "日付" },
+  quotationName: { th: "ชื่ออัตราการเสนอราคา *", en: "Quotation Name *", jp: "見積書名 *" },
+  quotationNamePlaceholder: { th: "เช่น ค่าพัฒนาเว็บไซต์", en: "e.g. Website development fee", jp: "例）Webサイト開発費" },
+  customer: { th: "ลูกค้า *", en: "Customer *", jp: "顧客 *" },
+  selectCustomer: { th: "— เลือก —", en: "— Select —", jp: "— 選択 —" },
+  items: { th: "รายการ *", en: "Items *", jp: "項目 *" },
+  description: { th: "รายละเอียด", en: "Description", jp: "説明" },
+  quantity: { th: "จำนวน", en: "Quantity", jp: "数量" },
+  unitPrice: { th: "ราคา", en: "Price", jp: "価格" },
+  addItem: { th: "+ เพิ่มรายการ", en: "+ Add item", jp: "+ 項目を追加" },
+  discountField: { th: "ส่วนลด (หรือ 0)", en: "Discount (or 0)", jp: "割引（または0）" },
+  vatField: { th: "VAT %", en: "VAT %", jp: "VAT %" },
+  cancel: { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
+  create: { th: "สร้าง", en: "Create", jp: "作成" },
+  creating: { th: "กำลังสร้าง...", en: "Creating...", jp: "作成中..." },
+  requiredTitle: { th: "ต้องป้อนชื่อ", en: "Title is required", jp: "タイトルが必要です" },
+  requiredCustomer: { th: "ต้องเลือกลูกค้า", en: "Customer is required", jp: "顧客が必要です" },
+  requiredItems: { th: "ต้องมีรายการอย่างน้อย 1 รายการ", en: "At least 1 item is required", jp: "最低1つの項目が必要です" },
+} as const;
+
+type PanelTextKey = keyof typeof panelText;
+
+export default function QuotationsPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0, lang = "th" }: Props) {
+  const L = (key: string) => (panelText[key as PanelTextKey] as any)?.[lang] ?? (panelText[key as PanelTextKey] as any)?.th ?? key;
   const [items, setItems] = useState<Quotation[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -101,7 +146,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
   }, [fetchAll, refreshKey]);
 
   const remove = async (id: string) => {
-    if (!confirm("ลบอัตราการเสนอราคานี้?")) return;
+    if (!confirm(L("deleteConfirm"))) return;
     await fetch(`/api/quotations/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -126,17 +171,17 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
-          <Stat label="ร่าง" value={String(stats.draft)} color="#94A3B8" />
-          <Stat label="ส่งแล้ว" value={String(stats.sent)} color="#00AEEF" />
-          <Stat label="อนุมัติ" value={String(stats.approved)} color="#22C55E" />
-          <Stat label="มูลค่ารวม" value={fmtMoney(stats.total)} color="#003087" />
+          <Stat label={L("draft")} value={String(stats.draft)} color="#94A3B8" />
+          <Stat label={L("sent")} value={String(stats.sent)} color="#00AEEF" />
+          <Stat label={L("approved")} value={String(stats.approved)} color="#22C55E" />
+          <Stat label={L("totalValue")} value={fmtMoney(stats.total)} color="#003087" />
         </div>
         {canManage && (
           <button
             onClick={() => setCreating(true)}
             className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
-            <Plus size={16} /> สร้างอัตราการเสนอราคา
+            <Plus size={16} /> {L("createQuotation")}
           </button>
         )}
       </div>
@@ -145,7 +190,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
       {!loading && !items.length && (
         <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
           <FileText size={40} className="mx-auto mb-3 text-slate-600" />
-          ยังไม่มีอัตราการเสนอราคา
+          {L("noQuotations")}
         </div>
       )}
 
@@ -181,7 +226,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
                   <button
                     onClick={() => setViewingId(quo.id)}
                     className="p-1.5 text-slate-400 hover:text-white"
-                    title="ดูรายละเอียด"
+                    title={L("viewDetails")}
                   >
                     <Eye size={14} />
                   </button>
@@ -190,7 +235,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
                       onClick={() => updateStatus(quo, "sent")}
                       className="px-2 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs flex items-center gap-1"
                     >
-                      <Send size={11} /> ส่ง
+                      <Send size={11} /> {L("send")}
                     </button>
                   )}
                   {quo.status === "sent" && (
@@ -198,7 +243,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
                       onClick={() => updateStatus(quo, "approved")}
                       className="px-2 py-1.5 bg-green-500/20 text-green-300 rounded text-xs flex items-center gap-1"
                     >
-                      <CheckCircle2 size={11} /> อนุมัติ
+                      <CheckCircle2 size={11} /> {L("approveBtn")}
                     </button>
                   )}
                   <button onClick={() => remove(quo.id)} className="p-1.5 text-red-400 hover:text-red-300">
@@ -209,7 +254,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
             </div>
 
             {viewingId === quo.id && (
-              <QuotationDetailView quotation={quo} onClose={() => setViewingId(null)} />
+              <QuotationDetailView quotation={quo} onClose={() => setViewingId(null)} lang={lang} />
             )}
           </div>
         ))}
@@ -225,6 +270,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
             setCreating(false);
             fetchAll();
           }}
+          lang={lang}
         />
       )}
     </div>
@@ -242,7 +288,9 @@ function Stat({ label, value, color }: { label: string; value: string; color: st
   );
 }
 
-function QuotationDetailView({ quotation, onClose }: { quotation: Quotation; onClose: () => void }) {
+function QuotationDetailView({ quotation, onClose, lang = "th" }: { quotation: Quotation; onClose: () => void; lang?: Lang }) {
+  const L = (key: string) => (panelText[key as PanelTextKey] as any)?.[lang] ?? (panelText[key as PanelTextKey] as any)?.th ?? key;
+
   return (
     <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
       <div className="bg-[#0F172A] rounded-lg p-3 space-y-2">
@@ -259,26 +307,26 @@ function QuotationDetailView({ quotation, onClose }: { quotation: Quotation; onC
       </div>
       <div className="space-y-1 text-sm">
         <div className="flex justify-between text-slate-400">
-          <span>ยอดรวม</span>
+          <span>{L("subtotal")}</span>
           <span>{fmtMoney(quotation.subtotal)}</span>
         </div>
         {quotation.discount > 0 && (
           <div className="flex justify-between text-orange-300">
-            <span>ส่วนลด</span>
+            <span>{L("discount")}</span>
             <span>-{fmtMoney(quotation.discount)}</span>
           </div>
         )}
         <div className="flex justify-between text-cyan-300">
-          <span>VAT {quotation.vat_pct}%</span>
+          <span>{L("vat")} {quotation.vat_pct}%</span>
           <span>{fmtMoney(quotation.vat_amount)}</span>
         </div>
         <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
-          <span>รวมทั้งสิ้น</span>
+          <span>{L("totalAmount")}</span>
           <span>{fmtMoney(quotation.total)}</span>
         </div>
       </div>
       <button onClick={onClose} className="w-full px-3 py-1.5 text-slate-300 hover:text-white text-sm">
-        ปิด
+        {L("close")}
       </button>
     </div>
   );
@@ -290,13 +338,16 @@ function CreateQuotationModal({
   defaultProjectId,
   onClose,
   onSaved,
+  lang = "th",
 }: {
   projects: Project[];
   customers: Customer[];
   defaultProjectId?: string;
   onClose: () => void;
   onSaved: () => void;
+  lang?: Lang;
 }) {
+  const L = (key: string) => (panelText[key as PanelTextKey] as any)?.[lang] ?? (panelText[key as PanelTextKey] as any)?.th ?? key;
   const [form, setForm] = useState({
     quotation_no: "",
     title: "",
@@ -317,15 +368,15 @@ function CreateQuotationModal({
 
   const submit = async () => {
     if (!form.title) {
-      setErr("ต้องป้อนชื่อ");
+      setErr(L("requiredTitle"));
       return;
     }
     if (!form.customer_name) {
-      setErr("ต้องเลือกลูกค้า");
+      setErr(L("requiredCustomer"));
       return;
     }
     if (form.items.length === 0 || !form.items[0].description) {
-      setErr("ต้องมีรายการอย่างน้อย 1 รายการ");
+      setErr(L("requiredItems"));
       return;
     }
     setBusy(true);
@@ -362,10 +413,10 @@ function CreateQuotationModal({
         className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">สร้างอัตราการเสนอราคา</h3>
+        <h3 className="text-lg font-semibold text-white">{L("createTitle")}</h3>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="เลขที่อัตราการเสนอราคา">
+          <Field label={L("quotationNo")}>
             <input
               type="text"
               className={inp}
@@ -374,7 +425,7 @@ function CreateQuotationModal({
               placeholder="QT-2026-001"
             />
           </Field>
-          <Field label="วันที่">
+          <Field label={L("date")}>
             <input
               type="date"
               className={inp}
@@ -384,17 +435,17 @@ function CreateQuotationModal({
           </Field>
         </div>
 
-        <Field label="ชื่ออัตราการเสนอราคา *">
+        <Field label={L("quotationName")}>
           <input
             type="text"
             className={inp}
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder="เช่น ค่าพัฒนาเว็บไซต์"
+            placeholder={L("quotationNamePlaceholder")}
           />
         </Field>
 
-        <Field label="ลูกค้า *">
+        <Field label={L("customer")}>
           <select
             className={inp}
             value={form.customer_id}
@@ -407,7 +458,7 @@ function CreateQuotationModal({
               });
             }}
           >
-            <option value="">— เลือก —</option>
+            <option value="">{L("selectCustomer")}</option>
             {customers.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name_th || c.name_en}
@@ -417,7 +468,7 @@ function CreateQuotationModal({
         </Field>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-2">รายการ *</label>
+          <label className="block text-xs text-slate-400 mb-2">{L("items")}</label>
           <div className="space-y-2">
             {form.items.map((item, idx) => (
               <div key={idx} className="grid grid-cols-12 gap-2">
@@ -430,7 +481,7 @@ function CreateQuotationModal({
                     newItems[idx].description = e.target.value;
                     setForm({ ...form, items: newItems });
                   }}
-                  placeholder="รายละเอียด"
+                  placeholder={L("description")}
                 />
                 <input
                   type="number"
@@ -441,7 +492,7 @@ function CreateQuotationModal({
                     newItems[idx].qty = Number(e.target.value);
                     setForm({ ...form, items: newItems });
                   }}
-                  placeholder="จำนวน"
+                  placeholder={L("quantity")}
                 />
                 <input
                   type="number"
@@ -452,7 +503,7 @@ function CreateQuotationModal({
                     newItems[idx].unit_price = Number(e.target.value);
                     setForm({ ...form, items: newItems });
                   }}
-                  placeholder="ราคา"
+                  placeholder={L("unitPrice")}
                 />
                 <button
                   type="button"
@@ -472,12 +523,12 @@ function CreateQuotationModal({
             onClick={() => setForm({ ...form, items: [...form.items, { description: "", qty: 1, unit_price: 0 }] })}
             className="mt-2 text-xs text-blue-400 hover:text-blue-300"
           >
-            + เพิ่มรายการ
+            {L("addItem")}
           </button>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="ส่วนลด (หรือ 0)">
+          <Field label={L("discountField")}>
             <input
               type="number"
               className={inp}
@@ -486,7 +537,7 @@ function CreateQuotationModal({
               placeholder="0"
             />
           </Field>
-          <Field label="VAT %">
+          <Field label={L("vatField")}>
             <input
               type="number"
               className={inp}
@@ -498,21 +549,21 @@ function CreateQuotationModal({
 
         <div className="bg-[#0F172A] rounded-lg p-3 space-y-1 text-sm">
           <div className="flex justify-between text-slate-400">
-            <span>ยอดรวม</span>
+            <span>{L("subtotal")}</span>
             <span>{fmtMoney(subtotal)}</span>
           </div>
           {form.discount > 0 && (
             <div className="flex justify-between text-orange-300">
-              <span>ส่วนลด</span>
+              <span>{L("discount")}</span>
               <span>-{fmtMoney(form.discount)}</span>
             </div>
           )}
           <div className="flex justify-between text-cyan-300">
-            <span>VAT {form.vat_pct}%</span>
+            <span>{L("vat")} {form.vat_pct}%</span>
             <span>{fmtMoney(vat)}</span>
           </div>
           <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
-            <span>รวมทั้งสิ้น</span>
+            <span>{L("totalAmount")}</span>
             <span>{fmtMoney(total)}</span>
           </div>
         </div>
@@ -521,14 +572,14 @@ function CreateQuotationModal({
 
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
-            ยกเลิก
+            {L("cancel")}
           </button>
           <button
             onClick={submit}
             disabled={busy}
             className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
-            {busy ? "กำลังสร้าง..." : "สร้าง"}
+            {busy ? L("creating") : L("create")}
           </button>
         </div>
       </div>

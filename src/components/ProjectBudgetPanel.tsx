@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit2, AlertCircle, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
+import type { Lang } from '@/lib/i18n';
 import TranslateButton from "./TranslateButton";
 
 interface Budget {
@@ -47,9 +48,42 @@ interface Props {
   filterProjectId?: string;
   canManage?: boolean;
   refreshKey?: number;
+  lang?: Lang;
 }
 
-export default function ProjectBudgetPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0 }: Props) {
+const panelText = {
+  "total_budget": { th: "งบประมาณรวม", en: "Total Budget", jp: "総予算" },
+  "actual_spent": { th: "ใช้จริง", en: "Actual Spent", jp: "実績支出" },
+  "remaining_over": { th: "คงเหลือ/เกิน", en: "Remaining/Over", jp: "残余/超過" },
+  "add_budget_item": { th: "เพิ่มรายการงบประมาณ", en: "Add Budget Item", jp: "予算項目を追加" },
+  "no_budget_data": { th: "ยังไม่มีข้อมูลงบประมาณ", en: "No budget data yet", jp: "予算データがまだありません" },
+  "budget_label": { th: "งบ", en: "Budget", jp: "予算" },
+  "actual_label": { th: "ใช้จริง", en: "Actual", jp: "実績" },
+  "edit_modal_title": { th: "เพิ่มรายการงบประมาณ", en: "Add Budget Item", jp: "予算項目を追加" },
+  "project_label": { th: "โครงการ", en: "Project", jp: "プロジェクト" },
+  "select_placeholder": { th: "— เลือก —", en: "— Select —", jp: "— 選択 —" },
+  "category_label": { th: "หมวดหมู่", en: "Category", jp: "カテゴリー" },
+  "planned_budget": { th: "งบประมาณที่วางแผน", en: "Planned Budget", jp: "計画予算" },
+  "actual_spent_label": { th: "ใช้จริง", en: "Actual Spent", jp: "実績支出" },
+  "notes_label": { th: "หมายเหตุ", en: "Notes", jp: "注記" },
+  "cancel_button": { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
+  "create_button": { th: "สร้าง", en: "Create", jp: "作成" },
+  "creating": { th: "กำลังสร้าง...", en: "Creating...", jp: "作成中..." },
+  "delete_confirm": { th: "ลบรายการนี้?", en: "Delete this item?", jp: "このアイテムを削除しますか?" },
+  "edit_title": { th: "แก้ไข", en: "Edit", jp: "編集" },
+  "save_button": { th: "บันทึก", en: "Save", jp: "保存" },
+  "saving": { th: "บันทึก...", en: "Saving...", jp: "保存中..." },
+  "must_select_project": { th: "ต้องเลือกโครงการ", en: "Must select a project", jp: "プロジェクトを選択してください" },
+  "labor": { th: "ค่าแรงงาน", en: "Labor", jp: "人件費" },
+  "material": { th: "วัสดุ", en: "Material", jp: "材料費" },
+  "equipment": { th: "อุปกรณ์", en: "Equipment", jp: "機器" },
+  "subcontract": { th: "งานรับเหมา", en: "Subcontract", jp: "外注" },
+  "overhead": { th: "ค่าใช้สอย", en: "Overhead", jp: "間接費" },
+  "other": { th: "อื่นๆ", en: "Other", jp: "その他" },
+};
+
+export default function ProjectBudgetPanel({ projects, members, filterProjectId = "all", canManage = true, refreshKey = 0, lang = 'th' }: Props) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [items, setItems] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -74,7 +108,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
   }, [fetchAll, refreshKey]);
 
   const remove = async (id: string) => {
-    if (!confirm("ลบรายการนี้?")) return;
+    if (!confirm(L('delete_confirm'))) return;
     await fetch(`/api/project-budgets/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -91,10 +125,10 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
-          <Stat label="งบประมาณรวม" value={fmtMoney(stats.totalPlanned)} color="#003087" />
-          <Stat label="ใช้จริง" value={fmtMoney(stats.totalActual)} color="#F7941D" />
+          <Stat label={L('total_budget')} value={fmtMoney(stats.totalPlanned)} color="#003087" />
+          <Stat label={L('actual_spent')} value={fmtMoney(stats.totalActual)} color="#F7941D" />
           <Stat
-            label="คงเหลือ/เกิน"
+            label={L('remaining_over')}
             value={fmtMoney(stats.totalVariance)}
             color={isOverBudget ? "#EF4444" : "#22C55E"}
           />
@@ -104,7 +138,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
             onClick={() => setCreating(true)}
             className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
-            <Plus size={16} /> เพิ่มรายการงบประมาณ
+            <Plus size={16} /> {L('add_budget_item')}
           </button>
         )}
       </div>
@@ -113,7 +147,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
       {!loading && !filtered.length && (
         <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
           <DollarSign size={40} className="mx-auto mb-3 text-slate-600" />
-          ยังไม่มีข้อมูลงบประมาณ
+          {L('no_budget_data')}
         </div>
       )}
 
@@ -134,7 +168,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-sm font-medium text-white">{CATEGORY_LABELS[budget.category] || budget.category}</span>
+                    <span className="text-sm font-medium text-white">{L(budget.category) || budget.category}</span>
                     {budget.projects && (
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">
                         {budget.projects.project_code}
@@ -142,7 +176,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                     )}
                   </div>
                   <div className="text-xs text-slate-400">
-                    งบ {fmtMoney(budget.planned_amount)} · ใช้จริง {fmtMoney(budget.actual_amount)}
+                    {L('budget_label')} {fmtMoney(budget.planned_amount)} · {L('actual_label')} {fmtMoney(budget.actual_amount)}
                     {budget.notes && (
                       <>
                         <br />
@@ -160,7 +194,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                     <button
                       onClick={() => setEditingId(budget.id)}
                       className="p-1.5 text-slate-400 hover:text-white"
-                      title="แก้ไข"
+                      title={L('edit_title')}
                     >
                       <Edit2 size={14} />
                     </button>
@@ -180,6 +214,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                     setEditingId(null);
                     fetchAll();
                   }}
+                  lang={lang}
                 />
               )}
             </div>
@@ -196,6 +231,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
             setCreating(false);
             fetchAll();
           }}
+          lang={lang}
         />
       )}
     </div>
@@ -218,12 +254,15 @@ function CreateBudgetModal({
   defaultProjectId,
   onClose,
   onSaved,
+  lang = 'th',
 }: {
   projects: Project[];
   defaultProjectId?: string;
   onClose: () => void;
   onSaved: () => void;
+  lang?: Lang;
 }) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [form, setForm] = useState({
     project_id: defaultProjectId ?? "",
     category: "labor",
@@ -236,7 +275,7 @@ function CreateBudgetModal({
 
   const submit = async () => {
     if (!form.project_id) {
-      setErr("ต้องเลือกโครงการ");
+      setErr(L('must_select_project'));
       return;
     }
     setBusy(true);
@@ -267,14 +306,14 @@ function CreateBudgetModal({
         className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">เพิ่มรายการงบประมาณ</h3>
-        <Field label="โครงการ *">
+        <h3 className="text-lg font-semibold text-white">{L('edit_modal_title')}</h3>
+        <Field label={L('project_label') + " *"}>
           <select
             className={inp}
             value={form.project_id}
             onChange={(e) => setForm({ ...form, project_id: e.target.value })}
           >
-            <option value="">— เลือก —</option>
+            <option value="">{L('select_placeholder')}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.project_code} — {p.name_th || p.name_en}
@@ -283,7 +322,7 @@ function CreateBudgetModal({
           </select>
         </Field>
 
-        <Field label="หมวดหมู่ *">
+        <Field label={L('category_label') + " *"}>
           <select
             className={inp}
             value={form.category}
@@ -291,14 +330,14 @@ function CreateBudgetModal({
           >
             {CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
-                {CATEGORY_LABELS[cat]}
+                {L(cat)}
               </option>
             ))}
           </select>
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="งบประมาณที่วางแผน">
+          <Field label={L('planned_budget')}>
             <input
               type="number"
               className={inp}
@@ -307,7 +346,7 @@ function CreateBudgetModal({
               placeholder="0"
             />
           </Field>
-          <Field label="ใช้จริง">
+          <Field label={L('actual_spent_label')}>
             <input
               type="number"
               className={inp}
@@ -318,7 +357,7 @@ function CreateBudgetModal({
           </Field>
         </div>
 
-        <Field label="หมายเหตุ">
+        <Field label={L('notes_label')}>
           <textarea
             rows={2}
             className={inp}
@@ -331,14 +370,14 @@ function CreateBudgetModal({
 
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
-            ยกเลิก
+            {L('cancel_button')}
           </button>
           <button
             onClick={submit}
             disabled={busy}
             className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
-            {busy ? "กำลังสร้าง..." : "สร้าง"}
+            {busy ? L('creating') : L('create_button')}
           </button>
         </div>
       </div>
@@ -351,12 +390,15 @@ function EditBudgetForm({
   projects,
   onClose,
   onSaved,
+  lang = 'th',
 }: {
   budget: Budget;
   projects: Project[];
   onClose: () => void;
   onSaved: () => void;
+  lang?: Lang;
 }) {
+  const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   const [form, setForm] = useState({
     planned_amount: budget.planned_amount,
     actual_amount: budget.actual_amount,
@@ -385,7 +427,7 @@ function EditBudgetForm({
   return (
     <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        <Field label="งบประมาณที่วางแผน">
+        <Field label={L('planned_budget')}>
           <input
             type="number"
             className={inp}
@@ -393,7 +435,7 @@ function EditBudgetForm({
             onChange={(e) => setForm({ ...form, planned_amount: Number(e.target.value) })}
           />
         </Field>
-        <Field label="ใช้จริง">
+        <Field label={L('actual_spent_label')}>
           <input
             type="number"
             className={inp}
@@ -402,7 +444,7 @@ function EditBudgetForm({
           />
         </Field>
       </div>
-      <Field label="หมายเหตุ">
+      <Field label={L('notes_label')}>
         <textarea
           rows={1}
           className={inp}
@@ -412,14 +454,14 @@ function EditBudgetForm({
       </Field>
       <div className="flex justify-end gap-2">
         <button onClick={onClose} className="px-3 py-1.5 text-slate-300 hover:text-white text-sm">
-          ยกเลิก
+          {L('cancel_button')}
         </button>
         <button
           onClick={submit}
           disabled={busy}
           className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
         >
-          {busy ? "บันทึก..." : "บันทึก"}
+          {busy ? L('saving') : L('save_button')}
         </button>
       </div>
     </div>
