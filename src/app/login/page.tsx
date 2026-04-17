@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Eye, EyeOff, User, Lock, Loader2 } from 'lucide-react';
 import { translations, Lang } from '@/lib/i18n';
 
@@ -114,8 +115,8 @@ export default function LoginPage() {
         <div className="relative w-full max-w-md">
           <div className="bg-[#1E293B]/80 backdrop-blur border border-[#334155] rounded-2xl p-8 shadow-2xl animate-fade-in">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-[#003087] rounded-full mb-4">
-                <span className="text-white text-3xl font-bold">T</span>
+              <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
+                <Image src="/logo.png" alt="TOMAS TECH" width={80} height={80} className="w-20 h-20 object-contain" />
               </div>
               <h1 className="text-2xl font-bold text-white">TOMAS TECH</h1>
               <p className="text-gray-400 text-sm mt-1">{t('change_password')}</p>
@@ -185,8 +186,8 @@ export default function LoginPage() {
         <div className="bg-[#1E293B]/80 backdrop-blur border border-[#334155] rounded-2xl p-8 shadow-2xl animate-fade-in hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
           {/* Logo section */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#003087] rounded-full mb-4 ring-4 ring-[#003087]/20">
-              <span className="text-white text-3xl font-bold">T</span>
+            <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
+              <Image src="/logo.png" alt="TOMAS TECH" width={80} height={80} className="w-20 h-20 object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-white mt-3">TOMAS TECH</h1>
             <p className="text-gray-400 text-sm mt-1">{t('project_management_system')}</p>

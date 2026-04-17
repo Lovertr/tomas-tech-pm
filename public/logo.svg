@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Globe -->
+  <circle cx="100" cy="85" r="60" fill="#003087"/>
+  <!-- Globe grid - horizontal lines -->
+  <ellipse cx="100" cy="55" rx="55" ry="8" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>
+  <ellipse cx="100" cy="85" rx="60" ry="10" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>
+  <ellipse cx="100" cy="115" rx="50" ry="7" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>
+  <!-- Globe grid - vertical lines -->
+  <ellipse cx="100" cy="85" rx="20" ry="60" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>
+  <ellipse cx="100" cy="85" rx="42" ry="60" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>
+  <line x1="100" y1="25" x2="100" y2="145" stroke="white" stroke-width="3" opacity="0.6"/>
+  <!-- Clip globe -->
+  <defs>
+    <clipPath id="globeClip">
+      <circle cx="100" cy="85" r="60"/>
+    </clipPath>
+  </defs>
+  <!-- Swoosh lines -->
+  <path d="M30,105 Q100,140 175,65" stroke="#003087" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M45,120 Q110,155 180,75" stroke="#0066CC" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M60,135 Q125,165 185,85" stroke="#00AEEF" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- Yellow star -->
+  <path d="M160,30 L163,22 L166,30 L174,27 L166,30 L169,38 L166,30 L158,33 Z" fill="#F7C41D" transform="scale(1.2) translate(-25,-5)"/>
+  <!-- 4-pointed star simplified -->
+  <path d="M168,28 C168,28 170,20 170,20 C170,20 172,28 172,28 C172,28 180,26 180,26 C180,26 172,28 172,28 C172,28 174,36 174,36 C174,36 172,28 172,28 C172,28 164,30 164,30 C164,30 168,28 168,28Z" fill="#FFC107"/>
+  <!-- Shadow -->
+  <ellipse cx="100" cy="165" rx="45" ry="6" fill="#D1D5DB" opacity="0.3"/>
+</svg>

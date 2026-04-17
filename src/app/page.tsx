@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "@/lib/useAuth";
 import {
   LayoutDashboard, FolderKanban, ListTodo, Users, Clock, DollarSign,
@@ -886,7 +887,7 @@ export default function App() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div className="absolute inset-y-0 left-0 w-72 bg-[#020617] border-r border-[#334155] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-4 flex items-center gap-3 border-b border-[#334155]">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>TT</div>
+              <Image src="/logo.png" alt="TOMAS TECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
               <div><div className="font-bold text-sm text-white">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>
               <button onClick={() => setMobileMenuOpen(false)} className="ml-auto text-slate-400 hover:text-white"><X size={20} /></button>
             </div>
@@ -938,7 +939,7 @@ export default function App() {
       {/* Desktop Sidebar - hidden on mobile */}
       <div className={`hidden md:flex ${sidebarOpen ? "w-64" : "w-20"} flex-col border-r border-[#334155] bg-[#020617] transition-all duration-300 flex-shrink-0`}>
         <div className="p-4 flex items-center gap-3 border-b border-[#334155]">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>TT</div>
+          <Image src="/logo.png" alt="TOMAS TECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
           {sidebarOpen && <div><div className="font-bold text-sm text-white">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>}
         </div>
         <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3 sidebar-scroll">
@@ -978,7 +979,7 @@ export default function App() {
             <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-1 text-slate-300 hover:text-white">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
-            <span className="font-bold text-sm text-white">TT</span>
+            <Image src="/logo.png" alt="TT" width={28} height={28} className="w-7 h-7 object-contain" />
           </div>
           {/* Desktop: search bar */}
           <div className="relative flex-1 max-w-md hidden md:block"><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input placeholder={t.search} className="w-full pl-10 pr-4 py-2 rounded-xl text-sm bg-slate-700 text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500" /></div>

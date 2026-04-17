@@ -41,6 +41,9 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 const CATEGORY_ORDER = ["core", "planning", "tracking", "people", "finance", "crm", "admin"];
 const LEVELS = [0, 1, 2, 3, 4, 5] as const;
+const PERM_LABEL_SHORT: Record<number, string> = {
+  0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5",
+};
 
 interface Props {
   canManage: boolean;
@@ -411,72 +414,73 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       {/* ─── Department Permissions Modal ─── */}
       {permDeptId && (
         <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPermDeptId(null)}>
-          <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl"
+          <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             {/* header */}
-            <div className="flex items-center justify-between border-b border-[#334155] px-5 py-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center">
+            <div className="flex items-start justify-between border-b border-[#334155] px-3 md:px-5 py-3 md:py-4 gap-2">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shrink-0">
                   <Shield size={20} className="text-white" />
                 </div>
-                <div>
-                  <h3 className="text-white font-bold text-lg">{L('perm_title')}</h3>
-                  <div className="text-xs text-slate-400">{permDeptName}</div>
-                  <div className="text-[10px] text-slate-500">{L('perm_subtitle')}</div>
+                <div className="min-w-0">
+                  <h3 className="text-white font-bold text-base md:text-lg">{L('perm_title')}</h3>
+                  <div className="text-xs text-slate-400 truncate">{permDeptName}</div>
+                  <div className="text-[10px] text-slate-500 leading-tight">{L('perm_subtitle')}</div>
                 </div>
               </div>
-              <button onClick={() => setPermDeptId(null)} className="text-slate-400 hover:text-white"><X size={20} /></button>
+              <button onClick={() => setPermDeptId(null)} className="text-slate-400 hover:text-white shrink-0 mt-1"><X size={20} /></button>
             </div>
 
             {/* toolbar */}
-            <div className="px-5 py-3 border-b border-[#334155] flex items-center gap-3 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
+            <div className="px-3 md:px-5 py-3 border-b border-[#334155] flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+              <div className="relative flex-1 min-w-0">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input value={permFilter} onChange={e => setPermFilter(e.target.value)} placeholder={L('perm_search_placeholder')}
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg pl-9 pr-3 py-1.5 text-sm text-white" />
               </div>
-              <div className="flex items-center gap-1 text-xs">
-                <span className="text-slate-400 mr-1">{L('perm_set_all')}</span>
+              <div className="flex items-center gap-1 text-xs flex-wrap">
+                <span className="text-slate-400 mr-1 whitespace-nowrap">{L('perm_set_all')}</span>
                 {LEVELS.map(l => (
                   <button key={l} onClick={() => setAllPermLevel(l)}
-                    className="px-2 py-1 rounded text-[10px] font-medium hover:opacity-80"
+                    className="px-1.5 md:px-2 py-1 rounded text-[10px] font-medium hover:opacity-80 whitespace-nowrap"
                     style={{ background: `${PERM_COLOR[l]}25`, color: PERM_COLOR[l], border: `1px solid ${PERM_COLOR[l]}50` }}>
-                    {PERM_LABEL_TH[l]}
+                    <span className="hidden md:inline">{PERM_LABEL_TH[l]}</span>
+                    <span className="md:hidden">{PERM_LABEL_SHORT[l]}</span>
                   </button>
                 ))}
               </div>
               <button onClick={resetPerms} disabled={permSaving}
-                className="px-3 py-1.5 text-xs text-slate-300 hover:text-white border border-[#334155] rounded-lg flex items-center gap-1 disabled:opacity-50">
+                className="px-3 py-1.5 text-xs text-slate-300 hover:text-white border border-[#334155] rounded-lg flex items-center gap-1 disabled:opacity-50 self-start md:self-auto">
                 <RotateCcw size={12} /> {L('perm_reset_all')}
               </button>
             </div>
 
             {/* legend */}
-            <div className="px-5 py-2 border-b border-[#334155] flex items-center gap-3 flex-wrap text-[10px]">
+            <div className="px-3 md:px-5 py-2 border-b border-[#334155] flex items-center gap-2 md:gap-3 flex-wrap text-[10px]">
               <span className="text-slate-500">{L('perm_legend_label')}</span>
               {LEVELS.map(l => (
                 <span key={l} className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full" style={{ background: PERM_COLOR[l] }} />
-                  <span className="text-slate-300">{l} = {PERM_LABEL_TH[l]}</span>
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: PERM_COLOR[l] }} />
+                  <span className="text-slate-300 whitespace-nowrap">{l} = {PERM_LABEL_TH[l]}</span>
                 </span>
               ))}
             </div>
 
             {/* body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-3">
+            <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-3">
               {groupedModules.map(g => {
                 const isCollapsed = collapsedCats[g.cat];
                 return (
                   <div key={g.cat} className="bg-[#0F172A]/40 border border-[#334155] rounded-xl">
-                    <div className="flex items-center justify-between px-4 py-2 border-b border-[#334155] cursor-pointer"
+                    <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b border-[#334155] cursor-pointer gap-2"
                       onClick={() => toggleCat(g.cat)}>
-                      <div className="flex items-center gap-2">
-                        {isCollapsed ? <ChevronRight size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
-                        <h4 className="text-sm font-semibold text-purple-400">{CATEGORY_LABEL[g.cat] || g.cat}</h4>
-                        <span className="text-[10px] text-slate-500">({g.items.length})</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isCollapsed ? <ChevronRight size={14} className="text-slate-500 shrink-0" /> : <ChevronDown size={14} className="text-slate-500 shrink-0" />}
+                        <h4 className="text-sm font-semibold text-purple-400 truncate">{CATEGORY_LABEL[g.cat] || g.cat}</h4>
+                        <span className="text-[10px] text-slate-500 shrink-0">({g.items.length})</span>
                       </div>
-                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                        <span className="text-[10px] text-slate-500 mr-1">{L('perm_set_category')}</span>
+                      <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        <span className="text-[10px] text-slate-500 mr-1 hidden md:inline">{L('perm_set_category')}</span>
                         {LEVELS.map(l => (
                           <button key={l} onClick={() => setCategoryPermLevel(g.cat, l)}
                             className="w-5 h-5 rounded text-[10px] font-bold hover:scale-110 transition"
@@ -492,22 +496,23 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                         {g.items.map(m => {
                           const cur = deptPerms[m.key] ?? 0;
                           return (
-                            <div key={m.key} className="flex items-center gap-3 px-4 py-2 hover:bg-[#1E293B]/50">
+                            <div key={m.key} className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 px-3 md:px-4 py-2 hover:bg-[#1E293B]/50">
                               <div className="flex-1 min-w-0">
-                                <span className="text-sm text-white truncate">{m.label_th}</span>
+                                <span className="text-sm text-white truncate block">{m.label_th}</span>
                                 <div className="text-[10px] text-slate-500 font-mono">{m.key}</div>
                               </div>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 flex-wrap">
                                 {LEVELS.map(l => (
                                   <button key={l} onClick={() => setPermLevel(m.key, l)}
-                                    className={`px-2 py-1 rounded text-[10px] font-medium transition ${cur === l ? "ring-2 scale-105" : "opacity-50 hover:opacity-100"}`}
+                                    className={`px-1.5 md:px-2 py-1 rounded text-[10px] font-medium transition whitespace-nowrap ${cur === l ? "ring-2 scale-105" : "opacity-50 hover:opacity-100"}`}
                                     style={{
                                       background: cur === l ? PERM_COLOR[l] : `${PERM_COLOR[l]}20`,
                                       color: cur === l ? "#fff" : PERM_COLOR[l],
                                       border: `1px solid ${PERM_COLOR[l]}${cur === l ? "" : "60"}`,
                                     }}
                                     title={PERM_LABEL_TH[l]}>
-                                    {PERM_LABEL_TH[l]}
+                                    <span className="hidden md:inline">{PERM_LABEL_TH[l]}</span>
+                                    <span className="md:hidden">{PERM_LABEL_SHORT[l]}</span>
                                   </button>
                                 ))}
                               </div>
@@ -522,14 +527,14 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
             </div>
 
             {/* footer */}
-            <div className="border-t border-[#334155] px-5 py-3 flex items-center justify-between">
-              <div className="text-xs text-slate-500">
+            <div className="border-t border-[#334155] px-3 md:px-5 py-3 flex items-center justify-between gap-2">
+              <div className="text-xs text-slate-500 truncate">
                 {permDirty ? <span className="text-purple-400">{L('perm_changes_pending')}</span> : L('perm_no_changes')}
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setPermDeptId(null)} className="px-4 py-2 text-sm text-slate-300 hover:text-white">{L('form_cancel')}</button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => setPermDeptId(null)} className="px-3 md:px-4 py-2 text-sm text-slate-300 hover:text-white">{L('form_cancel')}</button>
                 <button onClick={savePerms} disabled={permSaving || !permDirty}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
+                  className="px-3 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 whitespace-nowrap">
                   <Save size={14} /> {permSaving ? L('perm_saving') : L('perm_save')}
                 </button>
               </div>

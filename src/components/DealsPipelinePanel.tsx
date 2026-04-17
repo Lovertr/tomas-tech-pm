@@ -285,21 +285,21 @@ export default function DealsPipelinePanel({
           placeholder={L('searchName')}
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
         />
         <input
           type="text"
           placeholder={L('searchCustomer')}
           value={searchCustomer}
           onChange={(e) => setSearchCustomer(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
         />
         <input
           type="text"
           placeholder={L('searchOwner')}
           value={searchOwner}
           onChange={(e) => setSearchOwner(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
         />
         <button
           onClick={() => { /* filters are live */ }}
