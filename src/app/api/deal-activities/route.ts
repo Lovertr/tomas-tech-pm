@@ -7,14 +7,29 @@ export async function GET(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const dealId = req.nextUrl.searchParams.get("deal_id");
   const customerId = req.nextUrl.searchParams.get("customer_id");
+  const performedById = req.nextUrl.searchParams.get("performed_by_id");
+  const ownerId = req.nextUrl.searchParams.get("owner_id");
+
   let q = supabaseAdmin.from("deal_activities")
-    .select("*, performer:app_users!performed_by(id, email), deals(id, title), customers(id, company_name)")
+    .select("*, performer:app_users!performed_by(id, email, display_name), deals(id, title, owner_id), customers(id, company_name)")
     .order("activity_date", { ascending: false }).limit(100);
+
   if (dealId) q = q.eq("deal_id", dealId);
   if (customerId) q = q.eq("customer_id", customerId);
+  if (performedById) q = q.eq("performed_by", performedById);
+
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ activities: data ?? [] });
+
+  // Filter by owner_id if provided (filter deals owned by that user)
+  let filteredActivities = data ?? [];
+  if (ownerId) {
+    filteredActivities = filteredActivities.filter((activity: any) =>
+      activity.deals?.owner_id === ownerId
+    );
+  }
+
+  return NextResponse.json({ activities: filteredActivities });
 }
 
 export async function POST(req: NextRequest) {

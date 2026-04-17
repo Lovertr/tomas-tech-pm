@@ -48,12 +48,20 @@ interface SalesReportData {
 const COLORS = ['#003087', '#F7941D', '#00AEEF', '#10B981', '#6366F1', '#EF4444', '#8B5CF6'];
 
 const stageNamesI18n: Record<string, Record<string, string>> = {
-  prospect:      { th: 'ลูกค้าเป้าหมาย', en: 'Prospect',     jp: '見込み客' },
-  qualification: { th: 'คุณสมบัติ',       en: 'Qualification', jp: '適格性評価' },
-  proposal:      { th: 'เสนอราคา',        en: 'Proposal',      jp: '提案' },
-  negotiation:   { th: 'เจรจาต่อรอง',     en: 'Negotiation',   jp: '交渉' },
-  won:           { th: 'ปิดการขาย',        en: 'Won',           jp: '受注' },
-  lost:          { th: 'ไม่สำเร็จ',        en: 'Lost',          jp: '失注' },
+  si_request:        { th: 'สอบถาม',           en: 'SI Request',         jp: 'SI要求' },
+  online_meeting:    { th: 'ประชุมออนไลน์',     en: 'Online Meeting',      jp: 'オンライン会議' },
+  site_meeting:      { th: 'เข้าพบลูกค้า',     en: 'Site Meeting',        jp: 'サイト訪問' },
+  wait_for_consider: { th: 'รอพิจารณา',       en: 'Wait for Consider',   jp: '検討待機' },
+  proposal_concept:  { th: 'เสนอแนวคิด',      en: 'Proposal/Concept',    jp: '提案' },
+  quotation:         { th: 'ใบเสนอราคา',      en: 'Quotation',           jp: '見積もり' },
+  demo:              { th: 'สาธิต',            en: 'Demo',                jp: 'デモ' },
+  waiting_po:        { th: 'รอ PO',            en: 'Waiting PO',          jp: 'PO待機' },
+  concept_design:    { th: 'ออกแบบ',           en: 'Concept Design',      jp: 'デザイン' },
+  development:       { th: 'พัฒนา',            en: 'Development',         jp: '開発' },
+  uat:               { th: 'ทดสอบ',            en: 'UAT',                 jp: 'テスト' },
+  project_complete:  { th: 'เสร็จสิ้น',        en: 'Project Complete',    jp: '完了' },
+  loss:              { th: 'ไม่สำเร็จ',        en: 'Loss',                jp: '失注' },
+  refuse:            { th: 'ปฏิเสธ',           en: 'Refuse',              jp: '拒否' },
 };
 
 export default function SalesReportPanel({

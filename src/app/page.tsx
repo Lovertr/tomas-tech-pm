@@ -608,7 +608,8 @@ export default function App() {
   const CustomersPage = () => (
     <div className="space-y-6">
       <CustomersPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        currentUserId={currentUser?.id} />
     </div>
   );
   const DealsPipelinePage = () => (
@@ -621,7 +622,8 @@ export default function App() {
   const SalesActivitiesPage = () => (
     <div className="space-y-6">
       <SalesActivitiesPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        currentUserId={currentUser?.id} />
     </div>
   );
   const SalesReportPage = () => (

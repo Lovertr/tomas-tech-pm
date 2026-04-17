@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
   (deals ?? []).forEach(d => {
     stageCount[d.stage] = (stageCount[d.stage] || 0) + 1;
     stageValue[d.stage] = (stageValue[d.stage] || 0) + Number(d.value || 0);
-    if (d.stage === "won") { wonValue += Number(d.value || 0); wonCount++; }
-    else if (d.stage === "lost") lostCount++;
+    if (d.stage === "project_complete") { wonValue += Number(d.value || 0); wonCount++; }
+    else if (d.stage === "loss" || d.stage === "refuse") lostCount++;
     else totalPipeline += Number(d.value || 0);
   });
   const totalDeals = deals?.length || 0;
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   // Monthly revenue (won deals)
   const monthly: Record<string, number> = {};
-  (deals ?? []).filter(d => d.stage === "won" && d.actual_close_date).forEach(d => {
+  (deals ?? []).filter(d => d.stage === "project_complete" && d.actual_close_date).forEach(d => {
     const m = d.actual_close_date!.slice(0, 7);
     monthly[m] = (monthly[m] || 0) + Number(d.value || 0);
   });
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   // Top customers by deal value
   const { data: topCustomers } = await supabaseAdmin.from("deals")
     .select("customer_id, value, customers(id, company_name)")
-    .eq("stage", "won");
+    .eq("stage", "project_complete");
   const custMap: Record<string, { name: string; total: number; count: number }> = {};
   (topCustomers ?? []).forEach(d => {
     const cid = d.customer_id;

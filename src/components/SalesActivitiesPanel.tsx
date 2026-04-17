@@ -13,6 +13,22 @@ import {
   Trash2,
   X,
   Clock,
+  RefreshCw,
+  Video,
+  MapPin,
+  FileCheck,
+  Receipt,
+  Lightbulb,
+  Palette,
+  ClipboardList,
+  BookOpen,
+  PenTool,
+  Wrench,
+  GraduationCap,
+  ShoppingCart,
+  Play,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import TranslateButton from './TranslateButton';
 
@@ -23,6 +39,7 @@ interface Props {
   canManage?: boolean;
   refreshKey?: number;
   lang?: Lang;
+  currentUserId?: string;
 }
 
 interface DealActivity {
@@ -30,10 +47,11 @@ interface DealActivity {
   deal_id: string;
   deal_title: string;
   customer_name: string;
-  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'demo' | 'follow_up';
+  type: ActivityType;
   description: string;
   date: string;
   performer?: string;
+  performer_id?: string;
 }
 
 interface Deal {
@@ -42,17 +60,40 @@ interface Deal {
   customer_name: string;
 }
 
+interface User {
+  id: string;
+  first_name_th?: string | null;
+  last_name_th?: string | null;
+  first_name_en?: string | null;
+  last_name_en?: string | null;
+  email?: string;
+}
+
 const activityTypeConfig = {
-  call: { name: 'สาย', icon: Phone, color: '#3B82F6', bg: '#1E40AF' },
-  email: { name: 'อีเมล', icon: Mail, color: '#F7941D', bg: '#92400E' },
-  meeting: { name: 'การประชุม', icon: Calendar, color: '#8B5CF6', bg: '#4C1D95' },
-  note: { name: 'หมายเหตุ', icon: FileText, color: '#06B6D4', bg: '#164E63' },
-  task: { name: 'งาน', icon: CheckSquare, color: '#22C55E', bg: '#14532D' },
-  demo: { name: 'สาธิต', icon: Zap, color: '#EC4899', bg: '#500724' },
-  follow_up: { name: 'ติดตาม', icon: Clock, color: '#10B981', bg: '#064E3B' },
+  follow_update: { name_th: 'ติดตามอัปเดต', name_en: 'Follow Update', name_jp: 'フォローアップ更新', icon: RefreshCw, color: '#6B7280', lightBg: '#F3F4F6' },
+  online_meeting: { name_th: 'ประชุมออนไลน์', name_en: 'Online Meeting', name_jp: 'オンライン会議', icon: Video, color: '#3B82F6', lightBg: '#EFF6FF' },
+  site_meeting: { name_th: 'เข้าพบลูกค้า', name_en: 'Site Meeting', name_jp: 'サイト訪問', icon: MapPin, color: '#0EA5E9', lightBg: '#F0F9FF' },
+  call_contact: { name_th: 'โทรติดต่อ', name_en: 'Call Contact', name_jp: '通話', icon: Phone, color: '#8B5CF6', lightBg: '#FAF5FF' },
+  meeting_minutes: { name_th: 'บันทึกการประชุม', name_en: 'Meeting Minutes', name_jp: '会議記録', icon: FileText, color: '#6366F1', lightBg: '#F5F3FF' },
+  email_info: { name_th: 'อีเมล', name_en: 'E-Mail Information', name_jp: 'メール', icon: Mail, color: '#F7941D', lightBg: '#FFFBF0' },
+  create_proposal: { name_th: 'สร้าง Proposal', name_en: 'Create Proposal', name_jp: '提案作成', icon: FileCheck, color: '#F59E0B', lightBg: '#FFFAF0' },
+  create_quotation: { name_th: 'สร้างใบเสนอราคา', name_en: 'Create Quotation', name_jp: '見積書作成', icon: Receipt, color: '#EF4444', lightBg: '#FEF2F2' },
+  create_concept: { name_th: 'สร้างแนวคิด', name_en: 'Create Concept', name_jp: 'コンセプト作成', icon: Lightbulb, color: '#EC4899', lightBg: '#FDF2F8' },
+  demo: { name_th: 'สาธิต', name_en: 'Demo', name_jp: 'デモ', icon: Zap, color: '#14B8A6', lightBg: '#F0FDFA' },
+  design: { name_th: 'ออกแบบ', name_en: 'Design', name_jp: 'デザイン', icon: Palette, color: '#A855F7', lightBg: '#FAF5FF' },
+  create_spec: { name_th: 'สร้าง Spec', name_en: 'Create Spec Sheet', name_jp: 'スペック作成', icon: ClipboardList, color: '#06B6D4', lightBg: '#F0F9FF' },
+  create_manual: { name_th: 'สร้างคู่มือ', name_en: 'Create Manual', name_jp: 'マニュアル作成', icon: BookOpen, color: '#10B981', lightBg: '#F0FDF4' },
+  sign_document: { name_th: 'เซ็นเอกสาร', name_en: 'Sign Document', name_jp: '契約署名', icon: PenTool, color: '#003087', lightBg: '#F3F4F6' },
+  installation: { name_th: 'ติดตั้ง', name_en: 'Installation', name_jp: 'インストール', icon: Wrench, color: '#78716C', lightBg: '#FAFAF9' },
+  training: { name_th: 'อบรม', name_en: 'Training', name_jp: '訓練', icon: GraduationCap, color: '#0369A1', lightBg: '#F0F9FF' },
+  po_process: { name_th: 'ดำเนิน PO', name_en: 'PO Process', name_jp: 'PO処理', icon: ShoppingCart, color: '#059669', lightBg: '#F0FDF4' },
+  start: { name_th: 'เริ่มงาน', name_en: 'Start', name_jp: '開始', icon: Play, color: '#22C55E', lightBg: '#F0FDF4' },
+  follow_up: { name_th: 'ติดตามผล', name_en: 'Follow Up', name_jp: 'フォローアップ', icon: Clock, color: '#D97706', lightBg: '#FFFBF0' },
+  complete: { name_th: 'เสร็จสิ้น', name_en: 'Complete', name_jp: '完了', icon: CheckCircle, color: '#16A34A', lightBg: '#F0FDF4' },
+  refuse: { name_th: 'ปฏิเสธ', name_en: 'Refuse', name_jp: '拒否', icon: XCircle, color: '#DC2626', lightBg: '#FEF2F2' },
 };
 
-type ActivityType = 'call' | 'email' | 'meeting' | 'note' | 'task' | 'demo' | 'follow_up';
+type ActivityType = keyof typeof activityTypeConfig;
 
 const panelText = {
   th: {
@@ -62,13 +103,15 @@ const panelText = {
     addActivity: 'เพิ่มกิจกรรม',
     stats: {
       total: 'ทั้งหมด',
-      call: 'โทรศัพท์',
-      email: 'อีเมล',
-      meeting: 'ประชุม',
+      calls: 'โทรศัพท์',
+      meetings: 'ประชุม',
+      proposals: 'Proposal/ใบเสนอราคา',
     },
     filters: {
       all: 'ทั้งหมด',
       groupByDate: 'จัดกลุ่มตามวันที่',
+      groupBySalesperson: 'จัดกลุ่มตามพนักงาน',
+      salesperson: 'พนักงาน',
     },
     activities: {
       loading: 'กำลังโหลด...',
@@ -88,13 +131,27 @@ const panelText = {
       cancel: 'ยกเลิก',
     },
     activityTypes: {
-      call: 'โทรศัพท์',
-      email: 'อีเมล',
-      meeting: 'ประชุม',
-      note: 'บันทึก',
-      task: 'งาน',
+      follow_update: 'ติดตามอัปเดต',
+      online_meeting: 'ประชุมออนไลน์',
+      site_meeting: 'เข้าพบลูกค้า',
+      call_contact: 'โทรติดต่อ',
+      meeting_minutes: 'บันทึกการประชุม',
+      email_info: 'อีเมล',
+      create_proposal: 'สร้าง Proposal',
+      create_quotation: 'สร้างใบเสนอราคา',
+      create_concept: 'สร้างแนวคิด',
       demo: 'สาธิต',
-      follow_up: 'ติดตาม',
+      design: 'ออกแบบ',
+      create_spec: 'สร้าง Spec',
+      create_manual: 'สร้างคู่มือ',
+      sign_document: 'เซ็นเอกสาร',
+      installation: 'ติดตั้ง',
+      training: 'อบรม',
+      po_process: 'ดำเนิน PO',
+      start: 'เริ่มงาน',
+      follow_up: 'ติดตามผล',
+      complete: 'เสร็จสิ้น',
+      refuse: 'ปฏิเสธ',
     },
     confirmDelete: 'ยืนยันการลบ?',
   },
@@ -105,13 +162,15 @@ const panelText = {
     addActivity: 'Add Activity',
     stats: {
       total: 'Total',
-      call: 'Call',
-      email: 'Email',
-      meeting: 'Meeting',
+      calls: 'Calls',
+      meetings: 'Meetings',
+      proposals: 'Proposals',
     },
     filters: {
       all: 'All',
       groupByDate: 'Group by Date',
+      groupBySalesperson: 'Group by Salesperson',
+      salesperson: 'Salesperson',
     },
     activities: {
       loading: 'Loading...',
@@ -131,13 +190,27 @@ const panelText = {
       cancel: 'Cancel',
     },
     activityTypes: {
-      call: 'Call',
-      email: 'Email',
-      meeting: 'Meeting',
-      note: 'Note',
-      task: 'Task',
+      follow_update: 'Follow Update',
+      online_meeting: 'Online Meeting',
+      site_meeting: 'Site Meeting',
+      call_contact: 'Call Contact',
+      meeting_minutes: 'Meeting Minutes',
+      email_info: 'E-Mail Information',
+      create_proposal: 'Create Proposal',
+      create_quotation: 'Create Quotation',
+      create_concept: 'Create Concept',
       demo: 'Demo',
-      follow_up: 'Follow-up',
+      design: 'Design',
+      create_spec: 'Create Spec Sheet',
+      create_manual: 'Create Manual',
+      sign_document: 'Sign Document',
+      installation: 'Installation',
+      training: 'Training',
+      po_process: 'PO Process',
+      start: 'Start',
+      follow_up: 'Follow Up',
+      complete: 'Complete',
+      refuse: 'Refuse',
     },
     confirmDelete: 'Confirm deletion?',
   },
@@ -148,13 +221,15 @@ const panelText = {
     addActivity: '活動を追加',
     stats: {
       total: '合計',
-      call: '電話',
-      email: 'メール',
-      meeting: '会議',
+      calls: '通話',
+      meetings: '会議',
+      proposals: '提案',
     },
     filters: {
       all: 'すべて',
       groupByDate: '日付でグループ化',
+      groupBySalesperson: '営業員でグループ化',
+      salesperson: '営業員',
     },
     activities: {
       loading: '読み込み中...',
@@ -174,13 +249,27 @@ const panelText = {
       cancel: 'キャンセル',
     },
     activityTypes: {
-      call: '電話',
-      email: 'メール',
-      meeting: '会議',
-      note: 'メモ',
-      task: 'タスク',
+      follow_update: 'フォローアップ更新',
+      online_meeting: 'オンライン会議',
+      site_meeting: 'サイト訪問',
+      call_contact: '通話',
+      meeting_minutes: '会議記録',
+      email_info: 'メール',
+      create_proposal: '提案作成',
+      create_quotation: '見積書作成',
+      create_concept: 'コンセプト作成',
       demo: 'デモ',
+      design: 'デザイン',
+      create_spec: 'スペック作成',
+      create_manual: 'マニュアル作成',
+      sign_document: '契約署名',
+      installation: 'インストール',
+      training: '訓練',
+      po_process: 'PO処理',
+      start: '開始',
       follow_up: 'フォローアップ',
+      complete: '完了',
+      refuse: '拒否',
     },
     confirmDelete: '削除を確認しますか？',
   },
@@ -193,6 +282,7 @@ export default function SalesActivitiesPanel({
   canManage = true,
   refreshKey = 0,
   lang = 'th',
+  currentUserId,
 }: Props) {
   const L = (key: string) => {
     const keys = key.split('.');
@@ -202,16 +292,36 @@ export default function SalesActivitiesPanel({
     }
     return value || key;
   };
+
+  const getActivityTypeName = (type: ActivityType): string => {
+    const config = activityTypeConfig[type];
+    if (lang === 'en') return config.name_en;
+    if (lang === 'jp') return config.name_jp;
+    return config.name_th;
+  };
+
+  const getUserName = (user: User | undefined, lang: Lang): string => {
+    if (!user) return '';
+    if (lang === 'en') {
+      return `${user.first_name_en || ''} ${user.last_name_en || ''}`.trim();
+    }
+    if (lang === 'jp') return user.email || '';
+    return `${user.first_name_th || ''} ${user.last_name_th || ''}`.trim();
+  };
+
   const [activities, setActivities] = useState<DealActivity[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [filterDealId, setFilterDealId] = useState<string>('');
+  const [filterSalespersonId, setFilterSalespersonId] = useState<string>('');
   const [groupByDate, setGroupByDate] = useState(true);
+  const [groupBySalesperson, setGroupBySalesperson] = useState(false);
 
   const [formData, setFormData] = useState({
     deal_id: '',
-    type: 'note' as 'call' | 'email' | 'meeting' | 'note' | 'task' | 'demo' | 'follow_up',
+    type: 'call_contact' as ActivityType,
     description: '',
     date: new Date().toISOString().split('T')[0],
   });
@@ -219,6 +329,7 @@ export default function SalesActivitiesPanel({
   useEffect(() => {
     fetchActivities();
     fetchDeals();
+    fetchUsers();
   }, [filterProjectId, refreshKey]);
 
   const fetchActivities = async () => {
@@ -232,10 +343,11 @@ export default function SalesActivitiesPanel({
           deal_id: a.deal_id,
           deal_title: (a.deals as { title?: string })?.title ?? '',
           customer_name: (a.customers as { company_name?: string })?.company_name ?? '',
-          type: a.activity_type ?? 'note',
+          type: (a.activity_type ?? 'call_contact') as ActivityType,
           description: a.subject ?? '',
           date: a.activity_date ?? '',
           performer: (a.performer as { email?: string })?.email ?? '',
+          performer_id: (a.performer as { id?: string })?.id,
         }));
         setActivities(mapped.sort((a: DealActivity, b: DealActivity) =>
           new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -262,6 +374,26 @@ export default function SalesActivitiesPanel({
       }
     } catch (error) {
       console.error('Failed to fetch deals:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const json = await res.json();
+        const mapped = (json.users ?? []).map((u: Record<string, unknown>) => ({
+          id: u.id as string,
+          first_name_th: u.first_name_th as string | null,
+          last_name_th: u.last_name_th as string | null,
+          first_name_en: u.first_name_en as string | null,
+          last_name_en: u.last_name_en as string | null,
+          email: u.email as string,
+        }));
+        setUsers(mapped);
+      }
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
     }
   };
 
@@ -304,19 +436,32 @@ export default function SalesActivitiesPanel({
   const resetForm = () => {
     setFormData({
       deal_id: '',
-      type: 'note',
+      type: 'call_contact',
       description: '',
       date: new Date().toISOString().split('T')[0],
     });
   };
 
-  const filteredActivities = filterDealId
-    ? activities.filter((a) => a.deal_id === filterDealId)
-    : activities;
+  const filteredActivities = activities.filter((a) => {
+    if (filterDealId && a.deal_id !== filterDealId) return false;
+    if (filterSalespersonId && a.performer_id !== filterSalespersonId) return false;
+    if (!canManage && a.performer_id !== currentUserId) return false;
+    return true;
+  });
 
-  const groupedActivities = groupByDate
+  const groupedActivities = groupBySalesperson
     ? filteredActivities.reduce((acc, activity) => {
-        const dateStr = new Date(activity.date).toLocaleDateString('th-TH');
+        const performer = users.find((u) => u.id === activity.performer_id);
+        const salespersonName = getUserName(performer, lang) || 'Unknown';
+        if (!acc[salespersonName]) acc[salespersonName] = [];
+        acc[salespersonName].push(activity);
+        return acc;
+      }, {} as Record<string, DealActivity[]>)
+    : groupByDate
+    ? filteredActivities.reduce((acc, activity) => {
+        const dateStr = new Date(activity.date).toLocaleDateString(
+          lang === 'en' ? 'en-US' : lang === 'jp' ? 'ja-JP' : 'th-TH'
+        );
         if (!acc[dateStr]) acc[dateStr] = [];
         acc[dateStr].push(activity);
         return acc;
@@ -324,12 +469,25 @@ export default function SalesActivitiesPanel({
     : { [L('activities.allActivities')]: filteredActivities };
 
   const stats = {
-    total: activities.length,
-    byType: Object.keys(activityTypeConfig).reduce((acc, type) => {
-      acc[type] = activities.filter((a) => a.type === type).length;
-      return acc;
-    }, {} as Record<string, number>),
+    total: filteredActivities.length,
+    calls: filteredActivities.filter(
+      (a) => a.type === 'call_contact'
+    ).length,
+    meetings: filteredActivities.filter(
+      (a) => a.type === 'online_meeting' || a.type === 'site_meeting'
+    ).length,
+    proposals: filteredActivities.filter(
+      (a) => a.type === 'create_proposal' || a.type === 'create_quotation'
+    ).length,
   };
+
+  const salespersonStats = users.map((user) => {
+    const userActivities = activities.filter((a) => a.performer_id === user.id);
+    return {
+      user,
+      count: userActivities.length,
+    };
+  }).filter((s) => s.count > 0);
 
   return (
     <div className="space-y-6">
@@ -362,18 +520,44 @@ export default function SalesActivitiesPanel({
           <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
-          <p className="text-gray-500 text-sm">{L('stats.call')}</p>
-          <p className="text-3xl font-bold text-blue-600 mt-2">{stats.byType['call']}</p>
+          <p className="text-gray-500 text-sm">{L('stats.calls')}</p>
+          <p className="text-3xl font-bold text-purple-600 mt-2">{stats.calls}</p>
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
-          <p className="text-gray-500 text-sm">{L('stats.email')}</p>
-          <p className="text-3xl font-bold text-orange-600 mt-2">{stats.byType['email']}</p>
+          <p className="text-gray-500 text-sm">{L('stats.meetings')}</p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">{stats.meetings}</p>
         </div>
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
-          <p className="text-gray-500 text-sm">{L('stats.meeting')}</p>
-          <p className="text-3xl font-bold text-purple-600 mt-2">{stats.byType['meeting']}</p>
+          <p className="text-gray-500 text-sm">{L('stats.proposals')}</p>
+          <p className="text-3xl font-bold text-orange-600 mt-2">{stats.proposals}</p>
         </div>
       </div>
+
+      {/* Salesperson Summary Cards */}
+      {canManage && salespersonStats.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {salespersonStats.map((stat) => (
+            <button
+              key={stat.user.id}
+              onClick={() => {
+                setFilterSalespersonId(
+                  filterSalespersonId === stat.user.id ? '' : stat.user.id
+                );
+              }}
+              className={`rounded-lg border p-3 text-left transition ${
+                filterSalespersonId === stat.user.id
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-[#E2E8F0] bg-[#FFFFFF] hover:border-[#CBD5E1]'
+              }`}
+            >
+              <p className="text-sm font-medium text-gray-900">
+                {getUserName(stat.user, lang)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{stat.count} activities</p>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -391,15 +575,50 @@ export default function SalesActivitiesPanel({
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap">
-          <input
-            type="checkbox"
-            checked={groupByDate}
-            onChange={(e) => setGroupByDate(e.target.checked)}
-            className="rounded"
-          />
-          {L('filters.groupByDate')}
-        </label>
+
+        {canManage && users.length > 0 && (
+          <div className="w-full md:w-48">
+            <select
+              value={filterSalespersonId}
+              onChange={(e) => setFilterSalespersonId(e.target.value)}
+              className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
+            >
+              <option value="">{L('filters.salesperson')}</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {getUserName(user, lang)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="flex gap-3 whitespace-nowrap">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={groupByDate}
+              onChange={(e) => {
+                setGroupByDate(e.target.checked);
+                if (e.target.checked) setGroupBySalesperson(false);
+              }}
+              className="rounded"
+            />
+            {L('filters.groupByDate')}
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={groupBySalesperson}
+              onChange={(e) => {
+                setGroupBySalesperson(e.target.checked);
+                if (e.target.checked) setGroupByDate(false);
+              }}
+              className="rounded"
+            />
+            {L('filters.groupBySalesperson')}
+          </label>
+        </div>
       </div>
 
       {/* Activities Timeline */}
@@ -421,6 +640,7 @@ export default function SalesActivitiesPanel({
                 {dateActivities.map((activity) => {
                   const typeConfig = activityTypeConfig[activity.type];
                   const IconComponent = typeConfig.icon;
+                  const performer = users.find((u) => u.id === activity.performer_id);
 
                   return (
                     <div
@@ -431,7 +651,7 @@ export default function SalesActivitiesPanel({
                         {/* Icon */}
                         <div
                           className="p-3 rounded-lg flex-shrink-0"
-                          style={{ backgroundColor: typeConfig.bg }}
+                          style={{ backgroundColor: typeConfig.lightBg }}
                         >
                           <IconComponent size={20} style={{ color: typeConfig.color }} />
                         </div>
@@ -448,7 +668,7 @@ export default function SalesActivitiesPanel({
                             {canManage && (
                               <button
                                 onClick={() => handleDeleteActivity(activity.id)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition ml-2"
+                                className="p-2 hover:bg-gray-100 rounded-lg transition ml-2 flex-shrink-0"
                               >
                                 <Trash2 size={16} className="text-red-600" />
                               </button>
@@ -456,22 +676,24 @@ export default function SalesActivitiesPanel({
                           </div>
 
                           {/* Activity Type Badge */}
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span
-                              className="px-2 py-1 rounded text-xs font-medium"
+                              className="px-3 py-1 rounded-full text-xs font-medium"
                               style={{
-                                backgroundColor: typeConfig.bg,
+                                backgroundColor: typeConfig.lightBg,
                                 color: typeConfig.color,
                               }}
                             >
-                              {typeConfig.name}
+                              {getActivityTypeName(activity.type)}
                             </span>
                             <span className="text-xs text-gray-500">
-                              {new Date(activity.date).toLocaleString('th-TH')}
+                              {new Date(activity.date).toLocaleString(
+                                lang === 'en' ? 'en-US' : lang === 'jp' ? 'ja-JP' : 'th-TH'
+                              )}
                             </span>
-                            {activity.performer && (
-                              <span className="text-xs text-gray-400">
-                                {L('activities.by')} {activity.performer}
+                            {performer && (
+                              <span className="text-xs text-gray-500">
+                                {L('activities.by')} {getUserName(performer, lang)}
                               </span>
                             )}
                           </div>
@@ -534,10 +756,10 @@ export default function SalesActivitiesPanel({
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as ActivityType })}
                   className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
                 >
-                  {Object.entries(activityTypeConfig).map(([key, value]) => (
+                  {Object.entries(activityTypeConfig).map(([key]) => (
                     <option key={key} value={key}>
                       {L(`activityTypes.${key as ActivityType}`)}
                     </option>

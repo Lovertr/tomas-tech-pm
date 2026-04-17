@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X, Briefcase, TrendingUp, MessageSquare, FileCheck, Clock, Eye, Heart, Users, DollarSign } from 'lucide-react';
 import type { Lang } from '@/lib/i18n';
 import TranslateButton from './TranslateButton';
 
@@ -12,6 +12,7 @@ interface Props {
   canManage?: boolean;
   refreshKey?: number;
   lang?: Lang;
+  currentUserId?: string;
 }
 
 interface Customer {
@@ -37,6 +38,30 @@ interface Contact {
   is_primary: boolean;
 }
 
+interface Deal {
+  id: string;
+  title: string;
+  stage: string;
+  value: number;
+  probability: number;
+  owner?: string;
+}
+
+interface Activity {
+  id: string;
+  type: 'call' | 'meeting' | 'email' | 'proposal' | 'other';
+  description: string;
+  date: string;
+  performer?: string;
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  user_name?: string;
+  created_at: string;
+}
+
 const statusColors: Record<string, { bg: string; text: string; badge: string }> = {
   active: { bg: 'bg-green-50', text: 'text-green-700', badge: '#16A34A' },
   inactive: { bg: 'bg-gray-50', text: 'text-gray-700', badge: '#4B5563' },
@@ -44,6 +69,23 @@ const statusColors: Record<string, { bg: string; text: string; badge: string }> 
   churned: { bg: 'bg-red-50', text: 'text-red-700', badge: '#DC2626' },
 };
 const defaultStatusColor = { bg: 'bg-gray-50', text: 'text-gray-700', badge: '#4B5563' };
+
+const pipelineStageColors: Record<string, string> = {
+  si_request: '#6B7280',
+  online_meeting: '#3B82F6',
+  site_meeting: '#0EA5E9',
+  wait_for_consider: '#8B5CF6',
+  proposal_concept: '#F59E0B',
+  quotation: '#F7941D',
+  demo: '#EC4899',
+  waiting_po: '#14B8A6',
+  concept_design: '#6366F1',
+  development: '#003087',
+  uat: '#06B6D4',
+  project_complete: '#22C55E',
+  loss: '#EF4444',
+  refuse: '#9CA3AF',
+};
 
 const L = (key: string, lang: Lang = 'th'): string => {
   const panelText: Record<string, Record<Lang, string>> = {
@@ -97,6 +139,28 @@ const L = (key: string, lang: Lang = 'th'): string => {
     isPrimary: { th: 'ติดต่อหลัก', en: 'Primary Contact', jp: 'プライマリ連絡先' },
     edit: { th: 'แก้ไข', en: 'Edit', jp: '編集' },
     close: { th: 'ปิด', en: 'Close', jp: '閉じる' },
+    basicInfo: { th: 'ข้อมูลพื้นฐาน', en: 'Basic Info', jp: '基本情報' },
+    deals: { th: 'ดีลทั้งหมด', en: 'Deals & Pipeline', jp: 'ディール' },
+    activity: { th: 'กิจกรรม', en: 'Activity Timeline', jp: 'アクティビティ' },
+    projects: { th: 'โปรเจค & ใบเสนอราคา', en: 'Projects & Quotations', jp: 'プロジェクト' },
+    comments: { th: 'คอมเม้น', en: 'Comments', jp: 'コメント' },
+    totalDealValue: { th: 'มูลค่ารวม', en: 'Total Deal Value', jp: '総取引額' },
+    wonDeals: { th: 'ดีลชนะ', en: 'Won Deals', jp: '獲得ディール' },
+    winRate: { th: 'อัตราการชนะ', en: 'Win Rate', jp: '勝率' },
+    totalRevenue: { th: 'รายได้รวม', en: 'Total Revenue', jp: '総収益' },
+    noDealValue: { th: 'ไม่มีดีล', en: 'No deals', jp: 'ディールなし' },
+    dealValue: { th: 'มูลค่า:', en: 'Value:', jp: '価値:' },
+    dealProbability: { th: 'ความน่าจะเป็น:', en: 'Probability:', jp: '確率:' },
+    dealStage: { th: 'ขั้นตอน:', en: 'Stage:', jp: 'ステージ:' },
+    dealOwner: { th: 'เจ้าของ:', en: 'Owner:', jp: 'オーナー:' },
+    noDeals: { th: 'ไม่มีดีลสำหรับลูกค้านี้', en: 'No deals for this customer', jp: 'この顧客のディールはありません' },
+    noActivities: { th: 'ไม่มีกิจกรรม', en: 'No activities', jp: 'アクティビティがありません' },
+    noProjects: { th: 'ไม่มีโปรเจค', en: 'No projects', jp: 'プロジェクトがありません' },
+    addComment: { th: 'เพิ่มคอมเม้น', en: 'Add Comment', jp: 'コメントを追加' },
+    noComments: { th: 'ไม่มีคอมเม้น', en: 'No comments', jp: 'コメントがありません' },
+    commentPlaceholder: { th: 'เขียนคอมเม้นของคุณที่นี่...', en: 'Write your comment here...', jp: 'ここにコメントを書く...' },
+    submit: { th: 'ส่ง', en: 'Submit', jp: '送信' },
+    translate: { th: 'แปล', en: 'Translate', jp: '翻訳' },
   };
   return panelText[key]?.[lang] || key;
 };
@@ -108,6 +172,7 @@ export default function CustomersPanel({
   canManage = true,
   refreshKey = 0,
   lang = 'th',
+  currentUserId,
 }: Props) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
@@ -119,6 +184,12 @@ export default function CustomersPanel({
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showAddContact, setShowAddContact] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [detailTab, setDetailTab] = useState<'basic' | 'deals' | 'activity' | 'projects' | 'comments'>('basic');
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -215,14 +286,34 @@ export default function CustomersPanel({
 
   const handleViewDetail = async (customer: Customer) => {
     setSelectedCustomer(customer);
+    setDetailTab('basic');
+    setLoadingDetail(true);
     try {
-      const res = await fetch(`/api/customers/${customer.id}/contacts`);
-      if (res.ok) {
-        const data = await res.json();
+      // Fetch contacts
+      const contactsRes = await fetch(`/api/customers/${customer.id}/contacts`);
+      if (contactsRes.ok) {
+        const data = await contactsRes.json();
         setContacts(data);
       }
+
+      // Fetch detail data (deals, activities, comments)
+      const detailRes = await fetch(`/api/customers/${customer.id}/detail`);
+      if (detailRes.ok) {
+        const detailData = await detailRes.json();
+        setDeals(detailData.deals ?? []);
+        setActivities(detailData.activities ?? []);
+      }
+
+      // Fetch comments
+      const commentsRes = await fetch(`/api/customers/${customer.id}/comments`);
+      if (commentsRes.ok) {
+        const commentsData = await commentsRes.json();
+        setComments(commentsData.comments ?? []);
+      }
     } catch (error) {
-      console.error('Failed to fetch contacts:', error);
+      console.error('Failed to fetch customer detail:', error);
+    } finally {
+      setLoadingDetail(false);
     }
     setShowDetail(true);
   };
@@ -246,6 +337,27 @@ export default function CustomersPanel({
       }
     } catch (error) {
       console.error('Failed to add contact:', error);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomer || !newComment.trim()) return;
+
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomer.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newComment }),
+      });
+
+      if (res.ok) {
+        const commentData = await res.json();
+        setComments([commentData.comment, ...comments]);
+        setNewComment('');
+      }
+    } catch (error) {
+      console.error('Failed to add comment:', error);
     }
   };
 
@@ -572,242 +684,499 @@ export default function CustomersPanel({
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Detail Drawer - Full Screen Panel */}
       {showDetail && selectedCustomer && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900">{selectedCustomer.company_name}</h3>
-              <button
-                onClick={() => setShowDetail(false)}
-                className="text-gray-500 hover:text-gray-900"
-              >
-                <X size={24} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/30"
+            onClick={() => setShowDetail(false)}
+          />
 
-            {/* Customer Info */}
-            <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 mb-4">
-              <h4 className="font-semibold text-gray-900 mb-3">{L('customerInfo', lang)}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                {selectedCustomer.industry && (
-                  <div>
-                    <span className="text-gray-500">{L('industry', lang)}</span>
-                    <p className="text-gray-900">{selectedCustomer.industry}</p>
+          {/* Side Panel */}
+          <div className="relative ml-auto w-full max-w-4xl bg-white shadow-xl flex flex-col">
+            {/* Header */}
+            <div className="flex-shrink-0 border-b border-[#E2E8F0] p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedCustomer.company_name}</h2>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span
+                      className="px-3 py-1 rounded-full text-sm font-medium"
+                      style={{
+                        backgroundColor: (statusColors[selectedCustomer.status] ?? defaultStatusColor).badge + '20',
+                        color: (statusColors[selectedCustomer.status] ?? defaultStatusColor).badge,
+                      }}
+                    >
+                      {L(selectedCustomer.status, lang)}
+                    </span>
+                    {selectedCustomer.industry && (
+                      <span className="text-sm text-gray-600">{selectedCustomer.industry}</span>
+                    )}
                   </div>
-                )}
-                {selectedCustomer.tax_id && (
-                  <div>
-                    <span className="text-gray-500">{L('taxLabel', lang)}</span>
-                    <p className="text-gray-900">{selectedCustomer.tax_id}</p>
-                  </div>
-                )}
-                {selectedCustomer.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone size={16} className="text-gray-500" />
-                    <div>
-                      <span className="text-gray-500">{L('phoneLabel', lang)}</span>
-                      <p className="text-gray-900">{selectedCustomer.phone}</p>
-                    </div>
-                  </div>
-                )}
-                {selectedCustomer.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-gray-500" />
-                    <div>
-                      <span className="text-gray-500">{L('emailLabel', lang)}</span>
-                      <p className="text-gray-900">{selectedCustomer.email}</p>
-                    </div>
-                  </div>
-                )}
-                {selectedCustomer.address && (
-                  <div className="flex items-center gap-2 md:col-span-2">
-                    <MapPin size={16} className="text-gray-500" />
-                    <div>
-                      <span className="text-gray-500">{L('addressLabel', lang)}</span>
-                      <p className="text-gray-900">{selectedCustomer.address}</p>
-                    </div>
-                  </div>
-                )}
-                {selectedCustomer.website && (
-                  <div className="flex items-center gap-2 md:col-span-2">
-                    <Globe size={16} className="text-gray-500" />
-                    <div>
-                      <span className="text-gray-500">{L('websiteLabel', lang)}</span>
-                      <p className="text-gray-900">{selectedCustomer.website}</p>
-                    </div>
-                  </div>
-                )}
+                </div>
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="text-gray-500 hover:text-gray-900 p-2"
+                >
+                  <X size={24} />
+                </button>
               </div>
-              {selectedCustomer.notes && (
-                <div className="mt-3 pt-3 border-t border-[#E2E8F0]">
-                  <span className="text-gray-500 text-sm">{L('notesLabel', lang)}</span>
-                  <p className="text-gray-900 text-sm">{selectedCustomer.notes}</p>
+
+              {/* Summary Stats Bar */}
+              {deals.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#E2E8F0]">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">{L('totalDealValue', lang)}</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(
+                        deals.reduce((sum, d) => sum + (d.value || 0), 0)
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">{L('wonDeals', lang)}</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {deals.filter(d => d.stage === 'project_complete').length} / {deals.length}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">{L('winRate', lang)}</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {deals.length > 0 ? Math.round((deals.filter(d => d.stage === 'project_complete').length / deals.length) * 100) : 0}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">{L('totalRevenue', lang)}</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(
+                        deals.filter(d => d.stage === 'project_complete').reduce((sum, d) => sum + (d.value || 0), 0)
+                      )}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Contacts */}
-            <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="font-semibold text-gray-900">{L('contactsList', lang)} ({contacts.length})</h4>
-                {canManage && (
+            {/* Tabs */}
+            <div className="flex-shrink-0 border-b border-[#E2E8F0] bg-gray-50">
+              <div className="flex overflow-x-auto">
+                {[
+                  { key: 'basic' as const, label: L('basicInfo', lang), icon: User },
+                  { key: 'deals' as const, label: L('deals', lang), icon: Briefcase },
+                  { key: 'activity' as const, label: L('activity', lang), icon: Clock },
+                  { key: 'projects' as const, label: L('projects', lang), icon: FileCheck },
+                  { key: 'comments' as const, label: L('comments', lang), icon: MessageSquare },
+                ].map(({ key, label, icon: Icon }) => (
                   <button
-                    onClick={() => setShowAddContact(true)}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs flex items-center gap-1"
+                    key={key}
+                    onClick={() => setDetailTab(key)}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition flex items-center gap-2 ${
+                      detailTab === key
+                        ? 'border-[#003087] text-[#003087]'
+                        : 'border-transparent text-gray-600 hover:text-gray-900'
+                    }`}
                   >
-                    <Plus size={14} />
-                    {L('addContact', lang)}
+                    <Icon size={16} />
+                    {label}
                   </button>
-                )}
+                ))}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                {contacts.length === 0 ? (
-                  <p className="text-gray-500 text-sm">{L('noContacts', lang)}</p>
-                ) : (
-                  contacts.map((contact) => (
-                    <div
-                      key={contact.id}
-                      className="bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] p-3"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900">{contact.name}</p>
-                            {contact.is_primary && (
-                              <span className="px-2 py-0.5 bg-[#F7941D] text-black text-xs rounded">
-                                {L('primaryContact', lang)}
-                              </span>
-                            )}
+            {/* Tab Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingDetail ? (
+                <div className="flex items-center justify-center h-64">
+                  <p className="text-gray-500">{L('loading', lang)}</p>
+                </div>
+              ) : detailTab === 'basic' ? (
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <User size={20} className="text-[#003087]" />
+                      {L('basicInfo', lang)}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedCustomer.company_name && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('companyName', lang)}</p>
+                          <p className="mt-1 text-gray-900">{selectedCustomer.company_name}</p>
+                        </div>
+                      )}
+                      {selectedCustomer.industry && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('industryField', lang)}</p>
+                          <p className="mt-1 text-gray-900">{selectedCustomer.industry}</p>
+                        </div>
+                      )}
+                      {selectedCustomer.tax_id && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('taxId', lang)}</p>
+                          <p className="mt-1 text-gray-900">{selectedCustomer.tax_id}</p>
+                        </div>
+                      )}
+                      {selectedCustomer.phone && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('phoneField', lang)}</p>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <Phone size={14} className="text-gray-500" />
+                            {selectedCustomer.phone}
+                          </p>
+                        </div>
+                      )}
+                      {selectedCustomer.email && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('emailField', lang)}</p>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <Mail size={14} className="text-gray-500" />
+                            {selectedCustomer.email}
+                          </p>
+                        </div>
+                      )}
+                      {selectedCustomer.website && (
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('website', lang)}</p>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <Globe size={14} className="text-gray-500" />
+                            {selectedCustomer.website}
+                          </p>
+                        </div>
+                      )}
+                      {selectedCustomer.address && (
+                        <div className="md:col-span-2">
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('address', lang)}</p>
+                          <p className="mt-1 text-gray-900 flex items-start gap-2">
+                            <MapPin size={14} className="text-gray-500 flex-shrink-0 mt-0.5" />
+                            {selectedCustomer.address}
+                          </p>
+                        </div>
+                      )}
+                      {selectedCustomer.notes && (
+                        <div className="md:col-span-2">
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('notes', lang)}</p>
+                          <p className="mt-1 text-gray-900">{selectedCustomer.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Contacts Section */}
+                  <div className="border-t border-[#E2E8F0] pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Users size={20} className="text-[#003087]" />
+                        {L('contactsList', lang)} ({contacts.length})
+                      </h3>
+                      {canManage && (
+                        <button
+                          onClick={() => setShowAddContact(true)}
+                          className="px-3 py-1 bg-[#003087] hover:bg-[#002060] text-white rounded text-xs flex items-center gap-1"
+                        >
+                          <Plus size={14} />
+                          {L('addContact', lang)}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      {contacts.length === 0 ? (
+                        <p className="text-gray-500 text-sm">{L('noContacts', lang)}</p>
+                      ) : (
+                        contacts.map((contact) => (
+                          <div
+                            key={contact.id}
+                            className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <p className="font-semibold text-gray-900">{contact.name}</p>
+                                  {contact.is_primary && (
+                                    <span className="px-2 py-0.5 bg-[#F7941D] text-white text-xs rounded font-medium">
+                                      {L('primaryContact', lang)}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  {contact.email && (
+                                    <p className="flex items-center gap-2">
+                                      <Mail size={14} className="text-gray-500" />
+                                      {contact.email}
+                                    </p>
+                                  )}
+                                  {contact.phone && (
+                                    <p className="flex items-center gap-2">
+                                      <Phone size={14} className="text-gray-500" />
+                                      {contact.phone}
+                                    </p>
+                                  )}
+                                  {contact.position && (
+                                    <p className="flex items-center gap-2">
+                                      <User size={14} className="text-gray-500" />
+                                      {contact.position}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-                            {contact.email && (
-                              <p className="flex items-center gap-1">
-                                <Mail size={12} />
-                                {contact.email}
+                        ))
+                      )}
+                    </div>
+
+                    {showAddContact && (
+                      <form onSubmit={handleAddContact} className="mt-4 p-4 bg-gray-50 rounded-lg border border-[#E2E8F0] space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            {L('name', lang)}
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={contactFormData.name}
+                            onChange={(e) =>
+                              setContactFormData({ ...contactFormData, name: e.target.value })
+                            }
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            {L('emailRequired', lang)}
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            value={contactFormData.email}
+                            onChange={(e) =>
+                              setContactFormData({ ...contactFormData, email: e.target.value })
+                            }
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            {L('phoneOptional', lang)}
+                          </label>
+                          <input
+                            type="tel"
+                            value={contactFormData.phone}
+                            onChange={(e) =>
+                              setContactFormData({ ...contactFormData, phone: e.target.value })
+                            }
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            {L('position', lang)}
+                          </label>
+                          <input
+                            type="text"
+                            value={contactFormData.position}
+                            onChange={(e) =>
+                              setContactFormData({ ...contactFormData, position: e.target.value })
+                            }
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={contactFormData.is_primary}
+                            onChange={(e) =>
+                              setContactFormData({ ...contactFormData, is_primary: e.target.checked })
+                            }
+                            className="rounded"
+                          />
+                          {L('isPrimary', lang)}
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            className="flex-1 px-3 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded text-sm font-medium"
+                          >
+                            {L('save', lang)}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowAddContact(false);
+                              setContactFormData({ name: '', email: '', phone: '', position: '', is_primary: false });
+                            }}
+                            className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded text-sm font-medium"
+                          >
+                            {L('cancel', lang)}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              ) : detailTab === 'deals' ? (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Briefcase size={20} className="text-[#003087]" />
+                    {L('deals', lang)}
+                  </h3>
+                  {deals.length === 0 ? (
+                    <p className="text-gray-500">{L('noDeals', lang)}</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {deals.map((deal) => (
+                        <div
+                          key={deal.id}
+                          className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-semibold text-gray-900">{deal.title}</h4>
+                            <span
+                              className="px-2 py-1 rounded text-xs font-medium text-white"
+                              style={{ backgroundColor: pipelineStageColors[deal.stage] || '#6B7280' }}
+                            >
+                              {deal.stage}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3 text-sm">
+                            <div>
+                              <p className="text-gray-500 text-xs">{L('dealValue', lang)}</p>
+                              <p className="font-semibold text-gray-900">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(deal.value || 0)}
                               </p>
-                            )}
-                            {contact.phone && (
-                              <p className="flex items-center gap-1">
-                                <Phone size={12} />
-                                {contact.phone}
-                              </p>
-                            )}
-                            {contact.position && (
-                              <p className="flex items-center gap-1">
-                                <User size={12} />
-                                {contact.position}
-                              </p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs">{L('dealProbability', lang)}</p>
+                              <p className="font-semibold text-gray-900">{deal.probability}%</p>
+                            </div>
+                            {deal.owner && (
+                              <div>
+                                <p className="text-gray-500 text-xs">{L('dealOwner', lang)}</p>
+                                <p className="font-semibold text-gray-900">{deal.owner}</p>
+                              </div>
                             )}
                           </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
+                  )}
+                </div>
+              ) : detailTab === 'activity' ? (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Clock size={20} className="text-[#003087]" />
+                    {L('activity', lang)}
+                  </h3>
+                  {activities.length === 0 ? (
+                    <p className="text-gray-500">{L('noActivities', lang)}</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {activities.map((activity) => {
+                        const getActivityIcon = () => {
+                          switch (activity.type) {
+                            case 'call': return <Phone size={16} className="text-blue-500" />;
+                            case 'meeting': return <Users size={16} className="text-green-500" />;
+                            case 'email': return <Mail size={16} className="text-purple-500" />;
+                            case 'proposal': return <FileText size={16} className="text-orange-500" />;
+                            default: return <Clock size={16} className="text-gray-500" />;
+                          }
+                        };
+                        return (
+                          <div key={activity.id} className="flex gap-4">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                              {getActivityIcon()}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900">{activity.description}</p>
+                              <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                {activity.performer && <span>{activity.performer}</span>}
+                                <span>{new Date(activity.date).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : detailTab === 'projects' ? (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <FileCheck size={20} className="text-[#003087]" />
+                    {L('projects', lang)}
+                  </h3>
+                  <p className="text-gray-500">{L('noProjects', lang)}</p>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <MessageSquare size={20} className="text-[#003087]" />
+                    {L('comments', lang)}
+                  </h3>
 
-              {showAddContact && (
-                <form onSubmit={handleAddContact} className="mt-4 p-4 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {L('name', lang)}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={contactFormData.name}
-                      onChange={(e) =>
-                        setContactFormData({ ...contactFormData, name: e.target.value })
-                      }
-                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                    />
+                  {/* Comments List */}
+                  <div className="space-y-4 mb-6">
+                    {comments.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{L('noComments', lang)}</p>
+                    ) : (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="font-medium text-gray-900">{comment.user_name || 'Anonymous'}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                          <div className="mt-2">
+                            <TranslateButton text={comment.content} />
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {L('emailRequired', lang)}
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={contactFormData.email}
-                      onChange={(e) =>
-                        setContactFormData({ ...contactFormData, email: e.target.value })
-                      }
-                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {L('phoneOptional', lang)}
-                    </label>
-                    <input
-                      type="tel"
-                      value={contactFormData.phone}
-                      onChange={(e) =>
-                        setContactFormData({ ...contactFormData, phone: e.target.value })
-                      }
-                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {L('position', lang)}
-                    </label>
-                    <input
-                      type="text"
-                      value={contactFormData.position}
-                      onChange={(e) =>
-                        setContactFormData({ ...contactFormData, position: e.target.value })
-                      }
-                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={contactFormData.is_primary}
-                      onChange={(e) =>
-                        setContactFormData({ ...contactFormData, is_primary: e.target.checked })
-                      }
-                      className="rounded"
-                    />
-                    {L('isPrimary', lang)}
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium"
-                    >
-                      {L('save', lang)}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAddContact(false);
-                        setContactFormData({ name: '', email: '', phone: '', position: '', is_primary: false });
-                      }}
-                      className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded text-sm font-medium"
-                    >
-                      {L('cancel', lang)}
-                    </button>
-                  </div>
-                </form>
+
+                  {/* Add Comment Form */}
+                  {canManage && (
+                    <form onSubmit={handleAddComment} className="border-t border-[#E2E8F0] pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {L('addComment', lang)}
+                      </label>
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder={L('commentPlaceholder', lang)}
+                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                        rows={3}
+                      />
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={!newComment.trim()}
+                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {L('submit', lang)}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               )}
             </div>
 
+            {/* Footer Actions */}
             {canManage && (
-              <div className="flex gap-2 mt-4">
+              <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
                 <button
                   onClick={() => handleEditCustomer(selectedCustomer)}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
                 >
                   {L('edit', lang)}
                 </button>
                 <button
                   onClick={() => setShowDetail(false)}
-                  className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('close', lang)}
                 </button>
