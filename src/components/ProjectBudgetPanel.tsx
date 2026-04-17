@@ -79,13 +79,11 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
     fetchAll();
   };
 
-  const stats = {
-    totalPlanned: items.reduce((sum, b) => sum + Number(b.planned_amount ?? 0), 0),
-    totalActual: items.reduce((sum, b) => sum + Number(b.actual_amount ?? 0), 0),
-  };
-
-  stats.totalVariance = stats.totalPlanned - stats.totalActual;
-  const isOverBudget = stats.totalActual > stats.totalPlanned;
+  const totalPlanned = items.reduce((sum, b) => sum + Number(b.planned_amount ?? 0), 0);
+  const totalActual = items.reduce((sum, b) => sum + Number(b.actual_amount ?? 0), 0);
+  const totalVariance = totalPlanned - totalActual;
+  const stats = { totalPlanned, totalActual, totalVariance };
+  const isOverBudget = totalActual > totalPlanned;
 
   const filtered = filterProjectId && filterProjectId !== "all" ? items : items;
 

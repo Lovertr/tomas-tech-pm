@@ -88,12 +88,9 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
 
   const filtered = items.filter((t) => (filterType === "all" ? true : t.type === filterType));
 
-  const stats = {
-    totalIncome: items.filter((t) => t.type === "income").reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
-    totalExpense: items.filter((t) => t.type === "expense").reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
-  };
-
-  stats.net = stats.totalIncome - stats.totalExpense;
+  const totalIncome = items.filter((t) => t.type === "income").reduce((sum, t) => sum + Number(t.amount ?? 0), 0);
+  const totalExpense = items.filter((t) => t.type === "expense").reduce((sum, t) => sum + Number(t.amount ?? 0), 0);
+  const stats = { totalIncome, totalExpense, net: totalIncome - totalExpense };
 
   return (
     <div className="space-y-6">
