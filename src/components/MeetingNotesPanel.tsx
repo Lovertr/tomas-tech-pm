@@ -137,15 +137,15 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="grid grid-cols-3 gap-2 md:gap-3 flex-1">
           <Stat label="ทั้งหมด" value={items.length} color="#003087" />
           <Stat label="กำลังจะมา" value={upcoming.length} color="#F7941D" />
           <Stat label="ผ่านมาแล้ว" value={past.length} color="#94A3B8" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
-            <Plus size={16} /> เพิ่ม Meeting
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <Plus size={14} /> เพิ่ม Meeting
           </button>
         )}
       </div>
@@ -205,9 +205,9 @@ function Section({ title, icon: Icon, children }: { title: string; icon: typeof 
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
-      <div className="text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+      <div className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</div>
+      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5">{label}</div>
     </div>
   );
 }

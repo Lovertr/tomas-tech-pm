@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit3, GitPullRequest, Check, X, Clock, DollarSign, Calendar } from "lucide-react";
+import TranslateButton from "./TranslateButton";
 
 interface CR {
   id: string; project_id: string; cr_code?: string | null; title: string; description?: string | null;
@@ -70,16 +71,16 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 flex-1">
           <Stat label="รออนุมัติ" value={stats.pending} color="#F7941D" />
           <Stat label="อนุมัติแล้ว" value={stats.approved} color="#22C55E" />
           <Stat label="งบที่เพิ่ม" value={fmtMoney(totalBudgetImpact)} color="#00AEEF" isString />
           <Stat label="วันที่เลื่อน" value={`${totalScheduleImpact} วัน`} color="#A855F7" isString />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
-            <Plus size={16} /> เพิ่ม CR
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <Plus size={14} /> เพิ่ม CR
           </button>
         )}
       </div>
@@ -94,8 +95,8 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
 
       <div className="space-y-2">
         {items.map(cr => (
-          <div key={cr.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
-            <div className="flex items-start gap-3">
+          <div key={cr.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-3 md:p-4">
+            <div className="flex items-start gap-2 md:gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
                 style={{ background: `${STATUS_COLOR[cr.status]}25` }}>
                 <GitPullRequest size={18} style={{ color: STATUS_COLOR[cr.status] }} />
@@ -107,8 +108,18 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
                   <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: STATUS_COLOR[cr.status] }}>{STATUS_LBL[cr.status]}</span>
                 </div>
                 <div className="text-sm font-medium text-white">{cr.title}</div>
-                {cr.description && <div className="text-xs text-slate-400 mt-0.5 whitespace-pre-wrap">{cr.description}</div>}
-                {cr.impact_scope && <div className="text-xs text-slate-300 mt-1"><span className="text-slate-500">ขอบเขต:</span> {cr.impact_scope}</div>}
+                {cr.description && (
+                  <>
+                    <div className="text-xs text-slate-400 mt-0.5 whitespace-pre-wrap">{cr.description}</div>
+                    <TranslateButton text={cr.description} compact />
+                  </>
+                )}
+                {cr.impact_scope && (
+                  <>
+                    <div className="text-xs text-slate-300 mt-1"><span className="text-slate-500">ขอบเขต:</span> {cr.impact_scope}</div>
+                    <TranslateButton text={cr.impact_scope} compact />
+                  </>
+                )}
                 <div className="flex items-center gap-3 mt-2 text-xs flex-wrap">
                   {cr.impact_budget != null && (
                     <span className="flex items-center gap-1 text-orange-300"><DollarSign size={11} /> {fmtMoney(cr.impact_budget)}</span>
@@ -164,9 +175,9 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
 
 function Stat({ label, value, color, isString }: { label: string; value: number | string; color: string; isString?: boolean }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
-      <div className={`font-bold ${isString ? "text-base" : "text-2xl"}`} style={{ color }}>{value}</div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+      <div className={`font-bold ${isString ? "text-sm md:text-base" : "text-xl md:text-2xl"} truncate`} style={{ color }}>{value}</div>
+      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5 truncate">{label}</div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit3, Lightbulb, Calendar, User } from "lucide-react";
+import TranslateButton from "./TranslateButton";
 
 interface Decision {
   id: string; project_id: string; title: string;
@@ -60,15 +61,15 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="grid grid-cols-3 gap-2 md:gap-3 flex-1">
           <Stat label="Decision ทั้งหมด" value={items.length} color="#A855F7" />
           <Stat label="เดือนนี้" value={thisMonth} color="#00AEEF" />
-          <Stat label="โครงการที่เกี่ยวข้อง" value={new Set(items.map(i => i.project_id)).size} color="#22C55E" />
+          <Stat label="โครงการ" value={new Set(items.map(i => i.project_id)).size} color="#22C55E" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
-            <Plus size={16} /> เพิ่ม Decision
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <Plus size={14} /> เพิ่ม Decision
           </button>
         )}
       </div>
@@ -118,18 +119,21 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
                     <div>
                       <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Context</div>
                       <div className="text-xs text-slate-300 whitespace-pre-wrap">{d.context}</div>
+                      <TranslateButton text={d.context} compact />
                     </div>
                   )}
                   {d.decision && (
                     <div>
                       <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Decision</div>
                       <div className="text-sm text-white whitespace-pre-wrap bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">{d.decision}</div>
+                      <TranslateButton text={d.decision} compact />
                     </div>
                   )}
                   {d.rationale && (
                     <div>
                       <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Rationale</div>
                       <div className="text-xs text-slate-300 whitespace-pre-wrap">{d.rationale}</div>
+                      <TranslateButton text={d.rationale} compact />
                     </div>
                   )}
                 </div>
@@ -155,9 +159,9 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
-      <div className="text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+      <div className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</div>
+      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5">{label}</div>
     </div>
   );
 }

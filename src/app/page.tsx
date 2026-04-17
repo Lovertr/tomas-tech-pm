@@ -163,14 +163,14 @@ export default function App() {
 
   // ── Stat Card ──
   const Stat = ({ icon: I, label, value, sub, color = "#003087", trend }: { icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string; trend?: string }) => (
-    <div className="bg-[#1E293B] rounded-2xl p-5 border border-[#334155] hover:shadow-lg transition-all">
+    <div className="bg-[#1E293B] rounded-2xl p-3 md:p-5 border border-[#334155] hover:shadow-lg transition-all">
       <div className="flex items-start justify-between">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${color}25` }}><I size={22} style={{ color }} /></div>
-        {trend && <span className="text-xs font-medium text-emerald-400 flex items-center gap-1"><TrendingUp size={14} />{trend}</span>}
+        <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center" style={{ background: `${color}25` }}><I size={18} className="md:hidden" style={{ color }} /><I size={22} className="hidden md:block" style={{ color }} /></div>
+        {trend && <span className="text-[10px] md:text-xs font-medium text-emerald-400 flex items-center gap-1"><TrendingUp size={12} />{trend}</span>}
       </div>
-      <div className="mt-3 text-2xl font-bold text-white">{value}</div>
-      <div className="text-sm text-slate-400">{label}</div>
-      {sub && <div className="text-xs mt-1" style={{ color }}>{sub}</div>}
+      <div className="mt-2 md:mt-3 text-lg md:text-2xl font-bold text-white truncate">{value}</div>
+      <div className="text-xs md:text-sm text-slate-400 truncate">{label}</div>
+      {sub && <div className="text-[10px] md:text-xs mt-0.5 md:mt-1 truncate" style={{ color }}>{sub}</div>}
     </div>
   );
 
@@ -262,11 +262,11 @@ export default function App() {
 
   // ── DASHBOARD ──
   const Dashboard = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl font-bold text-white">{t.welcome}, {currentUser?.display_name ?? "..."}!</h1>
-          <p className="text-slate-400">{t.overview} — {new Date().toLocaleDateString(lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
-        {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>}
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-2 md:gap-3">
+        <div><h1 className="text-lg md:text-2xl font-bold text-white">{t.welcome}, {currentUser?.display_name ?? "..."}!</h1>
+          <p className="text-xs md:text-base text-slate-400">{t.overview} — {new Date().toLocaleDateString(lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
+        {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
       </div>
       <DailyStandupCard lang={lang} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -300,16 +300,16 @@ export default function App() {
   const Projects = () => {
     const filtered = projFilter === "all" ? mockProjects : mockProjects.filter(p => p.status === projFilter);
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl font-bold text-white">{t.projects}</h1>
-          <div className="flex items-center gap-3">
-            <div className="flex rounded-xl overflow-hidden border border-[#334155]">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <h1 className="text-lg md:text-2xl font-bold text-white">{t.projects}</h1>
+          <div className="flex items-center gap-2 md:gap-3 overflow-x-auto">
+            <div className="flex rounded-xl overflow-hidden border border-[#334155] flex-shrink-0">
               {["all", "planning", "in_progress", "on_hold", "completed"].map(s => (
-                <button key={s} onClick={() => setProjFilter(s)} className={`px-3 py-1.5 text-xs font-medium ${projFilter === s ? "text-white" : "text-slate-400"}`} style={projFilter === s ? { background: "#003087" } : { background: "#0F172A" }}>{t[s]}</button>
+                <button key={s} onClick={() => setProjFilter(s)} className={`px-2 md:px-3 py-1.5 text-[10px] md:text-xs font-medium whitespace-nowrap ${projFilter === s ? "text-white" : "text-slate-400"}`} style={projFilter === s ? { background: "#003087" } : { background: "#0F172A" }}>{t[s]}</button>
               ))}
             </div>
-            {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addProject}</button>}
+            {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -478,10 +478,10 @@ export default function App() {
 
   // ── RISKS / ISSUES / CHANGE REQUESTS / DECISIONS ──
   const ProjectFilterHeader = ({ title }: { title: string }) => (
-    <div className="flex items-center justify-between flex-wrap gap-3">
-      <h1 className="text-2xl font-bold text-white">{title}</h1>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-3">
+      <h1 className="text-lg md:text-2xl font-bold text-white">{title}</h1>
       <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
-        className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+        className="px-3 py-2 rounded-xl text-xs md:text-sm bg-[#1E293B] text-white border border-[#334155] outline-none w-full sm:w-auto">
         <option value="all">{t.all} {t.projects}</option>
         {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
       </select>
@@ -556,15 +556,15 @@ export default function App() {
   // ── TASKS (KANBAN) ──
   const Tasks = () => {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl font-bold text-white">{t.tasks}</h1>
-          <div className="flex items-center gap-3">
-            <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)} className="px-3 py-2 rounded-xl text-sm bg-[#1E293B] text-white border border-[#334155] outline-none">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-3">
+          <h1 className="text-lg md:text-2xl font-bold text-white">{t.tasks}</h1>
+          <div className="flex items-center gap-2 md:gap-3">
+            <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)} className="px-3 py-2 rounded-xl text-xs md:text-sm bg-[#1E293B] text-white border border-[#334155] outline-none flex-1 sm:flex-none">
               <option value="all">{t.all} {t.projects}</option>
               {mockProjects.map(p => <option key={p.id} value={p.id}>{getName(p)}</option>)}
             </select>
-            {hasPermission("can_manage_tasks") && <button onClick={openAddTask} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.addTask}</button>}
+            {hasPermission("can_manage_tasks") && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addTask}</button>}
           </div>
         </div>
         <KanbanBoard
@@ -784,10 +784,75 @@ export default function App() {
   const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage };
   const Page = pages[page] || Dashboard;
 
+  // Mobile bottom nav items (most used)
+  const MOBILE_NAV = [
+    { id: "dashboard", icon: LayoutDashboard, label: "หน้าหลัก" },
+    { id: "mytasks", icon: Inbox, label: "งานของฉัน" },
+    { id: "tasks", icon: ListTodo, label: "งาน" },
+    { id: "projects", icon: FolderKanban, label: "โครงการ" },
+  ];
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#0F172A]">
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? "w-64" : "w-20"} flex flex-col border-r border-[#334155] bg-[#020617] transition-all duration-300 flex-shrink-0`}>
+      {/* Mobile sidebar overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-y-0 left-0 w-72 bg-[#020617] border-r border-[#334155] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-4 flex items-center gap-3 border-b border-[#334155]">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>TT</div>
+              <div><div className="font-bold text-sm text-white">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>
+              <button onClick={() => setMobileMenuOpen(false)} className="ml-auto text-slate-400 hover:text-white"><X size={20} /></button>
+            </div>
+            <nav className="flex-1 overflow-y-auto p-3 space-y-3">
+              {groupedNav.map(g => {
+                const collapsed = !!collapsedGroups[g.key];
+                return (
+                  <div key={g.key} className="space-y-1">
+                    <button onClick={() => toggleGroup(g.key)}
+                      className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-400 transition">
+                      <span>{g.label}</span>
+                      {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                    </button>
+                    {!collapsed && g.items.map(item => (
+                      <button key={item.id} onClick={() => { setPage(item.id); setMobileMenuOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
+                        style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
+                        <item.icon size={20} /><span className="truncate">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </nav>
+            {/* Mobile user info + logout */}
+            <div className="p-3 border-t border-[#334155] space-y-2">
+              <div className="flex items-center gap-2 px-3 py-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
+                  {(currentUser?.display_name ?? "U").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-white">{currentUser?.display_name}</div>
+                  <div className="text-xs text-slate-400">{t[currentUser?.role as keyof typeof t] ?? currentUser?.role}</div>
+                </div>
+              </div>
+              {isAdmin && (
+                <button onClick={() => { setMobileMenuOpen(false); router.push("/admin/users"); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition">
+                  <UserCog size={16} /> {t.userManagement}
+                </button>
+              )}
+              <button onClick={() => { setMobileMenuOpen(false); logout(); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-slate-700 rounded-lg transition">
+                <LogOut size={16} /> {t.logout}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar - hidden on mobile */}
+      <div className={`hidden md:flex ${sidebarOpen ? "w-64" : "w-20"} flex-col border-r border-[#334155] bg-[#020617] transition-all duration-300 flex-shrink-0`}>
         <div className="p-4 flex items-center gap-3 border-b border-[#334155]">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>TT</div>
           {sidebarOpen && <div><div className="font-bold text-sm text-white">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>}
@@ -823,11 +888,19 @@ export default function App() {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* TopBar */}
-        <div className="h-16 bg-[#1E293B] border-b border-[#334155] flex items-center justify-between px-6 flex-shrink-0">
-          <div className="relative flex-1 max-w-md"><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input placeholder={t.search} className="w-full pl-10 pr-4 py-2 rounded-xl text-sm bg-slate-700 text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500" /></div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 rounded-lg p-1 bg-[#0F172A]">{(["th", "en", "jp"] as const).map(l => (
-              <button key={l} onClick={() => setLang(l)} className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-slate-400"}`} style={lang === l ? { background: "#003087" } : {}}>{l.toUpperCase()}</button>
+        <div className="h-14 md:h-16 bg-[#1E293B] border-b border-[#334155] flex items-center justify-between px-3 md:px-6 flex-shrink-0">
+          {/* Mobile: hamburger + logo */}
+          <div className="flex items-center gap-2 md:hidden">
+            <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-1 text-slate-300 hover:text-white">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+            <span className="font-bold text-sm text-white">TT</span>
+          </div>
+          {/* Desktop: search bar */}
+          <div className="relative flex-1 max-w-md hidden md:block"><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input placeholder={t.search} className="w-full pl-10 pr-4 py-2 rounded-xl text-sm bg-slate-700 text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500" /></div>
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-0.5 md:gap-1 rounded-lg p-0.5 md:p-1 bg-[#0F172A]">{(["th", "en", "jp"] as const).map(l => (
+              <button key={l} onClick={() => setLang(l)} className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-slate-400"}`} style={lang === l ? { background: "#003087" } : {}}>{l.toUpperCase()}</button>
             ))}</div>
             <button onClick={() => setPaletteOpen(true)}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1E293B] border border-[#334155] text-slate-300 hover:border-cyan-500 text-xs"
@@ -836,7 +909,6 @@ export default function App() {
               <kbd className="text-[10px] font-mono border border-[#334155] rounded px-1.5 py-0.5">Ctrl K</kbd>
             </button>
             <NotificationBell onNavigate={(link) => {
-              // Parse link patterns: /tasks/:id, /milestones, /meetings, /sprint, etc.
               if (link.startsWith("/tasks/")) {
                 const tid = link.split("/")[2];
                 if (tid) setDrawerTaskId(tid);
@@ -849,12 +921,13 @@ export default function App() {
               else if (link === "/mytasks") setPage("mytasks");
               else if (link.startsWith("/")) router.push(link);
             }} />
-            <div className="relative">
+            {/* Desktop user menu */}
+            <div className="relative hidden md:block">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm transition">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
                   {(currentUser?.display_name ?? "U").charAt(0).toUpperCase()}
                 </div>
-                <span className="hidden md:inline font-medium">{currentUser?.display_name ?? "..."}</span>
+                <span className="font-medium">{currentUser?.display_name ?? "..."}</span>
               </button>
               {userMenuOpen && (
                 <>
@@ -882,8 +955,26 @@ export default function App() {
           </div>
         </div>
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6"><Page /></main>
+        {/* Content — less padding on mobile, extra bottom padding for bottom nav */}
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6"><Page /></main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#020617] border-t border-[#334155] safe-area-bottom">
+        <div className="flex items-center justify-around h-14">
+          {MOBILE_NAV.map(item => (
+            <button key={item.id} onClick={() => setPage(item.id)}
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${page === item.id ? "text-[#00AEEF]" : "text-slate-500"}`}>
+              <item.icon size={20} />
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </button>
+          ))}
+          <button onClick={() => setMobileMenuOpen(true)}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-slate-500`}>
+            <Settings size={20} />
+            <span className="text-[10px] font-medium">เมนู</span>
+          </button>
+        </div>
       </div>
 
       {/* Modals */}

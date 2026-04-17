@@ -48,3 +48,27 @@ body {
 /* Kanban smooth transitions */
 .kanban-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+
+/* Mobile safe area for iPhone notch / bottom bar */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent pull-to-refresh and overscroll on mobile */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better tap targets on mobile */
+@media (max-width: 768px) {
+  button, a, select, input, textarea {
+    min-height: 36px;
+  }
+  /* Prevent text resize on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Hide scrollbars on mobile for cleaner look */
+  ::-webkit-scrollbar { width: 0; height: 0; }
+}

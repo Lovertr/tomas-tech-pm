@@ -11,16 +11,36 @@ interface Task {
   estimated_hours?: number | null; actual_hours?: number | null; project_id: string;
   tags?: string[] | null;
 }
-interface Comment { id: string; comment: string; created_at: string; author_id: string; team_members?: Member; }
+// DB column is "content", API joins "author" from app_users
+interface CommentRow {
+  id: string; content: string; created_at: string; author_id: string;
+  author?: { id: string; email: string } | null;
+}
 interface ChecklistItem { id: string; title: string; is_completed: boolean; sort_order: number; }
-interface DepItem { id: string; task_id: string; depends_on_task_id: string; dependency_type: string; tasks?: Task; depends_on?: Task; }
-interface ActivityItem { id: string; action: string; field_name?: string | null; old_value?: string | null; new_value?: string | null; created_at: string; team_members?: Member; }
+interface DepItem {
+  id: string; task_id: string; depends_on_task_id: string; dependency_type: string;
+  depends?: { id: string; title: string; status: string } | null;
+  blocking?: { id: string; title: string; status: string } | null;
+}
+// DB: activity_logs with "actor" from app_users
+interface ActivityItem {
+  id: string; action: string; entity_type?: string | null; details?: Record<string, unknown> | null;
+  created_at: string;
+  actor?: { id: string; email: string } | null;
+}
 
 const memberName = (m?: Member | null) =>
-  m ? ([m.first_name_th, m.last_name_th].filter(Boolean).join(" ") || [m.first_name_en, m.last_name_en].filter(Boolean).join(" ") || "—") : "—";
+  m ? ([m.first_name_th, m.last_name_th].filter(Boolean).join(" ") || [m.first_name_en, m.last_name_en].filter(Boolean).join(" ") || "\u2014") : "\u2014";
+const authorLabel = (a?: { id: string; email: string } | null) => a?.email?.split("@")[0] ?? "\u2014";
 
 const STATUSES = ["backlog", "todo", "in_progress", "review", "done"];
+const STATUS_LABEL: Record<string, string> = {
+  backlog: "Backlog", todo: "To Do", in_progress: "In Progress", review: "Review", done: "Done",
+};
 const PRIORITIES = ["low", "medium", "high", "urgent"];
+const PRIO_LABEL: Record<string, string> = {
+  low: "Low", medium: "Medium", high: "High", urgent: "Urgent",
+};
 const STATUS_COLOR: Record<string, string> = {
   backlog: "bg-slate-500/20 text-slate-300", todo: "bg-blue-500/20 text-blue-300",
   in_progress: "bg-yellow-500/20 text-yellow-300", review: "bg-purple-500/20 text-purple-300",
@@ -29,6 +49,21 @@ const STATUS_COLOR: Record<string, string> = {
 const PRIO_COLOR: Record<string, string> = {
   low: "bg-slate-500/20 text-slate-300", medium: "bg-blue-500/20 text-blue-300",
   high: "bg-orange-500/20 text-orange-300", urgent: "bg-red-500/20 text-red-300",
+};
+
+// Dependency type labels
+const DEP_TYPES: { value: string; label: string }[] = [
+  { value: "finish_to_start", label: "FS \u2014 \u0E17\u0E33\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E01\u0E48\u0E2D\u0E19\u0E16\u0E36\u0E07\u0E40\u0E23\u0E34\u0E48\u0E21" },
+  { value: "start_to_start", label: "SS \u2014 \u0E40\u0E23\u0E34\u0E48\u0E21\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E01\u0E31\u0E19" },
+  { value: "finish_to_finish", label: "FF \u2014 \u0E40\u0E2A\u0E23\u0E47\u0E08\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E01\u0E31\u0E19" },
+  { value: "start_to_finish", label: "SF \u2014 \u0E40\u0E23\u0E34\u0E48\u0E21\u0E01\u0E48\u0E2D\u0E19\u0E16\u0E36\u0E07\u0E40\u0E2A\u0E23\u0E47\u0E08" },
+];
+const depTypeShort = (v: string) => {
+  if (v === "finish_to_start" || v === "FS") return "FS";
+  if (v === "start_to_start" || v === "SS") return "SS";
+  if (v === "finish_to_finish" || v === "FF") return "FF";
+  if (v === "start_to_finish" || v === "SF") return "SF";
+  return v;
 };
 
 interface Props {
@@ -49,13 +84,13 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
   const [saving, setSaving] = useState(false);
 
   // Sub-resources
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentRow[]>([]);
   const [newComment, setNewComment] = useState("");
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newCheckItem, setNewCheckItem] = useState("");
   const [deps, setDeps] = useState<{ blockedBy: DepItem[]; blocking: DepItem[] }>({ blockedBy: [], blocking: [] });
   const [newDepId, setNewDepId] = useState("");
-  const [newDepType, setNewDepType] = useState("FS");
+  const [newDepType, setNewDepType] = useState("finish_to_start");
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [timer, setTimer] = useState<{ id: string; started_at: string; task_id?: string } | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -76,13 +111,13 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
         fetch(`/api/tasks/${taskId}/comments`).then(r => r.ok ? r.json() : { comments: [] }),
         fetch(`/api/tasks/${taskId}/checklist`).then(r => r.ok ? r.json() : { items: [] }),
         fetch(`/api/tasks/${taskId}/dependencies`).then(r => r.ok ? r.json() : { blockedBy: [], blocking: [] }),
-        fetch(`/api/tasks/${taskId}/activity`).then(r => r.ok ? r.json() : { activity: [] }),
+        fetch(`/api/tasks/${taskId}/activity`).then(r => r.ok ? r.json() : { activities: [] }),
         fetch(`/api/timers`).then(r => r.ok ? r.json() : { timer: null }),
       ]);
       setComments(c.comments ?? []);
       setChecklist(cl.items ?? cl.checklist ?? []);
       setDeps({ blockedBy: dp.blockedBy ?? [], blocking: dp.blocking ?? [] });
-      setActivity(ac.activity ?? []);
+      setActivity(ac.activities ?? ac.activity ?? []);
       setTimer(tm.timer ?? null);
     } finally { setLoading(false); }
   }, [taskId, fetchTask]);
@@ -120,13 +155,13 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
     if (!taskId || !newComment.trim()) return;
     const r = await fetch(`/api/tasks/${taskId}/comments`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ comment: newComment.trim() }),
+      body: JSON.stringify({ content: newComment.trim() }),
     });
     if (r.ok) { setNewComment(""); fetchAll(); }
   };
 
   const deleteComment = async (id: string) => {
-    if (!confirm("ลบคอมเมนต์นี้?")) return;
+    if (!confirm("\u0E25\u0E1A\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C\u0E19\u0E35\u0E49?")) return;
     await fetch(`/api/comments/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -195,42 +230,45 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
   return (
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
-      <div className="flex-1 bg-black/60 backdrop-blur-sm" />
+      <div className="hidden md:block flex-1 bg-black/60 backdrop-blur-sm" />
       <div
-        className="w-full max-w-2xl bg-[#1E293B] border-l border-[#334155] shadow-2xl h-full overflow-y-auto"
+        className="w-full md:max-w-2xl bg-[#1E293B] md:border-l border-[#334155] shadow-2xl h-full overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="sticky top-0 bg-[#1E293B] border-b border-[#334155] z-10">
-          <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4">
             <div className="flex items-center gap-2 text-xs text-slate-400">
+              <button onClick={onClose} className="md:hidden text-slate-400 hover:text-white mr-1">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
               <span>Task</span>
               {task && <span className="font-mono">#{task.id.slice(0, 8)}</span>}
             </div>
-            <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={20} /></button>
+            <button onClick={onClose} className="hidden md:block text-slate-400 hover:text-white"><X size={20} /></button>
           </div>
           {task && (
-            <div className="px-6 pb-4">
+            <div className="px-4 md:px-6 pb-3 md:pb-4">
               <input
-                className="w-full bg-transparent text-xl font-semibold text-white border-0 focus:outline-none focus:bg-[#0F172A] rounded px-2 py-1 -mx-2"
+                className="w-full bg-transparent text-base md:text-xl font-semibold text-white border-0 focus:outline-none focus:bg-[#0F172A] rounded px-2 py-1 -mx-2"
                 value={task.title}
                 onChange={(e) => setTask({ ...task, title: e.target.value })}
                 onBlur={(e) => e.target.value !== "" && updateTask({ title: e.target.value })}
               />
-              <div className="flex flex-wrap items-center gap-2 mt-3">
+              <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-3">
                 <select
                   className={`text-xs px-2 py-1 rounded-md border-0 cursor-pointer ${STATUS_COLOR[task.status] || ""}`}
                   value={task.status}
                   onChange={(e) => updateTask({ status: e.target.value })}
                 >
-                  {STATUSES.map(s => <option key={s} value={s} className="bg-[#1E293B]">{s}</option>)}
+                  {STATUSES.map(s => <option key={s} value={s} className="bg-[#1E293B]">{STATUS_LABEL[s] || s}</option>)}
                 </select>
                 <select
                   className={`text-xs px-2 py-1 rounded-md border-0 cursor-pointer ${PRIO_COLOR[task.priority] || ""}`}
                   value={task.priority}
                   onChange={(e) => updateTask({ priority: e.target.value })}
                 >
-                  {PRIORITIES.map(p => <option key={p} value={p} className="bg-[#1E293B]">{p}</option>)}
+                  {PRIORITIES.map(p => <option key={p} value={p} className="bg-[#1E293B]">{PRIO_LABEL[p] || p}</option>)}
                 </select>
                 {/* Timer */}
                 {isMyTimer ? (
@@ -245,70 +283,71 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               </div>
             </div>
           )}
-          {/* Tabs */}
-          <div className="flex border-b border-[#334155] px-4 gap-1">
+          {/* Tabs — horizontally scrollable on mobile */}
+          <div className="flex border-b border-[#334155] px-2 md:px-4 gap-0.5 md:gap-1 overflow-x-auto scrollbar-hide">
             {([
-              ["details", "Details", null],
-              ["comments", "Comments", comments.length],
-              ["checklist", "Checklist", checklist.length],
-              ["deps", "Dependencies", deps.blockedBy.length + deps.blocking.length],
-              ["files", "Files", null],
-              ["activity", "Activity", activity.length],
+              ["details", "\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14", null],
+              ["comments", "\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C", comments.length],
+              ["checklist", "\u0E40\u0E0A\u0E47\u0E04\u0E25\u0E34\u0E2A\u0E15\u0E4C", checklist.length],
+              ["deps", "\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07", deps.blockedBy.length + deps.blocking.length],
+              ["files", "\u0E44\u0E1F\u0E25\u0E4C", null],
+              ["activity", "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34", activity.length],
             ] as [Tab, string, number | null][]).map(([k, label, count]) => (
               <button
                 key={k}
                 onClick={() => setTab(k)}
-                className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-2.5 md:px-3 py-2 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                   tab === k ? "border-[#F7941D] text-white" : "border-transparent text-slate-400 hover:text-slate-200"
                 }`}
               >
-                {label} {count !== null && count > 0 && <span className="ml-1 text-xs text-slate-500">{count}</span>}
+                {label} {count !== null && count > 0 && <span className="ml-1 text-[10px] md:text-xs text-slate-500">{count}</span>}
               </button>
             ))}
           </div>
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="p-3 md:p-6">
           {loading && <div className="text-slate-400 text-sm">Loading...</div>}
           {!task && !loading && <div className="text-slate-400 text-sm">Task not found</div>}
 
           {task && tab === "details" && (
             <div className="space-y-4">
-              <Field label="Description">
+              <Field label="\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14\u0E07\u0E32\u0E19">
                 <textarea
                   className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm min-h-24"
                   value={task.description ?? ""}
+                  placeholder="\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14\u0E07\u0E32\u0E19..."
                   onChange={(e) => setTask({ ...task, description: e.target.value })}
                   onBlur={(e) => updateTask({ description: e.target.value })}
                 />
                 {task.description && <TranslateButton text={task.description} />}
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Assignee">
+                <Field label="\u0E1C\u0E39\u0E49\u0E23\u0E31\u0E1A\u0E1C\u0E34\u0E14\u0E0A\u0E2D\u0E1A">
                   <select className={inp} value={task.assignee_id ?? ""} onChange={(e) => updateTask({ assignee_id: e.target.value || null })}>
-                    <option value="">— Unassigned —</option>
+                    <option value="">{"\u2014 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E21\u0E2D\u0E1A\u0E2B\u0E21\u0E32\u0E22 \u2014"}</option>
                     {members.map(m => <option key={m.id} value={m.id}>{memberName(m)}</option>)}
                   </select>
                 </Field>
-                <Field label="Due date">
+                <Field label="\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E40\u0E2A\u0E23\u0E47\u0E08">
                   <input type="date" className={inp} value={task.due_date ?? ""}
                     onChange={(e) => updateTask({ due_date: e.target.value || null })} />
                 </Field>
-                <Field label="Start date">
+                <Field label="\u0E27\u0E31\u0E19\u0E40\u0E23\u0E34\u0E48\u0E21">
                   <input type="date" className={inp} value={task.start_date ?? ""}
                     onChange={(e) => updateTask({ start_date: e.target.value || null })} />
                 </Field>
-                <Field label="Estimated hours">
+                <Field label="\u0E0A\u0E31\u0E48\u0E27\u0E42\u0E21\u0E07\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13 (hrs)">
                   <input type="number" className={inp} value={task.estimated_hours ?? ""}
                     onChange={(e) => setTask({ ...task, estimated_hours: e.target.value ? Number(e.target.value) : null })}
                     onBlur={(e) => updateTask({ estimated_hours: e.target.value ? Number(e.target.value) : null })} />
                 </Field>
               </div>
               <div className="text-xs text-slate-400 pt-2 border-t border-[#334155]">
-                Actual hours: <span className="text-slate-200">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
+                {"\u0E0A\u0E31\u0E48\u0E27\u0E42\u0E21\u0E07\u0E08\u0E23\u0E34\u0E07"}: <span className="text-slate-200">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
                 {task.estimated_hours ? ` / ${Number(task.estimated_hours).toFixed(1)}h` : ""}
-                {saving && <span className="ml-2 text-[#00AEEF]">saving...</span>}
+                {saving && <span className="ml-2 text-[#00AEEF]">{"\u0E01\u0E33\u0E25\u0E31\u0E07\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01..."}</span>}
               </div>
             </div>
           )}
@@ -318,26 +357,27 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               <div className="flex gap-2">
                 <textarea
                   className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
-                  rows={2} placeholder="เขียนคอมเมนต์..." value={newComment}
+                  rows={2} placeholder={"\u0E40\u0E02\u0E35\u0E22\u0E19\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C..."} value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
                 />
                 <button onClick={addComment} disabled={!newComment.trim()}
                   className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50">
-                  ส่ง
+                  {"\u0E2A\u0E48\u0E07"}
                 </button>
               </div>
-              {comments.length === 0 && <div className="text-slate-400 text-sm text-center py-8">ยังไม่มีคอมเมนต์</div>}
+              {comments.length === 0 && <div className="text-slate-400 text-sm text-center py-8">{"\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E2D\u0E21\u0E40\u0E21\u0E19\u0E15\u0E4C"}</div>}
               {comments.map(c => (
                 <div key={c.id} className="bg-[#0F172A] border border-[#334155] rounded-lg p-3">
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                    <span className="text-slate-200 font-medium">{memberName(c.team_members)}</span>
+                    <span className="text-slate-200 font-medium">{authorLabel(c.author)}</span>
                     <div className="flex items-center gap-2">
                       <span>{new Date(c.created_at).toLocaleString("th-TH")}</span>
                       <button onClick={() => deleteComment(c.id)} className="text-red-400 hover:text-red-300"><Trash2 size={12} /></button>
                     </div>
                   </div>
-                  <div className="text-sm text-slate-100 whitespace-pre-wrap">{c.comment}</div>
-                  <TranslateButton text={c.comment} compact />
+                  <div className="text-sm text-slate-100 whitespace-pre-wrap">{c.content}</div>
+                  <TranslateButton text={c.content} compact />
                 </div>
               ))}
             </div>
@@ -347,7 +387,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
             <div className="space-y-2">
               <div className="flex gap-2">
                 <input className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
-                  placeholder="เพิ่มรายการ..." value={newCheckItem}
+                  placeholder={"\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23..."} value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addChecklist()} />
                 <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm">
@@ -356,7 +396,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               </div>
               {checklist.length > 0 && (
                 <div className="text-xs text-slate-400 mb-2">
-                  {checklist.filter(c => c.is_completed).length} / {checklist.length} เสร็จแล้ว
+                  {checklist.filter(c => c.is_completed).length} / {checklist.length} {"\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27"}
                 </div>
               )}
               {checklist.map(item => (
@@ -377,36 +417,37 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
           {tab === "deps" && (
             <div className="space-y-4">
               <div className="bg-[#0F172A] border border-[#334155] rounded-lg p-3 space-y-2">
-                <div className="text-xs text-slate-400 font-medium">เพิ่ม Dependency</div>
+                <div className="text-xs text-slate-400 font-medium">{"\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07"}</div>
+                <div className="text-[10px] text-slate-500 -mt-1">{"\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E17\u0E33\u0E01\u0E48\u0E2D\u0E19\u0E08\u0E36\u0E07\u0E40\u0E23\u0E34\u0E48\u0E21\u0E07\u0E32\u0E19\u0E19\u0E35\u0E49\u0E44\u0E14\u0E49"}</div>
                 <div className="flex gap-2">
                   <select className={inp + " flex-1"} value={newDepId} onChange={(e) => setNewDepId(e.target.value)}>
-                    <option value="">— เลือก task —</option>
+                    <option value="">{"\u2014 \u0E40\u0E25\u0E37\u0E2D\u0E01\u0E07\u0E32\u0E19 \u2014"}</option>
                     {allTasks.filter(t => t.id !== taskId).map(t => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
                   </select>
-                  <select className={inp + " w-20"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
-                    {["FS","SS","FF","SF"].map(t => <option key={t} value={t}>{t}</option>)}
+                  <select className={inp + " w-48"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
+                    {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
-                  <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">เพิ่ม</button>
+                  <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap">{"\u0E40\u0E1E\u0E34\u0E48\u0E21"}</button>
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-slate-300 mb-2">Blocked by ({deps.blockedBy.length})</div>
-                {deps.blockedBy.length === 0 && <div className="text-xs text-slate-500">—</div>}
+                <div className="text-sm font-medium text-slate-300 mb-2">{"\u0E15\u0E49\u0E2D\u0E07\u0E23\u0E2D\u0E07\u0E32\u0E19\u0E2D\u0E37\u0E48\u0E19\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E01\u0E48\u0E2D\u0E19"} ({deps.blockedBy.length})</div>
+                {deps.blockedBy.length === 0 && <div className="text-xs text-slate-500">{"\u2014 \u0E44\u0E21\u0E48\u0E21\u0E35 \u2014"}</div>}
                 {deps.blockedBy.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#0F172A] border border-[#334155] rounded-lg p-2 mb-1">
-                    <span className="text-sm text-slate-100">{d.depends_on?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{d.dependency_type}</span></span>
+                    <span className="text-sm text-slate-100">{d.depends?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
                     <button onClick={() => removeDep(d.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                   </div>
                 ))}
               </div>
               <div>
-                <div className="text-sm font-medium text-slate-300 mb-2">Blocking ({deps.blocking.length})</div>
-                {deps.blocking.length === 0 && <div className="text-xs text-slate-500">—</div>}
+                <div className="text-sm font-medium text-slate-300 mb-2">{"\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E23\u0E2D\u0E07\u0E32\u0E19\u0E19\u0E35\u0E49\u0E2D\u0E22\u0E39\u0E48"} ({deps.blocking.length})</div>
+                {deps.blocking.length === 0 && <div className="text-xs text-slate-500">{"\u2014 \u0E44\u0E21\u0E48\u0E21\u0E35 \u2014"}</div>}
                 {deps.blocking.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#0F172A] border border-[#334155] rounded-lg p-2 mb-1">
-                    <span className="text-sm text-slate-100">{d.tasks?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{d.dependency_type}</span></span>
+                    <span className="text-sm text-slate-100">{d.blocking?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
                     <button onClick={() => removeDep(d.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                   </div>
                 ))}
@@ -420,18 +461,15 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
           {tab === "activity" && (
             <div className="space-y-2">
-              {activity.length === 0 && <div className="text-slate-400 text-sm text-center py-8">ยังไม่มี activity</div>}
+              {activity.length === 0 && <div className="text-slate-400 text-sm text-center py-8">{"\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34"}</div>}
               {activity.map(a => (
                 <div key={a.id} className="flex gap-3 text-sm bg-[#0F172A] border border-[#334155] rounded-lg p-3">
                   <Activity size={14} className="text-[#00AEEF] mt-0.5 shrink-0" />
                   <div className="flex-1">
                     <div className="text-slate-100">
-                      <span className="font-medium">{memberName(a.team_members)}</span>{" "}
+                      <span className="font-medium">{authorLabel(a.actor)}</span>{" "}
                       <span className="text-slate-300">{a.action}</span>
-                      {a.field_name && <span className="text-slate-400"> {a.field_name}</span>}
-                      {a.old_value && a.new_value && (
-                        <span className="text-slate-400">: <span className="line-through">{a.old_value}</span> → <span className="text-slate-200">{a.new_value}</span></span>
-                      )}
+                      {a.entity_type && <span className="text-slate-400"> {a.entity_type}</span>}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">{new Date(a.created_at).toLocaleString("th-TH")}</div>
                   </div>

@@ -115,14 +115,14 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
   };
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
+    <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none -mx-3 px-3 md:mx-0 md:px-0">
       {COLS.map(col => {
         const colTasks = tasks.filter(t => t.status === col.key);
         const isOver = overCol === col.key;
         return (
           <div
             key={col.key}
-            className="min-w-[300px] w-[300px] flex-shrink-0"
+            className="min-w-[260px] w-[260px] md:min-w-[300px] md:w-[300px] flex-shrink-0 snap-start"
             onDragOver={(e) => onDragOver(e, col.key)}
             onDragLeave={() => setOverCol(o => o === col.key ? null : o)}
             onDrop={(e) => onDrop(e, col.key)}

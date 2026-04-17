@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, Fragment } from "react";
 import { Plus, Trash2, Edit3, AlertTriangle, ShieldCheck } from "lucide-react";
+import TranslateButton from "./TranslateButton";
 
 interface Risk {
   id: string; project_id: string; title: string; description?: string | null;
@@ -83,22 +84,22 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 flex-1">
           <Stat label="ความเสี่ยงสูง" value={stats.high} color="#EF4444" />
           <Stat label="ความเสี่ยงกลาง" value={stats.med} color="#F7941D" />
           <Stat label="ความเสี่ยงต่ำ" value={stats.low} color="#22C55E" />
           <Stat label="ปิดแล้ว" value={stats.closed} color="#94A3B8" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
-            <Plus size={16} /> เพิ่ม Risk
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <Plus size={14} /> เพิ่ม Risk
           </button>
         )}
       </div>
 
-      {/* Risk Matrix */}
-      <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-4">
+      {/* Risk Matrix — hidden on small phones */}
+      <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-3 md:p-4 hidden sm:block">
         <h3 className="text-sm font-semibold text-white mb-3">Risk Matrix (Probability × Impact)</h3>
         <div className="flex gap-2">
           <div className="flex flex-col justify-end pb-6">
@@ -144,8 +145,8 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
         {items.sort((a, b) => SCORE[b.probability] * SCORE[b.impact] - SCORE[a.probability] * SCORE[a.impact]).map(r => {
           const score = SCORE[r.probability] * SCORE[r.impact];
           return (
-            <div key={r.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-start gap-3">
-              <div className="w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0"
+            <div key={r.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex flex-col items-center justify-center shrink-0"
                 style={{ background: `${cellColor(score)}25`, border: `1px solid ${cellColor(score)}60` }}>
                 <AlertTriangle size={14} style={{ color: cellColor(score) }} />
                 <span className="text-[10px] font-bold mt-0.5" style={{ color: cellColor(score) }}>{score}</span>
@@ -157,11 +158,19 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
                   <span className="text-[10px] text-slate-500">P:{LBL[r.probability]} × I:{LBL[r.impact]}</span>
                 </div>
                 <div className="text-sm font-medium text-white">{r.title}</div>
-                {r.description && <div className="text-xs text-slate-400 mt-0.5">{r.description}</div>}
+                {r.description && (
+                  <>
+                    <div className="text-xs text-slate-400 mt-0.5">{r.description}</div>
+                    <TranslateButton text={r.description} compact />
+                  </>
+                )}
                 {r.mitigation && (
-                  <div className="text-xs text-[#22C55E] mt-1 flex items-start gap-1">
-                    <ShieldCheck size={11} className="mt-0.5 shrink-0" /> {r.mitigation}
-                  </div>
+                  <>
+                    <div className="text-xs text-[#22C55E] mt-1 flex items-start gap-1">
+                      <ShieldCheck size={11} className="mt-0.5 shrink-0" /> {r.mitigation}
+                    </div>
+                    <TranslateButton text={r.mitigation} compact />
+                  </>
                 )}
                 <div className="text-xs text-slate-500 mt-1">เจ้าของ: {memberName(r.team_members)}</div>
               </div>
@@ -196,9 +205,9 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
-      <div className="text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+      <div className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</div>
+      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5">{label}</div>
     </div>
   );
 }
