@@ -179,24 +179,24 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
         {canManage && (
           <button
             onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
+            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2"
           >
             <Plus size={16} /> {L("createQuotation")}
           </button>
         )}
       </div>
 
-      {loading && !items.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !items.length && <div className="text-center text-gray-500 py-12">Loading...</div>}
       {!loading && !items.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
-          <FileText size={40} className="mx-auto mb-3 text-slate-600" />
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-gray-500">
+          <FileText size={40} className="mx-auto mb-3 text-gray-500" />
           {L("noQuotations")}
         </div>
       )}
 
       <div className="space-y-2">
         {items.map((quo) => (
-          <div key={quo.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+          <div key={quo.id} className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-4">
             <div className="flex items-start gap-3">
               <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
@@ -206,26 +206,26 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-sm font-mono font-medium text-white">{quo.quotation_no}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: STATUS_COLORS[quo.status] }}>
+                  <span className="text-sm font-mono font-medium text-gray-900">{quo.quotation_no}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded text-gray-900" style={{ background: STATUS_COLORS[quo.status] }}>
                     {STATUS_LABELS[quo.status]}
                   </span>
                 </div>
-                <div className="text-sm text-white font-medium mb-0.5">{quo.title}</div>
-                <div className="text-xs text-slate-400">
+                <div className="text-sm text-gray-900 font-medium mb-0.5">{quo.title}</div>
+                <div className="text-xs text-gray-500">
                   {quo.customer_name && <span>{quo.customer_name} · </span>}
                   {new Date(quo.quotation_date).toLocaleDateString("th-TH")}
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-base font-bold text-white">{fmtMoney(quo.total)}</div>
-                <div className="text-[10px] text-slate-500">VAT {quo.vat_pct}%</div>
+                <div className="text-base font-bold text-gray-900">{fmtMoney(quo.total)}</div>
+                <div className="text-[10px] text-gray-500">VAT {quo.vat_pct}%</div>
               </div>
               {canManage && (
                 <div className="flex items-center gap-1 ml-3">
                   <button
                     onClick={() => setViewingId(quo.id)}
-                    className="p-1.5 text-slate-400 hover:text-white"
+                    className="p-1.5 text-gray-500 hover:text-gray-900"
                     title={L("viewDetails")}
                   >
                     <Eye size={14} />
@@ -233,7 +233,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
                   {quo.status === "draft" && (
                     <button
                       onClick={() => updateStatus(quo, "sent")}
-                      className="px-2 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs flex items-center gap-1"
+                      className="px-2 py-1.5 bg-blue-100/50 text-blue-600 rounded text-xs flex items-center gap-1"
                     >
                       <Send size={11} /> {L("send")}
                     </button>
@@ -241,12 +241,12 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
                   {quo.status === "sent" && (
                     <button
                       onClick={() => updateStatus(quo, "approved")}
-                      className="px-2 py-1.5 bg-green-500/20 text-green-300 rounded text-xs flex items-center gap-1"
+                      className="px-2 py-1.5 bg-green-100/50 text-green-600 rounded text-xs flex items-center gap-1"
                     >
                       <CheckCircle2 size={11} /> {L("approveBtn")}
                     </button>
                   )}
-                  <button onClick={() => remove(quo.id)} className="p-1.5 text-red-400 hover:text-red-300">
+                  <button onClick={() => remove(quo.id)} className="p-1.5 text-red-600 hover:text-red-700">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -279,11 +279,11 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
+    <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-3">
       <div className="text-base font-bold" style={{ color }}>
         {value}
       </div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-xs text-gray-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -292,13 +292,13 @@ function QuotationDetailView({ quotation, onClose, lang = "th" }: { quotation: Q
   const L = (key: string) => (panelText[key as PanelTextKey] as any)?.[lang] ?? (panelText[key as PanelTextKey] as any)?.th ?? key;
 
   return (
-    <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
-      <div className="bg-[#0F172A] rounded-lg p-3 space-y-2">
+    <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
+      <div className="bg-[#F1F5F9] rounded-lg p-3 space-y-2">
         {quotation.items?.map((item, idx) => (
-          <div key={item.id || idx} className="flex justify-between text-sm text-slate-300">
+          <div key={item.id || idx} className="flex justify-between text-sm text-gray-500">
             <div className="flex-1">
               <div>{item.description}</div>
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-gray-500">
                 {item.qty} × {fmtMoney(item.unit_price)} = {fmtMoney(item.amount)}
               </div>
             </div>
@@ -306,26 +306,26 @@ function QuotationDetailView({ quotation, onClose, lang = "th" }: { quotation: Q
         ))}
       </div>
       <div className="space-y-1 text-sm">
-        <div className="flex justify-between text-slate-400">
+        <div className="flex justify-between text-gray-500">
           <span>{L("subtotal")}</span>
           <span>{fmtMoney(quotation.subtotal)}</span>
         </div>
         {quotation.discount > 0 && (
-          <div className="flex justify-between text-orange-300">
+          <div className="flex justify-between text-orange-600">
             <span>{L("discount")}</span>
             <span>-{fmtMoney(quotation.discount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-cyan-300">
+        <div className="flex justify-between text-cyan-600">
           <span>{L("vat")} {quotation.vat_pct}%</span>
           <span>{fmtMoney(quotation.vat_amount)}</span>
         </div>
-        <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
+        <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-[#E2E8F0]">
           <span>{L("totalAmount")}</span>
           <span>{fmtMoney(quotation.total)}</span>
         </div>
       </div>
-      <button onClick={onClose} className="w-full px-3 py-1.5 text-slate-300 hover:text-white text-sm">
+      <button onClick={onClose} className="w-full px-3 py-1.5 text-gray-500 hover:text-gray-900 text-sm">
         {L("close")}
       </button>
     </div>
@@ -405,15 +405,15 @@ function CreateQuotationModal({
     }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">{L("createTitle")}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{L("createTitle")}</h3>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={L("quotationNo")}>
@@ -468,7 +468,7 @@ function CreateQuotationModal({
         </Field>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-2">{L("items")}</label>
+          <label className="block text-xs text-gray-500 mb-2">{L("items")}</label>
           <div className="space-y-2">
             {form.items.map((item, idx) => (
               <div key={idx} className="grid grid-cols-12 gap-2">
@@ -511,7 +511,7 @@ function CreateQuotationModal({
                     const newItems = form.items.filter((_, i) => i !== idx);
                     setForm({ ...form, items: newItems });
                   }}
-                  className="col-span-2 p-1.5 text-red-400 hover:text-red-300"
+                  className="col-span-2 p-1.5 text-red-600 hover:text-red-700"
                 >
                   <X size={14} />
                 </button>
@@ -521,7 +521,7 @@ function CreateQuotationModal({
           <button
             type="button"
             onClick={() => setForm({ ...form, items: [...form.items, { description: "", qty: 1, unit_price: 0 }] })}
-            className="mt-2 text-xs text-blue-400 hover:text-blue-300"
+            className="mt-2 text-xs text-blue-600 hover:text-blue-600"
           >
             {L("addItem")}
           </button>
@@ -547,37 +547,37 @@ function CreateQuotationModal({
           </Field>
         </div>
 
-        <div className="bg-[#0F172A] rounded-lg p-3 space-y-1 text-sm">
-          <div className="flex justify-between text-slate-400">
+        <div className="bg-[#F1F5F9] rounded-lg p-3 space-y-1 text-sm">
+          <div className="flex justify-between text-gray-500">
             <span>{L("subtotal")}</span>
             <span>{fmtMoney(subtotal)}</span>
           </div>
           {form.discount > 0 && (
-            <div className="flex justify-between text-orange-300">
+            <div className="flex justify-between text-orange-600">
               <span>{L("discount")}</span>
               <span>-{fmtMoney(form.discount)}</span>
             </div>
           )}
-          <div className="flex justify-between text-cyan-300">
+          <div className="flex justify-between text-cyan-600">
             <span>{L("vat")} {form.vat_pct}%</span>
             <span>{fmtMoney(vat)}</span>
           </div>
-          <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
+          <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-[#E2E8F0]">
             <span>{L("totalAmount")}</span>
             <span>{fmtMoney(total)}</span>
           </div>
         </div>
 
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
+          <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">
             {L("cancel")}
           </button>
           <button
             onClick={submit}
             disabled={busy}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50"
           >
             {busy ? L("creating") : L("create")}
           </button>
@@ -590,7 +590,7 @@ function CreateQuotationModal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
       {children}
     </div>
   );

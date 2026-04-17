@@ -29,7 +29,7 @@ export default function DailyStandupCard({ lang = "th" }: { lang?: string }) {
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-purple-400" />
           <h3 className="text-sm font-semibold text-white">AI Daily Standup</h3>
-          {meta && <span className="text-xs text-slate-400">— {meta.logs_count} logs · {meta.open_tasks_count} open tasks</span>}
+          {meta && <span className="text-xs text-gray-500">— {meta.logs_count} logs · {meta.open_tasks_count} open tasks</span>}
         </div>
         <button onClick={generate} disabled={busy}
           className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium disabled:opacity-40 flex items-center gap-1.5">
@@ -43,7 +43,7 @@ export default function DailyStandupCard({ lang = "th" }: { lang?: string }) {
         </div>
       )}
       {!text && !err && !busy && (
-        <div className="text-xs text-slate-400">Click Generate to create your daily standup from yesterday&apos;s time logs and open tasks.</div>
+        <div className="text-xs text-gray-500">Click Generate to create your daily standup from yesterday&apos;s time logs and open tasks.</div>
       )}
     </div>
   );

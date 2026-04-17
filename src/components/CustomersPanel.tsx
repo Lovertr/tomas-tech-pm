@@ -291,8 +291,8 @@ export default function CustomersPanel({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">{L('title', lang)}</h2>
-          <p className="text-gray-400 text-sm mt-1">{L('subtitle', lang)}</p>
+          <h2 className="text-2xl font-bold text-gray-900">{L('title', lang)}</h2>
+          <p className="text-gray-500 text-sm mt-1">{L('subtitle', lang)}</p>
         </div>
         <div className="flex gap-2">
           <TranslateButton text={`${L('title', lang)} — ${L('subtitle', lang)}`} />
@@ -302,7 +302,7 @@ export default function CustomersPanel({
                 resetForm();
                 setShowForm(true);
               }}
-              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm flex items-center gap-2"
             >
               <Plus size={16} />
               {L('addCustomer', lang)}
@@ -313,16 +313,16 @@ export default function CustomersPanel({
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('total', lang)}</p>
-          <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('total', lang)}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
         </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('activeCustomers', lang)}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('activeCustomers', lang)}</p>
           <p className="text-3xl font-bold text-green-400 mt-2">{stats.active}</p>
         </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('prospects', lang)}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('prospects', lang)}</p>
           <p className="text-3xl font-bold text-blue-400 mt-2">{stats.prospect}</p>
         </div>
       </div>
@@ -336,7 +336,7 @@ export default function CustomersPanel({
             placeholder={L('searchPlaceholder', lang)}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0F172A] border border-[#334155] rounded-lg pl-10 pr-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+            className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg pl-10 pr-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -346,8 +346,8 @@ export default function CustomersPanel({
               onClick={() => setStatusFilter(status)}
               className={`px-3 py-2 rounded-lg text-sm transition ${
                 statusFilter === status
-                  ? 'bg-[#003087] text-white'
-                  : 'bg-[#1E293B] text-gray-300 border border-[#334155]'
+                  ? 'bg-[#003087] text-gray-900'
+                  : 'bg-[#FFFFFF] text-gray-700 border border-[#E2E8F0]'
               }`}
             >
               {status === 'all' ? L('all', lang) : L(status, lang)}
@@ -359,20 +359,20 @@ export default function CustomersPanel({
       {/* Customer List */}
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-8 text-gray-400">{L('loading', lang)}</div>
+          <div className="text-center py-8 text-gray-500">{L('loading', lang)}</div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">{L('noCustomers', lang)}</div>
+          <div className="text-center py-8 text-gray-500">{L('noCustomers', lang)}</div>
         ) : (
           filteredCustomers.map((customer) => (
             <div
               key={customer.id}
               onClick={() => handleViewDetail(customer)}
-              className="bg-[#1E293B] rounded-xl border border-[#334155] p-4 hover:border-[#003087] cursor-pointer transition"
+              className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 hover:border-[#003087] cursor-pointer transition"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-white">{customer.company_name}</h3>
+                    <h3 className="font-semibold text-gray-900">{customer.company_name}</h3>
                     <span
                       className="px-2 py-1 rounded text-xs font-medium"
                       style={{
@@ -383,7 +383,7 @@ export default function CustomersPanel({
                       {customer.status}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-400 mb-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-500 mb-2">
                     {customer.industry && <p>{L('industry', lang)} {customer.industry}</p>}
                     <p>{L('contacts', lang)} {customer.contact_count ?? 0}</p>
                     {customer.phone && <p>{L('phone', lang)} {customer.phone}</p>}
@@ -397,7 +397,7 @@ export default function CustomersPanel({
                         e.stopPropagation();
                         handleEditCustomer(customer);
                       }}
-                      className="p-2 hover:bg-[#334155] rounded-lg transition"
+                      className="p-2 hover:bg-[#E2E8F0] rounded-lg transition"
                     >
                       <Edit2 size={16} className="text-blue-400" />
                     </button>
@@ -406,7 +406,7 @@ export default function CustomersPanel({
                         e.stopPropagation();
                         handleDeleteCustomer(customer.id);
                       }}
-                      className="p-2 hover:bg-[#334155] rounded-lg transition"
+                      className="p-2 hover:bg-[#E2E8F0] rounded-lg transition"
                     >
                       <Trash2 size={16} className="text-red-400" />
                     </button>
@@ -421,9 +421,9 @@ export default function CustomersPanel({
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-xl font-bold text-gray-900">
                 {selectedCustomer ? L('editCustomer', lang) : L('addNewCustomer', lang)}
               </h3>
               <button
@@ -431,7 +431,7 @@ export default function CustomersPanel({
                   setShowForm(false);
                   resetForm();
                 }}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-500 hover:text-gray-900"
               >
                 <X size={24} />
               </button>
@@ -440,7 +440,7 @@ export default function CustomersPanel({
             <form onSubmit={handleSaveCustomer} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('companyName', lang)}
                   </label>
                   <input
@@ -450,22 +450,22 @@ export default function CustomersPanel({
                     onChange={(e) =>
                       setFormData({ ...formData, company_name: e.target.value })
                     }
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('industryField', lang)}
                   </label>
                   <input
                     type="text"
                     value={formData.industry}
                     onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('status', lang)}
                   </label>
                   <select
@@ -473,7 +473,7 @@ export default function CustomersPanel({
                     onChange={(e) =>
                       setFormData({ ...formData, status: e.target.value as any })
                     }
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   >
                     <option value="prospect">{L('prospect', lang)}</option>
                     <option value="active">{L('active', lang)}</option>
@@ -482,68 +482,68 @@ export default function CustomersPanel({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('taxId', lang)}
                   </label>
                   <input
                     type="text"
                     value={formData.tax_id}
                     onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('phoneField', lang)}
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('emailField', lang)}
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('website', lang)}
                   </label>
                   <input
                     type="url"
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('address', lang)}
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('notes', lang)}
                   </label>
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
                     rows={3}
                   />
                 </div>
@@ -552,7 +552,7 @@ export default function CustomersPanel({
               <div className="flex gap-2 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('save', lang)}
                 </button>
@@ -562,7 +562,7 @@ export default function CustomersPanel({
                     setShowForm(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('cancel', lang)}
                 </button>
@@ -575,86 +575,86 @@ export default function CustomersPanel({
       {/* Detail Modal */}
       {showDetail && selectedCustomer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">{selectedCustomer.company_name}</h3>
+              <h3 className="text-xl font-bold text-gray-900">{selectedCustomer.company_name}</h3>
               <button
                 onClick={() => setShowDetail(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-500 hover:text-gray-900"
               >
                 <X size={24} />
               </button>
             </div>
 
             {/* Customer Info */}
-            <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4 mb-4">
-              <h4 className="font-semibold text-white mb-3">{L('customerInfo', lang)}</h4>
+            <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 mb-4">
+              <h4 className="font-semibold text-gray-900 mb-3">{L('customerInfo', lang)}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 {selectedCustomer.industry && (
                   <div>
-                    <span className="text-gray-400">{L('industry', lang)}</span>
-                    <p className="text-white">{selectedCustomer.industry}</p>
+                    <span className="text-gray-500">{L('industry', lang)}</span>
+                    <p className="text-gray-900">{selectedCustomer.industry}</p>
                   </div>
                 )}
                 {selectedCustomer.tax_id && (
                   <div>
-                    <span className="text-gray-400">{L('taxLabel', lang)}</span>
-                    <p className="text-white">{selectedCustomer.tax_id}</p>
+                    <span className="text-gray-500">{L('taxLabel', lang)}</span>
+                    <p className="text-gray-900">{selectedCustomer.tax_id}</p>
                   </div>
                 )}
                 {selectedCustomer.phone && (
                   <div className="flex items-center gap-2">
-                    <Phone size={16} className="text-gray-400" />
+                    <Phone size={16} className="text-gray-500" />
                     <div>
-                      <span className="text-gray-400">{L('phoneLabel', lang)}</span>
-                      <p className="text-white">{selectedCustomer.phone}</p>
+                      <span className="text-gray-500">{L('phoneLabel', lang)}</span>
+                      <p className="text-gray-900">{selectedCustomer.phone}</p>
                     </div>
                   </div>
                 )}
                 {selectedCustomer.email && (
                   <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-gray-400" />
+                    <Mail size={16} className="text-gray-500" />
                     <div>
-                      <span className="text-gray-400">{L('emailLabel', lang)}</span>
-                      <p className="text-white">{selectedCustomer.email}</p>
+                      <span className="text-gray-500">{L('emailLabel', lang)}</span>
+                      <p className="text-gray-900">{selectedCustomer.email}</p>
                     </div>
                   </div>
                 )}
                 {selectedCustomer.address && (
                   <div className="flex items-center gap-2 md:col-span-2">
-                    <MapPin size={16} className="text-gray-400" />
+                    <MapPin size={16} className="text-gray-500" />
                     <div>
-                      <span className="text-gray-400">{L('addressLabel', lang)}</span>
-                      <p className="text-white">{selectedCustomer.address}</p>
+                      <span className="text-gray-500">{L('addressLabel', lang)}</span>
+                      <p className="text-gray-900">{selectedCustomer.address}</p>
                     </div>
                   </div>
                 )}
                 {selectedCustomer.website && (
                   <div className="flex items-center gap-2 md:col-span-2">
-                    <Globe size={16} className="text-gray-400" />
+                    <Globe size={16} className="text-gray-500" />
                     <div>
-                      <span className="text-gray-400">{L('websiteLabel', lang)}</span>
-                      <p className="text-white">{selectedCustomer.website}</p>
+                      <span className="text-gray-500">{L('websiteLabel', lang)}</span>
+                      <p className="text-gray-900">{selectedCustomer.website}</p>
                     </div>
                   </div>
                 )}
               </div>
               {selectedCustomer.notes && (
-                <div className="mt-3 pt-3 border-t border-[#334155]">
-                  <span className="text-gray-400 text-sm">{L('notesLabel', lang)}</span>
-                  <p className="text-white text-sm">{selectedCustomer.notes}</p>
+                <div className="mt-3 pt-3 border-t border-[#E2E8F0]">
+                  <span className="text-gray-500 text-sm">{L('notesLabel', lang)}</span>
+                  <p className="text-gray-900 text-sm">{selectedCustomer.notes}</p>
                 </div>
               )}
             </div>
 
             {/* Contacts */}
-            <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
+            <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="font-semibold text-white">{L('contactsList', lang)} ({contacts.length})</h4>
+                <h4 className="font-semibold text-gray-900">{L('contactsList', lang)} ({contacts.length})</h4>
                 {canManage && (
                   <button
                     onClick={() => setShowAddContact(true)}
-                    className="px-3 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center gap-1"
+                    className="px-3 py-1 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded text-xs flex items-center gap-1"
                   >
                     <Plus size={14} />
                     {L('addContact', lang)}
@@ -664,24 +664,24 @@ export default function CustomersPanel({
 
               <div className="space-y-2">
                 {contacts.length === 0 ? (
-                  <p className="text-gray-400 text-sm">{L('noContacts', lang)}</p>
+                  <p className="text-gray-500 text-sm">{L('noContacts', lang)}</p>
                 ) : (
                   contacts.map((contact) => (
                     <div
                       key={contact.id}
-                      className="bg-[#0F172A] rounded-lg border border-[#334155] p-3"
+                      className="bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] p-3"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-white">{contact.name}</p>
+                            <p className="font-medium text-gray-900">{contact.name}</p>
                             {contact.is_primary && (
                               <span className="px-2 py-0.5 bg-[#F7941D] text-black text-xs rounded">
                                 {L('primaryContact', lang)}
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1 space-y-0.5">
+                          <div className="text-xs text-gray-500 mt-1 space-y-0.5">
                             {contact.email && (
                               <p className="flex items-center gap-1">
                                 <Mail size={12} />
@@ -709,9 +709,9 @@ export default function CustomersPanel({
               </div>
 
               {showAddContact && (
-                <form onSubmit={handleAddContact} className="mt-4 p-4 bg-[#0F172A] rounded-lg border border-[#334155] space-y-3">
+                <form onSubmit={handleAddContact} className="mt-4 p-4 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       {L('name', lang)}
                     </label>
                     <input
@@ -721,11 +721,11 @@ export default function CustomersPanel({
                       onChange={(e) =>
                         setContactFormData({ ...contactFormData, name: e.target.value })
                       }
-                      className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       {L('emailRequired', lang)}
                     </label>
                     <input
@@ -735,11 +735,11 @@ export default function CustomersPanel({
                       onChange={(e) =>
                         setContactFormData({ ...contactFormData, email: e.target.value })
                       }
-                      className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       {L('phoneOptional', lang)}
                     </label>
                     <input
@@ -748,11 +748,11 @@ export default function CustomersPanel({
                       onChange={(e) =>
                         setContactFormData({ ...contactFormData, phone: e.target.value })
                       }
-                      className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       {L('position', lang)}
                     </label>
                     <input
@@ -761,10 +761,10 @@ export default function CustomersPanel({
                       onChange={(e) =>
                         setContactFormData({ ...contactFormData, position: e.target.value })
                       }
-                      className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                     />
                   </div>
-                  <label className="flex items-center gap-2 text-sm text-gray-300">
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
                     <input
                       type="checkbox"
                       checked={contactFormData.is_primary}
@@ -778,7 +778,7 @@ export default function CustomersPanel({
                   <div className="flex gap-2">
                     <button
                       type="submit"
-                      className="flex-1 px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-sm font-medium"
+                      className="flex-1 px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded text-sm font-medium"
                     >
                       {L('save', lang)}
                     </button>
@@ -788,7 +788,7 @@ export default function CustomersPanel({
                         setShowAddContact(false);
                         setContactFormData({ name: '', email: '', phone: '', position: '', is_primary: false });
                       }}
-                      className="flex-1 px-3 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded text-sm font-medium"
+                      className="flex-1 px-3 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded text-sm font-medium"
                     >
                       {L('cancel', lang)}
                     </button>
@@ -801,13 +801,13 @@ export default function CustomersPanel({
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => handleEditCustomer(selectedCustomer)}
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('edit', lang)}
                 </button>
                 <button
                   onClick={() => setShowDetail(false)}
-                  className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('close', lang)}
                 </button>

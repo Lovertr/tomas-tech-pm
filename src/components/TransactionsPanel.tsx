@@ -145,29 +145,29 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
         {canManage && (
           <button
             onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
+            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2"
           >
             <Plus size={16} /> {L('record_transaction')}
           </button>
         )}
       </div>
 
-      <div className="flex rounded-xl overflow-hidden border border-[#334155] w-fit flex-wrap">
+      <div className="flex rounded-xl overflow-hidden border border-[#E2E8F0] w-fit flex-wrap">
         {(["all", "income", "expense"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilterType(f)}
-            className={`px-4 py-1.5 text-xs font-medium ${filterType === f ? "text-white" : "text-slate-400"}`}
-            style={filterType === f ? { background: "#003087" } : { background: "#0F172A" }}
+            className={`px-4 py-1.5 text-xs font-medium ${filterType === f ? "text-gray-900" : "text-slate-500"}`}
+            style={filterType === f ? { background: "#003087" } : { background: "#F1F5F9" }}
           >
             {f === "all" ? L('all_filter') : f === "income" ? L('income_filter') : L('expense_filter')}
           </button>
         ))}
       </div>
 
-      {loading && !filtered.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !filtered.length && <div className="text-center text-slate-500 py-12">Loading...</div>}
       {!loading && !filtered.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-slate-500">
           <ArrowUpRight size={40} className="mx-auto mb-3 text-slate-600" />
           {L('no_transactions')}
         </div>
@@ -177,7 +177,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
         {filtered.map((txn) => {
           const isIncome = txn.type === "income";
           return (
-            <div key={txn.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+            <div key={txn.id} className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
@@ -191,17 +191,17 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-sm font-medium text-white">{CATEGORY_LABELS[txn.category] || txn.category}</span>
+                    <span className="text-sm font-medium text-gray-900">{CATEGORY_LABELS[txn.category] || txn.category}</span>
                     {txn.projects && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100/50 text-slate-600">
                         {txn.projects.project_code}
                       </span>
                     )}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: isIncome ? "#22C55E40" : "#EF444440" }}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded text-gray-900" style={{ background: isIncome ? "#22C55E40" : "#EF444440" }}>
                       {isIncome ? L('income_label') : L('expense_label')}
                     </span>
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-500">
                     {new Date(txn.transaction_date).toLocaleDateString("th-TH")}
                     {txn.reference_no && <span> · {L('reference_no')} {txn.reference_no}</span>}
                     {txn.description && (
@@ -220,7 +220,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
                 </div>
                 {canManage && (
                   <div className="flex items-center gap-1 ml-3">
-                    <button onClick={() => setEditingId(txn.id)} className="p-1.5 text-slate-400 hover:text-white" title={L('edit_title')}>
+                    <button onClick={() => setEditingId(txn.id)} className="p-1.5 text-slate-500 hover:text-gray-900" title={L('edit_title')}>
                       <Edit2 size={14} />
                     </button>
                     <button onClick={() => remove(txn.id)} className="p-1.5 text-red-400 hover:text-red-300">
@@ -265,11 +265,11 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
+    <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-3">
       <div className="text-base font-bold" style={{ color }}>
         {value}
       </div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -331,15 +331,15 @@ function CreateTransactionModal({
     }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white">{L('modal_title')}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{L('modal_title')}</h3>
 
         <Field label={L('project_label') + " *"}>
           <select
@@ -431,13 +431,13 @@ function CreateTransactionModal({
         {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">
+          <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:text-gray-900 text-sm">
             {L('cancel_button')}
           </button>
           <button
             onClick={submit}
             disabled={busy}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50"
           >
             {busy ? L('recording') : L('save_button')}
           </button>
@@ -485,10 +485,10 @@ function EditTransactionForm({
     }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
-    <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
+    <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
       <div className="grid grid-cols-2 gap-2">
         <Field label={L('amount_label')}>
           <input
@@ -524,13 +524,13 @@ function EditTransactionForm({
         />
       </Field>
       <div className="flex justify-end gap-2">
-        <button onClick={onClose} className="px-3 py-1.5 text-slate-300 hover:text-white text-sm">
+        <button onClick={onClose} className="px-3 py-1.5 text-slate-600 hover:text-gray-900 text-sm">
           {L('cancel_button')}
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
+          className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50"
         >
           {busy ? L('saving') : L('save_button')}
         </button>
@@ -542,7 +542,7 @@ function EditTransactionForm({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs text-slate-500 mb-1">{label}</label>
       {children}
     </div>
   );

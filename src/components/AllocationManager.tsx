@@ -84,10 +84,10 @@ export default function AllocationManager({ projects, members, canEdit }: Props)
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
-        <div className="flex items-center gap-2 text-white">
+        <div className="flex items-center gap-2 text-gray-900">
           <Users size={20} className="text-[#00AEEF]" />
           <h2 className="text-lg font-semibold">Project Member Allocation</h2>
-          <span className="text-xs text-slate-400">({rows.length} รายการ)</span>
+          <span className="text-xs text-gray-500">({rows.length} รายการ)</span>
         </div>
         {canEdit && (
           <button
@@ -98,18 +98,18 @@ export default function AllocationManager({ projects, members, canEdit }: Props)
         )}
       </div>
 
-      <div className="flex flex-wrap gap-3 bg-[#1E293B] border border-[#334155] rounded-lg p-3">
-        <select className="bg-[#0F172A] border border-[#334155] rounded px-2 py-1.5 text-sm text-white"
+      <div className="flex flex-wrap gap-3 bg-white border border-gray-300 rounded-lg p-3">
+        <select className="bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-900"
           value={filterProject} onChange={e => setFilterProject(e.target.value)}>
           <option value="">ทุก Project</option>
           {projects.map(p => <option key={p.id} value={p.id}>{projectLabel(p)}</option>)}
         </select>
-        <select className="bg-[#0F172A] border border-[#334155] rounded px-2 py-1.5 text-sm text-white"
+        <select className="bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-900"
           value={filterMember} onChange={e => setFilterMember(e.target.value)}>
           <option value="">ทุก Member</option>
           {members.map(m => <option key={m.id} value={m.id}>{memberLabel(m)}</option>)}
         </select>
-        <label className="flex items-center gap-1.5 text-sm text-slate-300">
+        <label className="flex items-center gap-1.5 text-sm text-gray-600">
           <input type="checkbox" checked={activeOnly} onChange={e => setActiveOnly(e.target.checked)} />
           Active only
         </label>
@@ -117,10 +117,10 @@ export default function AllocationManager({ projects, members, canEdit }: Props)
 
       {err && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3">{err}</div>}
 
-      <div className="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#0F172A] text-slate-400">
+            <thead className="bg-gray-50 text-gray-500">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Project</th>
                 <th className="text-left px-4 py-3 font-medium">Member</th>
@@ -135,34 +135,34 @@ export default function AllocationManager({ projects, members, canEdit }: Props)
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={canEdit ? 9 : 8} className="text-center py-8 text-slate-400">Loading...</td></tr>
+                <tr><td colSpan={canEdit ? 9 : 8} className="text-center py-8 text-gray-500">Loading...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={canEdit ? 9 : 8} className="text-center py-8 text-slate-400">ยังไม่มี allocation</td></tr>
+                <tr><td colSpan={canEdit ? 9 : 8} className="text-center py-8 text-gray-500">ยังไม่มี allocation</td></tr>
               ) : rows.map(r => {
                 const total = memberTotals.get(r.team_member_id) ?? 0;
                 const over = total > 100;
                 return (
-                  <tr key={r.id} className="border-t border-[#334155] hover:bg-[#0F172A]/50">
-                    <td className="px-4 py-3 text-white">{projectLabel(r.projects)}</td>
-                    <td className="px-4 py-3 text-white">{memberLabel(r.team_members)}</td>
-                    <td className="px-4 py-3 text-slate-300">{r.role_in_project || "-"}</td>
-                    <td className="px-4 py-3 text-right text-white font-medium">{Number(r.allocation_pct)}%</td>
-                    <td className={`px-4 py-3 text-right font-medium ${over ? "text-red-400" : "text-slate-300"}`}>
+                  <tr key={r.id} className="border-t border-gray-300 hover:bg-gray-50/50">
+                    <td className="px-4 py-3 text-gray-900">{projectLabel(r.projects)}</td>
+                    <td className="px-4 py-3 text-gray-900">{memberLabel(r.team_members)}</td>
+                    <td className="px-4 py-3 text-gray-600">{r.role_in_project || "-"}</td>
+                    <td className="px-4 py-3 text-right text-gray-900 font-medium">{Number(r.allocation_pct)}%</td>
+                    <td className={`px-4 py-3 text-right font-medium ${over ? "text-red-600" : "text-gray-600"}`}>
                       {total}%{over && " ⚠"}
                     </td>
-                    <td className="px-4 py-3 text-slate-300">{r.start_date}</td>
-                    <td className="px-4 py-3 text-slate-300">{r.end_date || "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{r.start_date}</td>
+                    <td className="px-4 py-3 text-gray-600">{r.end_date || "—"}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${r.is_active ? "bg-green-500/20 text-green-400" : "bg-slate-500/20 text-slate-400"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${r.is_active ? "bg-green-500/20 text-green-400" : "bg-slate-500/20 text-gray-500"}`}>
                         {r.is_active ? "Active" : "Inactive"}
                       </span>
                     </td>
                     {canEdit && (
                       <td className="px-4 py-3 text-right">
-                        <button className="p-1.5 text-slate-400 hover:text-[#00AEEF]" onClick={() => { setEditing(r); setModalOpen(true); }}>
+                        <button className="p-1.5 text-gray-500 hover:text-[#00AEEF]" onClick={() => { setEditing(r); setModalOpen(true); }}>
                           <Pencil size={14} />
                         </button>
-                        <button className="p-1.5 text-slate-400 hover:text-red-400" onClick={() => del(r.id)}>
+                        <button className="p-1.5 text-gray-500 hover:text-red-600" onClick={() => del(r.id)}>
                           <Trash2 size={14} />
                         </button>
                       </td>

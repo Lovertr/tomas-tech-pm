@@ -92,28 +92,28 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
           <Stat label="ปิดแล้ว" value={stats.closed} color="#94A3B8" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#1E40AF] hover:bg-[#2563EB] text-slate-900 rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
             <Plus size={14} /> เพิ่ม Risk
           </button>
         )}
       </div>
 
       {/* Risk Matrix — hidden on small phones */}
-      <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-3 md:p-4 hidden sm:block">
-        <h3 className="text-sm font-semibold text-white mb-3">Risk Matrix (Probability × Impact)</h3>
+      <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-3 md:p-4 hidden sm:block">
+        <h3 className="text-sm font-semibold text-slate-900 mb-3">Risk Matrix (Probability × Impact)</h3>
         <div className="flex gap-2">
           <div className="flex flex-col justify-end pb-6">
-            <div className="text-[10px] text-slate-400 -rotate-90 whitespace-nowrap origin-bottom-left translate-y-2">PROBABILITY →</div>
+            <div className="text-[10px] text-slate-600 -rotate-90 whitespace-nowrap origin-bottom-left translate-y-2">PROBABILITY →</div>
           </div>
           <div className="flex-1">
             <div className="grid grid-cols-6 gap-1">
               <div></div>
               {LEVELS.map(i => (
-                <div key={i} className="text-center text-[10px] text-slate-400 pb-1">{LBL[i]}</div>
+                <div key={i} className="text-center text-[10px] text-slate-600 pb-1">{LBL[i]}</div>
               ))}
               {[...LEVELS].reverse().map(p => (
                 <Fragment key={`row-${p}`}>
-                  <div className="text-right text-[10px] text-slate-400 pr-1 flex items-center justify-end">{LBL[p]}</div>
+                  <div className="text-right text-[10px] text-slate-600 pr-1 flex items-center justify-end">{LBL[p]}</div>
                   {LEVELS.map(i => {
                     const score = SCORE[p] * SCORE[i];
                     const cell = matrix[p][i];
@@ -128,15 +128,15 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
                 </Fragment>
               ))}
             </div>
-            <div className="text-center text-[10px] text-slate-400 mt-1">IMPACT →</div>
+            <div className="text-center text-[10px] text-slate-600 mt-1">IMPACT →</div>
           </div>
         </div>
       </div>
 
-      {loading && !items.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !items.length && <div className="text-center text-gray-500 py-12">Loading...</div>}
       {!loading && !items.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
-          <ShieldCheck size={40} className="mx-auto mb-3 text-slate-600" />
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-gray-500">
+          <ShieldCheck size={40} className="mx-auto mb-3 text-gray-500" />
           ยังไม่มี risk
         </div>
       )}
@@ -145,7 +145,7 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
         {items.sort((a, b) => SCORE[b.probability] * SCORE[b.impact] - SCORE[a.probability] * SCORE[a.impact]).map(r => {
           const score = SCORE[r.probability] * SCORE[r.impact];
           return (
-            <div key={r.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
+            <div key={r.id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex flex-col items-center justify-center shrink-0"
                 style={{ background: `${cellColor(score)}25`, border: `1px solid ${cellColor(score)}60` }}>
                 <AlertTriangle size={14} style={{ color: cellColor(score) }} />
@@ -153,14 +153,14 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">{r.projects?.project_code || "—"}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: STATUS_COLOR[r.status] }}>{STATUS_LBL[r.status]}</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-slate-700">{r.projects?.project_code || "—"}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded text-slate-900" style={{ background: STATUS_COLOR[r.status] }}>{STATUS_LBL[r.status]}</span>
                   <span className="text-[10px] text-slate-500">P:{LBL[r.probability]} × I:{LBL[r.impact]}</span>
                 </div>
-                <div className="text-sm font-medium text-white">{r.title}</div>
+                <div className="text-sm font-medium text-slate-900">{r.title}</div>
                 {r.description && (
                   <>
-                    <div className="text-xs text-slate-400 mt-0.5">{r.description}</div>
+                    <div className="text-xs text-slate-600 mt-0.5">{r.description}</div>
                     <TranslateButton text={r.description} compact />
                   </>
                 )}
@@ -177,10 +177,10 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
               {canManage && (
                 <div className="flex items-center gap-1">
                   <select value={r.status} onChange={e => updateStatus(r, e.target.value)}
-                    className="text-xs bg-[#0F172A] border border-[#334155] rounded px-2 py-1 text-white">
+                    className="text-xs bg-[#F5F5F5] border border-[#E5E7EB] rounded px-2 py-1 text-slate-900">
                     {Object.entries(STATUS_LBL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
-                  <button onClick={() => setEditing(r)} className="p-1.5 text-slate-400 hover:text-white"><Edit3 size={14} /></button>
+                  <button onClick={() => setEditing(r)} className="p-1.5 text-slate-600 hover:text-slate-900"><Edit3 size={14} /></button>
                   <button onClick={() => remove(r.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                 </div>
               )}
@@ -205,9 +205,9 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-2 md:p-3">
       <div className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -239,44 +239,44 @@ function RiskModal({ initial, projects, members, defaultProjectId, onClose, onSa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-white">{initial ? "แก้ไข Risk" : "เพิ่ม Risk"}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold text-slate-900">{initial ? "แก้ไข Risk" : "เพิ่ม Risk"}</h3>
         <Field label="โครงการ *">
-          <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <select className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
             value={form.project_id ?? ""} onChange={e => setForm({ ...form, project_id: e.target.value })}>
             <option value="">— เลือก —</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
           </select>
         </Field>
         <Field label="ชื่อ Risk *">
-          <input className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <input className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
             value={form.title ?? ""} onChange={e => setForm({ ...form, title: e.target.value })} />
         </Field>
         <Field label="รายละเอียด">
-          <textarea rows={2} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <textarea rows={2} className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
             value={form.description ?? ""} onChange={e => setForm({ ...form, description: e.target.value })} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="โอกาสเกิด">
-            <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <select className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
               value={form.probability} onChange={e => setForm({ ...form, probability: e.target.value })}>
               {LEVELS.map(l => <option key={l} value={l}>{LBL[l]}</option>)}
             </select>
           </Field>
           <Field label="ผลกระทบ">
-            <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <select className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
               value={form.impact} onChange={e => setForm({ ...form, impact: e.target.value })}>
               {LEVELS.map(l => <option key={l} value={l}>{LBL[l]}</option>)}
             </select>
           </Field>
         </div>
         <Field label="แผนบรรเทา">
-          <textarea rows={2} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <textarea rows={2} className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
             value={form.mitigation ?? ""} onChange={e => setForm({ ...form, mitigation: e.target.value })} />
         </Field>
         <Field label="เจ้าของ">
-          <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <select className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm"
             value={form.owner_id ?? ""} onChange={e => setForm({ ...form, owner_id: e.target.value || null })}>
             <option value="">— ไม่ระบุ —</option>
             {members.map(m => <option key={m.id} value={m.id}>{memberName(m)}</option>)}
@@ -284,8 +284,8 @@ function RiskModal({ initial, projects, members, defaultProjectId, onClose, onSa
         </Field>
         {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+          <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#1E40AF] hover:bg-[#2563EB] text-slate-900 rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </div>
@@ -297,7 +297,7 @@ function RiskModal({ initial, projects, members, defaultProjectId, onClose, onSa
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
       {children}
     </div>
   );

@@ -54,23 +54,23 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex rounded-xl overflow-hidden border border-[#334155]">
+        <div className="flex rounded-xl overflow-hidden border border-[#E5E7EB]">
           <button onClick={() => setTab("pnl")}
-            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "pnl" ? "text-white" : "text-slate-400"}`}
-            style={tab === "pnl" ? { background: "#003087" } : { background: "#0F172A" }}>
+            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "pnl" ? "text-slate-900" : "text-slate-600"}`}
+            style={tab === "pnl" ? { background: "#003087" } : { background: "#F5F5F5" }}>
             <BarChart3 size={14} /> P&L
           </button>
           <button onClick={() => setTab("evm")}
-            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "evm" ? "text-white" : "text-slate-400"}`}
-            style={tab === "evm" ? { background: "#003087" } : { background: "#0F172A" }}>
+            className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "evm" ? "text-slate-900" : "text-slate-600"}`}
+            style={tab === "evm" ? { background: "#003087" } : { background: "#F5F5F5" }}>
             <Activity size={14} /> EVM
           </button>
         </div>
         {tab === "pnl" && (
           <div className="flex items-center gap-2">
-            <input type="date" value={start} onChange={e => setStart(e.target.value)} className="bg-[#1E293B] border border-[#334155] rounded-lg px-3 py-1.5 text-sm text-white" />
-            <span className="text-slate-400">→</span>
-            <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="bg-[#1E293B] border border-[#334155] rounded-lg px-3 py-1.5 text-sm text-white" />
+            <input type="date" value={start} onChange={e => setStart(e.target.value)} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-sm text-slate-900" />
+            <span className="text-slate-600">→</span>
+            <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-sm text-slate-900" />
           </div>
         )}
       </div>
@@ -86,10 +86,10 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
             <KPI icon={DollarSign} label="ค้างเก็บ" value={fmtMoney(t.outstanding)} color="#F7941D" />
           </div>
 
-          <div className="bg-[#1E293B] border border-[#334155] rounded-2xl overflow-hidden">
+          <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-[#0F172A] text-slate-400 text-xs">
+                <thead className="bg-[#F5F5F5] text-slate-600 text-xs">
                   <tr>
                     <th className="text-left px-4 py-3">โครงการ</th>
                     <th className="text-right px-4 py-3">งบ</th>
@@ -102,12 +102,12 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                 </thead>
                 <tbody>
                   {!loading && !pnl.rows.length && (
-                    <tr><td colSpan={7} className="text-center py-12 text-slate-400">ไม่มีข้อมูล</td></tr>
+                    <tr><td colSpan={7} className="text-center py-12 text-slate-600">ไม่มีข้อมูล</td></tr>
                   )}
                   {pnl.rows.map(r => (
-                    <tr key={r.project_id} className="border-t border-[#334155]">
-                      <td className="px-4 py-3"><span className="text-[10px] font-mono text-slate-400">{r.project_code}</span><div className="text-white">{r.name}</div></td>
-                      <td className="px-4 py-3 text-right text-slate-300">{fmtMoney(r.budget)}</td>
+                    <tr key={r.project_id} className="border-t border-[#E5E7EB]">
+                      <td className="px-4 py-3"><span className="text-[10px] font-mono text-slate-600">{r.project_code}</span><div className="text-slate-900">{r.name}</div></td>
+                      <td className="px-4 py-3 text-right text-slate-700">{fmtMoney(r.budget)}</td>
                       <td className="px-4 py-3 text-right text-cyan-300">{fmtMoney(r.revenue)}</td>
                       <td className="px-4 py-3 text-right text-red-300">{fmtMoney(r.total_cost)}</td>
                       <td className={`px-4 py-3 text-right font-medium ${r.gross_profit >= 0 ? "text-green-300" : "text-red-300"}`}>{fmtMoney(r.gross_profit)}</td>
@@ -117,14 +117,14 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                   ))}
                 </tbody>
                 {pnl.rows.length > 0 && (
-                  <tfoot className="bg-[#0F172A] font-bold">
+                  <tfoot className="bg-[#F5F5F5] font-bold">
                     <tr>
-                      <td className="px-4 py-3 text-white">รวม</td>
-                      <td className="px-4 py-3 text-right text-slate-300">{fmtMoney(t.budget)}</td>
+                      <td className="px-4 py-3 text-slate-900">รวม</td>
+                      <td className="px-4 py-3 text-right text-slate-700">{fmtMoney(t.budget)}</td>
                       <td className="px-4 py-3 text-right text-cyan-300">{fmtMoney(t.revenue)}</td>
                       <td className="px-4 py-3 text-right text-red-300">{fmtMoney(t.cost)}</td>
                       <td className={`px-4 py-3 text-right ${t.profit >= 0 ? "text-green-300" : "text-red-300"}`}>{fmtMoney(t.profit)}</td>
-                      <td className="px-4 py-3 text-right text-white">{fmtPct(totalMargin)}</td>
+                      <td className="px-4 py-3 text-right text-slate-900">{fmtPct(totalMargin)}</td>
                       <td className="px-4 py-3 text-right text-orange-300">{fmtMoney(t.outstanding)}</td>
                     </tr>
                   </tfoot>
@@ -145,18 +145,18 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
 
           <div className="space-y-3">
             {!loading && !evm.length && (
-              <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
+              <div className="text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-slate-600">
                 <Activity size={40} className="mx-auto mb-3 text-slate-600" />ไม่มีข้อมูล EVM
               </div>
             )}
             {evm.map(e => {
               const healthColor = e.health === "green" ? "#22C55E" : e.health === "yellow" ? "#F7941D" : "#EF4444";
               return (
-                <div key={e.project_id} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-5">
+                <div key={e.project_id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <div>
-                      <div className="text-[10px] font-mono text-slate-400">{e.project_code}</div>
-                      <div className="text-base font-medium text-white">{e.name}</div>
+                      <div className="text-[10px] font-mono text-slate-600">{e.project_code}</div>
+                      <div className="text-base font-medium text-slate-900">{e.name}</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] uppercase tracking-wide" style={{ color: healthColor }}>● {e.health === "green" ? "Healthy" : e.health === "yellow" ? "At Risk" : "Critical"}</span>
@@ -181,7 +181,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                       <span>Schedule progress</span>
                       <span>SV: {fmtMoney(e.sv)} · CV: {fmtMoney(e.cv)}</span>
                     </div>
-                    <div className="h-2 bg-[#0F172A] rounded-full relative overflow-hidden">
+                    <div className="h-2 bg-[#F5F5F5] rounded-full relative overflow-hidden">
                       <div className="absolute h-full bg-slate-600" style={{ width: `${e.planned_pct}%` }} />
                       <div className="absolute h-full" style={{ width: `${e.actual_pct}%`, background: healthColor, opacity: 0.8 }} />
                     </div>
@@ -198,8 +198,8 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
 
 function KPI({ icon: Icon, label, value, color, sub }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string; color: string; sub?: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
-      <div className="flex items-center gap-2 text-xs text-slate-400 mb-1"><Icon size={12} /> {label}</div>
+    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3">
+      <div className="flex items-center gap-2 text-xs text-slate-600 mb-1"><Icon size={12} /> {label}</div>
       <div className="text-base font-bold" style={{ color }}>{value}</div>
       {sub && <div className="text-xs mt-0.5" style={{ color }}>{sub}</div>}
     </div>
@@ -207,7 +207,7 @@ function KPI({ icon: Icon, label, value, color, sub }: { icon: React.ComponentTy
 }
 function Metric({ label, value, color = "#FFFFFF" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-[#0F172A] rounded-lg p-2">
+    <div className="bg-[#F5F5F5] rounded-lg p-2">
       <div className="text-[10px] text-slate-500 uppercase tracking-wide">{label}</div>
       <div className="text-sm font-medium" style={{ color }}>{value}</div>
     </div>

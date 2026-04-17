@@ -272,16 +272,16 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#003087] to-[#00AEEF] flex items-center justify-center">
-            <Building2 size={20} className="text-white" />
+            <Building2 size={20} className="text-gray-900" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">{L('header_title')}</h2>
-            <p className="text-xs text-slate-400">{departments.length}{L('header_subtitle')}</p>
+            <h2 className="text-lg font-bold text-gray-900">{L('header_title')}</h2>
+            <p className="text-xs text-gray-500">{departments.length}{L('header_subtitle')}</p>
           </div>
         </div>
         {canManage && (
           <button onClick={openAdd}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2">
             <Plus size={16} /> {L('add_button')}
           </button>
         )}
@@ -289,12 +289,12 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
 
       {/* Department Cards */}
       {loading ? (
-        <div className="text-center text-slate-400 py-10">Loading...</div>
+        <div className="text-center text-gray-500 py-10">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {departments.map(d => (
             <div key={d.id}
-              className={`bg-[#1E293B] border rounded-2xl p-4 hover:shadow-lg transition-all ${d.is_active ? "border-[#334155]" : "border-red-900/40 opacity-60"}`}>
+              className={`bg-[#FFFFFF] border rounded-2xl p-4 hover:shadow-lg transition-all ${d.is_active ? "border-[#E2E8F0]" : "border-red-900/40 opacity-60"}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -305,8 +305,8 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                       <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">{L('inactive_badge')}</span>
                     )}
                   </div>
-                  <h3 className="text-white font-semibold mt-1">{d.name_th}</h3>
-                  {d.name_en && <p className="text-xs text-slate-400">{d.name_en}</p>}
+                  <h3 className="text-gray-900 font-semibold mt-1">{d.name_th}</h3>
+                  {d.name_en && <p className="text-xs text-gray-500">{d.name_en}</p>}
                   {d.name_jp && <p className="text-xs text-slate-500">{d.name_jp}</p>}
                 </div>
                 {canManage && (
@@ -326,7 +326,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-xs text-slate-400">
+              <div className="flex items-center gap-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1"><Users size={12} /> {d.member_count} {L('members_label')}</span>
                 {d.head && (
                   <span className="truncate">{L('head_label')} {d.head.display_name}</span>
@@ -340,58 +340,58 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       {/* ─── Add/Edit Form Modal ─── */}
       {showForm && (
         <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
-          <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-[#334155] px-5 py-4">
-              <h3 className="text-white font-bold text-lg">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+              <h3 className="text-gray-900 font-bold text-lg">
                 {editingId ? L('form_title_edit') : L('form_title_add')}
               </h3>
-              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white"><X size={20} /></button>
+              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-900"><X size={20} /></button>
             </div>
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">{L('form_code_label')}</label>
+                  <label className="text-xs text-gray-500 mb-1 block">{L('form_code_label')}</label>
                   <input value={formData.code}
                     onChange={e => setFormData(p => ({ ...p, code: e.target.value }))}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-900"
                     placeholder={L('form_code_placeholder')} />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">{L('form_status_label')}</label>
+                  <label className="text-xs text-gray-500 mb-1 block">{L('form_status_label')}</label>
                   <select value={formData.is_active ? "true" : "false"}
                     onChange={e => setFormData(p => ({ ...p, is_active: e.target.value === "true" }))}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white">
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-900">
                     <option value="true">{L('form_status_active')}</option>
                     <option value="false">{L('form_status_inactive')}</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">{L('form_name_th_label')}</label>
+                <label className="text-xs text-gray-500 mb-1 block">{L('form_name_th_label')}</label>
                 <input value={formData.name_th}
                   onChange={e => setFormData(p => ({ ...p, name_th: e.target.value }))}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-900"
                   placeholder={L('form_name_th_placeholder')} />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">{L('form_name_en_label')}</label>
+                <label className="text-xs text-gray-500 mb-1 block">{L('form_name_en_label')}</label>
                 <input value={formData.name_en}
                   onChange={e => setFormData(p => ({ ...p, name_en: e.target.value }))}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-900"
                   placeholder={L('form_name_en_placeholder')} />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">{L('form_name_jp_label')}</label>
+                <label className="text-xs text-gray-500 mb-1 block">{L('form_name_jp_label')}</label>
                 <input value={formData.name_jp}
                   onChange={e => setFormData(p => ({ ...p, name_jp: e.target.value }))}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-900"
                   placeholder={L('form_name_jp_placeholder')} />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">{L('form_head_label')}</label>
+                <label className="text-xs text-gray-500 mb-1 block">{L('form_head_label')}</label>
                 <select value={formData.head_user_id}
                   onChange={e => setFormData(p => ({ ...p, head_user_id: e.target.value }))}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white">
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-900">
                   <option value="">{L('form_head_unspecified')}</option>
                   {allUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.display_name} ({u.email})</option>
@@ -399,11 +399,11 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                 </select>
               </div>
             </div>
-            <div className="border-t border-[#334155] px-5 py-3 flex justify-end gap-2">
+            <div className="border-t border-[#E2E8F0] px-5 py-3 flex justify-end gap-2">
               <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm text-slate-300 hover:text-white">{L('form_cancel')}</button>
+                className="px-4 py-2 text-sm text-slate-300 hover:text-gray-900">{L('form_cancel')}</button>
               <button onClick={saveDept}
-                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2">
+                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2">
                 <Save size={14} /> {editingId ? L('form_update') : L('form_create')}
               </button>
             </div>
@@ -414,32 +414,32 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       {/* ─── Department Permissions Modal ─── */}
       {permDeptId && (
         <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPermDeptId(null)}>
-          <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             {/* header */}
-            <div className="flex items-start justify-between border-b border-[#334155] px-3 md:px-5 py-3 md:py-4 gap-2">
+            <div className="flex items-start justify-between border-b border-[#E2E8F0] px-3 md:px-5 py-3 md:py-4 gap-2">
               <div className="flex items-start gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shrink-0">
-                  <Shield size={20} className="text-white" />
+                  <Shield size={20} className="text-gray-900" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-white font-bold text-base md:text-lg">{L('perm_title')}</h3>
-                  <div className="text-xs text-slate-400 truncate">{permDeptName}</div>
+                  <h3 className="text-gray-900 font-bold text-base md:text-lg">{L('perm_title')}</h3>
+                  <div className="text-xs text-gray-500 truncate">{permDeptName}</div>
                   <div className="text-[10px] text-slate-500 leading-tight">{L('perm_subtitle')}</div>
                 </div>
               </div>
-              <button onClick={() => setPermDeptId(null)} className="text-slate-400 hover:text-white shrink-0 mt-1"><X size={20} /></button>
+              <button onClick={() => setPermDeptId(null)} className="text-gray-500 hover:text-gray-900 shrink-0 mt-1"><X size={20} /></button>
             </div>
 
             {/* toolbar */}
-            <div className="px-3 md:px-5 py-3 border-b border-[#334155] flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+            <div className="px-3 md:px-5 py-3 border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
               <div className="relative flex-1 min-w-0">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input value={permFilter} onChange={e => setPermFilter(e.target.value)} placeholder={L('perm_search_placeholder')}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg pl-9 pr-3 py-1.5 text-sm text-white" />
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg pl-9 pr-3 py-1.5 text-sm text-gray-900" />
               </div>
               <div className="flex items-center gap-1 text-xs flex-wrap">
-                <span className="text-slate-400 mr-1 whitespace-nowrap">{L('perm_set_all')}</span>
+                <span className="text-gray-500 mr-1 whitespace-nowrap">{L('perm_set_all')}</span>
                 {LEVELS.map(l => (
                   <button key={l} onClick={() => setAllPermLevel(l)}
                     className="px-1.5 md:px-2 py-1 rounded text-[10px] font-medium hover:opacity-80 whitespace-nowrap"
@@ -450,13 +450,13 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                 ))}
               </div>
               <button onClick={resetPerms} disabled={permSaving}
-                className="px-3 py-1.5 text-xs text-slate-300 hover:text-white border border-[#334155] rounded-lg flex items-center gap-1 disabled:opacity-50 self-start md:self-auto">
+                className="px-3 py-1.5 text-xs text-slate-300 hover:text-gray-900 border border-[#E2E8F0] rounded-lg flex items-center gap-1 disabled:opacity-50 self-start md:self-auto">
                 <RotateCcw size={12} /> {L('perm_reset_all')}
               </button>
             </div>
 
             {/* legend */}
-            <div className="px-3 md:px-5 py-2 border-b border-[#334155] flex items-center gap-2 md:gap-3 flex-wrap text-[10px]">
+            <div className="px-3 md:px-5 py-2 border-b border-[#E2E8F0] flex items-center gap-2 md:gap-3 flex-wrap text-[10px]">
               <span className="text-slate-500">{L('perm_legend_label')}</span>
               {LEVELS.map(l => (
                 <span key={l} className="flex items-center gap-1">
@@ -471,8 +471,8 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
               {groupedModules.map(g => {
                 const isCollapsed = collapsedCats[g.cat];
                 return (
-                  <div key={g.cat} className="bg-[#0F172A]/40 border border-[#334155] rounded-xl">
-                    <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b border-[#334155] cursor-pointer gap-2"
+                  <div key={g.cat} className="bg-[#F1F5F9]/40 border border-[#E2E8F0] rounded-xl">
+                    <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b border-[#E2E8F0] cursor-pointer gap-2"
                       onClick={() => toggleCat(g.cat)}>
                       <div className="flex items-center gap-2 min-w-0">
                         {isCollapsed ? <ChevronRight size={14} className="text-slate-500 shrink-0" /> : <ChevronDown size={14} className="text-slate-500 shrink-0" />}
@@ -492,13 +492,13 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                       </div>
                     </div>
                     {!isCollapsed && (
-                      <div className="divide-y divide-[#1E293B]">
+                      <div className="divide-y divide-[#FFFFFF]">
                         {g.items.map(m => {
                           const cur = deptPerms[m.key] ?? 0;
                           return (
-                            <div key={m.key} className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 px-3 md:px-4 py-2 hover:bg-[#1E293B]/50">
+                            <div key={m.key} className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 px-3 md:px-4 py-2 hover:bg-[#FFFFFF]/50">
                               <div className="flex-1 min-w-0">
-                                <span className="text-sm text-white truncate block">{m.label_th}</span>
+                                <span className="text-sm text-gray-900 truncate block">{m.label_th}</span>
                                 <div className="text-[10px] text-slate-500 font-mono">{m.key}</div>
                               </div>
                               <div className="flex items-center gap-1 flex-wrap">
@@ -527,14 +527,14 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
             </div>
 
             {/* footer */}
-            <div className="border-t border-[#334155] px-3 md:px-5 py-3 flex items-center justify-between gap-2">
+            <div className="border-t border-[#E2E8F0] px-3 md:px-5 py-3 flex items-center justify-between gap-2">
               <div className="text-xs text-slate-500 truncate">
                 {permDirty ? <span className="text-purple-400">{L('perm_changes_pending')}</span> : L('perm_no_changes')}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button onClick={() => setPermDeptId(null)} className="px-3 md:px-4 py-2 text-sm text-slate-300 hover:text-white">{L('form_cancel')}</button>
+                <button onClick={() => setPermDeptId(null)} className="px-3 md:px-4 py-2 text-sm text-slate-300 hover:text-gray-900">{L('form_cancel')}</button>
                 <button onClick={savePerms} disabled={permSaving || !permDirty}
-                  className="px-3 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 whitespace-nowrap">
+                  className="px-3 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 whitespace-nowrap">
                   <Save size={14} /> {permSaving ? L('perm_saving') : L('perm_save')}
                 </button>
               </div>

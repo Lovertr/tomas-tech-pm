@@ -264,13 +264,13 @@ export default function DealsPipelinePanel({
     <div className="space-y-4">
       {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{L('title')}</h2>
         <div className="flex gap-2">
           <TranslateButton text={L('title')} />
           {canManage && (
             <button
               onClick={() => { resetForm(); setShowForm(true); }}
-              className="px-4 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-white rounded-lg text-sm font-semibold flex items-center gap-2"
+              className="px-4 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-gray-900 rounded-lg text-sm font-semibold flex items-center gap-2"
             >
               {L('addDeal')}
             </button>
@@ -285,29 +285,29 @@ export default function DealsPipelinePanel({
           placeholder={L('searchName')}
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500"
         />
         <input
           type="text"
           placeholder={L('searchCustomer')}
           value={searchCustomer}
           onChange={(e) => setSearchCustomer(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500"
         />
         <input
           type="text"
           placeholder={L('searchOwner')}
           value={searchOwner}
           onChange={(e) => setSearchOwner(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500"
         />
         <button
           onClick={() => { /* filters are live */ }}
-          className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"
+          className="p-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg"
         >
           <Search size={16} />
         </button>
-        <span className="text-sm text-gray-400 ml-1">{filteredDeals.length}/{deals.length}</span>
+        <span className="text-sm text-gray-500 ml-1">{filteredDeals.length}/{deals.length}</span>
       </div>
 
       {/* Kanban columns */}
@@ -318,14 +318,14 @@ export default function DealsPipelinePanel({
             <div key={stage} className="flex-shrink-0" style={{ minWidth: 240, width: 240 }}>
               {/* Column header */}
               <div
-                className="rounded-t-lg px-3 py-2 font-bold text-white flex items-center justify-between"
+                className="rounded-t-lg px-3 py-2 font-bold text-gray-900 flex items-center justify-between"
                 style={{ backgroundColor: stageColors[stage] }}
               >
                 <span>{stageName(stage)} ({col.length})</span>
               </div>
 
               {/* Cards */}
-              <div className="bg-[#0F172A] border border-t-0 rounded-b-lg p-2 space-y-2 min-h-[420px]" style={{ borderColor: stageColors[stage] + '40' }}>
+              <div className="bg-[#F1F5F9] border border-t-0 rounded-b-lg p-2 space-y-2 min-h-[420px]" style={{ borderColor: stageColors[stage] + '40' }}>
                 {col.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 text-sm">{L('noDeals')}</div>
                 ) : (
@@ -343,7 +343,7 @@ export default function DealsPipelinePanel({
                       >
                         {/* MY DEAL badge */}
                         {mine && (
-                          <span className="inline-block text-[10px] font-bold text-white bg-[#F7941D] rounded px-1.5 py-0.5 mb-1.5">
+                          <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F7941D] rounded px-1.5 py-0.5 mb-1.5">
                             {L('myDeal')}
                           </span>
                         )}
@@ -382,11 +382,11 @@ export default function DealsPipelinePanel({
                         {canManage && !mine && (
                           <div className="flex gap-1 pt-2 mt-2 border-t border-gray-100 opacity-0 hover:opacity-100 transition">
                             <button onClick={(e) => { e.stopPropagation(); handleEditDeal(deal); }}
-                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
+                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded text-xs flex items-center justify-center gap-1">
                               <Edit2 size={10} /> {lang === 'th' ? 'แก้ไข' : lang === 'jp' ? '編集' : 'Edit'}
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }}
-                              className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs flex items-center justify-center gap-1">
+                              className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-gray-900 rounded text-xs flex items-center justify-center gap-1">
                               <Trash2 size={10} /> {lang === 'th' ? 'ลบ' : lang === 'jp' ? '削除' : 'Del'}
                             </button>
                           </div>
@@ -404,12 +404,12 @@ export default function DealsPipelinePanel({
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-xl font-bold text-gray-900">
                 {selectedDeal ? L('editDeal') : L('newDeal')}
               </h3>
-              <button onClick={() => { setShowForm(false); resetForm(); }} className="text-gray-400 hover:text-white">
+              <button onClick={() => { setShowForm(false); resetForm(); }} className="text-gray-500 hover:text-gray-900">
                 <X size={24} />
               </button>
             </div>
@@ -417,66 +417,66 @@ export default function DealsPipelinePanel({
             <form onSubmit={handleSaveDeal} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('dealTitle')} *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('dealTitle')} *</label>
                   <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('customer')} *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('customer')} *</label>
                   <select required value={formData.customer_id} onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]">
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]">
                     <option value="">{L('selectCustomer')}</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('owner')}</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('owner')}</label>
                   <select value={formData.owner_id} onChange={(e) => setFormData({ ...formData, owner_id: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]">
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]">
                     <option value="">{L('selectOwner')}</option>
                     {allMembers.map((m) => <option key={m.id} value={m.id}>{m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('value')} *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('value')} *</label>
                   <input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('stage')} *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('stage')} *</label>
                   <select value={formData.stage} onChange={(e) => setFormData({ ...formData, stage: e.target.value as Deal['stage'] })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]">
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]">
                     {stageKeys.map((s) => <option key={s} value={s}>{stageName(s)}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('closeDate')}</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('closeDate')}</label>
                   <input type="date" value={formData.expected_close_date} onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('probability')} *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('probability')} *</label>
                   <input type="number" min="0" max="100" value={formData.probability} onChange={(e) => setFormData({ ...formData, probability: parseInt(e.target.value) })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">{L('notes')}</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('notes')}</label>
                   <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
                 </div>
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button type="submit" className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium">{L('save')}</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium">{L('save')}</button>
                 <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
-                  className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium">{L('cancel')}</button>
+                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
               </div>
             </form>
           </div>

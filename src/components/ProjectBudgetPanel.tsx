@@ -143,9 +143,9 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
         )}
       </div>
 
-      {loading && !filtered.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !filtered.length && <div className="text-center text-gray-500 py-12">Loading...</div>}
       {!loading && !filtered.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-gray-500">
           <DollarSign size={40} className="mx-auto mb-3 text-slate-600" />
           {L('no_budget_data')}
         </div>
@@ -158,7 +158,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
           const varPercent = Number(budget.planned_amount ?? 0) > 0 ? ((variance / Number(budget.planned_amount)) * 100).toFixed(0) : "0";
 
           return (
-            <div key={budget.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+            <div key={budget.id} className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
@@ -170,12 +170,12 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-sm font-medium text-white">{L(budget.category) || budget.category}</span>
                     {budget.projects && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-slate-300">
                         {budget.projects.project_code}
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-gray-500">
                     {L('budget_label')} {fmtMoney(budget.planned_amount)} · {L('actual_label')} {fmtMoney(budget.actual_amount)}
                     {budget.notes && (
                       <>
@@ -187,13 +187,13 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
                 </div>
                 <div className="text-right shrink-0">
                   <div className={`text-sm font-bold ${isOver ? "text-red-400" : "text-green-400"}`}>{isOver ? "-" : "+"}{fmtMoney(Math.abs(variance))}</div>
-                  <div className="text-[10px] text-slate-400">{varPercent}%</div>
+                  <div className="text-[10px] text-gray-500">{varPercent}%</div>
                 </div>
                 {canManage && (
                   <div className="flex items-center gap-1 ml-3">
                     <button
                       onClick={() => setEditingId(budget.id)}
-                      className="p-1.5 text-slate-400 hover:text-white"
+                      className="p-1.5 text-gray-500 hover:text-white"
                       title={L('edit_title')}
                     >
                       <Edit2 size={14} />
@@ -240,11 +240,11 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
+    <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-3">
       <div className="text-base font-bold" style={{ color }}>
         {value}
       </div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-xs text-gray-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -298,12 +298,12 @@ function CreateBudgetModal({
     }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-white">{L('edit_modal_title')}</h3>
@@ -422,10 +422,10 @@ function EditBudgetForm({
     }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
-    <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
+    <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
       <div className="grid grid-cols-2 gap-2">
         <Field label={L('planned_budget')}>
           <input
@@ -471,7 +471,7 @@ function EditBudgetForm({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
       {children}
     </div>
   );

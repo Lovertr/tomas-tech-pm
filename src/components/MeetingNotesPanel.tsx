@@ -54,26 +54,26 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
     const ai = n.action_items ?? [];
     const aiDone = ai.filter(a => a.done).length;
     return (
-      <div key={n.id} className="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden">
-        <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-[#0F172A]/40"
+      <div key={n.id} className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl overflow-hidden">
+        <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-[#F1F5F9]/40"
           onClick={() => setExpanded(isOpen ? null : n.id)}>
           <div className="w-12 h-12 rounded-lg bg-[#003087]/20 border border-[#003087]/40 flex flex-col items-center justify-center shrink-0">
             <div className="text-[10px] text-[#00AEEF] uppercase">{d.toLocaleDateString("th-TH", { month: "short" })}</div>
-            <div className="text-lg font-bold text-white leading-none">{d.getDate()}</div>
+            <div className="text-lg font-bold text-gray-900 leading-none">{d.getDate()}</div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               {n.projects?.project_code && (
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-gray-500">
                   {n.projects.project_code}
                 </span>
               )}
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-600">
                 {d.toLocaleDateString("th-TH", { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
               </span>
             </div>
-            <div className="text-sm font-semibold text-white truncate">{n.title}</div>
-            <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+            <div className="text-sm font-semibold text-gray-900 truncate">{n.title}</div>
+            <div className="flex items-center gap-3 mt-1 text-xs text-slate-600">
               {n.attendees && n.attendees.length > 0 && (
                 <span className="flex items-center gap-1"><Users size={11} /> {n.attendees.length}</span>
               )}
@@ -86,13 +86,13 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
           </div>
           {canManage && (
             <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-              <button onClick={() => setEditing(n)} className="p-1.5 text-slate-400 hover:text-white"><Edit3 size={14} /></button>
-              <button onClick={() => remove(n.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+              <button onClick={() => setEditing(n)} className="p-1.5 text-slate-600 hover:text-gray-900"><Edit3 size={14} /></button>
+              <button onClick={() => remove(n.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>
             </div>
           )}
         </div>
         {isOpen && (
-          <div className="px-4 pb-4 border-t border-[#334155] pt-3 space-y-3">
+          <div className="px-4 pb-4 border-t border-[#E2E8F0] pt-3 space-y-3">
             {n.audio_url && (
               <Section title="บันทึกเสียง" icon={Volume2}>
                 <audio controls className="w-full" src={n.audio_url}>
@@ -104,25 +104,25 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
               <Section title="ผู้เข้าร่วม" icon={Users}>
                 <div className="flex flex-wrap gap-1.5">
                   {n.attendees.map((a, i) => (
-                    <span key={i} className="text-xs bg-[#0F172A] border border-[#334155] rounded-full px-2 py-0.5 text-slate-300">{a}</span>
+                    <span key={i} className="text-xs bg-[#F1F5F9] border border-[#E2E8F0] rounded-full px-2 py-0.5 text-gray-500">{a}</span>
                   ))}
                 </div>
               </Section>
             )}
-            {n.agenda && <Section title="Agenda" icon={FileText}><div className="text-sm text-slate-300 whitespace-pre-wrap">{n.agenda}</div><TranslateButton text={n.agenda} /></Section>}
-            {n.notes && <Section title="บันทึกการประชุม" icon={FileText}><div className="text-sm text-slate-300 whitespace-pre-wrap">{n.notes}</div><TranslateButton text={n.notes} /></Section>}
+            {n.agenda && <Section title="Agenda" icon={FileText}><div className="text-sm text-gray-500 whitespace-pre-wrap">{n.agenda}</div><TranslateButton text={n.agenda} /></Section>}
+            {n.notes && <Section title="บันทึกการประชุม" icon={FileText}><div className="text-sm text-gray-500 whitespace-pre-wrap">{n.notes}</div><TranslateButton text={n.notes} /></Section>}
             {ai.length > 0 && (
               <Section title="Action Items" icon={ListChecks}>
                 <div className="space-y-1">
                   {ai.map((it, i) => (
                     <div key={i} className="flex items-start gap-2 text-sm">
                       <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${it.done ? "bg-[#22C55E] border-[#22C55E]" : "border-slate-500"}`}>
-                        {it.done && <Check size={10} className="text-white" />}
+                        {it.done && <Check size={10} className="text-gray-900" />}
                       </span>
                       <div className="flex-1">
-                        <span className={it.done ? "line-through text-slate-500" : "text-slate-200"}>{it.text}</span>
+                        <span className={it.done ? "line-through text-slate-600" : "text-slate-200"}>{it.text}</span>
                         {it.assignee && <span className="ml-2 text-xs text-[#00AEEF]">@{it.assignee}</span>}
-                        {it.due && <span className="ml-2 text-xs text-orange-400">{it.due}</span>}
+                        {it.due && <span className="ml-2 text-xs text-orange-600">{it.due}</span>}
                       </div>
                     </div>
                   ))}
@@ -144,16 +144,16 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
           <Stat label="ผ่านมาแล้ว" value={past.length} color="#94A3B8" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
             <Plus size={14} /> เพิ่ม Meeting
           </button>
         )}
       </div>
 
-      {loading && !items.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !items.length && <div className="text-center text-slate-600 py-12">Loading...</div>}
       {!loading && !items.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
-          <Calendar size={40} className="mx-auto mb-3 text-slate-600" />
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-slate-600">
+          <Calendar size={40} className="mx-auto mb-3 text-gray-500" />
           ยังไม่มี meeting note
         </div>
       )}
@@ -162,8 +162,8 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <div className="w-1 h-4 rounded-full bg-[#F7941D]" />
-            <h3 className="text-sm font-semibold text-white">กำลังจะมา</h3>
-            <span className="text-xs text-slate-400">({upcoming.length})</span>
+            <h3 className="text-sm font-semibold text-gray-900">กำลังจะมา</h3>
+            <span className="text-xs text-slate-600">({upcoming.length})</span>
           </div>
           <div className="space-y-2">{upcoming.map(Card)}</div>
         </div>
@@ -172,8 +172,8 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <div className="w-1 h-4 rounded-full bg-slate-500" />
-            <h3 className="text-sm font-semibold text-white">ผ่านมาแล้ว</h3>
-            <span className="text-xs text-slate-400">({past.length})</span>
+            <h3 className="text-sm font-semibold text-gray-900">ผ่านมาแล้ว</h3>
+            <span className="text-xs text-slate-600">({past.length})</span>
           </div>
           <div className="space-y-2">{past.map(Card)}</div>
         </div>
@@ -195,7 +195,7 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof Users; children: React.ReactNode }) {
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
         <Icon size={12} /> {title}
       </div>
       {children}
@@ -205,9 +205,9 @@ function Section({ title, icon: Icon, children }: { title: string; icon: typeof 
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+    <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-2 md:p-3">
       <div className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-[10px] md:text-xs text-slate-600 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -408,46 +408,46 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-white">{initial ? "แก้ไข Meeting" : "เพิ่ม Meeting Note"}</h3>
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold text-gray-900">{initial ? "แก้ไข Meeting" : "เพิ่ม Meeting Note"}</h3>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-slate-400 mb-1">โครงการ</label>
-            <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <label className="block text-xs text-slate-600 mb-1">โครงการ</label>
+            <select className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
               value={form.project_id ?? ""} onChange={e => setForm({ ...form, project_id: e.target.value || null })}>
               <option value="">— ไม่ระบุ —</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-slate-400 mb-1">วันที่ *</label>
-            <input type="date" className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <label className="block text-xs text-slate-600 mb-1">วันที่ *</label>
+            <input type="date" className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
               value={form.meeting_date ?? ""} onChange={e => setForm({ ...form, meeting_date: e.target.value })} />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">หัวข้อประชุม *</label>
-          <input className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <label className="block text-xs text-slate-600 mb-1">หัวข้อประชุม *</label>
+          <input className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             value={form.title ?? ""} onChange={e => setForm({ ...form, title: e.target.value })} />
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">ผู้เข้าร่วม</label>
+          <label className="block text-xs text-slate-600 mb-1">ผู้เข้าร่วม</label>
           <div className="flex gap-2">
-            <input className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <input className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
               placeholder="ชื่อผู้เข้าร่วม"
               value={attendeeInput}
               onChange={e => setAttendeeInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAttendee(); } }} />
-            <button type="button" onClick={addAttendee} className="px-3 py-2 bg-[#003087] text-white rounded-lg text-sm">เพิ่ม</button>
+            <button type="button" onClick={addAttendee} className="px-3 py-2 bg-[#003087] text-gray-900 rounded-lg text-sm">เพิ่ม</button>
           </div>
           {form.attendees && form.attendees.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {form.attendees.map((a, i) => (
-                <span key={i} className="text-xs bg-[#0F172A] border border-[#334155] rounded-full pl-2 pr-1 py-0.5 text-slate-300 flex items-center gap-1">
-                  {a} <button onClick={() => removeAttendee(i)} className="text-red-400"><X size={10} /></button>
+                <span key={i} className="text-xs bg-[#F1F5F9] border border-[#E2E8F0] rounded-full pl-2 pr-1 py-0.5 text-gray-500 flex items-center gap-1">
+                  {a} <button onClick={() => removeAttendee(i)} className="text-red-600"><X size={10} /></button>
                 </span>
               ))}
             </div>
@@ -455,8 +455,8 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">Agenda</label>
-          <textarea rows={2} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <label className="block text-xs text-slate-600 mb-1">Agenda</label>
+          <textarea rows={2} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             value={form.agenda ?? ""} onChange={e => setForm({ ...form, agenda: e.target.value })} />
         </div>
 
@@ -472,14 +472,14 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
               </button>
             ) : (
               <button type="button" onClick={stopRecording}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium animate-pulse">
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-gray-900 text-xs font-medium animate-pulse">
                 <Square size={14} /> หยุด ({formatTime(recordingTime)})
               </button>
             )}
 
-            <span className="text-slate-500 text-xs">หรือ</span>
+            <span className="text-slate-600 text-xs">หรือ</span>
 
-            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-700 text-xs font-medium cursor-pointer">
+            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200/50 border border-[#E2E8F0] text-gray-500 hover:bg-slate-200 text-xs font-medium cursor-pointer">
               <Upload size={14} /> อัปโหลดไฟล์เสียง
               <input type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} />
             </label>
@@ -491,11 +491,11 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
               <audio controls className="w-full h-8" src={audioPreviewUrl} />
               <div className="flex items-center gap-2">
                 <button type="button" onClick={transcribeAudio} disabled={transcribing}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium disabled:opacity-40">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-gray-900 text-xs font-medium disabled:opacity-40">
                   {transcribing ? <><Loader2 size={14} className="animate-spin" /> กำลังถอดเสียง...</> : <>✨ AI ถอดเสียง</>}
                 </button>
                 <button type="button" onClick={() => { setAudioBlob(null); setUploadedFile(null); setAudioPreviewUrl(null); }}
-                  className="text-xs text-slate-400 hover:text-red-400">ลบเสียง</button>
+                  className="text-xs text-slate-600 hover:text-red-600">ลบเสียง</button>
               </div>
             </div>
           )}
@@ -511,54 +511,54 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
 
         <div className="border border-purple-500/30 bg-purple-500/5 rounded-lg p-3 space-y-2">
           <label className="block text-xs font-semibold text-purple-300">✨ AI Extract — วาง raw notes แล้วให้ AI แยก action items / decisions / risks</label>
-          <textarea rows={3} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-xs"
+          <textarea rows={3} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-xs"
             placeholder="วางบันทึกประชุมดิบที่นี่..."
             value={aiRaw} onChange={e => setAiRaw(e.target.value)} />
           <div className="flex items-center justify-between">
             {aiSummary && <span className="text-xs text-purple-300">📋 {aiSummary}</span>}
             <button type="button" disabled={!aiRaw.trim() || aiBusy} onClick={runAiExtract}
-              className="ml-auto px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium disabled:opacity-40">
+              className="ml-auto px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-gray-900 text-xs font-medium disabled:opacity-40">
               {aiBusy ? "กำลังวิเคราะห์..." : "✨ Extract"}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">บันทึกการประชุม</label>
-          <textarea rows={4} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <label className="block text-xs text-slate-600 mb-1">บันทึกการประชุม</label>
+          <textarea rows={4} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             value={form.notes ?? ""} onChange={e => setForm({ ...form, notes: e.target.value })} />
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">Action Items</label>
+          <label className="block text-xs text-slate-600 mb-1">Action Items</label>
           <div className="flex gap-2">
-            <input className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <input className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
               placeholder="งานที่ต้องทำ"
               value={aiInput}
               onChange={e => setAiInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAction(); } }} />
-            <button type="button" onClick={addAction} className="px-3 py-2 bg-[#003087] text-white rounded-lg text-sm">เพิ่ม</button>
+            <button type="button" onClick={addAction} className="px-3 py-2 bg-[#003087] text-gray-900 rounded-lg text-sm">เพิ่ม</button>
           </div>
           {form.action_items && form.action_items.length > 0 && (
             <div className="space-y-1 mt-2">
               {form.action_items.map((it, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm bg-[#0F172A] border border-[#334155] rounded-lg px-2 py-1.5">
+                <div key={i} className="flex items-center gap-2 text-sm bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-2 py-1.5">
                   <button type="button" onClick={() => toggleAction(i)}
                     className={`w-4 h-4 rounded border flex items-center justify-center ${it.done ? "bg-[#22C55E] border-[#22C55E]" : "border-slate-500"}`}>
-                    {it.done && <Check size={10} className="text-white" />}
+                    {it.done && <Check size={10} className="text-gray-900" />}
                   </button>
-                  <span className={`flex-1 ${it.done ? "line-through text-slate-500" : "text-slate-200"}`}>{it.text}</span>
-                  <button type="button" onClick={() => removeAction(i)} className="text-red-400"><Trash2 size={12} /></button>
+                  <span className={`flex-1 ${it.done ? "line-through text-slate-600" : "text-slate-200"}`}>{it.text}</span>
+                  <button type="button" onClick={() => removeAction(i)} className="text-red-600"><Trash2 size={12} /></button>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+          <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">ยกเลิก</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </div>

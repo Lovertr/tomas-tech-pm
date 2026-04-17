@@ -215,10 +215,10 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
         )}
       </div>
 
-      {loading && !items.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !items.length && <div className="text-center text-gray-500 py-12">Loading...</div>}
       {!loading && !items.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
-          <FileText size={40} className="mx-auto mb-3 text-slate-600" />
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-gray-500">
+          <FileText size={40} className="mx-auto mb-3 text-slate-300" />
           {L('no_invoices')}
         </div>
       )}
@@ -230,7 +230,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
           const outstandingAmount = Number(inv.total ?? 0) - Number(inv.paid_amount ?? 0);
 
           return (
-            <div key={inv.id} className={`bg-[#1E293B] border rounded-xl p-4 ${isOverdue ? "border-red-500/50" : "border-[#334155]"}`}>
+            <div key={inv.id} className={`bg-[#FFFFFF] border rounded-xl p-4 ${isOverdue ? "border-red-500/50" : "border-[#E2E8F0]"}`}>
               <div className="flex items-start gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
@@ -246,13 +246,13 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-sm font-mono font-medium text-white">{inv.invoice_no}</span>
+                    <span className="text-sm font-mono font-medium text-gray-900">{inv.invoice_no}</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: STATUS_COLORS[statusToShow] }}>
                       {STATUS_LABELS[statusToShow]}
                     </span>
                   </div>
-                  <div className="text-sm text-white font-medium mb-0.5">{inv.title}</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-sm text-gray-900 font-medium mb-0.5">{inv.title}</div>
+                  <div className="text-xs text-slate-500">
                     {inv.customer_name && <span>{inv.customer_name} · </span>}
                     {L('issued')} {new Date(inv.invoice_date).toLocaleDateString("th-TH")}
                     {inv.due_date && (
@@ -263,7 +263,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-base font-bold text-white">{fmtMoney(inv.total)}</div>
+                  <div className="text-base font-bold text-gray-900">{fmtMoney(inv.total)}</div>
                   <div className="text-[10px] text-slate-500">
                     {inv.paid_amount && Number(inv.paid_amount) > 0
                       ? `${L('recorded')} ${fmtMoney(inv.paid_amount)} / ${outstandingAmount > 0 ? fmtMoney(outstandingAmount) + " " + L('outstanding') : L('complete')}`
@@ -274,7 +274,7 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
                   <div className="flex items-center gap-1 ml-3">
                     <button
                       onClick={() => setViewingId(inv.id)}
-                      className="p-1.5 text-slate-400 hover:text-white"
+                      className="p-1.5 text-slate-500 hover:text-gray-900"
                       title={L('view_details')}
                     >
                       <Eye size={14} />
@@ -332,11 +332,11 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
+    <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-3">
       <div className="text-base font-bold" style={{ color }}>
         {value}
       </div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-xs text-slate-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -344,13 +344,13 @@ function Stat({ label, value, color }: { label: string; value: string; color: st
 function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice; onClose: () => void; lang?: Lang }) {
   const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
   return (
-    <div className="mt-3 pt-3 border-t border-[#334155] space-y-3">
-      <div className="bg-[#0F172A] rounded-lg p-3 space-y-2">
+    <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
+      <div className="bg-[#F1F5F9] rounded-lg p-3 space-y-2">
         {invoice.items?.map((item, idx) => (
-          <div key={item.id || idx} className="flex justify-between text-sm text-slate-300">
+          <div key={item.id || idx} className="flex justify-between text-sm text-slate-700">
             <div className="flex-1">
               <div>{item.description}</div>
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-gray-500">
                 {item.qty} × {fmtMoney(item.unit_price)} = {fmtMoney(item.amount)}
               </div>
             </div>
@@ -358,7 +358,7 @@ function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice
         ))}
       </div>
       <div className="space-y-1 text-sm">
-        <div className="flex justify-between text-slate-400">
+        <div className="flex justify-between text-slate-600">
           <span>{L('subtotal')}</span>
           <span>{fmtMoney(invoice.subtotal)}</span>
         </div>
@@ -372,7 +372,7 @@ function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice
           <span>{L('vat')} {invoice.vat_pct}%</span>
           <span>{fmtMoney(invoice.vat_amount)}</span>
         </div>
-        <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
+        <div className="flex justify-between text-gray-900 font-bold pt-2 border-t border-[#E2E8F0]">
           <span>{L('total')}</span>
           <span>{fmtMoney(invoice.total)}</span>
         </div>
@@ -389,7 +389,7 @@ function InvoiceDetailView({ invoice, onClose, lang = 'th' }: { invoice: Invoice
           </div>
         )}
       </div>
-      <button onClick={onClose} className="w-full px-3 py-1.5 text-slate-300 hover:text-white text-sm">
+      <button onClick={onClose} className="w-full px-3 py-1.5 text-slate-600 hover:text-gray-900 text-sm">
         {L('close_button')}
       </button>
     </div>
@@ -472,12 +472,12 @@ function CreateInvoiceModal({
     }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-800 text-sm focus:ring-2 focus:ring-[#003087]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl border border-[#E2E8F0] w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-white">{L('modal_title')}</h3>
@@ -568,7 +568,7 @@ function CreateInvoiceModal({
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-2">{L('items_label')}</label>
+          <label className="block text-xs text-gray-500 mb-2">{L('items_label')}</label>
           <div className="space-y-2">
             {form.items.map((item, idx) => (
               <div key={idx} className="grid grid-cols-12 gap-2">
@@ -637,8 +637,8 @@ function CreateInvoiceModal({
           />
         </Field>
 
-        <div className="bg-[#0F172A] rounded-lg p-3 space-y-1 text-sm">
-          <div className="flex justify-between text-slate-400">
+        <div className="bg-[#F1F5F9] rounded-lg p-3 space-y-1 text-sm">
+          <div className="flex justify-between text-gray-500">
             <span>{L('subtotal')}</span>
             <span>{fmtMoney(subtotal)}</span>
           </div>
@@ -652,7 +652,7 @@ function CreateInvoiceModal({
             <span>{L('vat')} {form.vat_pct}%</span>
             <span>{fmtMoney(vat)}</span>
           </div>
-          <div className="flex justify-between text-white font-bold pt-2 border-t border-[#334155]">
+          <div className="flex justify-between text-white font-bold pt-2 border-t border-[#E2E8F0]">
             <span>{L('total')}</span>
             <span>{fmtMoney(total)}</span>
           </div>
@@ -680,7 +680,7 @@ function CreateInvoiceModal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
       {children}
     </div>
   );

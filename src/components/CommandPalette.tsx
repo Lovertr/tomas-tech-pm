@@ -58,27 +58,27 @@ export default function CommandPalette({ open, onClose, items }: { open: boolean
   let runIdx = -1;
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[100] flex items-start justify-center pt-24 px-4" onClick={onClose}>
-      <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-2 border-b border-[#334155] px-4 py-3">
-          <Search size={18} className="text-slate-400" />
+    <div className="fixed inset-0 bg-white/40 z-[100] flex items-start justify-center pt-24 px-4" onClick={onClose}>
+      <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-4 py-3">
+          <Search size={18} className="text-slate-600" />
           <input
             ref={inputRef}
             value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={onKey}
             placeholder="ค้นหาคำสั่ง โครงการ หรือเมนู..."
-            className="flex-1 bg-transparent outline-none text-white placeholder:text-slate-500"
+            className="flex-1 bg-transparent outline-none text-slate-900 placeholder:text-slate-500"
           />
-          <kbd className="text-[10px] text-slate-500 border border-[#334155] rounded px-1.5 py-0.5">Esc</kbd>
+          <kbd className="text-[10px] text-slate-600 border border-[#E5E7EB] rounded px-1.5 py-0.5">Esc</kbd>
         </div>
         <div className="max-h-[60vh] overflow-y-auto py-2">
           {!filtered.length && (
-            <div className="text-center text-slate-500 py-10 text-sm">ไม่พบคำสั่ง</div>
+            <div className="text-center text-slate-600 py-10 text-sm">ไม่พบคำสั่ง</div>
           )}
           {Object.entries(groups).map(([g, list]) => (
             <div key={g} className="mb-2">
-              <div className="px-4 py-1 text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1"><Hash size={10} />{g}</div>
+              <div className="px-4 py-1 text-[10px] uppercase tracking-wider text-slate-600 flex items-center gap-1"><Hash size={10} />{g}</div>
               {list.map(it => {
                 runIdx += 1;
                 const active = runIdx === idx;
@@ -87,11 +87,11 @@ export default function CommandPalette({ open, onClose, items }: { open: boolean
                     key={it.id}
                     onClick={() => { it.action(); onClose(); }}
                     onMouseEnter={() => setIdx(runIdx)}
-                    className={`w-full text-left px-4 py-2 flex items-center justify-between text-sm transition ${active ? "bg-[#003087]/40 text-white" : "text-slate-300 hover:bg-[#0F172A]"}`}
+                    className={`w-full text-left px-4 py-2 flex items-center justify-between text-sm transition ${active ? "bg-[#003087]/20 text-slate-900" : "text-slate-700 hover:bg-[#F5F5F5]"}`}
                   >
                     <div>
                       <div className="font-medium">{it.label}</div>
-                      {it.hint && <div className="text-[11px] text-slate-500">{it.hint}</div>}
+                      {it.hint && <div className="text-[11px] text-slate-600">{it.hint}</div>}
                     </div>
                     {active && <ArrowRight size={14} className="text-orange-400" />}
                   </button>
@@ -100,7 +100,7 @@ export default function CommandPalette({ open, onClose, items }: { open: boolean
             </div>
           ))}
         </div>
-        <div className="border-t border-[#334155] px-4 py-2 text-[10px] text-slate-500 flex justify-between">
+        <div className="border-t border-[#E5E7EB] px-4 py-2 text-[10px] text-slate-600 flex justify-between">
           <span>↑↓ เลือก · Enter เปิด · Esc ปิด</span>
           <span>{filtered.length} รายการ</span>
         </div>

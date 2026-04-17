@@ -134,9 +134,9 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
   const today = startOfDay(new Date());
   const todayX = range ? dayDiff(today, range.start) * pxPerDay : 0;
 
-  if (!projectId) return <div className="text-slate-400 text-center py-12">เลือกโครงการเพื่อดู Gantt chart</div>;
-  if (loading) return <div className="text-slate-400 text-center py-12">Loading...</div>;
-  if (!data || !range) return <div className="text-slate-400 text-center py-12">ไม่มีข้อมูล</div>;
+  if (!projectId) return <div className="text-gray-500 text-center py-12">เลือกโครงการเพื่อดู Gantt chart</div>;
+  if (loading) return <div className="text-gray-500 text-center py-12">Loading...</div>;
+  if (!data || !range) return <div className="text-gray-500 text-center py-12">ไม่มีข้อมูล</div>;
 
   const totalRows = sortedTasks.length;
   const chartHeight = totalRows * ROW_H + HEADER_H;
@@ -168,47 +168,47 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
   }).filter(Boolean) as { id: string; x1: number; y1: number; x2: number; y2: number }[];
 
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-2xl overflow-hidden">
+    <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#334155]">
-        <div className="flex items-center gap-2 text-sm text-slate-300">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} className="text-[#00AEEF]" />
-          <span className="font-semibold text-white">{data.project?.name_th || data.project?.name_en}</span>
-          <span className="text-xs text-slate-500">({data.project?.project_code})</span>
+          <span className="font-semibold text-gray-900">{data.project?.name_th || data.project?.name_en}</span>
+          <span className="text-xs text-gray-600">({data.project?.project_code})</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-[#0F172A] rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
             {(["day", "week", "month"] as Zoom[]).map(z => (
               <button key={z} onClick={() => setZoom(z)}
-                className={`px-2.5 py-1 text-xs rounded ${zoom === z ? "bg-[#003087] text-white" : "text-slate-400 hover:text-white"}`}>
+                className={`px-2.5 py-1 text-xs rounded ${zoom === z ? "bg-blue-600 text-gray-900" : "text-gray-500 hover:text-gray-900"}`}>
                 {z === "day" ? "วัน" : z === "week" ? "สัปดาห์" : "เดือน"}
               </button>
             ))}
           </div>
-          <button onClick={() => setZoom(z => z === "month" ? "week" : "day")} className="p-1.5 text-slate-400 hover:text-white" title="Zoom in"><ZoomIn size={16} /></button>
-          <button onClick={() => setZoom(z => z === "day" ? "week" : "month")} className="p-1.5 text-slate-400 hover:text-white" title="Zoom out"><ZoomOut size={16} /></button>
+          <button onClick={() => setZoom(z => z === "month" ? "week" : "day")} className="p-1.5 text-gray-500 hover:text-gray-900" title="Zoom in"><ZoomIn size={16} /></button>
+          <button onClick={() => setZoom(z => z === "day" ? "week" : "month")} className="p-1.5 text-gray-500 hover:text-gray-900" title="Zoom out"><ZoomOut size={16} /></button>
         </div>
       </div>
 
       {/* Body: left task list + right chart */}
       <div className="flex overflow-x-auto">
         {/* Left fixed column */}
-        <div className="shrink-0 sticky left-0 z-10 bg-[#1E293B] border-r border-[#334155]" style={{ width: LEFT_W }}>
-          <div className="border-b border-[#334155] px-3 flex items-center text-xs font-semibold text-slate-400 uppercase tracking-wide" style={{ height: HEADER_H }}>
+        <div className="shrink-0 sticky left-0 z-10 bg-white border-r border-gray-300" style={{ width: LEFT_W }}>
+          <div className="border-b border-gray-300 px-3 flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wide" style={{ height: HEADER_H }}>
             Task
           </div>
           {sortedTasks.map((t) => (
             <div key={t.id} onClick={() => onTaskClick?.(t.id)}
-              className={`px-3 flex items-center text-sm border-b border-[#334155] cursor-pointer hover:bg-[#0F172A] ${hoverTask === t.id ? "bg-[#0F172A]" : ""}`}
+              className={`px-3 flex items-center text-sm border-b border-gray-300 cursor-pointer hover:bg-gray-50 ${hoverTask === t.id ? "bg-gray-50" : ""}`}
               style={{ height: ROW_H }}
               onMouseEnter={() => setHoverTask(t.id)}
               onMouseLeave={() => setHoverTask(null)}>
               <span className="w-2 h-2 rounded-full mr-2 shrink-0" style={{ background: STATUS_BAR[t.status] }} />
-              <span className="truncate text-white" title={t.title}>{t.title}</span>
+              <span className="truncate text-gray-900" title={t.title}>{t.title}</span>
             </div>
           ))}
           {!sortedTasks.length && (
-            <div className="text-xs text-slate-500 text-center py-6">ไม่มี task</div>
+            <div className="text-xs text-gray-600 text-center py-6">ไม่มี task</div>
           )}
         </div>
 
@@ -216,13 +216,13 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
         <div className="flex-1 overflow-x-auto">
           <svg width={totalWidth} height={chartHeight} className="block">
             {/* Header background */}
-            <rect x={0} y={0} width={totalWidth} height={HEADER_H} fill="#0F172A" />
+            <rect x={0} y={0} width={totalWidth} height={HEADER_H} fill="#F1F5F9" />
 
             {/* Vertical tick lines */}
             {ticks.map((tk, i) => (
               <g key={i}>
                 <line x1={tk.x} x2={tk.x} y1={0} y2={chartHeight}
-                  stroke={tk.major ? "#334155" : "#1F2937"} strokeWidth={1} strokeDasharray={tk.major ? "" : "2 4"} />
+                  stroke={tk.major ? "#E2E8F0" : "#E2E8F0"} strokeWidth={1} strokeDasharray={tk.major ? "" : "2 4"} />
                 <text x={tk.x + 4} y={28} fill={tk.major ? "#94A3B8" : "#64748B"} fontSize={11}>{tk.label}</text>
               </g>
             ))}
@@ -238,7 +238,7 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
             {/* Row stripes */}
             {sortedTasks.map((t, i) => (
               <rect key={t.id} x={0} y={HEADER_H + i * ROW_H} width={totalWidth} height={ROW_H}
-                fill={i % 2 === 0 ? "transparent" : "#0F172A"}
+                fill={i % 2 === 0 ? "transparent" : "#F1F5F9"}
                 opacity={hoverTask === t.id ? 0.8 : (i % 2 === 0 ? 0 : 0.4)} />
             ))}
 
@@ -299,14 +299,14 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 px-4 py-3 border-t border-[#334155] text-xs text-slate-400">
-        <span className="font-medium text-slate-300">Status:</span>
+      <div className="flex flex-wrap items-center gap-4 px-4 py-3 border-t border-gray-300 text-xs text-gray-500">
+        <span className="font-medium text-gray-600">Status:</span>
         {Object.entries(STATUS_BAR).filter(([k]) => k !== "cancelled").map(([k, c]) => (
           <span key={k} className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded" style={{ background: c }} /> {k}
           </span>
         ))}
-        <span className="ml-auto flex items-center gap-1.5"><Diamond size={12} className="text-orange-400" /> Milestone</span>
+        <span className="ml-auto flex items-center gap-1.5"><Diamond size={12} className="text-orange-600" /> Milestone</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-orange-400" /> วันนี้</span>
       </div>
     </div>

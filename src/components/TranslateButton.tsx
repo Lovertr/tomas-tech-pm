@@ -6,9 +6,9 @@ type Lang = "th" | "en" | "jp";
 
 const LANG_LABELS: Record<Lang, string> = { th: "TH", en: "EN", jp: "JP" };
 const LANG_COLORS: Record<Lang, string> = {
-  th: "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30",
-  en: "bg-green-500/20 text-green-300 hover:bg-green-500/30",
-  jp: "bg-red-500/20 text-red-300 hover:bg-red-500/30",
+  th: "bg-blue-100 text-blue-700 hover:bg-blue-200",
+  en: "bg-green-100 text-green-700 hover:bg-green-200",
+  jp: "bg-red-100 text-red-700 hover:bg-red-200",
 };
 
 interface TranslateButtonProps {
@@ -63,7 +63,7 @@ export default function TranslateButton({ text, className = "", compact = false 
   return (
     <div className={className}>
       <div className={`flex items-center gap-1 ${compact ? "" : "mt-1"}`}>
-        <Languages size={compact ? 12 : 14} className="text-slate-500 shrink-0" />
+        <Languages size={compact ? 12 : 14} className="text-gray-500 shrink-0" />
         {(["th", "en", "jp"] as Lang[]).map((lang) => (
           <button
             key={lang}
@@ -72,13 +72,13 @@ export default function TranslateButton({ text, className = "", compact = false 
             className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all disabled:opacity-50 ${
               activeLang === lang
                 ? LANG_COLORS[lang].replace("hover:", "") + " ring-1 ring-current"
-                : "bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
             }`}
           >
             {LANG_LABELS[lang]}
           </button>
         ))}
-        {loading && <Loader2 size={12} className="text-cyan-400 animate-spin" />}
+        {loading && <Loader2 size={12} className="text-blue-500 animate-spin" />}
       </div>
 
       {error && (
@@ -89,17 +89,17 @@ export default function TranslateButton({ text, className = "", compact = false 
       )}
 
       {translated && (
-        <div className="mt-2 bg-slate-800/60 border border-slate-600/50 rounded-lg p-2.5 relative">
-          <button onClick={close} className="absolute top-1 right-1 text-slate-500 hover:text-slate-300">
+        <div className="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5 relative">
+          <button onClick={close} className="absolute top-1 right-1 text-gray-500 hover:text-gray-700">
             <X size={12} />
           </button>
           <div className="flex items-center gap-1.5 mb-1">
             <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${activeLang ? LANG_COLORS[activeLang] : ""}`}>
               {activeLang ? LANG_LABELS[activeLang] : ""}
             </span>
-            <span className="text-[10px] text-slate-500">Translation</span>
+            <span className="text-[10px] text-gray-500">Translation</span>
           </div>
-          <div className="text-sm text-slate-200 whitespace-pre-wrap pr-4">{translated}</div>
+          <div className="text-sm text-gray-800 whitespace-pre-wrap pr-4">{translated}</div>
         </div>
       )}
     </div>

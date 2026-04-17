@@ -94,29 +94,29 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
-            ${dragOver ? "border-[#00AEEF] bg-[#00AEEF]/10" : "border-[#334155] hover:border-[#475569] bg-[#0F172A]/40"}`}
+            ${dragOver ? "border-[#00AEEF] bg-[#00AEEF]/10" : "border-[#E2E8F0] hover:border-[#475569] bg-[#F1F5F9]/40"}`}
         >
           <input ref={inputRef} type="file" multiple className="hidden"
             onChange={(e) => e.target.files && upload(e.target.files)} />
           {uploading ? (
-            <div className="flex items-center justify-center gap-2 text-slate-300 text-sm">
+            <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
               <Loader2 size={18} className="animate-spin" /> กำลังอัปโหลด...
             </div>
           ) : (
             <div className="space-y-1">
-              <Upload size={28} className="mx-auto text-slate-400" />
-              <div className="text-sm text-slate-300">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
-              <div className="text-xs text-slate-500">สูงสุด 25 MB ต่อไฟล์</div>
+              <Upload size={28} className="mx-auto text-slate-600" />
+              <div className="text-sm text-gray-500">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
+              <div className="text-xs text-slate-600">สูงสุด 25 MB ต่อไฟล์</div>
             </div>
           )}
         </div>
       )}
 
-      {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+      {err && <div className="text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
 
-      {loading && !items.length && <div className="text-center text-sm text-slate-400 py-4">Loading...</div>}
+      {loading && !items.length && <div className="text-center text-sm text-slate-600 py-4">Loading...</div>}
       {!loading && !items.length && (
-        <div className="text-center text-sm text-slate-500 py-6">ยังไม่มีไฟล์แนบ</div>
+        <div className="text-center text-sm text-slate-600 py-6">ยังไม่มีไฟล์แนบ</div>
       )}
 
       <div className="space-y-2">
@@ -124,18 +124,18 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
           const Icon = iconFor(a.mime_type);
           const isImg = a.mime_type?.startsWith("image/");
           return (
-            <div key={a.id} className="bg-[#0F172A] border border-[#334155] rounded-lg p-3 flex items-center gap-3">
+            <div key={a.id} className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 flex items-center gap-3">
               {isImg && a.url ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={a.url} alt={a.file_name} className="w-12 h-12 rounded object-cover shrink-0" />
               ) : (
-                <div className="w-12 h-12 rounded bg-[#1E293B] flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded bg-[#FFFFFF] flex items-center justify-center shrink-0">
                   <Icon size={20} className="text-[#00AEEF]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-white font-medium truncate">{a.file_name}</div>
-                <div className="text-xs text-slate-500 flex items-center gap-2">
+                <div className="text-sm text-gray-900 font-medium truncate">{a.file_name}</div>
+                <div className="text-xs text-slate-600 flex items-center gap-2">
                   <span>{fmtSize(a.file_size)}</span>
                   {a.uploader?.email && <span>· {a.uploader.email}</span>}
                   {a.created_at && <span>· {new Date(a.created_at).toLocaleDateString("th-TH")}</span>}
@@ -160,12 +160,12 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
                       window.open(a.url!, "_blank");
                     }
                   }}
-                  className="p-1.5 text-slate-400 hover:text-white" title="ดาวน์โหลด">
+                  className="p-1.5 text-slate-600 hover:text-gray-900" title="ดาวน์โหลด">
                   <Download size={16} />
                 </button>
               )}
               {canManage && (
-                <button onClick={() => remove(a.id)} className="p-1.5 text-red-400 hover:text-red-300" title="ลบ">
+                <button onClick={() => remove(a.id)} className="p-1.5 text-red-600 hover:text-red-700" title="ลบ">
                   <Trash2 size={16} />
                 </button>
               )}

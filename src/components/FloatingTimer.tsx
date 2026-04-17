@@ -91,7 +91,7 @@ export default function FloatingTimer({ onOpenTask, refreshKey = 0, onChange }: 
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 text-white rounded-full shadow-2xl hover:shadow-green-500/30 transition-all"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 text-gray-900 rounded-full shadow-2xl hover:shadow-green-500/30 transition-all"
         title={taskTitle}
       >
         <Clock size={14} className="animate-pulse" />
@@ -101,18 +101,18 @@ export default function FloatingTimer({ onOpenTask, refreshKey = 0, onChange }: 
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 w-80 bg-[#1E293B] border border-green-500/40 rounded-2xl shadow-2xl shadow-green-500/10 overflow-hidden">
+    <div className="fixed bottom-6 right-6 z-40 w-80 bg-white border border-green-500/40 rounded-2xl shadow-2xl shadow-green-500/10 overflow-hidden">
       {/* Header strip */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/10 border-b border-green-500/30">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-[11px] font-medium text-green-300 uppercase tracking-wide">Timer running</span>
+          <span className="text-[11px] font-medium text-green-700 uppercase tracking-wide">Timer running</span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => setCollapsed(true)} title="ย่อ" className="p-1 text-slate-400 hover:text-white">
+          <button onClick={() => setCollapsed(true)} title="ย่อ" className="p-1 text-gray-500 hover:text-gray-900">
             <ChevronUp size={14} />
           </button>
-          <button onClick={() => setHidden(true)} title="ซ่อน (timer ยังทำงาน)" className="p-1 text-slate-400 hover:text-white">
+          <button onClick={() => setHidden(true)} title="ซ่อน (timer ยังทำงาน)" className="p-1 text-gray-500 hover:text-gray-900">
             <X size={14} />
           </button>
         </div>
@@ -121,18 +121,18 @@ export default function FloatingTimer({ onOpenTask, refreshKey = 0, onChange }: 
       {/* Body */}
       <div className="p-3">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">{projLabel}</span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{projLabel}</span>
         </div>
         <button
           onClick={() => timer.task_id && onOpenTask?.(timer.task_id)}
-          className="block w-full text-left text-sm font-medium text-white hover:text-[#00AEEF] truncate mb-3"
+          className="block w-full text-left text-sm font-medium text-gray-900 hover:text-blue-500 truncate mb-3"
           title={taskTitle}
         >
           {taskTitle}
         </button>
 
         <div className="flex items-center justify-between">
-          <div className="font-mono text-2xl font-bold text-green-300 tabular-nums">{elapsed()}</div>
+          <div className="font-mono text-2xl font-bold text-green-700 tabular-nums">{elapsed()}</div>
           <button
             onClick={stop}
             disabled={stopping}

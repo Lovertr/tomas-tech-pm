@@ -68,16 +68,16 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
           <Stat label="โครงการ" value={new Set(items.map(i => i.project_id)).size} color="#22C55E" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
             <Plus size={14} /> เพิ่ม Decision
           </button>
         )}
       </div>
 
-      {loading && !items.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !items.length && <div className="text-center text-slate-600 py-12">Loading...</div>}
       {!loading && !items.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
-          <Lightbulb size={40} className="mx-auto mb-3 text-slate-600" />
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl text-slate-600">
+          <Lightbulb size={40} className="mx-auto mb-3 text-gray-500" />
           ยังไม่มี decision log
         </div>
       )}
@@ -86,53 +86,53 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
         {items.map(d => {
           const isOpen = expanded.has(d.id);
           return (
-            <div key={d.id} className="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden">
+            <div key={d.id} className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl overflow-hidden">
               <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-[#22304A]" onClick={() => toggle(d.id)}>
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-purple-500/20">
                   <Lightbulb size={18} className="text-purple-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">{d.projects?.project_code || "—"}</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-gray-500">{d.projects?.project_code || "—"}</span>
                     {d.decided_at && (
-                      <span className="text-[10px] flex items-center gap-1 text-slate-400">
+                      <span className="text-[10px] flex items-center gap-1 text-slate-600">
                         <Calendar size={10} /> {new Date(d.decided_at).toLocaleDateString("th-TH")}
                       </span>
                     )}
-                    <span className="text-[10px] flex items-center gap-1 text-slate-400">
+                    <span className="text-[10px] flex items-center gap-1 text-slate-600">
                       <User size={10} /> {memberName(memberMap.get(d.decided_by ?? ""))}
                     </span>
                   </div>
-                  <div className="text-sm font-medium text-white">{d.title}</div>
-                  {d.decision && !isOpen && <div className="text-xs text-slate-400 mt-0.5 line-clamp-1">{d.decision}</div>}
+                  <div className="text-sm font-medium text-gray-900">{d.title}</div>
+                  {d.decision && !isOpen && <div className="text-xs text-slate-600 mt-0.5 line-clamp-1">{d.decision}</div>}
                 </div>
                 {canManage && (
                   <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setEditing(d)} className="p-1.5 text-slate-400 hover:text-white"><Edit3 size={14} /></button>
-                    <button onClick={() => remove(d.id)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                    <button onClick={() => setEditing(d)} className="p-1.5 text-slate-600 hover:text-gray-900"><Edit3 size={14} /></button>
+                    <button onClick={() => remove(d.id)} className="p-1.5 text-red-600 hover:text-red-700"><Trash2 size={14} /></button>
                   </div>
                 )}
               </div>
               {isOpen && (
-                <div className="px-4 pb-4 border-t border-[#334155] space-y-3 pt-3">
+                <div className="px-4 pb-4 border-t border-[#E2E8F0] space-y-3 pt-3">
                   {d.context && (
                     <div>
-                      <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Context</div>
-                      <div className="text-xs text-slate-300 whitespace-pre-wrap">{d.context}</div>
+                      <div className="text-[10px] uppercase tracking-wide text-slate-600 mb-1">Context</div>
+                      <div className="text-xs text-gray-500 whitespace-pre-wrap">{d.context}</div>
                       <TranslateButton text={d.context} compact />
                     </div>
                   )}
                   {d.decision && (
                     <div>
-                      <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Decision</div>
-                      <div className="text-sm text-white whitespace-pre-wrap bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">{d.decision}</div>
+                      <div className="text-[10px] uppercase tracking-wide text-slate-600 mb-1">Decision</div>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">{d.decision}</div>
                       <TranslateButton text={d.decision} compact />
                     </div>
                   )}
                   {d.rationale && (
                     <div>
-                      <div className="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Rationale</div>
-                      <div className="text-xs text-slate-300 whitespace-pre-wrap">{d.rationale}</div>
+                      <div className="text-[10px] uppercase tracking-wide text-slate-600 mb-1">Rationale</div>
+                      <div className="text-xs text-gray-500 whitespace-pre-wrap">{d.rationale}</div>
                       <TranslateButton text={d.rationale} compact />
                     </div>
                   )}
@@ -159,9 +159,9 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-2 md:p-3">
+    <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-2 md:p-3">
       <div className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-[10px] md:text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-[10px] md:text-xs text-slate-600 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -194,53 +194,53 @@ function DecisionModal({ initial, projects, members, defaultProjectId, onClose, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-white">{initial ? "แก้ไข Decision" : "เพิ่ม Decision"}</h3>
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold text-gray-900">{initial ? "แก้ไข Decision" : "เพิ่ม Decision"}</h3>
         <Field label="โครงการ *">
-          <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <select className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             value={form.project_id ?? ""} onChange={e => setForm({ ...form, project_id: e.target.value })}>
             <option value="">— เลือก —</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
           </select>
         </Field>
         <Field label="หัวข้อ *">
-          <input className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <input className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             placeholder="เช่น เลือก React Native แทน Flutter"
             value={form.title ?? ""} onChange={e => setForm({ ...form, title: e.target.value })} />
         </Field>
         <Field label="Context (สถานการณ์)">
-          <textarea rows={3} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <textarea rows={3} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             placeholder="ปัญหาหรือสถานการณ์ที่ต้องตัดสินใจ"
             value={form.context ?? ""} onChange={e => setForm({ ...form, context: e.target.value })} />
         </Field>
         <Field label="Decision (การตัดสินใจ)">
-          <textarea rows={3} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <textarea rows={3} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             placeholder="สิ่งที่ตัดสินใจเลือก"
             value={form.decision ?? ""} onChange={e => setForm({ ...form, decision: e.target.value })} />
         </Field>
         <Field label="Rationale (เหตุผล)">
-          <textarea rows={3} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+          <textarea rows={3} className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
             placeholder="ทำไมจึงเลือกแบบนี้ พิจารณา trade-off อะไรบ้าง"
             value={form.rationale ?? ""} onChange={e => setForm({ ...form, rationale: e.target.value })} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="ผู้ตัดสินใจ">
-            <select className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <select className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
               value={form.decided_by ?? ""} onChange={e => setForm({ ...form, decided_by: e.target.value || null })}>
               <option value="">—</option>
               {members.map(m => <option key={m.id} value={m.id}>{memberName(m)}</option>)}
             </select>
           </Field>
           <Field label="วันที่ตัดสินใจ">
-            <input type="date" className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+            <input type="date" className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
               value={form.decided_at ? String(form.decided_at).slice(0, 10) : ""}
               onChange={e => setForm({ ...form, decided_at: e.target.value || null })} />
           </Field>
         </div>
-        {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+          <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">ยกเลิก</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </div>
@@ -250,5 +250,5 @@ function DecisionModal({ initial, projects, members, defaultProjectId, onClose, 
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div><label className="block text-xs text-slate-400 mb-1">{label}</label>{children}</div>;
+  return <div><label className="block text-xs text-slate-600 mb-1">{label}</label>{children}</div>;
 }

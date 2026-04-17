@@ -70,33 +70,33 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
   const selectedDay = selected ? eventsByDay.get(selected) : null;
 
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-2xl overflow-hidden">
+    <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#334155]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300">
         <div className="flex items-center gap-2">
-          <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="p-1.5 text-slate-400 hover:text-white"><ChevronLeft size={18} /></button>
-          <h2 className="text-lg font-semibold text-white min-w-40 text-center">{monthLabel}</h2>
-          <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="p-1.5 text-slate-400 hover:text-white"><ChevronRight size={18} /></button>
-          <button onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); }} className="ml-2 px-3 py-1 text-xs bg-[#0F172A] text-slate-300 hover:text-white rounded-lg border border-[#334155]">วันนี้</button>
+          <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="p-1.5 text-gray-500 hover:text-gray-900"><ChevronLeft size={18} /></button>
+          <h2 className="text-lg font-semibold text-gray-900 min-w-40 text-center">{monthLabel}</h2>
+          <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="p-1.5 text-gray-500 hover:text-gray-900"><ChevronRight size={18} /></button>
+          <button onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); }} className="ml-2 px-3 py-1 text-xs bg-gray-50 text-gray-600 hover:text-gray-900 rounded-lg border border-gray-300">วันนี้</button>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-400">
+        <div className="flex items-center gap-3 text-xs text-gray-500">
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400" /> Task</span>
-          <span className="flex items-center gap-1"><Flag size={11} className="text-orange-400" /> Milestone</span>
-          <span className="flex items-center gap-1"><CalIcon size={11} className="text-purple-400" /> Meeting</span>
+          <span className="flex items-center gap-1"><Flag size={11} className="text-orange-600" /> Milestone</span>
+          <span className="flex items-center gap-1"><CalIcon size={11} className="text-purple-600" /> Meeting</span>
         </div>
       </div>
 
       {/* Day-of-week header */}
-      <div className="grid grid-cols-7 border-b border-[#334155] bg-[#0F172A]">
+      <div className="grid grid-cols-7 border-b border-gray-300 bg-gray-50">
         {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((d, i) => (
-          <div key={d} className={`px-2 py-2 text-center text-xs font-semibold ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-slate-400"}`}>{d}</div>
+          <div key={d} className={`px-2 py-2 text-center text-xs font-semibold ${i === 0 ? "text-red-600" : i === 6 ? "text-blue-600" : "text-gray-500"}`}>{d}</div>
         ))}
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-7 auto-rows-fr">
         {grid.map((c, i) => {
-          if (!c.date) return <div key={i} className="border-b border-r border-[#334155] bg-[#0F172A]/40 min-h-24" />;
+          if (!c.date) return <div key={i} className="border-b border-r border-gray-300 bg-gray-50/40 min-h-24" />;
           const k = dayKey(c.date);
           const ev = eventsByDay.get(k);
           const isToday = c.date.getTime() === today.getTime();
@@ -104,30 +104,30 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
           const dow = c.date.getDay();
           return (
             <div key={i} onClick={() => setSelected(k)}
-              className={`border-b border-r border-[#334155] min-h-24 p-1.5 cursor-pointer hover:bg-[#0F172A] transition-colors ${isSel ? "bg-[#003087]/20 ring-1 ring-[#00AEEF]" : ""}`}>
-              <div className={`text-xs font-medium mb-1 ${isToday ? "inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#F7941D] text-white" : dow === 0 ? "text-red-400" : dow === 6 ? "text-blue-400" : "text-slate-300"}`}>
+              className={`border-b border-r border-gray-300 min-h-24 p-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${isSel ? "bg-blue-600/20 ring-1 ring-blue-500" : ""}`}>
+              <div className={`text-xs font-medium mb-1 ${isToday ? "inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-gray-900" : dow === 0 ? "text-red-600" : dow === 6 ? "text-blue-600" : "text-gray-600"}`}>
                 {c.date.getDate()}
               </div>
               <div className="space-y-0.5">
                 {ev?.milestones.slice(0, 2).map(m => (
-                  <div key={m.id} className="flex items-center gap-1 text-[10px] text-orange-300 truncate">
+                  <div key={m.id} className="flex items-center gap-1 text-[10px] text-orange-600 truncate">
                     <Flag size={9} /> {m.title}
                   </div>
                 ))}
                 {ev?.meetings.slice(0, 2).map(m => (
-                  <div key={m.id} className="flex items-center gap-1 text-[10px] text-purple-300 truncate">
+                  <div key={m.id} className="flex items-center gap-1 text-[10px] text-purple-600 truncate">
                     <CalIcon size={9} /> {m.title}
                   </div>
                 ))}
                 {ev?.tasks.slice(0, 3).map(t => (
                   <div key={t.id} onClick={(e) => { e.stopPropagation(); onTaskClick?.(t.id); }}
-                    className="flex items-center gap-1 text-[10px] text-slate-200 hover:text-white truncate" title={t.title}>
+                    className="flex items-center gap-1 text-[10px] text-gray-700 hover:text-gray-900 truncate" title={t.title}>
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIO_DOT[t.priority] || "bg-slate-400"}`} />
                     {t.title}
                   </div>
                 ))}
                 {ev && (ev.tasks.length + ev.milestones.length + ev.meetings.length) > 5 && (
-                  <div className="text-[10px] text-slate-500">+{(ev.tasks.length + ev.milestones.length + ev.meetings.length) - 5} more</div>
+                  <div className="text-[10px] text-gray-600">+{(ev.tasks.length + ev.milestones.length + ev.meetings.length) - 5} more</div>
                 )}
               </div>
             </div>
@@ -137,38 +137,38 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
 
       {/* Selected day detail */}
       {selectedDay && selected && (
-        <div className="border-t border-[#334155] p-4 space-y-2 bg-[#0F172A]/40">
-          <div className="text-sm font-semibold text-white mb-2">
+        <div className="border-t border-gray-300 p-4 space-y-2 bg-gray-50/40">
+          <div className="text-sm font-semibold text-gray-900 mb-2">
             {new Date(selected).toLocaleDateString("th-TH", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </div>
           {selectedDay.milestones.map(m => (
             <div key={m.id} className="flex items-center gap-2 text-sm">
-              <Flag size={14} className="text-orange-400" />
-              <span className="text-slate-200">{m.title}</span>
-              <span className="text-xs text-slate-500">({projMap.get(m.project_id)?.project_code})</span>
+              <Flag size={14} className="text-orange-600" />
+              <span className="text-gray-700">{m.title}</span>
+              <span className="text-xs text-gray-600">({projMap.get(m.project_id)?.project_code})</span>
             </div>
           ))}
           {selectedDay.meetings.map(mt => (
             <div key={mt.id} className="flex items-center gap-2 text-sm">
-              <CalIcon size={14} className="text-purple-400" />
-              <span className="text-slate-200">{mt.title}</span>
-              <span className="text-xs text-slate-500">({projMap.get(mt.project_id)?.project_code})</span>
+              <CalIcon size={14} className="text-purple-600" />
+              <span className="text-gray-700">{mt.title}</span>
+              <span className="text-xs text-gray-600">({projMap.get(mt.project_id)?.project_code})</span>
             </div>
           ))}
           {selectedDay.tasks.map(t => (
             <div key={t.id} onClick={() => onTaskClick?.(t.id)} className="flex items-center gap-2 text-sm cursor-pointer hover:text-[#00AEEF]">
-              <ListTodo size={14} className="text-blue-400" />
-              <span className="text-slate-200">{t.title}</span>
-              <span className="text-xs text-slate-500">({projMap.get(t.project_id)?.project_code})</span>
+              <ListTodo size={14} className="text-blue-600" />
+              <span className="text-gray-700">{t.title}</span>
+              <span className="text-xs text-gray-600">({projMap.get(t.project_id)?.project_code})</span>
               <span className={`ml-auto w-2 h-2 rounded-full ${PRIO_DOT[t.priority]}`} />
             </div>
           ))}
           {!selectedDay.tasks.length && !selectedDay.milestones.length && !selectedDay.meetings.length && (
-            <div className="text-xs text-slate-500">ไม่มีรายการ</div>
+            <div className="text-xs text-gray-600">ไม่มีรายการ</div>
           )}
         </div>
       )}
-      {loading && <div className="text-xs text-center text-slate-500 py-2">Loading...</div>}
+      {loading && <div className="text-xs text-center text-gray-600 py-2">Loading...</div>}
     </div>
   );
 }

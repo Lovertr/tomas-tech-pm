@@ -109,7 +109,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
 
   if (loading) {
     return (
-      <div className="bg-[#1E293B] rounded-2xl border border-[#334155] p-6">
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] p-6">
         <div className="text-center text-gray-400 py-8">Loading...</div>
       </div>
     );

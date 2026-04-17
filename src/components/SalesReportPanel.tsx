@@ -163,7 +163,7 @@ export default function SalesReportPanel({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-400">{L('loading')}</p>
+        <p className="text-gray-500">{L('loading')}</p>
       </div>
     );
   }
@@ -171,7 +171,7 @@ export default function SalesReportPanel({
   if (!reportData) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-400">{L('noData')}</p>
+        <p className="text-gray-500">{L('noData')}</p>
       </div>
     );
   }
@@ -189,19 +189,19 @@ export default function SalesReportPanel({
     }));
 
   const tooltipConfig = {
-    background: '#1E293B',
+    background: '#FFFFFF',
     border: 'none',
     borderRadius: 12,
-    color: '#F8FAFC',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+    color: '#1F2937',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
-          <p className="text-gray-400 text-sm mt-1">{L('subtitle')}</p>
+          <h2 className="text-2xl font-bold text-gray-900">{L('title')}</h2>
+          <p className="text-gray-500 text-sm mt-1">{L('subtitle')}</p>
         </div>
         <div>
           <TranslateButton text={L('translateText')} />
@@ -210,20 +210,20 @@ export default function SalesReportPanel({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">{L('totalDeals')}</p>
+            <p className="text-gray-500 text-sm">{L('totalDeals')}</p>
             <DollarSign size={20} className="text-blue-400" />
           </div>
-          <p className="text-3xl font-bold text-white">{reportData.summary.totalDeals}</p>
+          <p className="text-3xl font-bold text-gray-900">{reportData.summary.totalDeals}</p>
           <p className="text-xs text-gray-500 mt-2">
             {L('pipeline')}: ฿{(reportData.summary.totalPipeline / 1000).toFixed(0)}K
           </p>
         </div>
 
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">{L('closed')}</p>
+            <p className="text-gray-500 text-sm">{L('closed')}</p>
             <CheckCircle size={20} className="text-green-400" />
           </div>
           <p className="text-3xl font-bold text-green-400">{reportData.summary.wonCount}</p>
@@ -232,9 +232,9 @@ export default function SalesReportPanel({
           </p>
         </div>
 
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">{L('conversionRate')}</p>
+            <p className="text-gray-500 text-sm">{L('conversionRate')}</p>
             <TrendingUp size={20} className="text-orange-400" />
           </div>
           <p className="text-3xl font-bold text-orange-400">
@@ -242,17 +242,17 @@ export default function SalesReportPanel({
           </p>
         </div>
 
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">{L('lost')}</p>
+            <p className="text-gray-500 text-sm">{L('lost')}</p>
             <AlertCircle size={20} className="text-red-400" />
           </div>
           <p className="text-3xl font-bold text-red-400">{reportData.summary.lostCount}</p>
         </div>
 
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-400 text-sm">{L('avgDealSize')}</p>
+            <p className="text-gray-500 text-sm">{L('avgDealSize')}</p>
             <DollarSign size={20} className="text-purple-400" />
           </div>
           <p className="text-2xl font-bold text-purple-400">
@@ -266,11 +266,11 @@ export default function SalesReportPanel({
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Stage Count Bar Chart */}
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <h3 className="font-semibold text-white mb-4">{L('dealsByStage')}</h3>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <h3 className="font-semibold text-gray-900 mb-4">{L('dealsByStage')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={stageChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
               <XAxis dataKey="name" stroke="#9CA3AF" style={{ fontSize: '12px' }} />
               <YAxis stroke="#9CA3AF" style={{ fontSize: '12px' }} />
               <Tooltip contentStyle={tooltipConfig} />
@@ -280,8 +280,8 @@ export default function SalesReportPanel({
         </div>
 
         {/* Stage Value Pie Chart */}
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <h3 className="font-semibold text-white mb-4">{L('valueByStage')}</h3>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <h3 className="font-semibold text-gray-900 mb-4">{L('valueByStage')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -307,11 +307,11 @@ export default function SalesReportPanel({
       </div>
 
       {/* Monthly Revenue Area Chart */}
-      <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-        <h3 className="font-semibold text-white mb-4">{L('monthlyRevenue')}</h3>
+      <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+        <h3 className="font-semibold text-gray-900 mb-4">{L('monthlyRevenue')}</h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={reportData.monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
             <XAxis dataKey="month" stroke="#9CA3AF" style={{ fontSize: '12px' }} />
             <YAxis stroke="#9CA3AF" style={{ fontSize: '12px' }} />
             <Tooltip
@@ -330,15 +330,15 @@ export default function SalesReportPanel({
       </div>
 
       {/* Top Customers */}
-      <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-        <h3 className="font-semibold text-white mb-4">{L('topCustomers')}</h3>
+      <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+        <h3 className="font-semibold text-gray-900 mb-4">{L('topCustomers')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#334155]">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">{L('customerName')}</th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">{L('value')}</th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">{L('deals')}</th>
+              <tr className="border-b border-[#E2E8F0]">
+                <th className="text-left py-3 px-4 text-gray-500 font-medium">{L('customerName')}</th>
+                <th className="text-right py-3 px-4 text-gray-500 font-medium">{L('value')}</th>
+                <th className="text-right py-3 px-4 text-gray-500 font-medium">{L('deals')}</th>
               </tr>
             </thead>
             <tbody>
@@ -352,15 +352,15 @@ export default function SalesReportPanel({
                 reportData.topCustomers.map((customer, index) => (
                   <tr
                     key={index}
-                    className="border-b border-[#334155] hover:bg-[#0F172A] transition"
+                    className="border-b border-[#E2E8F0] hover:bg-gray-50 transition"
                   >
-                    <td className="py-3 px-4 text-white">{customer.name}</td>
+                    <td className="py-3 px-4 text-gray-900">{customer.name}</td>
                     <td className="text-right py-3 px-4">
                       <span className="font-semibold text-green-400">
                         ฿{(customer.total / 1000).toFixed(0)}K
                       </span>
                     </td>
-                    <td className="text-right py-3 px-4 text-gray-400">{customer.count}</td>
+                    <td className="text-right py-3 px-4 text-gray-500">{customer.count}</td>
                   </tr>
                 ))
               )}
@@ -370,8 +370,8 @@ export default function SalesReportPanel({
       </div>
 
       {/* Recent Activities */}
-      <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-        <h3 className="font-semibold text-white mb-4">{L('recentActivities')}</h3>
+      <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+        <h3 className="font-semibold text-gray-900 mb-4">{L('recentActivities')}</h3>
         <div className="space-y-3">
           {reportData.recentActivities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">{L('noData')}</div>
@@ -379,11 +379,11 @@ export default function SalesReportPanel({
             reportData.recentActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-start gap-3 pb-3 border-b border-[#334155] last:border-b-0 last:pb-0"
+                className="flex items-start gap-3 pb-3 border-b border-[#E2E8F0] last:border-b-0 last:pb-0"
               >
                 <div className="flex-1">
-                  <p className="text-white text-sm">{activity.description}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-gray-900 text-sm">{activity.description}</p>
+                  <p className="text-xs text-gray-500 mt-1">
                     {new Date(activity.date).toLocaleString('th-TH')}
                   </p>
                 </div>
@@ -403,7 +403,7 @@ export default function SalesReportPanel({
         </button>
         <button
           disabled
-          className="flex-1 px-4 py-2 bg-[#334155] text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed"
+          className="flex-1 px-4 py-2 bg-[#E2E8F0] text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed"
         >
           {L('export')}
         </button>

@@ -118,7 +118,7 @@ export default function MemberModal({ open, onClose, initial, positions, onSubmi
         </div>
 
         {users.length > 0 && (
-          <div className="border-t border-[#334155] pt-3">
+          <div className="border-t border-[#E5E7EB] pt-3">
             <label className={fieldLabel}>
               🔗 ผูกกับ User Account
               <span className="text-xs text-slate-500 font-normal ml-2">

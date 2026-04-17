@@ -132,16 +132,16 @@ export default function AllocationModal({ open, onClose, onSave, initial, projec
         </div>
 
         {form.id && (
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-gray-600">
             <input type="checkbox" checked={form.is_active ?? true}
               onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
             Active
           </label>
         )}
 
-        {err && <div className="text-red-400 text-sm">{err}</div>}
+        {err && <div className="text-red-600 text-sm">{err}</div>}
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-[#334155]">
+        <div className="flex justify-end gap-2 pt-2 border-t border-gray-300">
           <button className={btnGhost} onClick={onClose} disabled={saving}>ยกเลิก</button>
           <button className={btnPrimary} onClick={submit} disabled={saving}>
             {saving ? "กำลังบันทึก..." : "บันทึก"}

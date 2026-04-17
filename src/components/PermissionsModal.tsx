@@ -100,30 +100,30 @@ export default function PermissionsModal({ user, open, onClose, onSaved }: Props
 
   return (
     <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* header */}
-        <div className="flex items-center justify-between border-b border-[#334155] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#003087] to-[#00AEEF] flex items-center justify-center">
-              <Shield size={20} className="text-white" />
+              <Shield size={20} className="text-gray-900" />
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg">จัดการสิทธิ์การใช้งาน</h3>
-              <div className="text-xs text-slate-400">{user.display_name} <span className="text-slate-500">({user.username})</span></div>
+              <h3 className="text-gray-900 font-bold text-lg">จัดการสิทธิ์การใช้งาน</h3>
+              <div className="text-xs text-slate-500">{user.display_name} <span className="text-slate-500">({user.username})</span></div>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={20} /></button>
+          <button onClick={onClose} className="text-slate-500 hover:text-gray-900"><X size={20} /></button>
         </div>
 
         {/* toolbar */}
-        <div className="px-5 py-3 border-b border-[#334155] flex items-center gap-3 flex-wrap">
+        <div className="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input value={filter} onChange={e => setFilter(e.target.value)} placeholder="ค้นหาเมนู..."
-              className="w-full bg-[#0F172A] border border-[#334155] rounded-lg pl-9 pr-3 py-1.5 text-sm text-white" />
+              className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg pl-9 pr-3 py-1.5 text-sm text-gray-900" />
           </div>
           <div className="flex items-center gap-1 text-xs">
-            <span className="text-slate-400 mr-1">ตั้งทั้งหมด:</span>
+            <span className="text-slate-500 mr-1">ตั้งทั้งหมด:</span>
             {LEVELS.map(l => (
               <button key={l} onClick={() => setAllLevel(l)}
                 className="px-2 py-1 rounded text-[10px] font-medium hover:opacity-80"
@@ -133,18 +133,18 @@ export default function PermissionsModal({ user, open, onClose, onSaved }: Props
             ))}
           </div>
           <button onClick={reset} disabled={saving}
-            className="px-3 py-1.5 text-xs text-slate-300 hover:text-white border border-[#334155] rounded-lg flex items-center gap-1 disabled:opacity-50">
+            className="px-3 py-1.5 text-xs text-slate-600 hover:text-gray-900 border border-[#E2E8F0] rounded-lg flex items-center gap-1 disabled:opacity-50">
             <RotateCcw size={12} /> ใช้ค่า Default
           </button>
         </div>
 
         {/* legend */}
-        <div className="px-5 py-2 border-b border-[#334155] flex items-center gap-3 flex-wrap text-[10px]">
+        <div className="px-5 py-2 border-b border-[#E2E8F0] flex items-center gap-3 flex-wrap text-[10px]">
           <span className="text-slate-500">ระดับสิทธิ์:</span>
           {LEVELS.map(l => (
             <span key={l} className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full" style={{ background: PERM_COLOR[l] }} />
-              <span className="text-slate-300">{l} = {PERM_LABEL_TH[l]}</span>
+              <span className="text-slate-600">{l} = {PERM_LABEL_TH[l]}</span>
             </span>
           ))}
           <span className="text-slate-500 ml-auto">● = override (ค่า default ของ role ถูกแทนที่)</span>
@@ -152,10 +152,10 @@ export default function PermissionsModal({ user, open, onClose, onSaved }: Props
 
         {/* body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {loading && <div className="text-center text-slate-400 py-10">Loading...</div>}
+          {loading && <div className="text-center text-slate-500 py-10">Loading...</div>}
           {!loading && grouped.map(g => (
-            <div key={g.cat} className="bg-[#0F172A]/40 border border-[#334155] rounded-xl">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-[#334155]">
+            <div key={g.cat} className="bg-[#F1F5F9]/40 border border-[#E2E8F0] rounded-xl">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-[#E2E8F0]">
                 <h4 className="text-sm font-semibold text-orange-400">{CATEGORY_LABEL[g.cat] || g.cat}</h4>
                 <div className="flex items-center gap-1">
                   <span className="text-[10px] text-slate-500 mr-1">ตั้งหมวดนี้:</span>
@@ -169,15 +169,15 @@ export default function PermissionsModal({ user, open, onClose, onSaved }: Props
                   ))}
                 </div>
               </div>
-              <div className="divide-y divide-[#1E293B]">
+              <div className="divide-y divide-[#FFFFFF]">
                 {g.items.map(m => {
                   const cur = perms[m.key] ?? 0;
                   const isOverride = m.key in overrides;
                   return (
-                    <div key={m.key} className="flex items-center gap-3 px-4 py-2 hover:bg-[#1E293B]/50">
+                    <div key={m.key} className="flex items-center gap-3 px-4 py-2 hover:bg-[#FFFFFF]/50">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-white truncate">{m.label_th}</span>
+                          <span className="text-sm text-gray-900 truncate">{m.label_th}</span>
                           {isOverride && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" title="Override" />}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">{m.key}</div>
@@ -205,14 +205,14 @@ export default function PermissionsModal({ user, open, onClose, onSaved }: Props
         </div>
 
         {/* footer */}
-        <div className="border-t border-[#334155] px-5 py-3 flex items-center justify-between">
+        <div className="border-t border-[#E2E8F0] px-5 py-3 flex items-center justify-between">
           <div className="text-xs text-slate-500">
             {dirty ? <span className="text-orange-400">● มีการเปลี่ยนแปลงที่ยังไม่บันทึก</span> : "ไม่มีการเปลี่ยนแปลง"}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-300 hover:text-white">ยกเลิก</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:text-gray-900">ยกเลิก</button>
             <button onClick={save} disabled={saving || !dirty}
-              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
+              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
               <Save size={14} /> {saving ? "กำลังบันทึก..." : "บันทึกสิทธิ์"}
             </button>
           </div>

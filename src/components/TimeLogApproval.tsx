@@ -85,20 +85,20 @@ export default function TimeLogApproval({ canApprove }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-white">
+        <div className="flex items-center gap-2 text-gray-900">
           <Clock size={20} className="text-[#00AEEF]" />
           <h2 className="text-lg font-semibold">TimeLog Approval</h2>
-          <span className="text-xs text-slate-400">({rows.length} รายการ • {totalHours.toFixed(1)}h • ฿{totalAmount.toLocaleString()})</span>
+          <span className="text-xs text-gray-500">({rows.length} รายการ • {totalHours.toFixed(1)}h • ฿{totalAmount.toLocaleString()})</span>
         </div>
-        <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1E293B] border border-[#334155] text-slate-300 text-sm hover:bg-[#0F172A]">
+        <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-600 text-sm hover:bg-gray-50">
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
-      <div className="flex gap-1 bg-[#1E293B] border border-[#334155] rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-white border border-gray-300 rounded-lg p-1 w-fit">
         {(["pending", "approved", "rejected"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === t ? "text-white" : "text-slate-400 hover:text-slate-200"}`}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium ${tab === t ? "text-white" : "text-gray-500 hover:text-gray-600"}`}
             style={tab === t ? { background: t === "pending" ? "#B45309" : t === "approved" ? "#15803D" : "#B91C1C" } : {}}>
             {t === "pending" ? "Pending" : t === "approved" ? "Approved" : "Rejected"}
           </button>
@@ -107,10 +107,10 @@ export default function TimeLogApproval({ canApprove }: Props) {
 
       {err && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3 flex items-center gap-2"><AlertCircle size={16} /> {err}</div>}
 
-      <div className="bg-[#1E293B] border border-[#334155] rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#0F172A] text-slate-400">
+            <thead className="bg-gray-50 text-gray-500">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Date</th>
                 <th className="text-left px-4 py-3 font-medium">Member</th>
@@ -126,24 +126,24 @@ export default function TimeLogApproval({ canApprove }: Props) {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={canApprove ? 9 : 8} className="text-center py-12 text-slate-400">Loading...</td></tr>
+                <tr><td colSpan={canApprove ? 9 : 8} className="text-center py-12 text-gray-500">Loading...</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={canApprove ? 9 : 8} className="text-center py-12 text-slate-400">
+                <tr><td colSpan={canApprove ? 9 : 8} className="text-center py-12 text-gray-500">
                   {tab === "pending" ? "🎉 ไม่มี timelog รออนุมัติ" : `ไม่มีรายการ ${tab}`}
                 </td></tr>
               ) : rows.map(r => {
                 const amount = Number(r.hours) * Number(r.hourly_rate_at_log);
                 return (
-                  <tr key={r.id} className="border-t border-[#334155] hover:bg-[#0F172A]/50">
-                    <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{r.log_date}</td>
-                    <td className="px-4 py-3 text-white">{memberName(r.team_members)}</td>
-                    <td className="px-4 py-3 text-slate-300">{projName(r.projects)}</td>
-                    <td className="px-4 py-3 text-slate-400">{r.tasks?.title || "—"}</td>
-                    <td className="px-4 py-3 text-right text-white font-medium">{Number(r.hours).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right text-slate-300">฿{Number(r.hourly_rate_at_log).toLocaleString()}</td>
+                  <tr key={r.id} className="border-t border-gray-300 hover:bg-gray-50/50">
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.log_date}</td>
+                    <td className="px-4 py-3 text-gray-900">{memberName(r.team_members)}</td>
+                    <td className="px-4 py-3 text-gray-600">{projName(r.projects)}</td>
+                    <td className="px-4 py-3 text-gray-500">{r.tasks?.title || "—"}</td>
+                    <td className="px-4 py-3 text-right text-gray-900 font-medium">{Number(r.hours).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right text-gray-600">฿{Number(r.hourly_rate_at_log).toLocaleString()}</td>
                     <td className="px-4 py-3 text-right text-[#F7941D] font-medium">฿{amount.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-slate-400 max-w-xs truncate" title={r.description ?? ""}>{r.description || "—"}</td>
-                    {tab === "rejected" && <td className="px-4 py-3 text-red-400">{r.rejection_reason || "—"}</td>}
+                    <td className="px-4 py-3 text-gray-500 max-w-xs truncate" title={r.description ?? ""}>{r.description || "—"}</td>
+                    {tab === "rejected" && <td className="px-4 py-3 text-red-600">{r.rejection_reason || "—"}</td>}
                     {canApprove && tab === "pending" && (
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button disabled={busyId === r.id}
@@ -175,7 +175,7 @@ export default function TimeLogApproval({ canApprove }: Props) {
               value={rejectModal.reason}
               onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })} />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#334155]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-300">
             <button className={btnGhost} onClick={() => setRejectModal({ open: false, id: null, reason: "" })}>ยกเลิก</button>
             <button className={btnPrimary} style={{ background: "#B91C1C" }} onClick={submitReject}
               disabled={busyId === rejectModal.id}>

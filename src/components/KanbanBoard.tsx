@@ -108,7 +108,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
     const d = new Date(s); const now = new Date();
     const days = Math.floor((d.getTime() - now.getTime()) / 86400000);
     const label = d.toLocaleDateString("th-TH", { month: "short", day: "numeric" });
-    let cls = "text-slate-400";
+    let cls = "text-slate-600";
     if (days < 0) cls = "text-red-400";
     else if (days <= 3) cls = "text-orange-400";
     return { label, cls };
@@ -130,19 +130,19 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
             <div className="flex items-center justify-between mb-3 px-1">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ background: col.color }} />
-                <span className="font-semibold text-sm text-white">{col.label}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{colTasks.length}</span>
+                <span className="font-semibold text-sm text-slate-900">{col.label}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">{colTasks.length}</span>
               </div>
               {canManage && onAddTask && (
-                <button onClick={() => onAddTask(col.key)} className="p-1 text-slate-400 hover:text-white" title="Add task">
+                <button onClick={() => onAddTask(col.key)} className="p-1 text-slate-600 hover:text-slate-900" title="Add task">
                   <Plus size={14} />
                 </button>
               )}
             </div>
             <div
-              className={`space-y-3 p-2 rounded-2xl min-h-[400px] transition-colors ${isOver ? "bg-[#003087]/20 ring-2 ring-[#00AEEF]/40" : "bg-[#0F172A]/60"}`}
+              className={`space-y-3 p-2 rounded-2xl min-h-[400px] transition-colors ${isOver ? "bg-[#003087]/20 ring-2 ring-[#00AEEF]/40" : "bg-slate-50"}`}
             >
-              {loading && colTasks.length === 0 && <div className="text-xs text-slate-500 text-center py-6">Loading...</div>}
+              {loading && colTasks.length === 0 && <div className="text-xs text-gray-500 text-center py-6">Loading...</div>}
               {colTasks.map(task => {
                 const proj = projectMap.get(task.project_id);
                 const asg = task.assignee_id ? memberMap.get(task.assignee_id) : undefined;
@@ -155,11 +155,11 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     onDragStart={(e) => onDragStart(e, task.id)}
                     onDragEnd={() => setDragId(null)}
                     onClick={() => onTaskClick(task.id)}
-                    className={`group bg-[#1E293B] rounded-xl p-3 border border-[#334155] cursor-pointer hover:border-[#00AEEF]/60 transition-all ${PRIO_RING[task.priority] || ""} ${dragId === task.id ? "opacity-40" : ""} ${savingId === task.id ? "ring-2 ring-yellow-400/30" : ""}`}
+                    className={`group bg-[#FFFFFF] rounded-xl p-3 border border-[#E5E7EB] cursor-pointer hover:border-[#00AEEF]/60 transition-all ${PRIO_RING[task.priority] || ""} ${dragId === task.id ? "opacity-40" : ""} ${savingId === task.id ? "ring-2 ring-yellow-400/30" : ""}`}
                   >
                     {/* top row: project code + priority */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-slate-700">
                         {proj?.project_code || "—"}
                       </span>
                       <div className="flex items-center gap-1">
@@ -172,7 +172,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                       </div>
                     </div>
                     {/* title */}
-                    <h4 className="text-sm font-medium text-white mb-2 line-clamp-2">{task.title}</h4>
+                    <h4 className="text-sm font-medium text-slate-900 mb-2 line-clamp-2">{task.title}</h4>
                     {/* overdue badge */}
                     {task.due_date && task.status !== "done" && (
                       <div className="mb-2"><OverdueBadge date={task.due_date} completed={task.status === "done"} /></div>
@@ -188,10 +188,10 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     {/* checklist progress bar */}
                     {(task._checklist_total ?? 0) > 0 && (
                       <div className="mb-2">
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                        <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1">
                           <span className="flex items-center gap-1"><CheckSquare size={10} /> {task._checklist_done}/{task._checklist_total}</span>
                         </div>
-                        <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
                           <div className="h-full bg-[#22C55E] transition-all" style={{ width: `${((task._checklist_done ?? 0) / (task._checklist_total || 1)) * 100}%` }} />
                         </div>
                       </div>
@@ -200,20 +200,20 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2">
                         {asg ? (
-                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-[#003087] to-[#00AEEF]" title={memberName(asg)}>
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-slate-900 text-xs font-bold bg-gradient-to-br from-[#003087] to-[#00AEEF]" title={memberName(asg)}>
                             {memberInitial(asg)}
                           </div>
                         ) : (
-                          <div className="w-6 h-6 rounded-full border border-dashed border-slate-600" title="Unassigned" />
+                          <div className="w-6 h-6 rounded-full border border-dashed border-[#E2E8F0]" title="Unassigned" />
                         )}
                         {(task._comments ?? 0) > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-slate-400">
+                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
                             <MessageSquare size={12} /> {task._comments}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-[11px]">
-                        {task.estimated_hours ? <span className="text-slate-500">{Number(task.estimated_hours).toFixed(1)}h</span> : null}
+                        {task.estimated_hours ? <span className="text-gray-500">{Number(task.estimated_hours).toFixed(1)}h</span> : null}
                         {due && (
                           <span className={`flex items-center gap-0.5 ${due.cls}`}>
                             <Calendar size={11} /> {due.label}
@@ -225,7 +225,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                 );
               })}
               {colTasks.length === 0 && !loading && (
-                <div className="text-xs text-slate-600 text-center py-8 border border-dashed border-slate-700 rounded-lg">
+                <div className="text-xs text-gray-500 text-center py-8 border border-dashed border-[#E2E8F0] rounded-lg">
                   วางการ์ดที่นี่
                 </div>
               )}

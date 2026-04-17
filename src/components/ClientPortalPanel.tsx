@@ -69,40 +69,40 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="text-sm text-slate-400">{loading ? "กำลังโหลด…" : `${rows.length} ลิงก์`}</div>
+        <div className="text-sm text-slate-600">{loading ? "กำลังโหลด…" : `${rows.length} ลิงก์`}</div>
         <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium" style={{ background: "#003087" }}>
           <Plus size={14} /> สร้างลิงก์ลูกค้า
         </button>
       </div>
 
       {!loading && !rows.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
-          <Link2 size={40} className="mx-auto mb-3 text-slate-600" />
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-slate-600">
+          <Link2 size={40} className="mx-auto mb-3 text-gray-500" />
           ยังไม่มีลิงก์ลูกค้า — สร้างเพื่อแชร์ความคืบหน้าให้ลูกค้าดู
         </div>
       )}
 
       <div className="space-y-3">
         {rows.map(r => (
-          <div key={r.id} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-4">
+          <div key={r.id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-4">
             <div className="flex items-start justify-between flex-wrap gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-mono text-slate-400">{r.projects?.project_code}</span>
-                  <span className="text-base text-white font-medium">{r.projects?.name_th || r.projects?.name_en}</span>
-                  {!r.active && <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">หยุดใช้งาน</span>}
+                  <span className="text-[10px] font-mono text-slate-600">{r.projects?.project_code}</span>
+                  <span className="text-base text-slate-900 font-medium">{r.projects?.name_th || r.projects?.name_en}</span>
+                  {!r.active && <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">หยุดใช้งาน</span>}
                 </div>
                 {(r.client_name || r.client_email) && (
-                  <div className="text-xs text-slate-400 mt-1 flex items-center gap-3">
+                  <div className="text-xs text-slate-600 mt-1 flex items-center gap-3">
                     {r.client_name && <span>{r.client_name}</span>}
                     {r.client_email && <span className="flex items-center gap-1"><Mail size={10} />{r.client_email}</span>}
                   </div>
                 )}
-                <div className="text-xs text-slate-500 mt-2 truncate">
+                <div className="text-xs text-slate-600 mt-2 truncate">
                   <Link2 size={10} className="inline mr-1" />
-                  <code className="text-cyan-300">{linkFor(r.token)}</code>
+                  <code className="text-blue-600">{linkFor(r.token)}</code>
                 </div>
-                <div className="flex items-center gap-4 text-[11px] text-slate-500 mt-2">
+                <div className="flex items-center gap-4 text-[11px] text-slate-600 mt-2">
                   <span><Eye size={10} className="inline mr-1" />เปิดดู {r.access_count ?? 0} ครั้ง</span>
                   <span>เปิดล่าสุด: {fmtDate(r.last_accessed_at)}</span>
                   {r.expires_at && <span className="text-orange-400">หมดอายุ: {fmtDate(r.expires_at)}</span>}
@@ -110,19 +110,19 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => copyLink(r)} title="คัดลอกลิงก์"
-                  className="p-2 rounded-lg bg-[#0F172A] border border-[#334155] hover:border-cyan-500">
-                  {copiedId === r.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-slate-300" />}
+                  className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-blue-500">
+                  {copiedId === r.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-slate-700" />}
                 </button>
                 <a href={linkFor(r.token)} target="_blank" rel="noopener noreferrer" title="เปิดดู"
-                  className="p-2 rounded-lg bg-[#0F172A] border border-[#334155] hover:border-cyan-500">
+                  className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-blue-500">
                   <ExternalLink size={14} className="text-slate-300" />
                 </a>
                 <button onClick={() => toggleActive(r)} title={r.active ? "หยุดใช้งาน" : "เปิดใช้งาน"}
-                  className="p-2 rounded-lg bg-[#0F172A] border border-[#334155] hover:border-orange-500">
-                  {r.active ? <Pause size={14} className="text-slate-300" /> : <Play size={14} className="text-green-400" />}
+                  className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-orange-500">
+                  {r.active ? <Pause size={14} className="text-slate-700" /> : <Play size={14} className="text-green-600" />}
                 </button>
                 <button onClick={() => remove(r)} title="ลบ"
-                  className="p-2 rounded-lg bg-[#0F172A] border border-[#334155] hover:border-red-500">
+                  className="p-2 rounded-lg bg-[#F5F5F5] border border-[#E5E7EB] hover:border-red-500">
                   <Trash2 size={14} className="text-red-400" />
                 </button>
               </div>
@@ -161,36 +161,36 @@ function CreateModal({ projects, defaultProjectId, onClose, onCreated }: { proje
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Link2 size={18} /> สร้างลิงก์ลูกค้า</h2>
+    <div className="fixed inset-0 bg-white/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E7EB] w-full max-w-lg p-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"><Link2 size={18} /> สร้างลิงก์ลูกค้า</h2>
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-slate-400 block mb-1">โครงการ *</label>
-            <select value={pid} onChange={e => setPid(e.target.value)} className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white">
+            <label className="text-xs text-slate-700 block mb-1">โครงการ *</label>
+            <select value={pid} onChange={e => setPid(e.target.value)} className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-slate-900">
               <option value="">— เลือกโครงการ —</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs text-slate-400 block mb-1">ชื่อลูกค้า / ผู้รับ</label>
+            <label className="text-xs text-slate-700 block mb-1">ชื่อลูกค้า / ผู้รับ</label>
             <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="คุณ..."
-              className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white" />
+              className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-slate-900" />
           </div>
           <div>
-            <label className="text-xs text-slate-400 block mb-1">อีเมล (ไม่บังคับ)</label>
+            <label className="text-xs text-slate-700 block mb-1">อีเมล (ไม่บังคับ)</label>
             <input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)}
-              className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white" />
+              className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-slate-900" />
           </div>
           <div>
-            <label className="text-xs text-slate-400 block mb-1">หมดอายุ (ไม่บังคับ)</label>
+            <label className="text-xs text-slate-700 block mb-1">หมดอายุ (ไม่บังคับ)</label>
             <input type="date" value={expires} onChange={e => setExpires(e.target.value)}
-              className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white" />
+              className="w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-slate-900" />
           </div>
         </div>
         <div className="flex gap-2 mt-5">
-          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-xl bg-[#0F172A] border border-[#334155] text-slate-300 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="flex-1 px-4 py-2 rounded-xl text-white text-sm font-medium disabled:opacity-50" style={{ background: "#F7941D" }}>
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-xl bg-[#F5F5F5] border border-[#E5E7EB] text-slate-700 text-sm">ยกเลิก</button>
+          <button onClick={submit} disabled={saving} className="flex-1 px-4 py-2 rounded-xl text-slate-900 text-sm font-medium disabled:opacity-50" style={{ background: "#F7941D" }}>
             {saving ? "กำลังสร้าง..." : "สร้างลิงก์"}
           </button>
         </div>
@@ -201,8 +201,8 @@ function CreateModal({ projects, defaultProjectId, onClose, onCreated }: { proje
 
 function KPI({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
-      <div className="text-xs text-slate-400 mb-1">{label}</div>
+    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3">
+      <div className="text-xs text-slate-600 mb-1">{label}</div>
       <div className="text-2xl font-bold" style={{ color }}>{value}</div>
     </div>
   );

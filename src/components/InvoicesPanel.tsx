@@ -51,7 +51,7 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
     const w = window.open("", "_blank", "width=820,height=900");
     if (!w) return;
     w.document.write(`<html><head><title>${inv.invoice_number}</title>
-      <style>body{font-family:'Sarabun',sans-serif;padding:40px;color:#0F172A}h1{color:#003087;border-bottom:3px solid #F7941D;padding-bottom:10px}
+      <style>body{font-family:'Sarabun',sans-serif;padding:40px;color:#1a1a1a}h1{color:#003087;border-bottom:3px solid #F7941D;padding-bottom:10px}
       table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
       th{background:#003087;color:white}.r{text-align:right}.tot{font-size:1.3em;color:#003087;font-weight:bold}</style>
       </head><body>
@@ -96,26 +96,26 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
         )}
       </div>
 
-      <div className="flex rounded-xl overflow-hidden border border-[#334155] w-fit flex-wrap">
+      <div className="flex rounded-xl overflow-hidden border border-[#E5E7EB] w-fit flex-wrap">
         {(["all", "draft", "sent", "paid", "overdue"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 text-xs font-medium ${filter === f ? "text-white" : "text-slate-400"}`}
-            style={filter === f ? { background: "#003087" } : { background: "#0F172A" }}>
+            className={`px-4 py-1.5 text-xs font-medium ${filter === f ? "text-white" : "text-slate-600"}`}
+            style={filter === f ? { background: "#003087" } : { background: "#F5F5F5" }}>
             {f === "all" ? "ทั้งหมด" : STATUS_LBL[f]}
           </button>
         ))}
       </div>
 
-      {loading && !filtered.length && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && !filtered.length && <div className="text-center text-slate-600 py-12">Loading...</div>}
       {!loading && !filtered.length && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl text-slate-400">
+        <div className="text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-slate-600">
           <FileText size={40} className="mx-auto mb-3 text-slate-600" />ยังไม่มีใบแจ้งหนี้
         </div>
       )}
 
       <div className="space-y-2">
         {filtered.map(inv => (
-          <div key={inv.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 flex items-center gap-3">
+          <div key={inv.id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${STATUS_COLOR[inv.status]}25` }}>
               {inv.status === "paid" ? <CheckCircle2 size={18} style={{ color: STATUS_COLOR[inv.status] }} /> :
                 inv.status === "overdue" ? <AlertCircle size={18} style={{ color: STATUS_COLOR[inv.status] }} /> :
@@ -123,23 +123,23 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="text-sm font-mono font-medium text-white">{inv.invoice_number}</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">{inv.projects?.project_code || "—"}</span>
+                <span className="text-sm font-mono font-medium text-slate-900">{inv.invoice_number}</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">{inv.projects?.project_code || "—"}</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ background: STATUS_COLOR[inv.status] }}>{STATUS_LBL[inv.status]}</span>
               </div>
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-slate-600">
                 {inv.client_name && <span>{inv.client_name} · </span>}
                 ออก: {new Date(inv.issue_date).toLocaleDateString("th-TH")}
                 {inv.due_date && <span> · กำหนด: {new Date(inv.due_date).toLocaleDateString("th-TH")}</span>}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-base font-bold text-white">{fmtMoney(inv.total)}</div>
-              <div className="text-[10px] text-slate-500">VAT {inv.vat_pct}%</div>
+              <div className="text-base font-bold text-slate-900">{fmtMoney(inv.total)}</div>
+              <div className="text-[10px] text-slate-600">VAT {inv.vat_pct}%</div>
             </div>
             {canManage && (
               <div className="flex items-center gap-1 ml-3">
-                <button onClick={() => printInvoice(inv)} className="p-1.5 text-slate-400 hover:text-white" title="พิมพ์"><Printer size={14} /></button>
+                <button onClick={() => printInvoice(inv)} className="p-1.5 text-slate-600 hover:text-slate-900" title="พิมพ์"><Printer size={14} /></button>
                 {inv.status === "draft" && (
                   <button onClick={() => updateStatus(inv, "sent")} className="px-2 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs flex items-center gap-1"><Send size={11} /> ส่ง</button>
                 )}
@@ -165,9 +165,9 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
 
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-3">
+    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3">
       <div className="text-base font-bold" style={{ color }}>{value}</div>
-      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      <div className="text-xs text-slate-600 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -201,11 +201,11 @@ function CreateInvoiceModal({ projects, defaultProjectId, onClose, onSaved }: {
     finally { setBusy(false); }
   };
 
-  const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm";
+  const inp = "w-full bg-[#F5F5F5] border border-[#E5E7EB] rounded-lg px-3 py-2 text-slate-900 text-sm";
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#1E293B] rounded-2xl border border-[#334155] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-white">สร้างใบแจ้งหนี้จาก Time Logs</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E7EB] w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold text-slate-900">สร้างใบแจ้งหนี้จาก Time Logs</h3>
         <Field label="โครงการ *">
           <select className={inp} value={form.project_id} onChange={e => {
             const p = projects.find(x => x.id === e.target.value);
@@ -229,10 +229,10 @@ function CreateInvoiceModal({ projects, defaultProjectId, onClose, onSaved }: {
           <Field label="VAT %"><input type="number" className={inp} value={form.vat_pct} onChange={e => setForm({ ...form, vat_pct: Number(e.target.value) })} /></Field>
         </div>
         <Field label="หมายเหตุ"><textarea rows={2} className={inp} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></Field>
-        <div className="text-xs text-slate-500 bg-[#0F172A] rounded-lg p-3">ระบบจะรวบรวม time logs ที่ <strong>approved + billable</strong> ในช่วงเวลานี้มาคำนวณยอด subtotal × hourly_rate อัตโนมัติ</div>
+        <div className="text-xs text-slate-600 bg-[#F5F5F5] rounded-lg p-3">ระบบจะรวบรวม time logs ที่ <strong>approved + billable</strong> ในช่วงเวลานี้มาคำนวณยอด subtotal × hourly_rate อัตโนมัติ</div>
         {err && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-300 hover:text-white text-sm">ยกเลิก</button>
+          <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังสร้าง..." : "สร้าง"}</button>
         </div>
       </div>
@@ -241,5 +241,5 @@ function CreateInvoiceModal({ projects, defaultProjectId, onClose, onSaved }: {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div><label className="block text-xs text-slate-400 mb-1">{label}</label>{children}</div>;
+  return <div><label className="block text-xs text-slate-700 mb-1">{label}</label>{children}</div>;
 }

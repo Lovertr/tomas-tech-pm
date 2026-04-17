@@ -13,8 +13,8 @@ const PRIO_DOT: Record<string, string> = {
   urgent: "bg-red-500", high: "bg-orange-400", medium: "bg-blue-400", low: "bg-slate-400",
 };
 const STATUS_COLOR: Record<string, string> = {
-  backlog: "bg-slate-500/20 text-slate-300", todo: "bg-blue-500/20 text-blue-300",
-  in_progress: "bg-yellow-500/20 text-yellow-300", review: "bg-purple-500/20 text-purple-300",
+  backlog: "bg-slate-500/20 text-gray-600", todo: "bg-blue-500/20 text-blue-700",
+  in_progress: "bg-yellow-500/20 text-yellow-700", review: "bg-purple-500/20 text-purple-700",
 };
 
 interface Props {
@@ -96,19 +96,19 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
       <div
         key={t.id}
         onClick={() => onTaskClick(t.id)}
-        className="group bg-[#1E293B] border border-[#334155] hover:border-[#00AEEF]/60 rounded-xl p-4 cursor-pointer transition-colors flex items-center gap-3"
+        className="group bg-white border border-gray-300 hover:border-blue-500/60 rounded-xl p-4 cursor-pointer transition-colors flex items-center gap-3"
       >
         <span className={`w-2 h-2 rounded-full shrink-0 ${PRIO_DOT[t.priority] || "bg-slate-400"}`} title={t.priority} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-300">{proj?.project_code || "—"}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status] || "bg-slate-500/20 text-slate-300"}`}>{t.status}</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/50 text-gray-600">{proj?.project_code || "—"}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status] || "bg-slate-500/20 text-gray-600"}`}>{t.status}</span>
           </div>
-          <div className="text-sm text-white truncate">{t.title}</div>
-          <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+          <div className="text-sm text-gray-900 truncate">{t.title}</div>
+          <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
             {due && <span className="flex items-center gap-1"><Calendar size={11} />{due.toLocaleDateString("th-TH", { month: "short", day: "numeric" })}</span>}
             {t.estimated_hours ? <span className="flex items-center gap-1"><Clock size={11} />{Number(t.estimated_hours).toFixed(1)}h</span> : null}
-            {(t.actual_hours ?? 0) > 0 && <span className="text-slate-500">spent {Number(t.actual_hours).toFixed(1)}h</span>}
+            {(t.actual_hours ?? 0) > 0 && <span className="text-gray-600">spent {Number(t.actual_hours).toFixed(1)}h</span>}
           </div>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -118,11 +118,11 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
             </button>
           ) : (
             <button onClick={() => startTimer(t)} disabled={!!timer} title={timer ? "มี timer ทำงานอยู่" : "Start timer"}
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-300 hover:bg-green-500/30 rounded-md disabled:opacity-40 disabled:cursor-not-allowed">
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-700 hover:bg-green-500/30 rounded-md disabled:opacity-40 disabled:cursor-not-allowed">
               <Play size={12} />
             </button>
           )}
-          <ChevronRight size={16} className="text-slate-500 group-hover:text-white" />
+          <ChevronRight size={16} className="text-gray-600 group-hover:text-gray-900" />
         </div>
       </div>
     );
@@ -134,8 +134,8 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
       <div className="space-y-2">
         <div className="flex items-center gap-2 px-1">
           <div className="w-1 h-4 rounded-full" style={{ background: accent }} />
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
-          <span className="text-xs text-slate-400">({items.length})</span>
+          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          <span className="text-xs text-gray-500">({items.length})</span>
         </div>
         <div className="space-y-2">{items.map(renderRow)}</div>
       </div>
@@ -158,12 +158,12 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <div>
-              <div className="text-sm font-medium text-white">Timer running</div>
-              <div className="text-xs text-slate-400">{tasks.find(t => t.id === timer.task_id)?.title || "task"}</div>
+              <div className="text-sm font-medium text-gray-900">Timer running</div>
+              <div className="text-xs text-gray-500">{tasks.find(t => t.id === timer.task_id)?.title || "task"}</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-lg text-green-300">{elapsed(timer.started_at)}</span>
+            <span className="font-mono text-lg text-green-700">{elapsed(timer.started_at)}</span>
             <button onClick={stopTimer} className="px-3 py-1.5 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-md text-xs font-medium flex items-center gap-1">
               <Square size={14} /> Stop
             </button>
@@ -171,12 +171,12 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
         </div>
       )}
 
-      {loading && tasks.length === 0 && <div className="text-center text-slate-400 py-12">Loading...</div>}
+      {loading && tasks.length === 0 && <div className="text-center text-gray-500 py-12">Loading...</div>}
       {!loading && tasks.length === 0 && (
-        <div className="text-center py-16 bg-[#1E293B] border border-[#334155] rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-300 rounded-2xl">
           <CheckCircle2 size={48} className="mx-auto text-green-400 mb-3" />
-          <div className="text-lg font-semibold text-white">ไม่มีงานค้าง</div>
-          <div className="text-sm text-slate-400 mt-1">เคลียร์งานหมดแล้ว ดีมาก</div>
+          <div className="text-lg font-semibold text-gray-900">ไม่มีงานค้าง</div>
+          <div className="text-sm text-gray-500 mt-1">เคลียร์งานหมดแล้ว ดีมาก</div>
         </div>
       )}
 
@@ -192,12 +192,12 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: React.ComponentType<{ size?: number; color?: string }>; color: string }) {
   return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+    <div className="bg-white border border-gray-300 rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
         <Icon size={18} color={color} />
-        <span className="text-2xl font-bold text-white">{value}</span>
+        <span className="text-2xl font-bold text-gray-900">{value}</span>
       </div>
-      <div className="text-xs text-slate-400">{label}</div>
+      <div className="text-xs text-gray-500">{label}</div>
     </div>
   );
 }

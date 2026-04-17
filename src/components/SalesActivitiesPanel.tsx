@@ -335,8 +335,8 @@ export default function SalesActivitiesPanel({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
-          <p className="text-gray-400 text-sm mt-1">{L('subtitle')}</p>
+          <h2 className="text-2xl font-bold text-gray-900">{L('title')}</h2>
+          <p className="text-gray-500 text-sm mt-1">{L('subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <TranslateButton text={L('headerTranslate')} />
@@ -357,20 +357,20 @@ export default function SalesActivitiesPanel({
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('stats.total')}</p>
-          <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('stats.total')}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
         </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('stats.call')}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('stats.call')}</p>
           <p className="text-3xl font-bold text-blue-400 mt-2">{stats.byType['call']}</p>
         </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('stats.email')}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('stats.email')}</p>
           <p className="text-3xl font-bold text-orange-400 mt-2">{stats.byType['email']}</p>
         </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('stats.meeting')}</p>
+        <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+          <p className="text-gray-500 text-sm">{L('stats.meeting')}</p>
           <p className="text-3xl font-bold text-purple-400 mt-2">{stats.byType['meeting']}</p>
         </div>
       </div>
@@ -381,7 +381,7 @@ export default function SalesActivitiesPanel({
           <select
             value={filterDealId}
             onChange={(e) => setFilterDealId(e.target.value)}
-            className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+            className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
           >
             <option value="">{L('filters.all')}</option>
             {deals.map((deal) => (
@@ -391,7 +391,7 @@ export default function SalesActivitiesPanel({
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-300 whitespace-nowrap">
+        <label className="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap">
           <input
             type="checkbox"
             checked={groupByDate}
@@ -405,14 +405,14 @@ export default function SalesActivitiesPanel({
       {/* Activities Timeline */}
       <div className="space-y-6">
         {loading ? (
-          <div className="text-center py-8 text-gray-400">{L('activities.loading')}</div>
+          <div className="text-center py-8 text-gray-500">{L('activities.loading')}</div>
         ) : Object.entries(groupedActivities).length === 0 ? (
-          <div className="text-center py-8 text-gray-400">{L('activities.noActivities')}</div>
+          <div className="text-center py-8 text-gray-500">{L('activities.noActivities')}</div>
         ) : (
           Object.entries(groupedActivities).map(([dateLabel, dateActivities]) => (
             <div key={dateLabel}>
               {groupByDate && (
-                <h3 className="text-sm font-semibold text-gray-300 mb-3 px-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 px-4">
                   {dateLabel}
                 </h3>
               )}
@@ -425,7 +425,7 @@ export default function SalesActivitiesPanel({
                   return (
                     <div
                       key={activity.id}
-                      className="bg-[#1E293B] rounded-xl border border-[#334155] p-4 hover:border-[#003087] transition"
+                      className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 hover:border-[#003087] transition"
                     >
                       <div className="flex items-start gap-4">
                         {/* Icon */}
@@ -440,15 +440,15 @@ export default function SalesActivitiesPanel({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h4 className="font-semibold text-white">
+                              <h4 className="font-semibold text-gray-900">
                                 {activity.deal_title}
                               </h4>
-                              <p className="text-sm text-gray-400">{activity.customer_name}</p>
+                              <p className="text-sm text-gray-500">{activity.customer_name}</p>
                             </div>
                             {canManage && (
                               <button
                                 onClick={() => handleDeleteActivity(activity.id)}
-                                className="p-2 hover:bg-[#334155] rounded-lg transition ml-2"
+                                className="p-2 hover:bg-gray-100 rounded-lg transition ml-2"
                               >
                                 <Trash2 size={16} className="text-red-400" />
                               </button>
@@ -477,7 +477,7 @@ export default function SalesActivitiesPanel({
                           </div>
 
                           {/* Description */}
-                          <p className="text-sm text-gray-300 line-clamp-3">
+                          <p className="text-sm text-gray-700 line-clamp-3">
                             {activity.description}
                           </p>
                         </div>
@@ -494,15 +494,15 @@ export default function SalesActivitiesPanel({
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0F172A] rounded-xl border border-[#334155] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">{L('form.title')}</h3>
+              <h3 className="text-xl font-bold text-gray-900">{L('form.title')}</h3>
               <button
                 onClick={() => {
                   setShowForm(false);
                   resetForm();
                 }}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-500 hover:text-gray-900"
               >
                 <X size={24} />
               </button>
@@ -510,14 +510,14 @@ export default function SalesActivitiesPanel({
 
             <form onSubmit={handleAddActivity} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.dealLabel')}
                 </label>
                 <select
                   required
                   value={formData.deal_id}
                   onChange={(e) => setFormData({ ...formData, deal_id: e.target.value })}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                 >
                   <option value="">{L('form.dealPlaceholder')}</option>
                   {deals.map((deal) => (
@@ -529,13 +529,13 @@ export default function SalesActivitiesPanel({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.typeLabel')}
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                 >
                   {Object.entries(activityTypeConfig).map(([key, value]) => (
                     <option key={key} value={key}>
@@ -546,7 +546,7 @@ export default function SalesActivitiesPanel({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.dateLabel')}
                 </label>
                 <input
@@ -554,12 +554,12 @@ export default function SalesActivitiesPanel({
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.descriptionLabel')}
                 </label>
                 <textarea
@@ -568,7 +568,7 @@ export default function SalesActivitiesPanel({
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
                   rows={4}
                   placeholder={L('form.descriptionPlaceholder')}
                 />
@@ -587,7 +587,7 @@ export default function SalesActivitiesPanel({
                     setShowForm(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-2 bg-[#334155] hover:bg-[#475569] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
                 >
                   {L('form.cancel')}
                 </button>

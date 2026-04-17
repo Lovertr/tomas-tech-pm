@@ -87,7 +87,7 @@ export default function NotificationBell({ onNavigate }: Props) {
 
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)} className="p-2 rounded-xl bg-slate-700 relative text-slate-300 hover:text-white">
+      <button onClick={() => setOpen(!open)} className="p-2 rounded-xl bg-slate-100 relative text-gray-500 hover:text-gray-700">
         <Bell size={18} />
         {unread.length > 0 && (
           <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center bg-[#F7941D]">
@@ -100,10 +100,10 @@ export default function NotificationBell({ onNavigate }: Props) {
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
           <div ref={panelRef}
-            className="absolute right-0 top-full mt-2 w-96 max-w-[90vw] rounded-xl bg-[#1E293B] border border-[#334155] shadow-2xl z-40 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#334155]">
+            className="absolute right-0 top-full mt-2 w-96 max-w-[90vw] rounded-xl bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xl z-40 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#E2E8F0]">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">การแจ้งเตือน</h3>
+                <h3 className="text-sm font-semibold text-gray-900">การแจ้งเตือน</h3>
                 {unread.length > 0 && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#F7941D] text-white font-bold">
                     {unread.length} ใหม่
@@ -112,11 +112,11 @@ export default function NotificationBell({ onNavigate }: Props) {
               </div>
               <div className="flex items-center gap-1">
                 {unread.length > 0 && (
-                  <button onClick={markAllRead} className="text-xs text-[#00AEEF] hover:text-white flex items-center gap-1">
+                  <button onClick={markAllRead} className="text-xs text-[#00AEEF] hover:text-gray-700 flex items-center gap-1">
                     <CheckCheck size={12} /> อ่านทั้งหมด
                   </button>
                 )}
-                <button onClick={() => setOpen(false)} className="p-1 text-slate-400 hover:text-white">
+                <button onClick={() => setOpen(false)} className="p-1 text-gray-500 hover:text-gray-700">
                   <X size={14} />
                 </button>
               </div>
@@ -124,11 +124,11 @@ export default function NotificationBell({ onNavigate }: Props) {
 
             <div className="max-h-[28rem] overflow-y-auto">
               {loading && !items.length && (
-                <div className="text-center text-sm text-slate-400 py-8">Loading...</div>
+                <div className="text-center text-sm text-gray-500 py-8">Loading...</div>
               )}
               {!loading && items.length === 0 && (
-                <div className="text-center text-sm text-slate-500 py-12">
-                  <Bell size={28} className="mx-auto mb-2 text-slate-600" />
+                <div className="text-center text-sm text-gray-600 py-12">
+                  <Bell size={28} className="mx-auto mb-2 text-gray-500" />
                   ยังไม่มีการแจ้งเตือน
                 </div>
               )}
@@ -137,24 +137,24 @@ export default function NotificationBell({ onNavigate }: Props) {
                 const Icon = meta.icon;
                 return (
                   <button key={n.id} onClick={() => click(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-[#334155] hover:bg-[#0F172A] transition-colors flex gap-3 ${
-                      n.is_read ? "" : "bg-[#003087]/10"
+                    className={`w-full text-left px-4 py-3 border-b border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors flex gap-3 ${
+                      n.is_read ? "" : "bg-[#003087]/5"
                     }`}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ background: `${meta.color}20` }}>
+                      style={{ background: `${meta.color}10` }}>
                       <Icon size={14} style={{ color: meta.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-2">
-                        <div className={`flex-1 text-sm ${n.is_read ? "text-slate-300" : "text-white font-medium"} truncate`}>
+                        <div className={`flex-1 text-sm ${n.is_read ? "text-gray-500" : "text-gray-900 font-medium"} truncate`}>
                           {n.title}
                         </div>
                         {!n.is_read && <span className="w-2 h-2 rounded-full bg-[#00AEEF] mt-1.5 shrink-0" />}
                       </div>
                       {n.message && (
-                        <div className="text-xs text-slate-400 mt-0.5 line-clamp-2">{n.message}</div>
+                        <div className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.message}</div>
                       )}
-                      <div className="text-[10px] text-slate-500 mt-1">{fmtRelative(n.created_at)}</div>
+                      <div className="text-[10px] text-gray-500 mt-1">{fmtRelative(n.created_at)}</div>
                     </div>
                   </button>
                 );

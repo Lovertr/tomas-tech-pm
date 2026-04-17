@@ -221,31 +221,31 @@ export default function AdminUsersPage() {
 
   const roleBadge = (role: string) => {
     const colors: Record<string, string> = {
-      admin: "bg-red-500/20 text-red-300 border-red-500/40",
-      manager: "bg-blue-500/20 text-blue-300 border-blue-500/40",
-      leader: "bg-purple-500/20 text-purple-300 border-purple-500/40",
-      member: "bg-slate-500/20 text-slate-300 border-slate-500/40",
+      admin: "bg-red-500/10 text-red-600 border-red-500/30",
+      manager: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+      leader: "bg-purple-500/10 text-purple-600 border-purple-500/30",
+      member: "bg-gray-500/10 text-gray-600 border-gray-500/30",
     };
     return colors[role] ?? colors.member;
   };
 
   if (authLoading || !isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-white text-gray-900">
       {/* Header */}
-      <div className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-10">
+      <div className="border-b border-gray-300 bg-white/50 backdrop-blur sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/")}
-              className="p-2 rounded-lg hover:bg-slate-800 transition"
+              className="p-2 rounded-lg hover:bg-gray-200 transition"
               title="กลับ"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -256,7 +256,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <h1 className="text-lg font-semibold">{t.userManagement}</h1>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-gray-500">
                   {users.length} {t.teamMembers}
                 </p>
               </div>
@@ -277,8 +277,8 @@ export default function AdminUsersPage() {
         <div
           className={`fixed top-20 right-6 z-50 px-4 py-3 rounded-lg border shadow-xl flex items-center gap-2 ${
             toast.type === "ok"
-              ? "bg-green-500/10 border-green-500/40 text-green-300"
-              : "bg-red-500/10 border-red-500/40 text-red-300"
+              ? "bg-green-500/10 border-green-500/40 text-green-600"
+              : "bg-red-500/10 border-red-500/40 text-red-600"
           }`}
         >
           {toast.type === "ok" ? (
@@ -294,18 +294,18 @@ export default function AdminUsersPage() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t.search}
-              className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-white border border-gray-300 focus:border-orange-500 outline-none text-sm"
             />
           </div>
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm"
+            className="px-4 py-2 rounded-lg bg-white border border-gray-300 focus:border-orange-500 outline-none text-sm"
           >
             <option value="all">{t.all} ({t.role})</option>
             {roles.map((r) => (
@@ -317,17 +317,17 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+        <div className="rounded-xl border border-gray-300 bg-white/50 overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
               <Loader2 className="w-6 h-6 text-orange-500 animate-spin mx-auto" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-slate-400">{t.noData}</div>
+            <div className="p-12 text-center text-gray-500">{t.noData}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 text-xs uppercase">
+                <thead className="bg-gray-50 border-b border-gray-300 text-gray-500 text-xs uppercase">
                   <tr>
                     <th className="px-4 py-3 text-left">{t.username}</th>
                     <th className="px-4 py-3 text-left">{t.name}</th>
@@ -337,10 +337,10 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-3 text-right">{t.actions}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-gray-300">
                   {filtered.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-800/40 transition">
-                      <td className="px-4 py-3 font-mono text-slate-300">
+                    <tr key={u.id} className="hover:bg-gray-50/50 transition">
+                      <td className="px-4 py-3 font-mono text-gray-600">
                         {u.username}
                         {u.username === "admin" && (
                           <Shield className="w-3 h-3 inline ml-1 text-orange-400" />
@@ -349,7 +349,7 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-3">
                         <div className="font-medium">{u.display_name}</div>
                         {u.department && (
-                          <div className="text-xs text-slate-400">{u.department}</div>
+                          <div className="text-xs text-gray-500">{u.department}</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -361,7 +361,7 @@ export default function AdminUsersPage() {
                           {t[u.role as keyof typeof t] ?? u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-300">{u.email ?? "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">{u.email ?? "-"}</td>
                       <td className="px-4 py-3">
                         {u.is_active ? (
                           <span className="text-green-400 text-xs">● {t.active}</span>
@@ -369,7 +369,7 @@ export default function AdminUsersPage() {
                           <span className="text-slate-500 text-xs">● {t.inactive}</span>
                         )}
                         {u.must_change_password && (
-                          <div className="text-[10px] text-orange-400 mt-0.5">
+                          <div className="text-[10px] text-orange-600 mt-0.5">
                             ต้องเปลี่ยนรหัสผ่าน
                           </div>
                         )}
@@ -378,21 +378,21 @@ export default function AdminUsersPage() {
                         <div className="inline-flex gap-1">
                           <button
                             onClick={() => setPermsUser(u)}
-                            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-green-400 transition"
+                            className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-green-600 transition"
                             title="จัดการสิทธิ์"
                           >
                             <ShieldCheck className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleResetPassword(u)}
-                            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-orange-400 transition"
+                            className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-orange-600 transition"
                             title={t.resetPassword}
                           >
                             <KeyRound className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openEdit(u)}
-                            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-blue-400 transition"
+                            className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-blue-600 transition"
                             title={t.edit}
                           >
                             <Pencil className="w-4 h-4" />
@@ -400,7 +400,7 @@ export default function AdminUsersPage() {
                           <button
                             onClick={() => handleDelete(u)}
                             disabled={u.username === "admin" || u.id === currentUser?.id}
-                            className="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-red-400 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-red-600 transition disabled:opacity-30 disabled:cursor-not-allowed"
                             title={t.delete}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -429,14 +429,14 @@ export default function AdminUsersPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+          <div className="bg-white border border-gray-300 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-300 px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
                 {editingId ? t.edit : t.addUser}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-1 rounded hover:bg-slate-800"
+                className="p-1 rounded hover:bg-gray-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -444,83 +444,83 @@ export default function AdminUsersPage() {
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               {!editingId && (
                 <div className="md:col-span-2">
-                  <label className="block text-xs text-slate-400 mb-1">
+                  <label className="block text-xs text-gray-500 mb-1">
                     {t.username} *
                   </label>
                   <input
                     value={form.username}
                     onChange={(e) => setForm({ ...form, username: e.target.value })}
                     placeholder="e.g. somchai, tanaka"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                   />
-                  <p className="text-[10px] text-slate-500 mt-1">
+                  <p className="text-[10px] text-gray-600 mt-1">
                     3-30 ตัวอักษร (a-z, A-Z, 0-9, _) — รหัสผ่านเริ่มต้น: <span className="font-mono text-orange-400">00000000</span>
                   </p>
                 </div>
               )}
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-gray-500 mb-1">
                   {t.name} (EN) *
                 </label>
                 <input
                   value={form.display_name}
                   onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-gray-500 mb-1">
                   {t.name} (TH)
                 </label>
                 <input
                   value={form.display_name_th}
                   onChange={(e) => setForm({ ...form, display_name_th: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-gray-500 mb-1">
                   {t.name} (JP)
                 </label>
                 <input
                   value={form.display_name_jp}
                   onChange={(e) => setForm({ ...form, display_name_jp: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Email</label>
+                <label className="block text-xs text-gray-500 mb-1">Email</label>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Phone</label>
+                <label className="block text-xs text-gray-500 mb-1">Phone</label>
                 <input
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-gray-500 mb-1">
                   Department
                 </label>
                 <input
                   value={form.department}
                   onChange={(e) => setForm({ ...form, department: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">{t.role} *</label>
+                <label className="block text-xs text-gray-500 mb-1">{t.role} *</label>
                 <select
                   value={form.role_id}
                   onChange={(e) => setForm({ ...form, role_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 >
                   <option value="">—</option>
                   {roles.map((r) => (
@@ -531,13 +531,13 @@ export default function AdminUsersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-gray-500 mb-1">
                   {t.position}
                 </label>
                 <select
                   value={form.position_id}
                   onChange={(e) => setForm({ ...form, position_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 >
                   <option value="">—</option>
                   {positions.map((p) => (
@@ -548,13 +548,13 @@ export default function AdminUsersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-gray-500 mb-1">
                   {t.language}
                 </label>
                 <select
                   value={form.language}
                   onChange={(e) => setForm({ ...form, language: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                 >
                   <option value="th">ไทย</option>
                   <option value="en">English</option>
@@ -569,15 +569,15 @@ export default function AdminUsersPage() {
                   onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
                   className="accent-orange-500 w-4 h-4"
                 />
-                <label htmlFor="is_active" className="text-sm text-slate-300">
+                <label htmlFor="is_active" className="text-sm text-gray-600">
                   {t.active}
                 </label>
               </div>
             </div>
-            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 px-6 py-4 flex justify-end gap-2">
+            <div className="sticky bottom-0 bg-white border-t border-gray-300 px-6 py-4 flex justify-end gap-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm"
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm"
               >
                 {t.cancel}
               </button>

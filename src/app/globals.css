@@ -5,10 +5,11 @@
   --tt-orange: #F7941D;
   --tt-light-blue: #00AEEF;
   --tt-dark: #0F172A;
-  --tt-card: #1E293B;
-  --tt-border: #334155;
-  --tt-text: #F8FAFC;
-  --tt-sub: #94A3B8;
+  --tt-bg: #F1F5F9;
+  --tt-card: #FFFFFF;
+  --tt-border: #E2E8F0;
+  --tt-text: #1E293B;
+  --tt-sub: #64748B;
 }
 
 @theme inline {
@@ -26,15 +27,15 @@
 /* Sidebar scroll styling */
 .sidebar-scroll::-webkit-scrollbar { width: 6px; }
 .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-.sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
-.sidebar-scroll { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+.sidebar-scroll { scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
 
 body {
   margin: 0;
   padding: 0;
-  background: #0F172A;
-  color: #F8FAFC;
+  background: #F1F5F9;
+  color: #1E293B;
   font-family: var(--font-geist-sans), 'Noto Sans Thai', 'Noto Sans JP', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -42,12 +43,12 @@ body {
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
 /* Kanban smooth transitions */
 .kanban-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.kanban-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+.kanban-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,48,135,0.08); }
 
 /* Mobile safe area for iPhone notch / bottom bar */
 .safe-area-bottom {
@@ -65,10 +66,8 @@ html, body {
   button, a, select, input, textarea {
     min-height: 36px;
   }
-  /* Prevent text resize on orientation change */
   html {
     -webkit-text-size-adjust: 100%;
   }
-  /* Hide scrollbars on mobile for cleaner look */
   ::-webkit-scrollbar { width: 0; height: 0; }
 }

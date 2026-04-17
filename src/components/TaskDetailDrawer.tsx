@@ -42,12 +42,12 @@ const PRIO_LABEL: Record<string, string> = {
   low: "Low", medium: "Medium", high: "High", urgent: "Urgent",
 };
 const STATUS_COLOR: Record<string, string> = {
-  backlog: "bg-slate-500/20 text-slate-300", todo: "bg-blue-500/20 text-blue-300",
+  backlog: "bg-slate-500/20 text-slate-600", todo: "bg-blue-500/20 text-blue-300",
   in_progress: "bg-yellow-500/20 text-yellow-300", review: "bg-purple-500/20 text-purple-300",
   done: "bg-green-500/20 text-green-300",
 };
 const PRIO_COLOR: Record<string, string> = {
-  low: "bg-slate-500/20 text-slate-300", medium: "bg-blue-500/20 text-blue-300",
+  low: "bg-slate-500/20 text-slate-600", medium: "bg-blue-500/20 text-blue-300",
   high: "bg-orange-500/20 text-orange-300", urgent: "bg-red-500/20 text-red-300",
 };
 
@@ -247,25 +247,25 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
       <div className="hidden md:block flex-1 bg-black/60 backdrop-blur-sm" />
       <div
-        className="w-full md:max-w-2xl bg-[#1E293B] md:border-l border-[#334155] shadow-2xl h-full overflow-y-auto"
+        className="w-full md:max-w-2xl bg-[#FFFFFF] md:border-l border-[#E2E8F0] shadow-2xl h-full overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-[#1E293B] border-b border-[#334155] z-10">
+        <div className="sticky top-0 bg-[#FFFFFF] border-b border-[#E2E8F0] z-10">
           <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <button onClick={onClose} className="md:hidden text-slate-400 hover:text-white mr-1">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <button onClick={onClose} className="md:hidden text-slate-500 hover:text-gray-900 mr-1">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
               <span>Task</span>
               {task && <span className="font-mono">#{task.id.slice(0, 8)}</span>}
             </div>
-            <button onClick={onClose} className="hidden md:block text-slate-400 hover:text-white"><X size={20} /></button>
+            <button onClick={onClose} className="hidden md:block text-slate-500 hover:text-gray-900"><X size={20} /></button>
           </div>
           {task && (
             <div className="px-4 md:px-6 pb-3 md:pb-4">
               <input
-                className="w-full bg-transparent text-base md:text-xl font-semibold text-white border-0 focus:outline-none focus:bg-[#0F172A] rounded px-2 py-1 -mx-2"
+                className="w-full bg-transparent text-base md:text-xl font-semibold text-gray-900 border-0 focus:outline-none focus:bg-[#F1F5F9] rounded px-2 py-1 -mx-2"
                 value={task.title}
                 onChange={(e) => setTask({ ...task, title: e.target.value })}
                 onBlur={(e) => e.target.value !== "" && updateTask({ title: e.target.value })}
@@ -276,14 +276,14 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   value={task.status}
                   onChange={(e) => updateTask({ status: e.target.value })}
                 >
-                  {STATUSES.map(s => <option key={s} value={s} className="bg-[#1E293B]">{STATUS_LABEL[s] || s}</option>)}
+                  {STATUSES.map(s => <option key={s} value={s} className="bg-[#FFFFFF]">{STATUS_LABEL[s] || s}</option>)}
                 </select>
                 <select
                   className={`text-xs px-2 py-1 rounded-md border-0 cursor-pointer ${PRIO_COLOR[task.priority] || ""}`}
                   value={task.priority}
                   onChange={(e) => updateTask({ priority: e.target.value })}
                 >
-                  {PRIORITIES.map(p => <option key={p} value={p} className="bg-[#1E293B]">{PRIO_LABEL[p] || p}</option>)}
+                  {PRIORITIES.map(p => <option key={p} value={p} className="bg-[#FFFFFF]">{PRIO_LABEL[p] || p}</option>)}
                 </select>
                 {/* Timer */}
                 {isMyTimer ? (
@@ -299,7 +299,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
             </div>
           )}
           {/* Tabs — horizontally scrollable on mobile */}
-          <div className="flex border-b border-[#334155] px-2 md:px-4 gap-0.5 md:gap-1 overflow-x-auto scrollbar-hide">
+          <div className="flex border-b border-[#E2E8F0] px-2 md:px-4 gap-0.5 md:gap-1 overflow-x-auto scrollbar-hide">
             {([
               ["details", "รายละเอียด", null],
               ["comments", "คอมเมนต์", comments.length],
@@ -312,7 +312,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 key={k}
                 onClick={() => setTab(k)}
                 className={`px-2.5 md:px-3 py-2 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                  tab === k ? "border-[#F7941D] text-white" : "border-transparent text-slate-400 hover:text-slate-200"
+                  tab === k ? "border-[#F7941D] text-gray-900" : "border-transparent text-slate-500 hover:text-slate-200"
                 }`}
               >
                 {label} {count !== null && count > 0 && <span className="ml-1 text-[10px] md:text-xs text-slate-500">{count}</span>}
@@ -323,14 +323,14 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
         {/* Body */}
         <div className="p-3 md:p-6">
-          {loading && <div className="text-slate-400 text-sm">Loading...</div>}
-          {!task && !loading && <div className="text-slate-400 text-sm">Task not found</div>}
+          {loading && <div className="text-slate-500 text-sm">Loading...</div>}
+          {!task && !loading && <div className="text-slate-500 text-sm">Task not found</div>}
 
           {task && tab === "details" && (
             <div className="space-y-4">
               <Field label="รายละเอียดงาน">
                 <textarea
-                  className="w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm min-h-24"
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm min-h-24"
                   value={task.description ?? ""}
                   placeholder="เพิ่มรายละเอียดงาน..."
                   onChange={(e) => setTask({ ...task, description: e.target.value })}
@@ -359,7 +359,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                     onBlur={(e) => updateTask({ estimated_hours: e.target.value ? Number(e.target.value) : null })} />
                 </Field>
               </div>
-              <div className="text-xs text-slate-400 pt-2 border-t border-[#334155]">
+              <div className="text-xs text-slate-500 pt-2 border-t border-[#E2E8F0]">
                 {"ชั่วโมงจริง"}: <span className="text-slate-200">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
                 {task.estimated_hours ? ` / ${Number(task.estimated_hours).toFixed(1)}h` : ""}
                 {saving && <span className="ml-2 text-[#00AEEF]">{"กำลังบันทึก..."}</span>}
@@ -371,21 +371,21 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
             <div className="space-y-3">
               <div className="flex gap-2">
                 <textarea
-                  className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+                  className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
                   rows={2} placeholder="เขียนคอมเมนต์..." value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
                 />
                 <button onClick={addComment} disabled={!newComment.trim() || commentSaving}
-                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
+                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
                   {commentSaving ? "..." : "ส่ง"}
                 </button>
               </div>
               {commentErr && <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{commentErr}</div>}
-              {comments.length === 0 && !commentSaving && <div className="text-slate-400 text-sm text-center py-8">ยังไม่มีคอมเมนต์</div>}
+              {comments.length === 0 && !commentSaving && <div className="text-slate-500 text-sm text-center py-8">ยังไม่มีคอมเมนต์</div>}
               {comments.map(c => (
-                <div key={c.id} className="bg-[#0F172A] border border-[#334155] rounded-lg p-3">
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                <div key={c.id} className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3">
+                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                     <span className="text-slate-200 font-medium">{authorLabel(c.author)}</span>
                     <div className="flex items-center gap-2">
                       <span>{new Date(c.created_at).toLocaleString("th-TH")}</span>
@@ -402,21 +402,21 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
           {tab === "checklist" && (
             <div className="space-y-2">
               <div className="flex gap-2">
-                <input className="flex-1 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm"
+                <input className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
                   placeholder="เพิ่มรายการ..." value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addChecklist()} />
-                <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm">
+                <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm">
                   <Plus size={16} />
                 </button>
               </div>
               {checklist.length > 0 && (
-                <div className="text-xs text-slate-400 mb-2">
+                <div className="text-xs text-slate-500 mb-2">
                   {checklist.filter(c => c.is_completed).length} / {checklist.length} เสร็จแล้ว
                 </div>
               )}
               {checklist.map(item => (
-                <div key={item.id} className="flex items-center gap-2 group bg-[#0F172A] border border-[#334155] rounded-lg p-2">
+                <div key={item.id} className="flex items-center gap-2 group bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2">
                   <input type="checkbox" checked={item.is_completed} onChange={() => toggleCheck(item)}
                     className="w-4 h-4 accent-[#F7941D]" />
                   <span className={`flex-1 text-sm ${item.is_completed ? "line-through text-slate-500" : "text-slate-100"}`}>
@@ -432,8 +432,8 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
           {tab === "deps" && (
             <div className="space-y-4">
-              <div className="bg-[#0F172A] border border-[#334155] rounded-lg p-3 space-y-2">
-                <div className="text-xs text-slate-400 font-medium">เพิ่มงานที่เกี่ยวข้อง</div>
+              <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 space-y-2">
+                <div className="text-xs text-slate-500 font-medium">เพิ่มงานที่เกี่ยวข้อง</div>
                 <div className="text-[10px] text-slate-500 -mt-1">เลือกงานที่ต้องทำก่อนจึงเริ่มงานนี้ได้</div>
                 <div className="space-y-2">
                   <select className={inp} value={newDepId} onChange={(e) => setNewDepId(e.target.value)}>
@@ -446,25 +446,25 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                     <select className={inp + " flex-1"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
                       {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
-                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
+                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
                   </div>
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-slate-300 mb-2">ต้องรองานอื่นเสร็จก่อน ({deps.blockedBy.length})</div>
+                <div className="text-sm font-medium text-slate-600 mb-2">ต้องรองานอื่นเสร็จก่อน ({deps.blockedBy.length})</div>
                 {deps.blockedBy.length === 0 && <div className="text-xs text-slate-500">— ไม่มี —</div>}
                 {deps.blockedBy.map(d => (
-                  <div key={d.id} className="flex items-center justify-between bg-[#0F172A] border border-[#334155] rounded-lg p-2 mb-1">
+                  <div key={d.id} className="flex items-center justify-between bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2 mb-1">
                     <span className="text-sm text-slate-100">{d.depends?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
                     <button onClick={() => removeDep(d.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                   </div>
                 ))}
               </div>
               <div>
-                <div className="text-sm font-medium text-slate-300 mb-2">งานที่รองานนี้อยู่ ({deps.blocking.length})</div>
+                <div className="text-sm font-medium text-slate-600 mb-2">งานที่รองานนี้อยู่ ({deps.blocking.length})</div>
                 {deps.blocking.length === 0 && <div className="text-xs text-slate-500">— ไม่มี —</div>}
                 {deps.blocking.map(d => (
-                  <div key={d.id} className="flex items-center justify-between bg-[#0F172A] border border-[#334155] rounded-lg p-2 mb-1">
+                  <div key={d.id} className="flex items-center justify-between bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2 mb-1">
                     <span className="text-sm text-slate-100">{d.blocking?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
                     <button onClick={() => removeDep(d.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                   </div>
@@ -479,15 +479,15 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
 
           {tab === "activity" && (
             <div className="space-y-2">
-              {activity.length === 0 && <div className="text-slate-400 text-sm text-center py-8">ยังไม่มีประวัติ</div>}
+              {activity.length === 0 && <div className="text-slate-500 text-sm text-center py-8">ยังไม่มีประวัติ</div>}
               {activity.map(a => (
-                <div key={a.id} className="flex gap-3 text-sm bg-[#0F172A] border border-[#334155] rounded-lg p-3">
+                <div key={a.id} className="flex gap-3 text-sm bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3">
                   <Activity size={14} className="text-[#00AEEF] mt-0.5 shrink-0" />
                   <div className="flex-1">
                     <div className="text-slate-100">
                       <span className="font-medium">{authorLabel(a.actor)}</span>{" "}
-                      <span className="text-slate-300">{a.action}</span>
-                      {a.entity_type && <span className="text-slate-400"> {a.entity_type}</span>}
+                      <span className="text-slate-600">{a.action}</span>
+                      {a.entity_type && <span className="text-slate-500"> {a.entity_type}</span>}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">{new Date(a.created_at).toLocaleString("th-TH")}</div>
                   </div>
@@ -501,12 +501,12 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
   );
 }
 
-const inp = "w-full bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00AEEF]";
+const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:border-[#00AEEF]";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">{label}</label>
+      <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">{label}</label>
       {children}
     </div>
   );
