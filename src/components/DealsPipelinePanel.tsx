@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, X, GripVertical, User } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, User, Search } from 'lucide-react';
 import TranslateButton from './TranslateButton';
 import type { Lang } from '@/lib/i18n';
 
@@ -12,6 +12,7 @@ interface Props {
   canManage?: boolean;
   refreshKey?: number;
   lang?: Lang;
+  currentUserId?: string;
 }
 
 interface Deal {
@@ -42,9 +43,10 @@ interface Member {
   last_name_en?: string | null;
 }
 
+/* ─── Stage config ─── */
 const stageLabels: Record<string, Record<string, string>> = {
-  prospect:      { th: 'ลูกค้าเป้าหมาย', en: 'Prospect',      jp: '見込み客' },
-  qualification: { th: 'คุณสมบัติ',       en: 'Qualification',  jp: '適格性評価' },
+  prospect:      { th: 'ลูกค้าเป้าหมาย', en: 'Lead',           jp: '見込み客' },
+  qualification: { th: 'คุณสมบัติ',       en: 'Qualified',      jp: '適格性評価' },
   proposal:      { th: 'เสนอราคา',        en: 'Proposal',       jp: '提案' },
   negotiation:   { th: 'เจรจาต่อรอง',     en: 'Negotiation',    jp: '交渉' },
   won:           { th: 'ปิดการขาย',        en: 'Won',            jp: '受注' },
@@ -56,38 +58,37 @@ const stageColors: Record<string, string> = {
   negotiation: '#8B5CF6', won: '#22C55E', lost: '#EF4444',
 };
 
+/* ─── i18n text ─── */
 const panelText: Record<string, Record<string, string>> = {
-  title:         { th: 'Pipeline การขาย',                   en: 'Sales Pipeline',                  jp: '営業パイプライン' },
-  subtitle:      { th: 'ติดตามดีลในแต่ละขั้นตอน',             en: 'Track deals through each stage',  jp: '各段階のディールを追跡' },
-  addDeal:       { th: '+ สร้างดีลใหม่',                     en: '+ New Deal',                      jp: '+ 新規ディール' },
-  totalPipeline: { th: 'มูลค่ารวม Pipeline',                 en: 'Total Pipeline',                  jp: 'パイプライン合計' },
-  wonDeals:      { th: 'ปิดการขายได้',                       en: 'Won Deals',                       jp: '受注済み' },
-  conversionRate:{ th: 'อัตราการปิดการขาย',                  en: 'Conversion Rate',                 jp: 'コンバージョン率' },
-  avgDealSize:   { th: 'มูลค่าเฉลี่ยต่อดีล',                 en: 'Avg Deal Size',                   jp: '平均ディール規模' },
-  deals:         { th: 'ดีล',                                en: 'deals',                           jp: 'ディール' },
-  allCustomers:  { th: 'ลูกค้าทั้งหมด',                      en: 'All Customers',                   jp: 'すべての顧客' },
-  noDeals:       { th: 'ไม่มีดีล',                           en: 'No deals',                        jp: 'ディールなし' },
-  editBtn:       { th: 'แก้ไข',                              en: 'Edit',                            jp: '編集' },
-  deleteBtn:     { th: 'ลบ',                                 en: 'Delete',                          jp: '削除' },
-  nextStage:     { th: 'เลื่อนขั้น',                          en: 'Advance',                         jp: '次へ' },
-  editDeal:      { th: 'แก้ไขดีล',                           en: 'Edit Deal',                       jp: 'ディール編集' },
-  newDeal:       { th: 'สร้างดีลใหม่',                       en: 'New Deal',                        jp: '新規ディール' },
-  dealTitle:     { th: 'ชื่อดีล',                             en: 'Deal Title',                      jp: 'ディール名' },
-  customer:      { th: 'ลูกค้า',                             en: 'Customer',                        jp: '顧客' },
-  selectCustomer:{ th: 'เลือกลูกค้า',                        en: 'Select customer',                 jp: '顧客を選択' },
-  value:         { th: 'มูลค่า (฿)',                          en: 'Value (฿)',                       jp: '金額 (฿)' },
-  stage:         { th: 'ขั้นตอน',                             en: 'Stage',                           jp: 'ステージ' },
-  owner:         { th: 'ผู้รับผิดชอบ',                        en: 'Owner',                           jp: '担当者' },
-  selectOwner:   { th: 'เลือกผู้รับผิดชอบ',                   en: 'Select owner',                    jp: '担当者を選択' },
-  closeDate:     { th: 'วันปิดการขายที่คาดหวัง',               en: 'Expected Close Date',             jp: '予定クローズ日' },
-  probability:   { th: 'ความน่าจะเป็น (%)',                   en: 'Probability (%)',                 jp: '確率 (%)' },
-  notes:         { th: 'หมายเหตุ',                            en: 'Notes',                           jp: '備考' },
-  save:          { th: 'บันทึก',                              en: 'Save',                            jp: '保存' },
-  cancel:        { th: 'ยกเลิก',                             en: 'Cancel',                          jp: 'キャンセル' },
-  confirmDelete: { th: 'ยืนยันการลบดีลนี้?',                  en: 'Delete this deal?',               jp: 'このディールを削除しますか？' },
+  title:           { th: 'Sales Pipeline',                        en: 'Sales Pipeline',                  jp: '営業パイプライン' },
+  addDeal:         { th: 'เพิ่ม Deal',                             en: 'Add Deal',                        jp: 'ディール追加' },
+  searchName:      { th: 'Deal name...',                           en: 'Deal name...',                    jp: 'ディール名...' },
+  searchCustomer:  { th: 'ลูกค้า...',                              en: 'Customer...',                     jp: '顧客...' },
+  searchOwner:     { th: 'ผู้รับผิดชอบ...',                         en: 'Owner...',                        jp: '担当者...' },
+  myDeal:          { th: 'MY DEAL',                                en: 'MY DEAL',                         jp: 'MY DEAL' },
+  clickToEdit:     { th: 'Click to edit',                          en: 'Click to edit',                   jp: 'クリックして編集' },
+  noDeals:         { th: 'ไม่มีดีล',                               en: 'No deals',                        jp: 'ディールなし' },
+  editDeal:        { th: 'แก้ไขดีล',                               en: 'Edit Deal',                       jp: 'ディール編集' },
+  newDeal:         { th: 'สร้างดีลใหม่',                           en: 'New Deal',                        jp: '新規ディール' },
+  dealTitle:       { th: 'ชื่อดีล',                                 en: 'Deal Title',                      jp: 'ディール名' },
+  customer:        { th: 'ลูกค้า',                                 en: 'Customer',                        jp: '顧客' },
+  selectCustomer:  { th: 'เลือกลูกค้า',                            en: 'Select customer',                 jp: '顧客を選択' },
+  value:           { th: 'มูลค่า (฿)',                              en: 'Value (฿)',                       jp: '金額 (฿)' },
+  stage:           { th: 'ขั้นตอน',                                 en: 'Stage',                           jp: 'ステージ' },
+  owner:           { th: 'ผู้รับผิดชอบ',                            en: 'Owner',                           jp: '担当者' },
+  selectOwner:     { th: 'เลือกผู้รับผิดชอบ',                       en: 'Select owner',                    jp: '担当者を選択' },
+  closeDate:       { th: 'วันปิดการขายที่คาดหวัง',                   en: 'Expected Close Date',             jp: '予定クローズ日' },
+  probability:     { th: 'ความน่าจะเป็น (%)',                       en: 'Probability (%)',                 jp: '確率 (%)' },
+  notes:           { th: 'หมายเหตุ',                                en: 'Notes',                           jp: '備考' },
+  save:            { th: 'บันทึก',                                  en: 'Save',                            jp: '保存' },
+  cancel:          { th: 'ยกเลิก',                                 en: 'Cancel',                          jp: 'キャンセル' },
+  confirmDelete:   { th: 'ยืนยันการลบดีลนี้?',                      en: 'Delete this deal?',               jp: 'このディールを削除しますか？' },
 };
 
-const stageKeys: Array<'prospect' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost'> = ['prospect', 'qualification', 'proposal', 'negotiation', 'won', 'lost'];
+const stageKeys: Array<Deal['stage']> = ['prospect', 'qualification', 'proposal', 'negotiation', 'won', 'lost'];
+
+/** Format number with commas: 3800000 → "3,800,000" */
+const fmt = (n: number) => n.toLocaleString('en-US');
 
 export default function DealsPipelinePanel({
   projects,
@@ -96,9 +97,10 @@ export default function DealsPipelinePanel({
   canManage = true,
   refreshKey = 0,
   lang = 'th',
+  currentUserId,
 }: Props) {
-  const L = (key: string) => panelText[key]?.[lang] ?? panelText[key]?.th ?? key;
-  const stageName = (s: string) => stageLabels[s]?.[lang] ?? stageLabels[s]?.th ?? s;
+  const L = (key: string) => panelText[key]?.[lang] ?? panelText[key]?.en ?? key;
+  const stageName = (s: string) => stageLabels[s]?.[lang] ?? stageLabels[s]?.en ?? s;
 
   const [deals, setDeals] = useState<Deal[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -106,14 +108,18 @@ export default function DealsPipelinePanel({
   const [showForm, setShowForm] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(false);
-  const [customerFilter, setCustomerFilter] = useState<string>('');
+
+  /* ─── Search / filter state ─── */
+  const [searchName, setSearchName] = useState('');
+  const [searchCustomer, setSearchCustomer] = useState('');
+  const [searchOwner, setSearchOwner] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
     customer_id: '',
     owner_id: '',
     value: 0,
-    stage: 'prospect' as 'prospect' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost',
+    stage: 'prospect' as Deal['stage'],
     expected_close_date: '',
     probability: 50,
     notes: '',
@@ -125,6 +131,7 @@ export default function DealsPipelinePanel({
     fetchMembers();
   }, [filterProjectId, refreshKey]);
 
+  /* ─── Data fetching ─── */
   const fetchDeals = async () => {
     try {
       setLoading(true);
@@ -170,18 +177,17 @@ export default function DealsPipelinePanel({
     }
   };
 
+  /* ─── CRUD ─── */
   const handleSaveDeal = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const method = selectedDeal ? 'PATCH' : 'POST';
       const url = selectedDeal ? `/api/deals/${selectedDeal.id}` : '/api/deals';
-
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       if (res.ok) {
         await fetchDeals();
         setShowForm(false);
@@ -196,9 +202,7 @@ export default function DealsPipelinePanel({
     if (!confirm(L('confirmDelete'))) return;
     try {
       const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        await fetchDeals();
-      }
+      if (res.ok) await fetchDeals();
     } catch (error) {
       console.error('Failed to delete deal:', error);
     }
@@ -211,10 +215,7 @@ export default function DealsPipelinePanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: newStage }),
       });
-
-      if (res.ok) {
-        await fetchDeals();
-      }
+      if (res.ok) await fetchDeals();
     } catch (error) {
       console.error('Failed to update deal stage:', error);
     }
@@ -222,14 +223,8 @@ export default function DealsPipelinePanel({
 
   const resetForm = () => {
     setFormData({
-      title: '',
-      customer_id: '',
-      owner_id: '',
-      value: 0,
-      stage: 'prospect',
-      expected_close_date: '',
-      probability: 50,
-      notes: '',
+      title: '', customer_id: '', owner_id: '', value: 0,
+      stage: 'prospect', expected_close_date: '', probability: 50, notes: '',
     });
     setSelectedDeal(null);
   };
@@ -249,164 +244,161 @@ export default function DealsPipelinePanel({
     setShowForm(true);
   };
 
+  /* ─── Filtering ─── */
+  const filteredDeals = deals.filter((d) => {
+    if (searchName && !d.title.toLowerCase().includes(searchName.toLowerCase())) return false;
+    if (searchCustomer && !d.customer_name.toLowerCase().includes(searchCustomer.toLowerCase())) return false;
+    if (searchOwner && !d.owner_name?.toLowerCase().includes(searchOwner.toLowerCase())) return false;
+    return true;
+  });
+
   const dealsByStage = stageKeys.reduce((acc, stage) => {
-    acc[stage] = deals.filter(
-      (d) => d.stage === stage && (!customerFilter || d.customer_id === customerFilter)
-    );
+    acc[stage] = filteredDeals.filter((d) => d.stage === stage);
     return acc;
   }, {} as Record<string, Deal[]>);
 
-  const totalPipeline = deals.reduce((sum, d) => sum + d.value, 0);
-  const summary: { totalPipeline: number; wonValue: number; wonCount: number; totalDeals: number; conversionRate: string; avgDealSize: number } = {
-    totalPipeline,
-    wonValue: deals
-      .filter((d) => d.stage === 'won')
-      .reduce((sum, d) => sum + d.value, 0),
-    wonCount: deals.filter((d) => d.stage === 'won').length,
-    totalDeals: deals.length,
-    conversionRate:
-      deals.length > 0
-        ? ((deals.filter((d) => d.stage === 'won').length / deals.length) * 100).toFixed(1)
-        : '0',
-    avgDealSize: deals.length > 0 ? Math.round(totalPipeline / deals.length) : 0,
-  };
+  const isMyDeal = (deal: Deal) => currentUserId ? deal.owner_id === currentUserId : false;
 
+  /* ─── Render ─── */
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
-          <p className="text-gray-400 text-sm mt-1">{L('subtitle')}</p>
-        </div>
+    <div className="space-y-4">
+      {/* Header row */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold text-white">{L('title')}</h2>
         <div className="flex gap-2">
-          <TranslateButton text={`${L('title')} — ${L('subtitle')}`} />
+          <TranslateButton text={L('title')} />
           {canManage && (
             <button
               onClick={() => { resetForm(); setShowForm(true); }}
-              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-white rounded-lg text-sm font-semibold flex items-center gap-2"
             >
-              <Plus size={16} />
               {L('addDeal')}
             </button>
           )}
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('totalPipeline')}</p>
-          <p className="text-2xl font-bold text-white mt-2">฿{(summary.totalPipeline / 1000).toFixed(0)}K</p>
-          <p className="text-xs text-gray-500 mt-1">{summary.totalDeals} {L('deals')}</p>
-        </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('wonDeals')}</p>
-          <p className="text-2xl font-bold text-green-400 mt-2">฿{(summary.wonValue / 1000).toFixed(0)}K</p>
-          <p className="text-xs text-gray-500 mt-1">{summary.wonCount} {L('deals')}</p>
-        </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('conversionRate')}</p>
-          <p className="text-2xl font-bold text-blue-400 mt-2">{summary.conversionRate}%</p>
-        </div>
-        <div className="bg-[#1E293B] rounded-xl border border-[#334155] p-4">
-          <p className="text-gray-400 text-sm">{L('avgDealSize')}</p>
-          <p className="text-2xl font-bold text-orange-400 mt-2">฿{(summary.avgDealSize / 1000).toFixed(0)}K</p>
-        </div>
-      </div>
-
-      {/* Customer Filter */}
-      <div>
-        <select
-          value={customerFilter}
-          onChange={(e) => setCustomerFilter(e.target.value)}
-          className="w-full md:w-64 bg-[#0F172A] border border-[#334155] rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-[#003087]"
+      {/* Search / filter bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          placeholder={L('searchName')}
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+        />
+        <input
+          type="text"
+          placeholder={L('searchCustomer')}
+          value={searchCustomer}
+          onChange={(e) => setSearchCustomer(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+        />
+        <input
+          type="text"
+          placeholder={L('searchOwner')}
+          value={searchOwner}
+          onChange={(e) => setSearchOwner(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-400"
+        />
+        <button
+          onClick={() => { /* filters are live */ }}
+          className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"
         >
-          <option value="">{L('allCustomers')}</option>
-          {customers.map((customer) => (
-            <option key={customer.id} value={customer.id}>{customer.company_name}</option>
-          ))}
-        </select>
+          <Search size={16} />
+        </button>
+        <span className="text-sm text-gray-400 ml-1">{filteredDeals.length}/{deals.length}</span>
       </div>
 
-      {/* Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
-        {stageKeys.map((stage) => (
-          <div key={stage} className="flex-shrink-0 w-full md:min-w-[350px] lg:min-w-[280px]">
-            <div className="rounded-xl border-2 bg-[#0F172A] overflow-hidden" style={{ borderColor: stageColors[stage] + '40' }}>
-              <div className="p-3 text-white font-semibold flex items-center justify-between" style={{ backgroundColor: stageColors[stage] + '20' }}>
-                <span>{stageName(stage)}</span>
-                <span className="text-xs rounded-full w-6 h-6 flex items-center justify-center" style={{ backgroundColor: stageColors[stage], color: '#0F172A' }}>
-                  {dealsByStage[stage].length}
-                </span>
+      {/* Kanban columns */}
+      <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 500 }}>
+        {stageKeys.map((stage) => {
+          const col = dealsByStage[stage];
+          return (
+            <div key={stage} className="flex-shrink-0" style={{ minWidth: 240, width: 240 }}>
+              {/* Column header */}
+              <div
+                className="rounded-t-lg px-3 py-2 font-bold text-white flex items-center justify-between"
+                style={{ backgroundColor: stageColors[stage] }}
+              >
+                <span>{stageName(stage)} ({col.length})</span>
               </div>
-              <div className="px-3 py-2 border-b border-[#334155] text-xs text-gray-400" style={{ backgroundColor: stageColors[stage] + '10' }}>
-                ฿{(dealsByStage[stage].reduce((sum, d) => sum + d.value, 0) / 1000).toFixed(0)}K
-              </div>
-              <div className="p-2 space-y-2 min-h-[400px]">
-                {dealsByStage[stage].length === 0 ? (
+
+              {/* Cards */}
+              <div className="bg-[#0F172A] border border-t-0 rounded-b-lg p-2 space-y-2 min-h-[420px]" style={{ borderColor: stageColors[stage] + '40' }}>
+                {col.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 text-sm">{L('noDeals')}</div>
                 ) : (
-                  dealsByStage[stage].map((deal) => (
-                    <div key={deal.id} className="bg-[#1E293B] border border-[#334155] rounded-lg p-3 hover:border-[#003087] transition group">
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-2">
-                          <GripVertical size={14} className="text-gray-500 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <h4 className="font-medium text-white text-sm line-clamp-2">{deal.title}</h4>
-                            <p className="text-xs text-gray-400 mt-1">{deal.customer_name}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold px-2 py-1 rounded" style={{ color: stageColors[deal.stage], backgroundColor: stageColors[deal.stage] + '20' }}>
-                            ฿{(deal.value / 1000).toFixed(0)}K
+                  col.map((deal) => {
+                    const mine = isMyDeal(deal);
+                    return (
+                      <div
+                        key={deal.id}
+                        className={`rounded-lg p-3 border transition cursor-pointer ${
+                          mine
+                            ? 'bg-[#FFF7ED] border-[#F7941D] hover:shadow-md'
+                            : 'bg-white border-gray-200 hover:border-[#003087] hover:shadow-md'
+                        }`}
+                        onClick={() => mine && canManage ? handleEditDeal(deal) : undefined}
+                      >
+                        {/* MY DEAL badge */}
+                        {mine && (
+                          <span className="inline-block text-[10px] font-bold text-white bg-[#F7941D] rounded px-1.5 py-0.5 mb-1.5">
+                            {L('myDeal')}
                           </span>
-                          {deal.probability != null && (
-                            <span className="text-xs text-gray-400">{deal.probability}%</span>
+                        )}
+
+                        <h4 className={`font-semibold text-sm leading-tight ${mine ? 'text-[#003087]' : 'text-gray-900'}`}>
+                          {deal.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-0.5">{deal.customer_name}</p>
+
+                        {/* Value */}
+                        <p className={`text-sm font-bold mt-2 ${
+                          stage === 'won' ? 'text-green-600'
+                            : stage === 'lost' ? 'text-red-500'
+                            : 'text-gray-800'
+                        }`}>
+                          {fmt(deal.value)} THB
+                        </p>
+
+                        {/* Probability + Owner */}
+                        <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
+                          <span>{deal.probability ?? 0}%</span>
+                          {deal.owner_name && (
+                            <span className="flex items-center gap-1">
+                              <User size={10} />
+                              {deal.owner_name}
+                            </span>
                           )}
                         </div>
-                        {/* Owner */}
-                        {deal.owner_name && (
-                          <div className="flex items-center gap-1 text-xs text-slate-400">
-                            <User size={11} />
-                            <span>{deal.owner_name}</span>
-                          </div>
+
+                        {/* Click to edit hint for my deals */}
+                        {mine && canManage && (
+                          <p className="text-[10px] text-[#F7941D] mt-1 font-medium">{L('clickToEdit')}</p>
                         )}
-                        {deal.expected_close_date && (
-                          <p className="text-xs text-gray-400">
-                            {new Date(deal.expected_close_date).toLocaleDateString(lang === 'jp' ? 'ja-JP' : lang === 'en' ? 'en-US' : 'th-TH')}
-                          </p>
-                        )}
-                        {canManage && (
-                          <div className="flex gap-1 pt-2 border-t border-[#334155] opacity-0 group-hover:opacity-100 transition">
-                            <button onClick={() => handleEditDeal(deal)} className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
-                              <Edit2 size={12} />{L('editBtn')}
+
+                        {/* Action buttons (admin/manager — hover) */}
+                        {canManage && !mine && (
+                          <div className="flex gap-1 pt-2 mt-2 border-t border-gray-100 opacity-0 hover:opacity-100 transition">
+                            <button onClick={(e) => { e.stopPropagation(); handleEditDeal(deal); }}
+                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
+                              <Edit2 size={10} /> {lang === 'th' ? 'แก้ไข' : lang === 'jp' ? '編集' : 'Edit'}
                             </button>
-                            <button onClick={() => handleDeleteDeal(deal.id)} className="flex-1 px-2 py-1 bg-red-900 hover:bg-red-800 text-white rounded text-xs flex items-center justify-center gap-1">
-                              <Trash2 size={12} />{L('deleteBtn')}
-                            </button>
-                          </div>
-                        )}
-                        {canManage && stage !== 'won' && stage !== 'lost' && (
-                          <div className="flex gap-1 pt-2">
-                            <button
-                              onClick={() => {
-                                const nextStageIndex = stageKeys.indexOf(stage) + 1;
-                                if (nextStageIndex < stageKeys.length) handleChangeStage(deal.id, stageKeys[nextStageIndex]);
-                              }}
-                              className="flex-1 px-2 py-1 bg-[#F7941D] hover:bg-[#FF9D2D] text-black rounded text-xs font-medium"
-                            >
-                              {L('nextStage')}
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }}
+                              className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs flex items-center justify-center gap-1">
+                              <Trash2 size={10} /> {lang === 'th' ? 'ลบ' : lang === 'jp' ? '削除' : 'Del'}
                             </button>
                           </div>
                         )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Form Modal */}

@@ -29,6 +29,7 @@ import CalendarView from "@/components/CalendarView";
 import SprintPanel from "@/components/SprintPanel";
 import MeetingNotesPanel from "@/components/MeetingNotesPanel";
 import DailyStandupCard from "@/components/DailyStandupCard";
+import OpenProjectsPanel from "@/components/OpenProjectsPanel";
 import NotificationBell from "@/components/NotificationBell";
 import RisksPanel from "@/components/RisksPanel";
 import IssuesPanel from "@/components/IssuesPanel";
@@ -288,6 +289,7 @@ export default function App() {
         {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
       </div>
       <DailyStandupCard lang={lang} />
+      <OpenProjectsPanel currentUserId={currentUser?.id} lang={lang} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={FolderKanban} label={t.totalProjects} value={mockProjects.length} sub={`${mockProjects.filter(p => p.status === "in_progress").length} ${t.activeProjects}`} color="#003087" trend="+2" />
         <Stat icon={ListTodo} label={t.totalTasks} value={tasks.length} sub={`${tasks.filter(tk => tk.status === "done").length} ${t.completedTasks}`} color="#00AEEF" />
@@ -610,7 +612,8 @@ export default function App() {
   const DealsPipelinePage = () => (
     <div className="space-y-6">
       <DealsPipelinePanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        currentUserId={currentUser?.id} />
     </div>
   );
   const SalesActivitiesPage = () => (
