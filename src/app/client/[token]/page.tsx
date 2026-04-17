@@ -124,6 +124,66 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
           )}
         </div>
 
+        {/* Tasks Detail */}
+        <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6">
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><FileText size={16} className="text-cyan-400" /> รายละเอียดงาน</h2>
+          {!data.tasks.length ? (
+            <div className="text-center py-8 text-slate-500 text-sm">ยังไม่มีรายการงาน</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-xs text-slate-400 border-b border-[#334155]">
+                  <tr>
+                    <th className="text-left py-2 pr-2">สถานะ</th>
+                    <th className="text-left py-2">ชื่องาน</th>
+                    <th className="text-left py-2">ความสำคัญ</th>
+                    <th className="text-left py-2">กำหนดเสร็จ</th>
+                    <th className="text-left py-2">เสร็จเมื่อ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.tasks
+                    .sort((a, b) => {
+                      const order: Record<string, number> = { in_progress: 0, todo: 1, backlog: 2, review: 3, done: 4 };
+                      return (order[a.status] ?? 2) - (order[b.status] ?? 2);
+                    })
+                    .map(t => {
+                      const overdue = t.due_date && !t.completed_at && new Date(t.due_date) < new Date();
+                      return (
+                        <tr key={t.id} className="border-b border-[#334155]/50 hover:bg-[#0F172A]/50">
+                          <td className="py-2.5 pr-2">
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+                              style={{ background: `${STATUS_COLOR[t.status] || "#64748B"}20`, color: STATUS_COLOR[t.status] || "#94A3B8" }}>
+                              {t.status === "done" && <CheckCircle2 size={10} />}
+                              {t.status === "in_progress" && <Clock size={10} />}
+                              {STATUS_LBL[t.status] || t.status}
+                            </span>
+                          </td>
+                          <td className="py-2.5">
+                            <span className={t.status === "done" ? "text-slate-500 line-through" : "text-white"}>{t.title}</span>
+                          </td>
+                          <td className="py-2.5">
+                            <span className={`text-xs ${t.priority === "high" || t.priority === "urgent" ? "text-red-400" : t.priority === "medium" ? "text-yellow-400" : "text-slate-500"}`}>
+                              {t.priority === "urgent" ? "เร่งด่วน" : t.priority === "high" ? "สูง" : t.priority === "medium" ? "ปานกลาง" : "ต่ำ"}
+                            </span>
+                          </td>
+                          <td className="py-2.5">
+                            <span className={`text-xs ${overdue ? "text-red-400 font-medium" : "text-slate-400"}`}>
+                              {overdue && "⚠ "}{fmtDate(t.due_date)}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-xs text-slate-400">
+                            {t.completed_at ? fmtDate(t.completed_at) : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Milestones */}
         <div className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6">
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Target size={16} className="text-orange-400" /> Milestones</h2>
