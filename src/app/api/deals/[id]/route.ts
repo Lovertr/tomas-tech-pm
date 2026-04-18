@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
+import { notify, getAdminManagerIds } from "@/lib/notify";
+
+const STAGE_LABELS: Record<string, string> = {
+  lead: "Lead",
+  qualified: "Qualified",
+  proposal_sent: "เสนอราคาแล้ว",
+  quotation: "ใบเสนอราคา",
+  negotiation: "เจรจา",
+  po_received: "ได้รับ PO",
+  cancelled: "ยกเลิก",
+  refused: "ปฏิเสธ",
+};
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext(req);
@@ -9,11 +21,42 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json();
   body.updated_at = new Date().toISOString();
 
-  // Get old deal data to check if stage is changing to po_received
+  // Get old deal data to check if stage is changing
   const { data: oldDeal } = await supabaseAdmin.from("deals").select("*, customers(id, company_name)").eq("id", id).single();
 
   const { data, error } = await supabaseAdmin.from("deals").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Handle notifications
+  try {
+    // Notify deal owner if stage changed
+    if (body.stage && oldDeal && oldDeal.stage !== body.stage) {
+      const stageLabel = STAGE_LABELS[body.stage] || body.stage;
+      await notify(
+        data.owner_id,
+        "สถานะดีลเปลี่ยน",
+        `${data.title} เปลี่ยนเป็น ${stageLabel}`,
+        "deal_stage_changed"
+      );
+
+      // If stage becomes po_received, notify admin+manager
+      if (body.stage === "po_received" && oldDeal.stage !== "po_received") {
+        const adminManagerIds = await getAdminManagerIds();
+        const value = data.value || oldDeal.value || 0;
+        const formattedValue = new Intl.NumberFormat("th-TH").format(Number(value));
+        for (const userId of adminManagerIds) {
+          await notify(
+            userId,
+            "ดีลปิดสำเร็จ!",
+            `${data.title} - THB ${formattedValue}`,
+            "deal_won"
+          );
+        }
+      }
+    }
+  } catch (notifyErr) {
+    console.error("Deal update notification error:", notifyErr);
+  }
 
   // Auto-create project when deal stage changes to po_received
   if (body.stage === "po_received" && oldDeal && oldDeal.stage !== "po_received") {

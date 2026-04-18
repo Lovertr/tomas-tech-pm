@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
+import { notifyMany, getAdminManagerIds, getSalesLeaderIds } from "@/lib/notify";
 
 // QTA + YYMM + 3-digit sequence  e.g. QTA2604001
 async function nextQuotationNo() {
@@ -113,24 +114,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Send approval notifications to admin/manager/leader
+  // Send approval notifications to admin + manager + sales leaders (BD dept only)
   try {
-    const { data: approvers } = await supabaseAdmin
-      .from("app_users")
-      .select("id")
-      .in("role", ["admin", "manager", "leader"]);
-    if (approvers?.length) {
-      const notifications = approvers.map((u) => ({
-        user_id: u.id,
-        title: "\u0e43\u0e1a\u0e40\u0e2a\u0e19\u0e2d\u0e23\u0e32\u0e04\u0e32\u0e43\u0e2b\u0e21\u0e48\u0e23\u0e2d\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34",
-        message: quotation_no + " - " + body.title,
-        type: "quotation_approval",
-        link: `/quotations/${data.id}`,
-        is_read: false,
-      }));
-      await supabaseAdmin.from("notifications").insert(notifications);
+    const adminManagerIds = await getAdminManagerIds();
+    const salesLeaderIds = await getSalesLeaderIds();
+    const uniqueIds = Array.from(new Set([...adminManagerIds, ...salesLeaderIds]));
+
+    if (uniqueIds.length > 0) {
+      await notifyMany(
+        uniqueIds,
+        "ใบเสนอราคาใหม่รอการอนุมัติ",
+        quotation_no + " - " + body.title,
+        "quotation_approval",
+        `/quotations/${data.id}`
+      );
     }
-  } catch (_) { /* non-critical */ }
+  } catch (notifyErr) {
+    console.error("Quotation notification error:", notifyErr);
+  }
 
   return NextResponse.json({ quotation: data }, { status: 201 });
 }

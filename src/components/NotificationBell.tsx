@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Bell, CheckCheck, MessageSquare, Flag, AlertTriangle, ListTodo, Calendar, Info, X } from "lucide-react";
+import { Bell, CheckCheck, MessageSquare, Flag, AlertTriangle, ListTodo, Calendar, Info, X, TrendingUp, DollarSign, Briefcase, FileText, XCircle, UserPlus } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -18,15 +18,23 @@ interface Props {
 }
 
 const TYPE_META: Record<string, { icon: typeof Bell; color: string }> = {
-  task_assigned:    { icon: ListTodo,        color: "#00AEEF" },
-  task_due:         { icon: AlertTriangle,   color: "#F7941D" },
-  task_overdue:     { icon: AlertTriangle,   color: "#EF4444" },
-  comment:          { icon: MessageSquare,   color: "#A855F7" },
-  mention:          { icon: MessageSquare,   color: "#F7941D" },
-  milestone:        { icon: Flag,            color: "#F7941D" },
-  meeting:          { icon: Calendar,        color: "#A855F7" },
-  approval:         { icon: CheckCheck,      color: "#22C55E" },
-  info:             { icon: Info,            color: "#94A3B8" },
+  task_assigned:       { icon: ListTodo,        color: "#00AEEF" },
+  task_completed:      { icon: CheckCheck,      color: "#22C55E" },
+  task_due:            { icon: AlertTriangle,   color: "#F7941D" },
+  task_overdue:        { icon: AlertTriangle,   color: "#EF4444" },
+  deal_stage_changed:  { icon: TrendingUp,      color: "#003087" },
+  deal_won:            { icon: DollarSign,      color: "#22C55E" },
+  deal_created:        { icon: Briefcase,       color: "#003087" },
+  comment:             { icon: MessageSquare,   color: "#A855F7" },
+  mention:             { icon: MessageSquare,   color: "#F7941D" },
+  milestone:           { icon: Flag,            color: "#F7941D" },
+  meeting:             { icon: Calendar,        color: "#A855F7" },
+  quotation_approval:  { icon: FileText,        color: "#F7941D" },
+  quotation_approved:  { icon: CheckCheck,      color: "#22C55E" },
+  quotation_rejected:  { icon: XCircle,         color: "#EF4444" },
+  project_enrollment:  { icon: UserPlus,        color: "#00AEEF" },
+  approval:            { icon: CheckCheck,      color: "#22C55E" },
+  info:                { icon: Info,            color: "#94A3B8" },
 };
 
 const fmtRelative = (iso: string) => {
@@ -98,68 +106,59 @@ export default function NotificationBell({ onNavigate }: Props) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div ref={panelRef}
-            className="absolute right-0 top-full mt-2 w-96 max-w-[90vw] rounded-xl bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xl z-40 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#E2E8F0]">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900">การแจ้งเตือน</h3>
-                {unread.length > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#F7941D] text-white font-bold">
-                    {unread.length} ใหม่
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                {unread.length > 0 && (
-                  <button onClick={markAllRead} className="text-xs text-cyan-600 hover:text-gray-700 flex items-center gap-1">
-                    <CheckCheck size={12} /> อ่านทั้งหมด
-                  </button>
-                )}
-                <button onClick={() => setOpen(false)} className="p-1 text-gray-500 hover:text-gray-700">
-                  <X size={14} />
-                </button>
-              </div>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div ref={panelRef} className="absolute right-0 top-10 z-50 w-96 bg-white rounded-lg shadow-2xl border border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="font-semibold text-gray-900">การแจ้งเตือน</h3>
+              <button onClick={() => setOpen(false)} className="p-1 hover:bg-gray-100 rounded">
+                <X size={18} className="text-gray-500" />
+              </button>
             </div>
 
-            <div className="max-h-[28rem] overflow-y-auto">
-              {loading && !items.length && (
-                <div className="text-center text-sm text-gray-500 py-8">Loading...</div>
-              )}
-              {!loading && items.length === 0 && (
-                <div className="text-center text-sm text-gray-600 py-12">
-                  <Bell size={28} className="mx-auto mb-2 text-gray-500" />
-                  ยังไม่มีการแจ้งเตือน
-                </div>
-              )}
-              {items.map(n => {
-                const meta = TYPE_META[n.type ?? "info"] ?? TYPE_META.info;
-                const Icon = meta.icon;
-                return (
-                  <button key={n.id} onClick={() => click(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors flex gap-3 ${
-                      n.is_read ? "" : "bg-blue-50"
-                    }`}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ background: `${meta.color}10` }}>
-                      <Icon size={14} style={{ color: meta.color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-2">
-                        <div className={`flex-1 text-sm ${n.is_read ? "text-gray-500" : "text-gray-900 font-medium"} truncate`}>
-                          {n.title}
+            <div className="max-h-96 overflow-y-auto">
+              {loading ? (
+                <div className="p-4 text-center text-gray-500">กำลังโหลด...</div>
+              ) : items.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">ไม่มีการแจ้งเตือน</div>
+              ) : (
+                items.map((n) => {
+                  const meta = TYPE_META[n.type || "info"];
+                  const Icon = meta?.icon || Bell;
+                  return (
+                    <div
+                      key={n.id}
+                      onClick={() => click(n)}
+                      className={`p-3 border-b cursor-pointer transition-colors ${
+                        n.is_read ? "bg-white hover:bg-gray-50" : "bg-blue-50 hover:bg-blue-100"
+                      }`}
+                    >
+                      <div className="flex gap-3">
+                        <div className="p-2 rounded flex-shrink-0" style={{ backgroundColor: meta?.color + "20" }}>
+                          <Icon size={18} style={{ color: meta?.color || "#000" }} />
                         </div>
-                        {!n.is_read && <span className="w-2 h-2 rounded-full bg-cyan-500 mt-1.5 shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-900">{n.title}</p>
+                          {n.message && <p className="text-xs text-gray-600 line-clamp-2">{n.message}</p>}
+                          <p className="text-xs text-gray-500 mt-1">{fmtRelative(n.created_at)}</p>
+                        </div>
+                        {!n.is_read && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: meta?.color }} />}
                       </div>
-                      {n.message && (
-                        <div className="text-xs text-gray-600 mt-0.5 line-clamp-2">{n.message}</div>
-                      )}
-                      <div className="text-[10px] text-gray-500 mt-1">{fmtRelative(n.created_at)}</div>
                     </div>
-                  </button>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
+
+            {items.length > 0 && (
+              <div className="p-3 border-t text-center">
+                <button
+                  onClick={markAllRead}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  ทำเครื่องหมายว่าอ่านทั้งหมด
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

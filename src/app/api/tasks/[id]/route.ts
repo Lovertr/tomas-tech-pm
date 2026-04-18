@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
+import { notify, getMemberUserId, getAdminManagerIds } from "@/lib/notify";
 
 // GET /api/tasks/[id] - fetch single task (scoped for role=member)
 export async function GET(
@@ -50,14 +51,16 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
+  // Get old task data before update
+  const { data: oldTask } = await supabaseAdmin
+    .from("tasks")
+    .select("*, assignee:team_members!tasks_assignee_id_fkey(user_id), reporter:team_members!tasks_reporter_id_fkey(user_id)")
+    .eq("id", id)
+    .single();
+
   // Members can only edit own tasks - check assignee
   if (ctx.role === "member") {
-    const { data: existing } = await supabaseAdmin
-      .from("tasks")
-      .select("assignee_id, team_members!tasks_assignee_id_fkey(user_id)")
-      .eq("id", id)
-      .single();
-    const assigneeUserId = (existing?.team_members as unknown as { user_id?: string } | null)?.user_id;
+    const assigneeUserId = (oldTask?.assignee as unknown as { user_id?: string } | null)?.user_id;
     if (assigneeUserId !== ctx.userId) {
       return NextResponse.json({ error: "Forbidden: not your task" }, { status: 403 });
     }
@@ -75,6 +78,50 @@ export async function PATCH(
   const { data, error } = await supabaseAdmin
     .from("tasks").update(update).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Handle notifications
+  try {
+    // Check if assignee changed
+    const oldAssigneeUserId = (oldTask?.assignee as { user_id?: string } | null)?.user_id;
+    const newAssigneeId = body.assignee_id;
+    if (newAssigneeId && newAssigneeId !== oldTask?.assignee_id) {
+      const newAssigneeUserId = await getMemberUserId(newAssigneeId);
+      if (newAssigneeUserId) {
+        await notify(
+          newAssigneeUserId,
+          "ได้รับมอบหมายงานใหม่",
+          oldTask?.title || "งาน",
+          "task_assigned"
+        );
+      }
+    }
+
+    // Check if status changed to done
+    if (body.status === "done" && oldTask?.status !== "done") {
+      const reporterUserId = (oldTask?.reporter as { user_id?: string } | null)?.user_id;
+      const adminManagerIds = await getAdminManagerIds();
+
+      const notifyIds = [];
+      if (reporterUserId) notifyIds.push(reporterUserId);
+      notifyIds.push(...adminManagerIds);
+
+      // Remove duplicates
+      const uniqueIds = Array.from(new Set(notifyIds));
+      if (uniqueIds.length > 0) {
+        for (const userId of uniqueIds) {
+          await notify(
+            userId,
+            "งานเสร็จสิ้น",
+            `${oldTask?.title || "งาน"} เสร็จสมบูรณ์แล้ว`,
+            "task_completed"
+          );
+        }
+      }
+    }
+  } catch (notifyErr) {
+    console.error("Task update notification error:", notifyErr);
+  }
+
   return NextResponse.json({ task: data });
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext, getScopedAccess } from "@/lib/auth-server";
+import { notify, getMemberUserId } from "@/lib/notify";
 
 // GET /api/tasks - list tasks (scoped for role=member: only assigned to them
 // or in projects they have access to)
@@ -67,6 +68,30 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notify assignee if set
+    if (assignee_id) {
+      try {
+        const assigneeUserId = await getMemberUserId(assignee_id);
+        if (assigneeUserId) {
+          const { data: project } = await supabaseAdmin
+            .from("projects")
+            .select("name_th, name_en")
+            .eq("id", project_id)
+            .maybeSingle();
+          const projectName = project?.name_th || project?.name_en || "โครงการ";
+          await notify(
+            assigneeUserId,
+            "ได้รับมอบหมายงานใหม่",
+            `${title} ในโครงการ ${projectName}`,
+            "task_assigned"
+          );
+        }
+      } catch (notifyErr) {
+        console.error("Task notification error:", notifyErr);
+      }
+    }
+
     return NextResponse.json({ task: data }, { status: 201 });
   } catch (err) {
     console.error("Create task error:", err);

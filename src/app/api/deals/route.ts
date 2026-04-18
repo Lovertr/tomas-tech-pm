@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
+import { notifyMany, getAdminManagerIds } from "@/lib/notify";
 
 export async function GET(req: NextRequest) {
   const ctx = await getAuthContext(req);
@@ -25,5 +26,21 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabaseAdmin.from("deals")
     .insert({ ...body, owner_id: body.owner_id || ctx.userId }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notify admin+manager that new deal was created
+  try {
+    const adminManagerIds = await getAdminManagerIds();
+    const value = data.value || body.value || 0;
+    const formattedValue = new Intl.NumberFormat("th-TH").format(Number(value));
+    await notifyMany(
+      adminManagerIds,
+      "ดีลใหม่ถูกสร้าง",
+      `${data.title} - THB ${formattedValue}`,
+      "deal_created"
+    );
+  } catch (notifyErr) {
+    console.error("Deal creation notification error:", notifyErr);
+  }
+
   return NextResponse.json({ deal: data }, { status: 201 });
 }
