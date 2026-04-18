@@ -430,7 +430,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
                   <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
-                  <Tooltip formatter={(v: any, name: string) => name === "value" ? [`THB ${fmtM(v)}`, t.dealValueLabel] : [v, t.dealCountLabel]} />
+                  <Tooltip formatter={(v: any, name: any) => name === "value" ? [`THB ${fmtM(v)}`, t.dealValueLabel] : [v, t.dealCountLabel]} />
                   <Legend />
                   <Bar yAxisId="left" dataKey="count" name={t.dealCountLabel} fill="#00AEEF" radius={[4, 4, 0, 0]} />
                   <Line yAxisId="right" type="monotone" dataKey="value" name={t.dealValueLabel} stroke="#003087" strokeWidth={2} dot={{ r: 3 }} />
