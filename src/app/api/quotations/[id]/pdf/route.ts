@@ -62,9 +62,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   /* Header */
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 3px solid #003087; padding-bottom: 12px; }
   .logo-area { display: flex; align-items: center; gap: 12px; }
-  .logo-box { width: 60px; height: 60px; background: #003087; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 10px; text-align: center; line-height: 1.2; }
+  .logo-img { width: 60px; height: 60px; border-radius: 8px; object-fit: contain; background: #fff; border: 1px solid #e2e8f0; padding: 2px; }
   .company-info { font-size: 9px; color: #555; }
   .company-info .name { font-size: 14px; font-weight: bold; color: #003087; }
+  .company-info .addr { font-size: 8px; color: #777; line-height: 1.4; margin-top: 2px; }
+  .company-info .tax-id { font-size: 8px; color: #888; }
   .doc-title { text-align: right; }
   .doc-title h1 { font-size: 22px; color: #003087; margin-bottom: 2px; }
   .doc-title .doc-no { font-size: 10px; color: #666; }
@@ -131,10 +133,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   <!-- Header -->
   <div class="header">
     <div class="logo-area">
-      <div class="logo-box">TOMAS<br>TECH</div>
+      <img src="/logo.png" alt="TOMAS TECH" class="logo-img" />
       <div class="company-info">
         <div class="name">TOMAS TECH CO., LTD.</div>
         <div>บจก. โทมัส เทค</div>
+        <div class="addr">123/45 อาคาร ABC ชั้น 5 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง กรุงเทพฯ 10400</div>
+        <div class="addr">Tel: 02-XXX-XXXX | Email: info@tomastech.co.th</div>
+        <div class="tax-id">Tax ID: 0105XXXXXXXXX</div>
       </div>
     </div>
     <div class="doc-title">
@@ -153,6 +158,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         ${companyAddr ? `<tr><td class="label">Address:</td><td class="value">${escHtml(companyAddr)}</td></tr>` : ""}
         ${phone ? `<tr><td class="label">Phone:</td><td class="value">${escHtml(phone)}</td></tr>` : ""}
         ${email ? `<tr><td class="label">Email:</td><td class="value">${escHtml(email)}</td></tr>` : ""}
+        ${q.customers?.tax_id ? `<tr><td class="label">Tax ID:</td><td class="value">${escHtml(q.customers.tax_id)}</td></tr>` : ""}
       </table>
     </div>
     <div class="info-right">
@@ -188,7 +194,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   <div class="totals-area">
     <table class="totals-table">
       <tr><td class="label">Sub Total</td><td class="value">${fmtNum(Number(q.subtotal))}</td></tr>
-      ${Number(q.discount_amount) > 0 ? `<tr><td class="label">Discount</td><td class="value">-${fmtNum(Number(q.discount_amount))}</td></tr>` : ""}
+      ${Number(q.discount_amount) > 0 ? `<tr><td class="label">Discount${Number(q.discount_percent) > 0 ? ` (${q.discount_percent}%)` : ""}</td><td class="value">-${fmtNum(Number(q.discount_amount))}</td></tr>` : ""}
       <tr><td class="label">Sales Amount</td><td class="value">${fmtNum(salesAmount)}</td></tr>
       <tr><td class="label">VAT ${q.vat_percent || 7}%</td><td class="value">${fmtNum(Number(q.vat_amount))}</td></tr>
       <tr class="grand"><td class="label">Grand Total (${cur})</td><td class="value">${fmtNum(Number(q.total))}</td></tr>

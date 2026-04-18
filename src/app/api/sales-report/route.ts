@@ -121,11 +121,82 @@ export async function GET(req: NextRequest) {
     pipelineByMonth[d.month].count++;
   });
 
+  // ── Monthly breakdown by stage category ──
+  // Categories: payment_received (actual revenue), po_received (confirmed PO), quotation (quoted), proposal (proposal_submitted + proposal_confirmed)
+  const monthlyByStage: Record<string, { payment: number; po: number; quotation: number; proposal: number }> = {};
+  (deals ?? []).forEach(d => {
+    const dateStr = d.actual_close_date || (d as any).updated_at?.slice(0, 10) || d.created_at?.slice(0, 10);
+    if (!dateStr) return;
+    const m = dateStr.slice(0, 7);
+    if (!monthlyByStage[m]) monthlyByStage[m] = { payment: 0, po: 0, quotation: 0, proposal: 0 };
+    if (d.stage === 'payment_received') monthlyByStage[m].payment += Number(d.value || 0);
+    else if (d.stage === 'po_received') monthlyByStage[m].po += Number(d.value || 0);
+    else if (d.stage === 'quotation' || d.stage === 'negotiation' || d.stage === 'waiting_po') monthlyByStage[m].quotation += Number(d.value || 0);
+    else if (d.stage === 'proposal_submitted' || d.stage === 'proposal_confirmed') monthlyByStage[m].proposal += Number(d.value || 0);
+  });
+
+  // ── Conversion rates for forecasting ──
+  const allDeals = deals ?? [];
+  const totalFinished = allDeals.filter(d => ['po_received', 'payment_received', 'cancelled', 'refused'].includes(d.stage)).length;
+  const wonTotal = allDeals.filter(d => d.stage === 'po_received' || d.stage === 'payment_received').length;
+  // How many reached quotation stage or beyond (including won/lost)
+  const reachedQuotation = allDeals.filter(d => ['quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received'].includes(d.stage)).length;
+  // How many from quotation stage eventually won
+  const quotationToWon = reachedQuotation > 0 ? wonTotal / reachedQuotation : 0;
+  // How many from proposal eventually won
+  const reachedProposal = allDeals.filter(d => ['proposal_submitted', 'proposal_confirmed', 'quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received'].includes(d.stage)).length;
+  const proposalToWon = reachedProposal > 0 ? wonTotal / reachedProposal : 0;
+
+  // Current pipeline value by category for forecast
+  const currentPO = allDeals.filter(d => d.stage === 'po_received').reduce((s, d) => s + Number(d.value || 0), 0);
+  const currentQuotation = allDeals.filter(d => ['quotation', 'negotiation', 'waiting_po'].includes(d.stage)).reduce((s, d) => s + Number(d.value || 0), 0);
+  const currentProposal = allDeals.filter(d => ['proposal_submitted', 'proposal_confirmed'].includes(d.stage)).reduce((s, d) => s + Number(d.value || 0), 0);
+  const actualRevenue = allDeals.filter(d => d.stage === 'payment_received').reduce((s, d) => s + Number(d.value || 0), 0);
+
+  // ── Strengths & weaknesses for AI analysis ──
+  // Avg deal size won vs lost
+  const wonDealsArr = allDeals.filter(d => d.stage === 'po_received' || d.stage === 'payment_received');
+  const lostDealsArr = allDeals.filter(d => d.stage === 'cancelled' || d.stage === 'refused');
+  const avgWonDealSize = wonDealsArr.length > 0 ? wonDealsArr.reduce((s, d) => s + Number(d.value || 0), 0) / wonDealsArr.length : 0;
+  const avgLostDealSize = lostDealsArr.length > 0 ? lostDealsArr.reduce((s, d) => s + Number(d.value || 0), 0) / lostDealsArr.length : 0;
+
+  // Top winning industry
+  const wonByIndustry: Record<string, { count: number; value: number }> = {};
+  wonDealsArr.forEach(d => {
+    const ind = (d.customers as any)?.industry || 'ไม่ระบุ';
+    if (!wonByIndustry[ind]) wonByIndustry[ind] = { count: 0, value: 0 };
+    wonByIndustry[ind].count++;
+    wonByIndustry[ind].value += Number(d.value || 0);
+  });
+
+  // Monthly new deals trend (for summary tab)
+  const monthlyNewDeals: Record<string, { count: number; value: number }> = {};
+  allDeals.forEach(d => {
+    const m = d.created_at?.slice(0, 7);
+    if (!m) return;
+    if (!monthlyNewDeals[m]) monthlyNewDeals[m] = { count: 0, value: 0 };
+    monthlyNewDeals[m].count++;
+    monthlyNewDeals[m].value += Number(d.value || 0);
+  });
+
   return NextResponse.json({
     summary: { totalDeals, totalPipeline, wonValue, wonCount, lostCount, conversionRate },
     stageCount, stageValue, monthlyData, topCustomers: topCust,
     recentActivities: (activities ?? []).slice(0, 10),
     pipelineByMonth,
+    monthlyByStage,
+    monthlyNewDeals,
+    forecast: {
+      actualRevenue,
+      currentPO,
+      currentQuotation,
+      currentProposal,
+      quotationToWonRate: Math.round(quotationToWon * 100),
+      proposalToWonRate: Math.round(proposalToWon * 100),
+      estimatedFromQuotation: currentQuotation * quotationToWon,
+      estimatedFromProposal: currentProposal * proposalToWon,
+      totalForecast: actualRevenue + currentPO + (currentQuotation * quotationToWon) + (currentProposal * proposalToWon),
+    },
     // Extended data for AI analysis
     aiData: {
       ownerStats: Object.values(ownerStats),
@@ -136,6 +207,14 @@ export async function GET(req: NextRequest) {
       weightedPipeline,
       totalActivities: (activities ?? []).length,
       activeDealsCount: activeDealAges.length,
+      avgWonDealSize,
+      avgLostDealSize,
+      wonByIndustry,
+      conversionRates: {
+        overall: Number(conversionRate),
+        quotationToWon: Math.round(quotationToWon * 100),
+        proposalToWon: Math.round(proposalToWon * 100),
+      },
     },
   });
 }

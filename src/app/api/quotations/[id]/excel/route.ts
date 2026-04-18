@@ -73,7 +73,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Totals
   wsData.push([null, null, null, null, "Sub Total", Number(q.subtotal)]);
   if (Number(q.discount_amount) > 0) {
-    wsData.push([null, null, null, null, "Discount", -Number(q.discount_amount)]);
+    const discLabel = Number(q.discount_percent) > 0 ? `Discount (${q.discount_percent}%)` : "Discount";
+    wsData.push([null, null, null, null, discLabel, -Number(q.discount_amount)]);
   }
   wsData.push([null, null, null, null, "Sales Amount", salesAmount]);
   wsData.push([null, null, null, null, `VAT ${q.vat_percent || 7}%`, Number(q.vat_amount)]);

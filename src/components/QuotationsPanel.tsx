@@ -128,6 +128,10 @@ const panelText = {
   paymentTerms: { th: "Payment Terms", en: "Payment Terms", jp: "支払条件" },
   expireDays: { th: "หมดอายุ (วัน)", en: "Expire (days)", jp: "有効期限（日）" },
   discountPct: { th: "ส่วนลด (%)", en: "Discount (%)", jp: "割引（%）" },
+  discountAmt: { th: "ส่วนลด (จำนวนเงิน)", en: "Discount (Amount)", jp: "割引（金額）" },
+  discountType: { th: "ประเภทส่วนลด", en: "Discount Type", jp: "割引タイプ" },
+  percent: { th: "%", en: "%", jp: "%" },
+  fixedAmount: { th: "จำนวนเงิน", en: "Amount", jp: "金額" },
   vatPct: { th: "VAT %", en: "VAT %", jp: "VAT %" },
   cancel: { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
   create: { th: "สร้างใบเสนอราคา", en: "Create Quotation", jp: "見積書作成" },
@@ -477,7 +481,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
     issue_date: new Date().toISOString().slice(0, 10),
     revision: 0, quotation_by: "", currency: "THB", lead_time: "",
     payment_terms: "50% Advance, 40% upon delivery, 10% upon completion",
-    expire_days: 30, discount_percent: 0, vat_percent: 7, notes: "", remark: "",
+    expire_days: 30, discount_percent: 0, discount_fixed: 0, discount_type: "percent" as "percent" | "fixed", vat_percent: 7, notes: "", remark: "",
   });
 
   const [formItems, setFormItems] = useState<QuotationItemForm[]>([
@@ -492,7 +496,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
   };
 
   const subtotal = formItems.reduce((s, it) => s + it.qty * it.unit_price, 0);
-  const discountAmt = subtotal * form.discount_percent / 100;
+  const discountAmt = form.discount_type === "percent" ? subtotal * form.discount_percent / 100 : form.discount_fixed;
   const afterDiscount = subtotal - discountAmt;
   const vat = afterDiscount * form.vat_percent / 100;
   const total = afterDiscount + vat;
@@ -525,7 +529,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
     setBusy(true); setErr(null);
     try {
       const payload = {
-        ...form, discount_amount: discountAmt, subtotal, vat_amount: vat, total,
+        ...form, discount_amount: discountAmt, discount_percent: form.discount_type === "percent" ? form.discount_percent : 0, subtotal, vat_amount: vat, total,
         items: formItems.map(it => ({
           description: it.description, qty: it.qty, unit: it.unit, unit_price: it.unit_price,
           amount: it.qty * it.unit_price, sub_items: it.sub_items.filter(s => s.trim()), notes: it.notes,
@@ -550,7 +554,17 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
           </h3>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
-        <div className="bg-[#003087] text-white text-center py-1.5 rounded-lg text-xs font-mono">TOMAS TECH CO., LTD. - Quotation Form</div>
+        {/* Company Header */}
+        <div className="bg-gradient-to-r from-[#003087] to-[#0050C8] rounded-xl p-4 flex items-center gap-4">
+          <img src="/logo.png" alt="TOMAS TECH" className="h-14 w-14 rounded-lg bg-white p-1 object-contain flex-shrink-0" />
+          <div className="text-white">
+            <div className="font-bold text-sm">TOMAS TECH CO., LTD.</div>
+            <div className="text-[10px] text-blue-200 leading-relaxed">
+              บจก. โทมัส เทค | 123/45 อาคาร ABC ชั้น 5 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง กรุงเทพฯ 10400<br/>
+              Tel: 02-XXX-XXXX | Email: info@tomastech.co.th | Tax ID: 0105XXXXXXXXX
+            </div>
+          </div>
+        </div>
 
         {/* Customer */}
         <div className="bg-[#F8FAFC] rounded-xl p-4 space-y-3 border border-[#E2E8F0]">
@@ -625,7 +639,19 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Field label={L("leadTime")}><input type="text" className={inp} value={form.lead_time} onChange={e => setForm({ ...form, lead_time: e.target.value })} placeholder="e.g. 3 months" /></Field>
           <Field label={L("paymentTerms")}><input type="text" className={inp} value={form.payment_terms} onChange={e => setForm({ ...form, payment_terms: e.target.value })} /></Field>
-          <Field label={L("discountPct")}><input type="number" className={inp} value={form.discount_percent} onChange={e => setForm({ ...form, discount_percent: Number(e.target.value) })} min={0} max={100} /></Field>
+          <Field label={L("discount")}>
+            <div className="flex gap-1.5">
+              <select className={inp + " !w-24 flex-shrink-0"} value={form.discount_type} onChange={e => setForm({ ...form, discount_type: e.target.value as "percent" | "fixed", discount_percent: 0, discount_fixed: 0 })}>
+                <option value="percent">{L("percent")}</option>
+                <option value="fixed">{L("fixedAmount")}</option>
+              </select>
+              {form.discount_type === "percent" ? (
+                <input type="number" className={inp} value={form.discount_percent} onChange={e => setForm({ ...form, discount_percent: Number(e.target.value) })} min={0} max={100} placeholder="0" />
+              ) : (
+                <input type="number" className={inp} value={form.discount_fixed} onChange={e => setForm({ ...form, discount_fixed: Number(e.target.value) })} min={0} placeholder="0.00" />
+              )}
+            </div>
+          </Field>
           <Field label={L("vatPct")}><input type="number" className={inp} value={form.vat_percent} onChange={e => setForm({ ...form, vat_percent: Number(e.target.value) })} min={0} /></Field>
         </div>
 
@@ -634,7 +660,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
           <div className="flex justify-end">
             <div className="w-72 space-y-1.5 text-sm">
               <div className="flex justify-between text-slate-600"><span>Sub Total</span><span>{fmtNum(subtotal)}</span></div>
-              {discountAmt > 0 && <div className="flex justify-between text-orange-600"><span>{L("discount")} ({form.discount_percent}%)</span><span>-{fmtNum(discountAmt)}</span></div>}
+              {discountAmt > 0 && <div className="flex justify-between text-orange-600"><span>{L("discount")} {form.discount_type === "percent" ? `(${form.discount_percent}%)` : ""}</span><span>-{fmtNum(discountAmt)}</span></div>}
               <div className="flex justify-between text-slate-600"><span>Sales Amount</span><span>{fmtNum(afterDiscount)}</span></div>
               <div className="flex justify-between text-slate-600"><span>VAT {form.vat_percent}%</span><span>{fmtNum(vat)}</span></div>
               <div className="flex justify-between text-slate-900 font-bold text-base pt-2 border-t border-[#003087]">
