@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Lang } from '@/lib/i18n';
 import {
   BarChart,
@@ -63,10 +63,190 @@ interface SalesReportData {
   monthlyData: Array<{ month: string; value: number }>;
   topCustomers: Array<{ name: string; total: number; count: number }>;
   recentActivities: Array<{ id: string; description: string; date: string }>;
+  pipelineByMonth?: Record<string, { total: number; weighted: number; count: number }>;
   aiData?: AIData;
 }
 
 const COLORS = ['#003087', '#F7941D', '#00AEEF', '#10B981', '#6366F1', '#EF4444', '#8B5CF6'];
+
+const MONTH_NAMES: Record<string, string[]> = {
+  th: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  jp: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+};
+
+/* ── Revenue Chart with Month/Year toggle ── */
+function RevenueChart({
+  monthlyData,
+  pipelineByMonth,
+  revenueView,
+  setRevenueView,
+  selectedYear,
+  setSelectedYear,
+  tooltipConfig,
+  L,
+  lang,
+}: {
+  monthlyData: Array<{ month: string; value: number }>;
+  pipelineByMonth?: Record<string, { total: number; weighted: number; count: number }>;
+  revenueView: 'month' | 'year';
+  setRevenueView: (v: 'month' | 'year') => void;
+  selectedYear: string;
+  setSelectedYear: (y: string) => void;
+  tooltipConfig: any;
+  L: (key: string) => string;
+  lang: string;
+}) {
+  // Collect all available years from actual data + pipeline
+  const availableYears = useMemo(() => {
+    const yearSet = new Set<string>();
+    monthlyData.forEach(d => yearSet.add(d.month.slice(0, 4)));
+    if (pipelineByMonth) {
+      Object.keys(pipelineByMonth).forEach(m => yearSet.add(m.slice(0, 4)));
+    }
+    // Always include current year
+    yearSet.add(new Date().getFullYear().toString());
+    return Array.from(yearSet).sort();
+  }, [monthlyData, pipelineByMonth]);
+
+  // For "year" view: build 12-month chart with actual + forecast
+  const yearChartData = useMemo(() => {
+    if (revenueView !== 'year') return [];
+
+    const now = new Date();
+    const currentYearStr = now.getFullYear().toString();
+    const currentMonth = now.getMonth(); // 0-indexed
+    const mNames = MONTH_NAMES[lang] || MONTH_NAMES.en;
+
+    // Build a map of actual revenue for the selected year
+    const actualMap: Record<string, number> = {};
+    monthlyData.forEach(d => {
+      if (d.month.startsWith(selectedYear)) {
+        actualMap[d.month] = d.value;
+      }
+    });
+
+    // Calculate average monthly revenue from actual data for fallback forecast
+    const actualValues = Object.values(actualMap).filter(v => v > 0);
+    const avgMonthly = actualValues.length > 0
+      ? actualValues.reduce((a, b) => a + b, 0) / actualValues.length
+      : 0;
+
+    return Array.from({ length: 12 }, (_, i) => {
+      const monthKey = `${selectedYear}-${String(i + 1).padStart(2, '0')}`;
+      const actualVal = actualMap[monthKey] || 0;
+      const isPast = selectedYear < currentYearStr || (selectedYear === currentYearStr && i <= currentMonth);
+
+      let forecastVal = 0;
+      if (!isPast) {
+        // Use pipeline weighted value if available, otherwise use average
+        const pipeline = pipelineByMonth?.[monthKey];
+        forecastVal = pipeline ? pipeline.weighted : avgMonthly * 0.7;
+      }
+
+      return {
+        month: mNames[i],
+        actual: Math.round(actualVal),
+        forecast: Math.round(isPast ? 0 : forecastVal),
+        isForecast: !isPast,
+      };
+    });
+  }, [revenueView, selectedYear, monthlyData, pipelineByMonth, lang]);
+
+  // For "month" view: use raw monthly data (all time)
+  const monthChartData = useMemo(() => {
+    if (revenueView !== 'month') return [];
+    const mNames = MONTH_NAMES[lang] || MONTH_NAMES.en;
+    return monthlyData.map(d => {
+      const mIdx = parseInt(d.month.slice(5, 7), 10) - 1;
+      return {
+        month: `${mNames[mIdx]} ${d.month.slice(2, 4)}`,
+        value: d.value,
+      };
+    });
+  }, [revenueView, monthlyData, lang]);
+
+  return (
+    <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <h3 className="font-semibold text-gray-900">{L('monthlyRevenue')}</h3>
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex rounded-lg border border-[#E2E8F0] overflow-hidden text-xs">
+            <button
+              onClick={() => setRevenueView('month')}
+              className={`px-3 py-1.5 font-medium transition ${revenueView === 'month' ? 'bg-[#003087] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              {L('viewByMonth')}
+            </button>
+            <button
+              onClick={() => setRevenueView('year')}
+              className={`px-3 py-1.5 font-medium transition ${revenueView === 'year' ? 'bg-[#003087] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              {L('viewByYear')}
+            </button>
+          </div>
+          {/* Year Selector (only in year view) */}
+          {revenueView === 'year' && (
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="text-xs border border-[#E2E8F0] rounded-lg px-2 py-1.5 text-gray-700 bg-white"
+            >
+              {availableYears.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+
+      {/* Legend for year view */}
+      {revenueView === 'year' && (
+        <div className="flex items-center gap-4 mb-3 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-[#F7941D]" />
+            <span className="text-gray-600">{L('actual')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-[#00AEEF] opacity-60" />
+            <span className="text-gray-600">{L('forecast')}</span>
+          </div>
+        </div>
+      )}
+
+      <ResponsiveContainer width="100%" height={300}>
+        {revenueView === 'month' ? (
+          <AreaChart data={monthChartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+            <XAxis dataKey="month" stroke="#9CA3AF" style={{ fontSize: '11px' }} />
+            <YAxis stroke="#9CA3AF" style={{ fontSize: '11px' }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}K`} />
+            <Tooltip
+              contentStyle={tooltipConfig}
+              formatter={(value: any) => `฿${(value / 1000).toFixed(0)}K`}
+            />
+            <Area type="monotone" dataKey="value" stroke="#F7941D" fill="#F79C3D" fillOpacity={0.3} />
+          </AreaChart>
+        ) : (
+          <BarChart data={yearChartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+            <XAxis dataKey="month" stroke="#9CA3AF" style={{ fontSize: '11px' }} />
+            <YAxis stroke="#9CA3AF" style={{ fontSize: '11px' }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}K`} />
+            <Tooltip
+              contentStyle={tooltipConfig}
+              formatter={(value: any, name: string) => [
+                `฿${(value / 1000).toFixed(0)}K`,
+                name === 'actual' ? L('actual') : L('forecast'),
+              ]}
+            />
+            <Bar dataKey="actual" fill="#F7941D" radius={[4, 4, 0, 0]} stackId="revenue" />
+            <Bar dataKey="forecast" fill="#00AEEF" fillOpacity={0.5} radius={[4, 4, 0, 0]} stackId="revenue" />
+          </BarChart>
+        )}
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 const stageNamesI18n: Record<string, Record<string, string>> = {
   waiting_present:    { th: 'รอนำเสนอ',          en: 'Waiting to Present',    jp: 'プレゼン待ち' },
@@ -113,6 +293,11 @@ export default function SalesReportPanel({
         recentActivities: 'กิจกรรมล่าสุด',
         refresh: 'รีเฟรช',
         export: 'ส่งออก PDF',
+        viewByMonth: 'รายเดือน',
+        viewByYear: 'รายปี',
+        actual: 'จริง',
+        forecast: 'คาดการณ์',
+        selectYear: 'เลือกปี',
         aiAnalysis: 'วิเคราะห์โดย AI',
         aiAnalysisDesc: 'วิเคราะห์ข้อมูลการขายทั้งหมดด้วย AI เพื่อให้คำแนะนำ',
         analyzing: 'กำลังวิเคราะห์...',
@@ -149,6 +334,11 @@ export default function SalesReportPanel({
         recentActivities: 'Recent Activities',
         refresh: 'Refresh',
         export: 'Export PDF',
+        viewByMonth: 'Monthly',
+        viewByYear: 'Yearly',
+        actual: 'Actual',
+        forecast: 'Forecast',
+        selectYear: 'Select Year',
         aiAnalysis: 'AI Analysis',
         aiAnalysisDesc: 'Analyze all sales data with AI for actionable insights',
         analyzing: 'Analyzing...',
@@ -185,6 +375,11 @@ export default function SalesReportPanel({
         recentActivities: '最近のアクティビティ',
         refresh: '更新',
         export: 'PDF をエクスポート',
+        viewByMonth: '月別',
+        viewByYear: '年別',
+        actual: '実績',
+        forecast: '予測',
+        selectYear: '年を選択',
         aiAnalysis: 'AI分析',
         aiAnalysisDesc: 'AIで全売上データを分析し、提案を取得',
         analyzing: '分析中...',
@@ -207,6 +402,8 @@ export default function SalesReportPanel({
   const [aiAnalysis, setAiAnalysis] = useState<string[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiExpanded, setAiExpanded] = useState(true);
+  const [revenueView, setRevenueView] = useState<'month' | 'year'>('month');
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
 
   useEffect(() => {
     fetchReport();
@@ -433,7 +630,7 @@ export default function SalesReportPanel({
                 outerRadius={95}
                 paddingAngle={2}
                 dataKey="value"
-                label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                label={(props: any) => `${props.name ?? ''} ${((props.percent ?? 0) * 100).toFixed(0)}%`}
                 labelLine={{ strokeWidth: 1 }}
               >
                 {pieChartData.map((entry, index) => (
@@ -458,28 +655,18 @@ export default function SalesReportPanel({
         </div>
       </div>
 
-      {/* Monthly Revenue Area Chart */}
-      <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
-        <h3 className="font-semibold text-gray-900 mb-4">{L('monthlyRevenue')}</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={reportData.monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-            <XAxis dataKey="month" stroke="#9CA3AF" style={{ fontSize: '12px' }} />
-            <YAxis stroke="#9CA3AF" style={{ fontSize: '12px' }} />
-            <Tooltip
-              contentStyle={tooltipConfig}
-              formatter={(value: any) => `฿${(value / 1000).toFixed(0)}K`}
-            />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="#F7941D"
-              fill="#F79C3D"
-              fillOpacity={0.3}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      {/* Monthly Revenue Area Chart with Year/Month Toggle */}
+      <RevenueChart
+        monthlyData={reportData.monthlyData}
+        pipelineByMonth={reportData.pipelineByMonth}
+        revenueView={revenueView}
+        setRevenueView={setRevenueView}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        tooltipConfig={tooltipConfig}
+        L={L}
+        lang={lang}
+      />
 
       {/* Top Customers */}
       <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">

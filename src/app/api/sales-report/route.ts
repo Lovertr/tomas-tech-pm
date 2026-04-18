@@ -100,10 +100,30 @@ export async function GET(req: NextRequest) {
     .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage))
     .reduce((sum, d) => sum + Number(d.value || 0) * (Number(d.probability || 0) / 100), 0);
 
+  // Pipeline deals for forecasting (active deals with expected close date)
+  const pipelineForForecast = (deals ?? [])
+    .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage) && d.expected_close_date)
+    .map(d => ({
+      month: d.expected_close_date!.slice(0, 7),
+      value: Number(d.value || 0),
+      probability: Number(d.probability || 0),
+      weighted: Number(d.value || 0) * (Number(d.probability || 0) / 100),
+    }));
+
+  // Group pipeline by month
+  const pipelineByMonth: Record<string, { total: number; weighted: number; count: number }> = {};
+  pipelineForForecast.forEach(d => {
+    if (!pipelineByMonth[d.month]) pipelineByMonth[d.month] = { total: 0, weighted: 0, count: 0 };
+    pipelineByMonth[d.month].total += d.value;
+    pipelineByMonth[d.month].weighted += d.weighted;
+    pipelineByMonth[d.month].count++;
+  });
+
   return NextResponse.json({
     summary: { totalDeals, totalPipeline, wonValue, wonCount, lostCount, conversionRate },
     stageCount, stageValue, monthlyData, topCustomers: topCust,
     recentActivities: (activities ?? []).slice(0, 10),
+    pipelineByMonth,
     // Extended data for AI analysis
     aiData: {
       ownerStats: Object.values(ownerStats),
