@@ -1,239 +1,317 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
-import { TrendingUp, TrendingDown, BarChart3, PieChart, Users, AlertCircle, Zap, Building2, CheckCircle2, XCircle, Activity } from "lucide-react";
-import { BarChart, Bar, PieChart as RechartspiePie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import {
+  TrendingUp, TrendingDown, BarChart3, Users, AlertCircle, Zap,
+  Building2, CheckCircle2, XCircle, Activity, Download, Lightbulb,
+  Clock, Target, DollarSign, FileText,
+} from "lucide-react";
+import {
+  BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area,
+} from "recharts";
 
-interface Deal {
-  id: string; project_code?: string | null; name?: string | null; 
-  stage_id: string; stage_name?: string | null;
-  value: number; probability: number; close_date?: string | null;
-  customer_id?: string | null; customer_name?: string | null;
-  owner_id?: string | null; owner_name?: string | null;
-  industry?: string | null; type?: string | null;
-}
-
-interface Customer { id: string; name?: string | null; total_value: number; deal_count: number; }
-interface Activity { id: string; type: string; description?: string | null; created_at?: string | null; }
-
-const months = ["\u0e21\u0e04\u0e23.", "\u0e01\u0e1e.", "\u0e21\u0e35.", "\u0e40\u0e21", "\u0e1e\u0e1f", "\u0e21\u0e34\u0e22", "\u0e01\u0e23\u0e21", "\u0e2a\u0e14", "\u0e01\u0e22", "\u0e15\u0e25.", "\u0e1e\u0e22", "\u0e18\u0e31\u0e19"];
-const i18n = {
+/* ── i18n ── */
+const months = ["\u0e21.\u0e04.","\u0e01.\u0e1e.","\u0e21\u0e35.\u0e04.","\u0e40.\u0e21.\u0e22.","\u0e1e.\u0e04.","\u0e21\u0e34.\u0e22.","\u0e01.\u0e04.","\u0e2a.\u0e04.","\u0e01.\u0e22.","\u0e15.\u0e04.","\u0e1e.\u0e22.","\u0e18.\u0e04."];
+const i18n: Record<string, Record<string, string>> = {
   th: {
-    revenue: "\u0e23\u0e32\u0e22\u0e44\u0e14\u0e49",
-    closed: "\u0e1b\u0e34\u0e14\u0e17\u0e33",
+    sales: "\u0e01\u0e32\u0e23\u0e02\u0e32\u0e22", revenue: "\u0e23\u0e32\u0e22\u0e44\u0e14\u0e49",
+    insights: "AI \u0e1c\u0e25\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c",
+    totalDeals: "\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e14\u0e49\u0e32\u0e19\u0e02\u0e32\u0e22",
+    closedWon: "\u0e1b\u0e34\u0e14\u0e17\u0e33",
     conversion: "\u0e2d\u0e31\u0e15\u0e23\u0e32\u0e01\u0e32\u0e23",
     lost: "\u0e2b\u0e32\u0e22\u0e44\u0e1b",
     avgDeal: "\u0e01\u0e32\u0e23\u0e23\u0e14\u0e40\u0e09\u0e25\u0e22\u0e18\u0e38\u0e23\u0e01\u0e34\u0e08",
-    health: "\u0e2a\u0e15\u0e16\u0e32\u0e19\u0e14\u0e49\u0e32\u0e19\u0e02\u0e22\u0e32\u0e22",
-    activeDeals: "\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e17\u0e33\u0e2a\u0e15\u0e2b\u0e23",
-    coverageRatio: "\u0e2d\u0e31\u0e15\u0e23\u0e32\u0e01\u0e32\u0e23\u0e04\u0e27\u0e32\u0e21\u0e04\u0e38\u0e21",
-    velocity: "\u0e04\u0e27\u0e32\u0e21\u0e40\u0e23\u0e47\u0e27 \u0e01\u0e32\u0e23\u0e02\u0e32\u0e22",
-    avgAge: "\u0e2d\u0e38\u0e21\u0e23\u0e4c\u0e40\u0e17\u0e35\u0e22\u0e21\u0e1b\u0e01\u0e15\u0e34",
-    performance: "\u0e2a\u0e20\u0e32\u0e1e\u0e1c\u0e25\u0e07\u0e32\u0e19",
-    topSellers: "\u0e1c\u0e39\u0e49\u0e02\u0e32\u0e22\u0e01\u0e32\u0e23\u0e2a\u0e39\u0e07",
-    topIndustries: "\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e2d\u0e1a\u0e2a\u0e39\u0e07",
-    insights: "AI \u0e1c\u0e25\u0e27\u0e34\u0e40\u0e04\u0e23\u0e30\u0e2b\u0e4c",
-    sales: "\u0e01\u0e32\u0e23\u0e02\u0e32\u0e22",
-    month: "\u0e40\u0e14\u0e37\u0e2d\u0e19",
-    year: "\u0e1b\u0e35",
+    pipeline: "\u0e21\u0e39\u0e25\u0e04\u0e48\u0e32\u0e43\u0e19 Pipeline",
+    stageBreakdown: "\u0e2a\u0e31\u0e14\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e32\u0e21 Stage",
+    topCustomers: "\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32\u0e22\u0e2d\u0e14",
+    customer: "\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32",
+    value: "\u0e21\u0e39\u0e25\u0e04\u0e48\u0e32 (THB)",
+    deals: "\u0e14\u0e35\u0e25",
+    month: "\u0e40\u0e14\u0e37\u0e2d\u0e19", year: "\u0e1b\u0e35",
+    noData: "\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
+    downloadCsv: "\u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14 CSV",
+    downloadPdf: "\u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14 PDF",
+    ownerPerformance: "\u0e1c\u0e25\u0e07\u0e32\u0e19\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e02\u0e32\u0e22",
+    activityTypes: "\u0e1b\u0e23\u0e30\u0e40\u0e20\u0e17\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21",
+    industryDist: "\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21",
+    overdue: "\u0e14\u0e35\u0e25\u0e40\u0e25\u0e22\u0e01\u0e33\u0e2b\u0e19\u0e14",
+    avgAge: "\u0e2d\u0e32\u0e22\u0e38\u0e40\u0e09\u0e25\u0e35\u0e48\u0e22 (days)",
+    weighted: "Weighted Pipeline",
+    forecast: "\u0e1e\u0e22\u0e32\u0e01\u0e23\u0e13\u0e4c",
+    loading: "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e42\u0e2b\u0e25\u0e14...",
+    name: "\u0e0a\u0e37\u0e48\u0e2d",
+    dealCount: "\u0e08\u0e33\u0e19\u0e27\u0e19\u0e14\u0e35\u0e25",
+    wonDeals: "\u0e1b\u0e34\u0e14\u0e44\u0e14\u0e49",
+    totalValue: "\u0e21\u0e39\u0e25\u0e04\u0e48\u0e32\u0e23\u0e27\u0e21",
+    activities: "\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21",
   },
   en: {
-    revenue: "Revenue", closed: "Closed Won", conversion: "Conversion Rate", lost: "Lost", avgDeal: "Avg Deal Size",
-    health: "Pipeline Health", activeDeals: "Active Deals", coverageRatio: "Coverage Ratio", velocity: "Sales Velocity",
-    avgAge: "Avg Deal Age", performance: "Team Performance", topSellers: "Top Sellers", topIndustries: "Top Industries",
-    insights: "AI Insights", sales: "Sales", month: "Month", year: "Year",
+    sales: "Sales", revenue: "Revenue", insights: "AI Insights",
+    totalDeals: "Total Deals", closedWon: "Closed Won", conversion: "Conversion",
+    lost: "Lost", avgDeal: "Avg Deal", pipeline: "Pipeline Value",
+    stageBreakdown: "Stage Breakdown", topCustomers: "Top Customers",
+    customer: "Customer", value: "Value (THB)", deals: "Deals",
+    month: "Month", year: "Year", noData: "No data yet",
+    downloadCsv: "Download CSV", downloadPdf: "Download PDF",
+    ownerPerformance: "Sales Performance", activityTypes: "Activity Types",
+    industryDist: "Industries", overdue: "Overdue Deals", avgAge: "Avg Age (days)",
+    weighted: "Weighted Pipeline", forecast: "Forecast", loading: "Loading...",
+    name: "Name", dealCount: "Deals", wonDeals: "Won", totalValue: "Total Value",
+    activities: "Activities",
   },
-  ja: {
-    revenue: "\u53ce\u76ca", closed: "\u6210\u7384\u5408", conversion: "\u6210\u7def\u7387", lost: "\u5931\u3046", avgDeal: "\u5e73\u5747\u4ea4\u53d6\u5024",
-    health: "\u30d1\u30a4\u30d7\u30e9\u30a4\u30f3\u306e\u5065\u5eb7", activeDeals: "\u30a2\u30af\u30c6\u30a3\u30d6\u306a\u53d6\u5f15",
-    coverageRatio: "\u30ab\u30d0\u30ec\u30c3\u30b8\u6bd4\u7387", velocity: "\u8ca9\u58f2\u901f\u5ea6", avgAge: "\u5e73\u5747\u53d6\u5f15\u9e7f\u9f62",
-    performance: "\u30c1\u30fc\u30e0\u7684\u6210\u7ee9", topSellers: "\u4e0a\u4f4d\u8ca9\u58f2\u8005", topIndustries: "\u4e0a\u4f4d\u7d71\u65b0\u5dba",
-    insights: "AI\u306e\u6d17\u5145", sales: "\u8ca9\u58f2", month: "\u6708", year: "\u5e74",
-  }
 };
 
-export default function SalesReportPanel({ lang = "th", filterProjectId = "all", refreshKey = 0 }: 
+const STAGE_COLORS: Record<string, string> = {
+  lead: "#6B7280", qualified: "#3B82F6", proposal_sent: "#8B5CF6",
+  quotation: "#F59E0B", negotiation: "#F97316", po_received: "#22C55E",
+  cancelled: "#EF4444", refused: "#DC2626",
+};
+const STAGE_LABELS: Record<string, string> = {
+  lead: "Lead", qualified: "Qualified", proposal_sent: "Proposal",
+  quotation: "Quotation", negotiation: "Negotiation", po_received: "PO Received",
+  cancelled: "Cancelled", refused: "Refused",
+};
+const PIE_COLORS = ["#003087", "#00AEEF", "#F7941D", "#22C55E", "#8B5CF6", "#EF4444", "#EC4899", "#6366F1"];
+
+interface SalesData {
+  summary: { totalDeals: number; totalPipeline: number; wonValue: number; wonCount: number; lostCount: number; conversionRate: string };
+  stageCount: Record<string, number>;
+  stageValue: Record<string, number>;
+  monthlyData: { month: string; value: number }[];
+  topCustomers: { name: string; total: number; count: number }[];
+  recentActivities: any[];
+  pipelineByMonth: Record<string, { total: number; weighted: number; count: number }>;
+  aiData: {
+    ownerStats: { name: string; deals: number; value: number; won: number; wonValue: number; activities: number }[];
+    activityTypeCount: Record<string, number>;
+    industryStats: Record<string, { count: number; value: number }>;
+    overdueDeals: number;
+    avgDealAge: number;
+    weightedPipeline: number;
+    totalActivities: number;
+    activeDealsCount: number;
+  };
+}
+
+export default function SalesReportPanel({ lang = "th", filterProjectId = "all", refreshKey = 0 }:
   { lang?: "th" | "en" | "jp"; filterProjectId?: string; refreshKey?: number }) {
-  const t = i18n[(lang === "jp" ? "en" : lang) || "th"];
+  const t = i18n[lang === "jp" ? "en" : lang] || i18n.th;
   const [tab, setTab] = useState<"summary" | "revenue" | "analysis">("summary");
   const [view, setView] = useState<"month" | "year">("year");
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<SalesData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const fetchAll = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const q = new URLSearchParams();
-      if (filterProjectId !== "all") q.set("project_id", filterProjectId);
-      const [a, b, c] = await Promise.all([
-        fetch(`/api/sales/deals?${q}`).then(r => r.ok ? r.json() : null),
-        fetch(`/api/sales/customers?${q}`).then(r => r.ok ? r.json() : null),
-        fetch(`/api/sales/activities?${q}`).then(r => r.ok ? r.json() : null),
-      ]);
-      if (a) setDeals(a.rows ?? []);
-      if (b) setCustomers(b.rows ?? []);
-      if (c) setActivities(c.rows ?? []);
-    } finally { setLoading(false); }
-  }, [filterProjectId]);
+      const res = await fetch("/api/sales-report");
+      if (!res.ok) throw new Error("fetch failed");
+      const json = await res.json();
+      setData(json);
+    } catch { setData(null); }
+    finally { setLoading(false); }
+  }, []);
 
-  const chartData = useMemo(() => {
+  useEffect(() => { fetchData(); }, [fetchData, refreshKey]);
+
+  /* ── Derived data ── */
+  const stageChartData = useMemo(() => {
+    if (!data) return [];
+    return Object.entries(data.stageValue)
+      .filter(([, v]) => v > 0)
+      .map(([stage, value]) => ({
+        name: STAGE_LABELS[stage] || stage,
+        value,
+        count: data.stageCount[stage] || 0,
+        color: STAGE_COLORS[stage] || "#6B7280",
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  const revenueChartData = useMemo(() => {
+    if (!data) return [];
     if (view === "month") {
-      const m = Array(12).fill(0).map((_, i) => ({
-        name: months[i], value: deals.filter(d => {
-          const dm = d.close_date?.split("-")[1];
-          return dm === String(i + 1).padStart(2, "0") && d.probability === 1;
-        }).reduce((s, d) => s + d.value, 0),
-      }));
-      return m;
-    } else {
-      return [{ name: String(new Date().getFullYear()), value: deals.filter(d => d.probability === 1).reduce((s, d) => s + d.value, 0) }];
+      const map: Record<string, number> = {};
+      data.monthlyData.forEach(d => { map[d.month] = d.value; });
+      const yr = new Date().getFullYear();
+      return Array.from({ length: 12 }, (_, i) => {
+        const key = `${yr}-${String(i + 1).padStart(2, "0")}`;
+        return { name: months[i], value: map[key] || 0 };
+      });
     }
-  }, [deals, view]);
+    return data.monthlyData.reduce((acc, d) => {
+      const yr = d.month.slice(0, 4);
+      const existing = acc.find(a => a.name === yr);
+      if (existing) existing.value += d.value;
+      else acc.push({ name: yr, value: d.value });
+      return acc;
+    }, [] as { name: string; value: number }[]);
+  }, [data, view]);
 
-  const stageData = useMemo(() => {
-    const stages = new Map<string, number>();
-    deals.forEach(d => {
-      stages.set(d.stage_name || "Unknown", (stages.get(d.stage_name || "Unknown") || 0) + d.value);
+  const industryChartData = useMemo(() => {
+    if (!data?.aiData?.industryStats) return [];
+    return Object.entries(data.aiData.industryStats)
+      .map(([name, stats]) => ({ name, value: stats.value, count: stats.count }))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  const activityChartData = useMemo(() => {
+    if (!data?.aiData?.activityTypeCount) return [];
+    return Object.entries(data.aiData.activityTypeCount)
+      .map(([name, count]) => ({ name, value: count }))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  /* ── Download CSV ── */
+  const downloadCSV = () => {
+    if (!data) return;
+    const rows = [["Stage", "Deals", "Value (THB)"]];
+    Object.entries(data.stageValue).forEach(([stage, value]) => {
+      rows.push([STAGE_LABELS[stage] || stage, String(data.stageCount[stage] || 0), String(value)]);
     });
-    return Array.from(stages, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [deals]);
-
-  const stats = useMemo(() => {
-    const totalDeals = deals.length;
-    const closedWon = deals.filter(d => d.probability === 1).length;
-    const rate = totalDeals > 0 ? ((closedWon / totalDeals) * 100).toFixed(1) : "0";
-    const lost = deals.filter(d => d.probability === 0).length;
-    const avg = totalDeals > 0 ? (deals.reduce((s, d) => s + d.value, 0) / totalDeals).toFixed(0) : "0";
-    return { totalDeals, closedWon, rate, lost, avg };
-  }, [deals]);
-
-  const insights = useMemo(() => {
-    const ins: any[] = [];
-    if (deals.length > 0) {
-      const topStage = stageData[0];
-      const coverage = deals.length / Math.max(1, customers.length);
-      const closedWon = stats.closedWon;
-      ins.push({
-        category: t.health,
-        icon: "check",
-        summary: `${deals.length} deals in ${topStage?.name || "Unknown"}`,
-        detail: `Coverage: ${coverage.toFixed(2)}x, Pipeline: THB ${(stageData.reduce((s, d) => s + d.value, 0) / 1e6).toFixed(1)}M`,
-      });
-      const avgAge = (Math.random() * 30 + 10).toFixed(0);
-      ins.push({
-        category: t.velocity,
-        icon: "lightning",
-        summary: `Average deal age ${avgAge} days`,
-        detail: `Conversion: ${stats.rate}%, Recent: ${closedWon} closed`,
-      });
-      const topSeller = deals.reduce((a: Record<string, number>, d) => (a[d.owner_name || "Unknown"] = (a[d.owner_name || "Unknown"] || 0) + 1, a), {});
-      const top = Object.entries(topSeller).sort((a, b) => b[1] - a[1])[0];
-      ins.push({
-        category: t.performance,
-        icon: "users",
-        summary: `${top?.[0]}: ${top?.[1]} deals`,
-        detail: "Leading performer in active pipeline",
-      });
-      const topIndus = deals.reduce((a: Record<string, number>, d) => (a[d.industry || "Other"] = (a[d.industry || "Other"] || 0) + d.value, a), {});
-      const topInd = Object.entries(topIndus).sort((a, b) => b[1] - a[1])[0];
-      ins.push({
-        category: t.topIndustries,
-        icon: "building",
-        summary: `${topInd?.[0]}: THB ${((topInd?.[1] || 0) / 1e6).toFixed(1)}M`,
-        detail: "Largest industry segment",
-      });
-      const activityTypes = activities.reduce((a: Record<string, number>, x) => (a[x.type] = (a[x.type] || 0) + 1, a), {});
-      const meetings = (activityTypes["meeting"] || 0);
-      const proposals = (activityTypes["proposal"] || 0);
-      ins.push({
-        category: "Activity",
-        icon: "activity",
-        summary: `${meetings} meetings, ${proposals} proposals`,
-        detail: `Ratio: ${meetings > 0 ? (proposals / meetings).toFixed(2) : 0} per meeting`,
-      });
-      ins.push({
-        category: "Recommendations",
-        icon: "lightbulb",
-        summary: `Focus on ${topStage?.name || "deals"}`,
-        detail: "Increase engagement & follow-ups to move deals forward",
-      });
+    rows.push([]);
+    rows.push(["Top Customer", "Value (THB)", "Deals"]);
+    data.topCustomers.forEach(c => rows.push([c.name, String(c.total), String(c.count)]));
+    rows.push([]);
+    rows.push(["Month", "Revenue (THB)"]);
+    data.monthlyData.forEach(d => rows.push([d.month, String(d.value)]));
+    if (data.aiData?.ownerStats) {
+      rows.push([]);
+      rows.push(["Sales Person", "Deals", "Won", "Total Value", "Activities"]);
+      data.aiData.ownerStats.forEach(o => rows.push([o.name, String(o.deals), String(o.won), String(o.value), String(o.activities)]));
     }
-    return ins;
-  }, [deals, customers, activities, stats, stageData, lang]);
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "sales_report.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  React.useEffect(() => { fetchAll(); }, [fetchAll, refreshKey]);
+  const s = data?.summary;
+  const ai = data?.aiData;
+
+  /* ── Custom Tooltip for Pie ── */
+  const PieTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.[0]) return null;
+    const d = payload[0].payload;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-xs">
+        <p className="font-bold text-gray-800">{d.name}</p>
+        <p className="text-gray-600">THB {(d.value / 1e6).toFixed(2)}M</p>
+        {d.count !== undefined && <p className="text-gray-500">{d.count} deals</p>}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003087]"></div>
+        <span className="ml-3 text-gray-500">{t.loading}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex rounded-xl overflow-hidden border border-[#E5E7EB]">
-        <button onClick={() => setTab("summary")} className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "summary" ? "text-white" : "text-slate-600"}`} style={tab === "summary" ? { background: "#2563EB" } : { background: "#F5F5F5" }}>
-          <BarChart3 size={14} /> {t.sales}
-        </button>
-        <button onClick={() => setTab("revenue")} className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "revenue" ? "text-white" : "text-slate-600"}`} style={tab === "revenue" ? { background: "#2563EB" } : { background: "#F5F5F5" }}>
-          <TrendingUp size={14} /> {t.revenue}
-        </button>
-        <button onClick={() => setTab("analysis")} className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === "analysis" ? "text-white" : "text-slate-600"}`} style={tab === "analysis" ? { background: "#2563EB" } : { background: "#F5F5F5" }}>
-          <Activity size={14} /> {t.insights}
+      {/* Tab bar + Download */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex rounded-xl overflow-hidden border border-[#E2E8F0]">
+          {(["summary", "revenue", "analysis"] as const).map(tb => (
+            <button key={tb} onClick={() => setTab(tb)}
+              className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === tb ? "text-white" : "text-slate-600 hover:bg-slate-50"}`}
+              style={tab === tb ? { background: "#003087" } : {}}>
+              {tb === "summary" && <BarChart3 size={14} />}
+              {tb === "revenue" && <TrendingUp size={14} />}
+              {tb === "analysis" && <Zap size={14} />}
+              {tb === "summary" ? t.sales : tb === "revenue" ? t.revenue : t.insights}
+            </button>
+          ))}
+        </div>
+        <button onClick={downloadCSV} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-[#E2E8F0] text-gray-600 hover:bg-gray-50">
+          <Download size={14} /> {t.downloadCsv}
         </button>
       </div>
 
+      {/* ══════ TAB: SUMMARY ══════ */}
       {tab === "summary" && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
-            <KPI icon={Users} label={t.health} value={String(stats.totalDeals)} color="#2563EB" />
-            <KPI icon={CheckCircle2} label={t.closed} value={String(stats.closedWon)} color="#22C55E" />
-            <KPI icon={Activity} label={t.conversion} value={`${stats.rate}%`} color="#00AEEF" />
-            <KPI icon={XCircle} label={t.lost} value={String(stats.lost)} color="#EF4444" />
-            <KPI icon={TrendingUp} label={t.avgDeal} value={`THB ${(Number(stats.avg) / 1e6).toFixed(1)}M`} color="#F7941D" />
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <KPI icon={Users} label={t.totalDeals} value={String(s?.totalDeals || 0)} color="#003087" />
+            <KPI icon={CheckCircle2} label={t.closedWon} value={String(s?.wonCount || 0)} color="#22C55E" />
+            <KPI icon={Activity} label={t.conversion} value={`${s?.conversionRate || 0}%`} color="#00AEEF" />
+            <KPI icon={XCircle} label={t.lost} value={String(s?.lostCount || 0)} color="#EF4444" />
+            <KPI icon={TrendingUp} label={t.avgDeal} value={`THB ${((s?.totalDeals || 0) > 0 ? ((s?.wonValue || 0) + (s?.totalPipeline || 0)) / (s?.totalDeals || 1) / 1e6 : 0).toFixed(1)}M`} color="#F7941D" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-slate-900 mb-3">{t.revenue}</h3>
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Revenue Bar Chart */}
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-gray-800 mb-3">{t.revenue}</h3>
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(v: any) => `THB ${(v / 1e6).toFixed(1)}M`} />
-                  <Bar dataKey="value" fill="#2563EB" />
+                <BarChart data={revenueChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
+                  <Tooltip formatter={(v: any) => [`THB ${(v / 1e6).toFixed(2)}M`, t.revenue]} />
+                  <Bar dataKey="value" fill="#003087" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-slate-900 mb-3">{t.sales}</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <RechartspiePie data={stageData} cx="50%" cy="50%" outerRadius={80} dataKey="value">
-                  {stageData.map((_, i) => <Cell key={i} fill={["#2563EB", "#22C55E", "#F7941D", "#EF4444"][i % 4]} />)}
-                </RechartspiePie>
-              </ResponsiveContainer>
+            {/* Stage Pie Chart with labels */}
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-gray-800 mb-3">{t.stageBreakdown}</h3>
+              {stageChartData.length > 0 ? (
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RechartsPie>
+                      <Pie data={stageChartData} cx="50%" cy="50%" outerRadius={90} innerRadius={40} dataKey="value" paddingAngle={2}>
+                        {stageChartData.map((d, i) => <Cell key={i} fill={d.color || PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip content={<PieTooltip />} />
+                    </RechartsPie>
+                  </ResponsiveContainer>
+                  <div className="flex flex-col gap-1.5 min-w-[140px]">
+                    {stageChartData.map((d, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: d.color }} />
+                        <span className="text-gray-700 truncate">{d.name}</span>
+                        <span className="ml-auto font-medium text-gray-800">{d.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[250px] text-gray-400 text-sm">{t.noData}</div>
+              )}
             </div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F5F5F5]">
-              <h3 className="text-sm font-bold text-slate-900">Top Customers</h3>
+          {/* Top Customers */}
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-[#E2E8F0] bg-slate-50/50">
+              <h3 className="text-sm font-bold text-gray-800">{t.topCustomers}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-[#F5F5F5] text-slate-600 text-xs">
+                <thead className="bg-slate-50/50 text-gray-500 text-xs">
                   <tr>
-                    <th className="text-left px-4 py-3">Customer</th>
-                    <th className="text-right px-4 py-3">Value (THB)</th>
-                    <th className="text-right px-4 py-3">Deals</th>
+                    <th className="text-left px-4 py-3">{t.customer}</th>
+                    <th className="text-right px-4 py-3">{t.value}</th>
+                    <th className="text-right px-4 py-3">{t.deals}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {!loading && !customers.length && (
-                    <tr><td colSpan={3} className="text-center py-8 text-slate-600">No data</td></tr>
-                  )}
-                  {customers.slice(0, 10).map(c => (
-                    <tr key={c.id} className="border-t border-[#E5E7EB]">
-                      <td className="px-4 py-3 text-slate-900">{c.name}</td>
-                      <td className="px-4 py-3 text-right text-slate-700">{(c.total_value / 1e6).toFixed(1)}M</td>
-                      <td className="px-4 py-3 text-right text-slate-600">{c.deal_count}</td>
+                  {(!data?.topCustomers || data.topCustomers.length === 0) ? (
+                    <tr><td colSpan={3} className="text-center py-8 text-gray-400">{t.noData}</td></tr>
+                  ) : data.topCustomers.map((c, i) => (
+                    <tr key={i} className="border-t border-[#E2E8F0] hover:bg-slate-50/30">
+                      <td className="px-4 py-3 text-gray-800 font-medium">{c.name}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{(c.total / 1e6).toFixed(2)}M</td>
+                      <td className="px-4 py-3 text-right text-gray-500">{c.count}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -243,62 +321,231 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
         </>
       )}
 
+      {/* ══════ TAB: REVENUE ══════ */}
       {tab === "revenue" && (
-        <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 className="text-sm font-bold text-slate-900">{t.revenue}</h3>
-            <div className="flex gap-2">
-              <button onClick={() => setView("month")} className={`px-3 py-1.5 text-xs font-medium rounded ${view === "month" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>{t.month}</button>
-              <button onClick={() => setView("year")} className={`px-3 py-1.5 text-xs font-medium rounded ${view === "year" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>{t.year}</button>
+        <div className="space-y-4">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h3 className="text-sm font-bold text-gray-800">{t.revenue}</h3>
+              <div className="flex gap-2">
+                <button onClick={() => setView("month")} className={`px-3 py-1.5 text-xs font-medium rounded-lg ${view === "month" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600"}`}>{t.month}</button>
+                <button onClick={() => setView("year")} className={`px-3 py-1.5 text-xs font-medium rounded-lg ${view === "year" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600"}`}>{t.year}</button>
+              </div>
             </div>
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={revenueChartData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#003087" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#003087" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
+                <Tooltip formatter={(v: any) => [`THB ${(v / 1e6).toFixed(2)}M`, t.revenue]} />
+                <Area type="monotone" dataKey="value" stroke="#003087" fill="url(#colorRevenue)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(v: any) => `THB ${(v / 1e6).toFixed(1)}M`} />
-              <Area type="monotone" dataKey="value" fill="#2563EB" stroke="#2563EB" />
-            </AreaChart>
-          </ResponsiveContainer>
+
+          {/* Pipeline Forecast */}
+          {data?.pipelineByMonth && Object.keys(data.pipelineByMonth).length > 0 && (
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-gray-800 mb-3">{t.forecast}</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={Object.entries(data.pipelineByMonth).sort().map(([month, d]) => ({ name: month, total: d.total, weighted: d.weighted }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
+                  <Tooltip formatter={(v: any) => `THB ${(v / 1e6).toFixed(2)}M`} />
+                  <Legend />
+                  <Bar dataKey="total" name="Total" fill="#00AEEF" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="weighted" name="Weighted" fill="#003087" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       )}
 
+      {/* ══════ TAB: AI ANALYSIS ══════ */}
       {tab === "analysis" && (
-        <div className="space-y-3">
-          {!loading && !insights.length && (
-            <div className="text-center py-16 bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl text-slate-600">No insights yet</div>
-          )}
-          {insights.map((ins, i) => (
-            <div key={i} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "#F5F5F5" }}>
-                  {ins.icon === "check" && <CheckCircle2 size={18} className="text-green-600" />}
-                  {ins.icon === "lightning" && <Zap size={18} className="text-yellow-600" />}
-                  {ins.icon === "users" && <Users size={18} className="text-blue-600" />}
-                  {ins.icon === "building" && <Building2 size={18} className="text-orange-600" />}
-                  {ins.icon === "activity" && <Activity size={18} className="text-slate-600" />}
-                  {ins.icon === "lightbulb" && <AlertCircle size={18} className="text-purple-600" />}
+        <div className="space-y-4">
+          {!ai || !data ? (
+            <div className="text-center py-16 bg-white border border-[#E2E8F0] rounded-2xl text-gray-400">{t.noData}</div>
+          ) : (
+            <>
+              {/* AI Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <KPI icon={Target} label={t.weighted} value={`THB ${(ai.weightedPipeline / 1e6).toFixed(1)}M`} color="#003087" />
+                <KPI icon={Clock} label={t.avgAge} value={`${ai.avgDealAge} days`} color="#F7941D" />
+                <KPI icon={AlertCircle} label={t.overdue} value={String(ai.overdueDeals)} color="#EF4444" />
+                <KPI icon={Activity} label={t.activities} value={String(ai.totalActivities)} color="#00AEEF" />
+              </div>
+
+              {/* Sales Person Performance Table */}
+              {ai.ownerStats && ai.ownerStats.length > 0 && (
+                <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden">
+                  <div className="px-5 py-3 border-b border-[#E2E8F0] bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                      <Users size={14} className="text-[#003087]" /> {t.ownerPerformance}
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50/50 text-gray-500 text-xs">
+                        <tr>
+                          <th className="text-left px-4 py-3">{t.name}</th>
+                          <th className="text-right px-4 py-3">{t.dealCount}</th>
+                          <th className="text-right px-4 py-3">{t.wonDeals}</th>
+                          <th className="text-right px-4 py-3">{t.totalValue}</th>
+                          <th className="text-right px-4 py-3">{t.activities}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ai.ownerStats.sort((a, b) => b.value - a.value).map((o, i) => (
+                          <tr key={i} className="border-t border-[#E2E8F0] hover:bg-slate-50/30">
+                            <td className="px-4 py-3 text-gray-800 font-medium">{o.name}</td>
+                            <td className="px-4 py-3 text-right text-gray-700">{o.deals}</td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">{o.won}</span>
+                            </td>
+                            <td className="px-4 py-3 text-right text-gray-700">{(o.value / 1e6).toFixed(2)}M</td>
+                            <td className="px-4 py-3 text-right text-gray-500">{o.activities}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-slate-900">{ins.category}</h4>
-                  <p className="text-sm text-slate-700 mt-1">{ins.summary}</p>
-                  <p className="text-xs text-slate-500 mt-1">{ins.detail}</p>
+              )}
+
+              {/* Charts: Activity Types + Industry Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {activityChartData.length > 0 && (
+                  <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <Zap size={14} className="text-[#F7941D]" /> {t.activityTypes}
+                    </h3>
+                    <div className="flex flex-col md:flex-row items-center gap-4">
+                      <ResponsiveContainer width="100%" height={220}>
+                        <RechartsPie>
+                          <Pie data={activityChartData} cx="50%" cy="50%" outerRadius={80} innerRadius={35} dataKey="value" paddingAngle={2}>
+                            {activityChartData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                      <div className="flex flex-col gap-1 min-w-[120px]">
+                        {activityChartData.slice(0, 8).map((d, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                            <span className="text-gray-600 truncate">{d.name}</span>
+                            <span className="ml-auto font-medium">{d.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {industryChartData.length > 0 && (
+                  <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <Building2 size={14} className="text-[#003087]" /> {t.industryDist}
+                    </h3>
+                    <div className="flex flex-col md:flex-row items-center gap-4">
+                      <ResponsiveContainer width="100%" height={220}>
+                        <RechartsPie>
+                          <Pie data={industryChartData} cx="50%" cy="50%" outerRadius={80} innerRadius={35} dataKey="value" paddingAngle={2}>
+                            {industryChartData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip content={<PieTooltip />} />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                      <div className="flex flex-col gap-1 min-w-[120px]">
+                        {industryChartData.slice(0, 6).map((d, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                            <span className="text-gray-600 truncate">{d.name}</span>
+                            <span className="ml-auto font-medium">{(d.value / 1e6).toFixed(1)}M</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* AI Insight Cards */}
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <Lightbulb size={14} className="text-[#F7941D]" /> AI Recommendations
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {ai.overdueDeals > 0 && (
+                    <InsightCard icon={<AlertCircle size={16} className="text-red-500" />} title="Overdue Deals"
+                      text={`${ai.overdueDeals} deals past expected close date. Review and update timelines or close them.`} severity="high" />
+                  )}
+                  {ai.activeDealsCount > 0 && Number(s?.conversionRate || 0) < 30 && (
+                    <InsightCard icon={<Target size={16} className="text-orange-500" />} title="Low Conversion"
+                      text={`Conversion rate ${s?.conversionRate}% is below target. Focus on qualification and proposal quality.`} severity="medium" />
+                  )}
+                  {ai.ownerStats.some(o => o.deals > 0 && o.won === 0) && (
+                    <InsightCard icon={<Users size={16} className="text-blue-500" />} title="Coaching Needed"
+                      text={`Some sales reps have deals but no wins yet. Consider pairing them with top performers.`} severity="medium" />
+                  )}
+                  {ai.weightedPipeline > 0 && (
+                    <InsightCard icon={<DollarSign size={16} className="text-green-500" />} title="Pipeline Health"
+                      text={`Weighted pipeline: THB ${(ai.weightedPipeline / 1e6).toFixed(1)}M across ${ai.activeDealsCount} active deals. Average age: ${ai.avgDealAge} days.`} severity="info" />
+                  )}
+                  {(() => {
+                    const topType = activityChartData[0];
+                    return topType ? (
+                      <InsightCard icon={<Zap size={16} className="text-yellow-500" />} title="Top Activity"
+                        text={`Most common: "${topType.name}" (${topType.value} times). Diversify engagement strategies.`} severity="info" />
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const topInd = industryChartData[0];
+                    return topInd ? (
+                      <InsightCard icon={<Building2 size={16} className="text-purple-500" />} title="Top Industry"
+                        text={`"${topInd.name}" leads with THB ${(topInd.value / 1e6).toFixed(1)}M (${topInd.count} deals). Consider deepening focus.`} severity="info" />
+                    ) : null;
+                  })()}
                 </div>
               </div>
-            </div>
-          ))}
+            </>
+          )}
         </div>
       )}
     </div>
   );
 }
 
+/* ── Sub-components ── */
 function KPI({ icon: Icon, label, value, color }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string; color: string }) {
   return (
-    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3 min-w-0 overflow-hidden">
-      <div className="flex items-center gap-1.5 text-[11px] text-slate-600 mb-1 truncate"><span className="flex-shrink-0"><Icon size={12} /></span> <span className="truncate">{label}</span></div>
+    <div className="bg-white border border-[#E2E8F0] rounded-xl p-3 min-w-0 overflow-hidden">
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-500 mb-1 truncate">
+        <span className="flex-shrink-0"><Icon size={12} /></span>
+        <span className="truncate">{label}</span>
+      </div>
       <div className="text-sm md:text-base font-bold truncate" style={{ color }}>{value}</div>
+    </div>
+  );
+}
+
+function InsightCard({ icon, title, text, severity }: { icon: React.ReactNode; title: string; text: string; severity: "high" | "medium" | "info" }) {
+  const border = severity === "high" ? "border-l-red-400" : severity === "medium" ? "border-l-orange-400" : "border-l-blue-400";
+  return (
+    <div className={`border border-[#E2E8F0] ${border} border-l-4 rounded-lg p-3`}>
+      <div className="flex items-center gap-2 mb-1">
+        {icon}
+        <span className="text-sm font-semibold text-gray-800">{title}</span>
+      </div>
+      <p className="text-xs text-gray-600 leading-relaxed">{text}</p>
     </div>
   );
 }
