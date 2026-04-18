@@ -234,7 +234,7 @@ function RevenueChart({
             <YAxis stroke="#9CA3AF" style={{ fontSize: '11px' }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}K`} />
             <Tooltip
               contentStyle={tooltipConfig}
-              formatter={(value: any, name: string) => [
+              formatter={(value: any, name: any) => [
                 `฿${(value / 1000).toFixed(0)}K`,
                 name === 'actual' ? L('actual') : L('forecast'),
               ]}
