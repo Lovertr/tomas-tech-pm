@@ -592,7 +592,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}K` : String(v)} />
                   <Tooltip
-                    formatter={(v: any, name: string) => [v !== undefined ? `THB ${fmtM(v)}` : '-', name]}
+                    formatter={(v: number | undefined, name: string | number) => [v !== undefined ? `THB ${fmtM(v)}` : '-', String(name)]}
                     labelStyle={{ fontWeight: 'bold', color: '#1E293B' }}
                     contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12 }}
                   />
@@ -907,6 +907,10 @@ function InsightCard({ icon, title, text, severity }: { icon: React.ReactNode; t
         <span className="text-sm font-semibold text-gray-800">{title}</span>
       </div>
       <p className="text-xs text-gray-600 leading-relaxed">{text}</p>
+    </div>
+  );
+}
+d">{text}</p>
     </div>
   );
 }
