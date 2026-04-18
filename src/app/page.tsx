@@ -610,7 +610,8 @@ export default function App() {
   const QuotationsPage = () => (
     <div className="space-y-6">
       <QuotationsPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        userRole={currentUser?.role || "member"} />
     </div>
   );
   const NewInvoicesPage = () => (
