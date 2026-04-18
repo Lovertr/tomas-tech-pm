@@ -910,7 +910,4 @@ function InsightCard({ icon, title, text, severity }: { icon: React.ReactNode; t
     </div>
   );
 }
-d">{text}</p>
-    </div>
-  );
-}
+
