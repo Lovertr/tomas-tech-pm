@@ -433,7 +433,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
         </button>
       </div>
 
-      {/* ══════ TAB: SUMMARY (การขาย) ══════ */}
+      {/* TAB: SUMMARY */}
       {tab === "summary" && (
         <>
           {/* KPI Cards */}
@@ -445,9 +445,9 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
             <KPI icon={TrendingUp} label={t.pipeline} value={`THB ${fmtM(s?.totalPipeline || 0)}`} color="#F7941D" />
           </div>
 
-          {/* Charts Row: New Deals Monthly + Stage Breakdown */}
+          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* New Deals Monthly (replaces revenue chart in summary) */}
+            {/* New Deals Monthly */}
             <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h3 className="text-sm font-bold text-gray-800">{t.newDealsMonthly}</h3>
@@ -530,10 +530,9 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
         </>
       )}
 
-      {/* ══════ TAB: REVENUE (รายได้) ══════ */}
+      {/* TAB: REVENUE */}
       {tab === "revenue" && (
         <div className="space-y-4">
-          {/* KPI: Revenue breakdown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <KPI icon={DollarSign} label={t.actualRevenue} value={`THB ${fmtM(fc?.actualRevenue || 0)}`} color="#059669" />
             <KPI icon={FileText} label={t.confirmedPO} value={`THB ${fmtM(fc?.currentPO || 0)}`} color="#22C55E" />
@@ -541,7 +540,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
             <KPI icon={Target} label={t.proposalValue} value={`THB ${fmtM(fc?.currentProposal || 0)}`} color="#003087" />
           </div>
 
-          {/* Revenue by Category (Stacked Bar) */}
+          {/* Revenue by Category */}
           <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h3 className="text-sm font-bold text-gray-800">{t.revenueByCategory}</h3>
@@ -592,38 +591,16 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}K` : String(v)} />
                   <Tooltip
-                    formatter={(v: number | undefined, name: string | number) => [v !== undefined ? `THB ${fmtM(v)}` : '-', String(name)]}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    formatter={((v: any, name: any) => [v != null ? `THB ${fmtM(v)}` : '-', String(name)]) as any}
                     labelStyle={{ fontWeight: 'bold', color: '#1E293B' }}
                     contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12 }}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Area
-                    type="monotone"
-                    dataKey="actualLine"
-                    name={t.past}
-                    stroke="#003087"
-                    strokeWidth={2.5}
-                    fill="url(#gradActualLine)"
-                    dot={{ r: 4, fill: '#003087', stroke: '#fff', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#003087' }}
-                    connectNulls={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="forecastLine"
-                    name={t.future}
-                    stroke="#F7941D"
-                    strokeWidth={2.5}
-                    strokeDasharray="8 4"
-                    fill="url(#gradForecastLine)"
-                    dot={{ r: 4, fill: '#F7941D', stroke: '#fff', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#F7941D' }}
-                    connectNulls={false}
-                  />
+                  <Area type="monotone" dataKey="actualLine" name={t.past} stroke="#003087" strokeWidth={2.5} fill="url(#gradActualLine)" dot={{ r: 4, fill: '#003087', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#003087' }} connectNulls={false} />
+                  <Area type="monotone" dataKey="forecastLine" name={t.future} stroke="#F7941D" strokeWidth={2.5} strokeDasharray="8 4" fill="url(#gradForecastLine)" dot={{ r: 4, fill: '#F7941D', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#F7941D' }} connectNulls={false} />
                 </AreaChart>
               </ResponsiveContainer>
-
-              {/* Forecast summary row */}
               {fc && (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4 pt-4 border-t border-[#E2E8F0]">
                   <ForecastRow label={t.forecastActual} value={fc.actualRevenue} color="#003087" icon={<CheckCircle2 size={14} />} />
@@ -638,22 +615,19 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
         </div>
       )}
 
-      {/* ══════ TAB: AI ANALYSIS ══════ */}
+      {/* TAB: AI ANALYSIS */}
       {tab === "analysis" && (
         <div className="space-y-4">
           {!ai || !data ? (
             <div className="text-center py-16 bg-white border border-[#E2E8F0] rounded-2xl text-gray-400">{t.noData}</div>
           ) : (
             <>
-              {/* AI Summary Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <KPI icon={Target} label={t.weighted} value={`THB ${fmtM(ai.weightedPipeline)}`} color="#003087" />
                 <KPI icon={Clock} label={t.avgAge} value={`${ai.avgDealAge} ${t.days}`} color="#F7941D" />
                 <KPI icon={AlertCircle} label={t.overdue} value={String(ai.overdueDeals)} color="#EF4444" />
                 <KPI icon={Activity} label={t.activities} value={String(ai.totalActivities)} color="#00AEEF" />
               </div>
-
-              {/* Sales Person Performance Table */}
               {ai.ownerStats && ai.ownerStats.length > 0 && (
                 <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden">
                   <div className="px-5 py-3 border-b border-[#E2E8F0] bg-slate-50/50">
@@ -689,8 +663,6 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   </div>
                 </div>
               )}
-
-              {/* Charts: Activity Types + Industry Distribution */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {activityChartData.length > 0 && (
                   <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
@@ -718,7 +690,6 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                     </div>
                   </div>
                 )}
-
                 {industryChartData.length > 0 && (
                   <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
                     <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
@@ -746,123 +717,27 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   </div>
                 )}
               </div>
-
-              {/* ── AI Insights & Recommendations ── */}
               <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
                 <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <Lightbulb size={14} className="text-[#F7941D]" /> {t.aiRecommendations}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Overdue deals */}
                   {ai.overdueDeals > 0 && (
-                    <InsightCard icon={<AlertCircle size={16} className="text-red-500" />} title={t.overdueTitle}
-                      text={t.overdueText.replace("{count}", String(ai.overdueDeals))} severity="high" />
+                    <InsightCard icon={<AlertCircle size={16} className="text-red-500" />} title={t.overdueTitle} text={t.overdueText.replace("{count}", String(ai.overdueDeals))} severity="high" />
                   )}
-
-                  {/* Revenue growth strategy */}
                   {fc && (
-                    <InsightCard icon={<TrendingUp size={16} className="text-green-600" />} title={t.revenueGrowth}
-                      text={t.revenueGrowthText
-                        .replace("{actual}", fmtM(fc.actualRevenue))
-                        .replace("{po}", fmtM(fc.currentPO))
-                        .replace("{quot}", fmtM(fc.currentQuotation))
-                        .replace("{quotRate}", String(fc.quotationToWonRate))
-                      } severity="info" />
+                    <InsightCard icon={<TrendingUp size={16} className="text-green-600" />} title={t.revenueGrowth} text={t.revenueGrowthText.replace("{actual}", fmtM(fc.actualRevenue)).replace("{po}", fmtM(fc.currentPO)).replace("{quot}", fmtM(fc.currentQuotation)).replace("{quotRate}", String(fc.quotationToWonRate))} severity="info" />
                   )}
-
-                  {/* Marketing tips */}
-                  {(() => {
-                    const topInd = industryChartData[0];
-                    return topInd ? (
-                      <InsightCard icon={<Megaphone size={16} className="text-purple-500" />} title={t.marketingTips}
-                        text={t.marketingTipsText.replace("{topInd}", topInd.name)} severity="info" />
-                    ) : null;
-                  })()}
-
-                  {/* Strengths */}
-                  {ai.avgWonDealSize > 0 ? (() => {
-                    const topWonInd = Object.entries(ai.wonByIndustry || {}).sort((a, b) => b[1].value - a[1].value)[0];
-                    return (
-                      <InsightCard icon={<Star size={16} className="text-green-500" />} title={t.strengths}
-                        text={t.strengthsText
-                          .replace("{avgWon}", fmtM(ai.avgWonDealSize))
-                          .replace("{avgLost}", fmtM(ai.avgLostDealSize))
-                          .replace("{topWonInd}", topWonInd?.[0] || "-")
-                        } severity="info" />
-                    );
-                  })() : (
-                    <InsightCard icon={<Star size={16} className="text-gray-400" />} title={t.strengths}
-                      text={t.noStrengthData} severity="info" />
-                  )}
-
-                  {/* Weaknesses */}
-                  {ai.conversionRates && (
-                    <InsightCard icon={<Shield size={16} className="text-orange-500" />} title={t.weaknesses}
-                      text={t.weaknessesText
-                        .replace("{propRate}", String(ai.conversionRates.proposalToWon))
-                        .replace("{age}", String(ai.avgDealAge))
-                      } severity="medium" />
-                  )}
-
-                  {/* Low conversion */}
-                  {ai.activeDealsCount > 0 && Number(s?.conversionRate || 0) < 30 && (
-                    <InsightCard icon={<Target size={16} className="text-orange-500" />} title={t.lowConversion}
-                      text={t.lowConversionText.replace("{rate}", s?.conversionRate || "0")} severity="medium" />
-                  )}
-
-                  {/* Coaching needed */}
-                  {ai.ownerStats.some(o => o.deals > 0 && o.won === 0) && (
-                    <InsightCard icon={<Users size={16} className="text-blue-500" />} title={t.coachingNeeded}
-                      text={t.coachingText} severity="medium" />
-                  )}
-
-                  {/* Best performer */}
-                  {(() => {
-                    const best = ai.ownerStats.filter(o => o.won > 0).sort((a, b) => b.wonValue - a.wonValue)[0];
-                    return best ? (
-                      <InsightCard icon={<Award size={16} className="text-yellow-500" />} title={t.bestPerformer}
-                        text={t.bestPerformerText
-                          .replace(/\{name\}/g, best.name)
-                          .replace("{value}", fmtM(best.wonValue))
-                          .replace("{won}", String(best.won))
-                        } severity="info" />
-                    ) : null;
-                  })()}
-
-                  {/* Action items */}
-                  {fc && (
-                    <InsightCard icon={<Zap size={16} className="text-[#003087]" />} title={t.actionItems}
-                      text={t.actionItemsText
-                        .replace("{overdue}", String(ai.overdueDeals))
-                        .replace("{po}", fmtM(fc.currentPO))
-                        .replace("{quot}", fmtM(fc.currentQuotation))
-                        .replace("{prop}", fmtM(fc.currentProposal))
-                      } severity="high" />
-                  )}
-
-                  {/* Pipeline health */}
-                  {ai.weightedPipeline > 0 && (
-                    <InsightCard icon={<DollarSign size={16} className="text-green-500" />} title={t.pipelineHealth}
-                      text={t.pipelineHealthText.replace("{value}", fmtM(ai.weightedPipeline)).replace("{count}", String(ai.activeDealsCount)).replace("{age}", String(ai.avgDealAge))} severity="info" />
-                  )}
-
-                  {/* Top activity */}
-                  {(() => {
-                    const topType = activityChartData[0];
-                    return topType ? (
-                      <InsightCard icon={<Zap size={16} className="text-yellow-500" />} title={t.topActivity}
-                        text={t.topActivityText.replace("{name}", topType.name).replace("{count}", String(topType.value))} severity="info" />
-                    ) : null;
-                  })()}
-
-                  {/* Top industry */}
-                  {(() => {
-                    const topInd = industryChartData[0];
-                    return topInd ? (
-                      <InsightCard icon={<Building2 size={16} className="text-purple-500" />} title={t.topIndustry}
-                        text={t.topIndustryText.replace("{name}", topInd.name).replace("{value}", fmtM(topInd.value)).replace("{count}", String(topInd.count))} severity="info" />
-                    ) : null;
-                  })()}
+                  {(() => { const topInd = industryChartData[0]; return topInd ? (<InsightCard icon={<Megaphone size={16} className="text-purple-500" />} title={t.marketingTips} text={t.marketingTipsText.replace("{topInd}", topInd.name)} severity="info" />) : null; })()}
+                  {ai.avgWonDealSize > 0 ? (() => { const topWonInd = Object.entries(ai.wonByIndustry || {}).sort((a, b) => b[1].value - a[1].value)[0]; return (<InsightCard icon={<Star size={16} className="text-green-500" />} title={t.strengths} text={t.strengthsText.replace("{avgWon}", fmtM(ai.avgWonDealSize)).replace("{avgLost}", fmtM(ai.avgLostDealSize)).replace("{topWonInd}", topWonInd?.[0] || "-")} severity="info" />); })() : (<InsightCard icon={<Star size={16} className="text-gray-400" />} title={t.strengths} text={t.noStrengthData} severity="info" />)}
+                  {ai.conversionRates && (<InsightCard icon={<Shield size={16} className="text-orange-500" />} title={t.weaknesses} text={t.weaknessesText.replace("{propRate}", String(ai.conversionRates.proposalToWon)).replace("{age}", String(ai.avgDealAge))} severity="medium" />)}
+                  {ai.activeDealsCount > 0 && Number(s?.conversionRate || 0) < 30 && (<InsightCard icon={<Target size={16} className="text-orange-500" />} title={t.lowConversion} text={t.lowConversionText.replace("{rate}", s?.conversionRate || "0")} severity="medium" />)}
+                  {ai.ownerStats.some(o => o.deals > 0 && o.won === 0) && (<InsightCard icon={<Users size={16} className="text-blue-500" />} title={t.coachingNeeded} text={t.coachingText} severity="medium" />)}
+                  {(() => { const best = ai.ownerStats.filter(o => o.won > 0).sort((a, b) => b.wonValue - a.wonValue)[0]; return best ? (<InsightCard icon={<Award size={16} className="text-yellow-500" />} title={t.bestPerformer} text={t.bestPerformerText.replace(/\{name\}/g, best.name).replace("{value}", fmtM(best.wonValue)).replace("{won}", String(best.won))} severity="info" />) : null; })()}
+                  {fc && (<InsightCard icon={<Zap size={16} className="text-[#003087]" />} title={t.actionItems} text={t.actionItemsText.replace("{overdue}", String(ai.overdueDeals)).replace("{po}", fmtM(fc.currentPO)).replace("{quot}", fmtM(fc.currentQuotation)).replace("{prop}", fmtM(fc.currentProposal))} severity="high" />)}
+                  {ai.weightedPipeline > 0 && (<InsightCard icon={<DollarSign size={16} className="text-green-500" />} title={t.pipelineHealth} text={t.pipelineHealthText.replace("{value}", fmtM(ai.weightedPipeline)).replace("{count}", String(ai.activeDealsCount)).replace("{age}", String(ai.avgDealAge))} severity="info" />)}
+                  {(() => { const topType = activityChartData[0]; return topType ? (<InsightCard icon={<Zap size={16} className="text-yellow-500" />} title={t.topActivity} text={t.topActivityText.replace("{name}", topType.name).replace("{count}", String(topType.value))} severity="info" />) : null; })()}
+                  {(() => { const topInd = industryChartData[0]; return topInd ? (<InsightCard icon={<Building2 size={16} className="text-purple-500" />} title={t.topIndustry} text={t.topIndustryText.replace("{name}", topInd.name).replace("{value}", fmtM(topInd.value)).replace("{count}", String(topInd.count))} severity="info" />) : null; })()}
                 </div>
               </div>
             </>
@@ -910,4 +785,3 @@ function InsightCard({ icon, title, text, severity }: { icon: React.ReactNode; t
     </div>
   );
 }
-
