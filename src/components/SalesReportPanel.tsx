@@ -219,7 +219,7 @@ interface SalesData {
   topCustomers: { name: string; total: number; count: number }[];
   recentActivities: any[];
   monthlyByStage: Record<string, { payment: number; po: number; quotation: number; proposal: number }>;
-  forecastTimeline: Record<string, { actual: number; po: number; quotation: number; proposal: number; trend: number }>;
+  forecastTimeline: Record<string, { actual: number; forecast: number; isPast: boolean }>;
   monthlyNewDeals: Record<string, { count: number; value: number }>;
   forecast: {
     actualRevenue: number; currentPO: number; currentQuotation: number; currentProposal: number;
@@ -338,18 +338,27 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
       .sort((a, b) => b.value - a.value);
   }, [data]);
 
-  // Forecast timeline chart data
+  // Forecast timeline chart data — line chart: actual vs forecast
   const forecastChartData = useMemo(() => {
     if (!data?.forecastTimeline) return [];
-    return Object.entries(data.forecastTimeline)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, d]) => {
-        const [y, m] = key.split("-");
-        const mi = parseInt(m, 10) - 1;
-        const label = `${monthNames[mi]} ${y.slice(2)}`;
-        const total = d.actual + d.po + d.quotation + d.proposal + d.trend;
-        return { name: label, ...d, total };
-      });
+    const entries = Object.entries(data.forecastTimeline)
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    // Find last past month index for connecting the lines
+    let lastPastIdx = -1;
+    entries.forEach(([, d], i) => { if (d.isPast) lastPastIdx = i; });
+
+    return entries.map(([key, d], i) => {
+      const [y, m] = key.split("-");
+      const mi = parseInt(m, 10) - 1;
+      const label = `${monthNames[mi]} ${y.slice(2)}`;
+      // actualLine: show value for past months (including months with 0)
+      // forecastLine: show value for future months
+      // Connect at the boundary: last past month also starts forecast line
+      const actualLine = d.isPast ? d.actual : undefined;
+      const forecastLine = !d.isPast ? d.forecast : (i === lastPastIdx ? d.actual : undefined);
+      return { name: label, actualLine, forecastLine, isPast: d.isPast };
+    });
   }, [data, lang]);
 
   /* ── Download CSV ── */
@@ -556,40 +565,68 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
             </ResponsiveContainer>
           </div>
 
-          {/* Revenue Forecast Timeline */}
+          {/* Revenue Forecast Line Chart */}
           {forecastChartData.length > 0 && (
             <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
               <h3 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2">
                 <TrendingUp size={14} className="text-[#003087]" /> {t.forecastTimelineTitle || t.forecastBreakdown}
               </h3>
               <p className="text-[11px] text-gray-400 mb-4">
-                {t.past}: ■ {t.payment} &nbsp;|&nbsp; {t.future}: ■ {t.po} ■ {t.quotation} ■ {t.proposal} — {t.trend}
+                <span className="inline-block w-3 h-[2px] bg-[#003087] mr-1 align-middle" /> {t.past}
+                &nbsp;&nbsp;
+                <span className="inline-block w-3 h-[2px] bg-[#F7941D] mr-1 align-middle" style={{ borderBottom: '2px dashed #F7941D', background: 'none' }} /> {t.future}
               </p>
               <ResponsiveContainer width="100%" height={340}>
-                <ComposedChart data={forecastChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                <AreaChart data={forecastChartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#059669" stopOpacity={0.05} />
+                    <linearGradient id="gradActualLine" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#003087" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#003087" stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="gradForecastLine" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F7941D" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#F7941D" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
-                  <Tooltip formatter={(v: any, name: any) => [`THB ${fmtM(v)}`, name]} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Area type="monotone" dataKey="actual" name={t.forecastActual} fill="url(#gradActual)" stroke="#059669" strokeWidth={2} />
-                  <Bar dataKey="po" name={t.forecastPO} fill="#22C55E" radius={[3, 3, 0, 0]} barSize={16} />
-                  <Bar dataKey="quotation" name={t.forecastQuotation} fill="#F7941D" radius={[3, 3, 0, 0]} barSize={16} />
-                  <Bar dataKey="proposal" name={t.forecastProposal} fill="#003087" radius={[3, 3, 0, 0]} barSize={16} />
-                  <Line type="monotone" dataKey="trend" name={t.trend || "Trend"} stroke="#EF4444" strokeWidth={2} strokeDasharray="6 3" dot={false} />
-                </ComposedChart>
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}K` : String(v)} />
+                  <Tooltip
+                    formatter={(v: any, name: string) => [v !== undefined ? `THB ${fmtM(v)}` : '-', name]}
+                    labelStyle={{ fontWeight: 'bold', color: '#1E293B' }}
+                    contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Area
+                    type="monotone"
+                    dataKey="actualLine"
+                    name={t.past}
+                    stroke="#003087"
+                    strokeWidth={2.5}
+                    fill="url(#gradActualLine)"
+                    dot={{ r: 4, fill: '#003087', stroke: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#003087' }}
+                    connectNulls={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="forecastLine"
+                    name={t.future}
+                    stroke="#F7941D"
+                    strokeWidth={2.5}
+                    strokeDasharray="8 4"
+                    fill="url(#gradForecastLine)"
+                    dot={{ r: 4, fill: '#F7941D', stroke: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#F7941D' }}
+                    connectNulls={false}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
 
               {/* Forecast summary row */}
               {fc && (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4 pt-4 border-t border-[#E2E8F0]">
-                  <ForecastRow label={t.forecastActual} value={fc.actualRevenue} color="#059669" icon={<CheckCircle2 size={14} />} />
+                  <ForecastRow label={t.forecastActual} value={fc.actualRevenue} color="#003087" icon={<CheckCircle2 size={14} />} />
                   <ForecastRow label={t.forecastPO} value={fc.currentPO} color="#22C55E" icon={<FileText size={14} />} />
                   <ForecastRow label={`${t.forecastQuotation} (${fc.quotationToWonRate}%)`} value={fc.estimatedFromQuotation} color="#F7941D" icon={<Briefcase size={14} />} />
                   <ForecastRow label={`${t.forecastProposal} (${fc.proposalToWonRate}%)`} value={fc.estimatedFromProposal} color="#003087" icon={<Target size={14} />} />

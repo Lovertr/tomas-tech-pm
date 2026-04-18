@@ -208,12 +208,11 @@ export default function App() {
 
   const uniqueDepts = useMemo(() => {
     const depts = new Set<string>();
-    data.members.forEach(m => {
-      const pos = data.positions.find(p => p.id === m.position_id);
-      if (pos) depts.add(pos.name_th || pos.name_en || "");
+    mockMembers.forEach(m => {
+      if (m.dept) depts.add(m.dept);
     });
     return Array.from(depts).sort();
-  }, [data.members, data.positions]);
+  }, [mockMembers]);
 
   const filteredMembers = useMemo(() => {
     if (deptFilter === "all") return mockMembers;
