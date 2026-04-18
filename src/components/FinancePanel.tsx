@@ -199,7 +199,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
 function KPI({ icon: Icon, label, value, color, sub }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string; color: string; sub?: string }) {
   return (
     <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3 min-w-0 overflow-hidden">
-      <div className="flex items-center gap-1.5 text-[11px] text-slate-600 mb-1 truncate"><Icon size={12} className="flex-shrink-0" /> <span className="truncate">{label}</span></div>
+      <div className="flex items-center gap-1.5 text-[11px] text-slate-600 mb-1 truncate"><span className="flex-shrink-0"><Icon size={12} /></span> <span className="truncate">{label}</span></div>
       <div className="text-sm md:text-base font-bold truncate" style={{ color }}>{value}</div>
       {sub && <div className="text-xs mt-0.5 truncate" style={{ color }}>{sub}</div>}
     </div>
