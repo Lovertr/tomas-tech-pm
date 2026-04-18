@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/useAuth";
