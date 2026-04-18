@@ -74,6 +74,9 @@ const i18n: Record<string, Record<string, string>> = {
     bestPerformer: "นักขายดีเด่น",
     bestPerformerText: "\"{name}\" นำทีมด้วยมูลค่า THB {value}M ({won} ดีลสำเร็จ) ควรใช้กลยุทธ์ของ {name} เป็นต้นแบบทีม",
     noStrengthData: "ยังไม่มีข้อมูลดีลสำเร็จเพียงพอที่จะวิเคราะห์จุดเด่น-จุดด้อย",
+    trend: "แนวโน้ม (คาดการณ์)",
+    forecastTimelineTitle: "พยากรณ์รายได้ — Timeline",
+    past: "อดีต (จริง)", future: "อนาคต (คาดการณ์)",
   },
   en: {
     sales: "Sales", revenue: "Revenue", insights: "AI Insights",
@@ -126,6 +129,9 @@ const i18n: Record<string, Record<string, string>> = {
     bestPerformer: "Top Performer",
     bestPerformerText: "\"{name}\" leads with THB {value}M ({won} wins). Use their approach as team playbook.",
     noStrengthData: "Not enough closed deal data to analyze strengths and weaknesses.",
+    trend: "Trend (Projected)",
+    forecastTimelineTitle: "Revenue Forecast — Timeline",
+    past: "Past (Actual)", future: "Future (Forecast)",
   },
   jp: {
     sales: "営業", revenue: "売上", insights: "AI分析",
@@ -178,6 +184,9 @@ const i18n: Record<string, Record<string, string>> = {
     bestPerformer: "トップパフォーマー",
     bestPerformerText: "\"{name}\" THB {value}M（{won}件成約）。アプローチを全体に展開。",
     noStrengthData: "分析に十分なデータがありません。",
+    trend: "トレンド（予測）",
+    forecastTimelineTitle: "売上予測 — タイムライン",
+    past: "過去（実績）", future: "将来（予測）",
   },
 };
 
@@ -209,8 +218,8 @@ interface SalesData {
   monthlyData: { month: string; value: number }[];
   topCustomers: { name: string; total: number; count: number }[];
   recentActivities: any[];
-  pipelineByMonth: Record<string, { total: number; weighted: number; count: number }>;
   monthlyByStage: Record<string, { payment: number; po: number; quotation: number; proposal: number }>;
+  forecastTimeline: Record<string, { actual: number; po: number; quotation: number; proposal: number; trend: number }>;
   monthlyNewDeals: Record<string, { count: number; value: number }>;
   forecast: {
     actualRevenue: number; currentPO: number; currentQuotation: number; currentProposal: number;
@@ -328,6 +337,20 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
       .map(([name, count]) => ({ name, value: count }))
       .sort((a, b) => b.value - a.value);
   }, [data]);
+
+  // Forecast timeline chart data
+  const forecastChartData = useMemo(() => {
+    if (!data?.forecastTimeline) return [];
+    return Object.entries(data.forecastTimeline)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, d]) => {
+        const [y, m] = key.split("-");
+        const mi = parseInt(m, 10) - 1;
+        const label = `${monthNames[mi]} ${y.slice(2)}`;
+        const total = d.actual + d.po + d.quotation + d.proposal + d.trend;
+        return { name: label, ...d, total };
+      });
+  }, [data, lang]);
 
   /* ── Download CSV ── */
   const downloadCSV = () => {
@@ -525,75 +548,54 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
                 <Tooltip formatter={(v: any, name: any) => [`THB ${fmtM(v)}`, name]} />
                 <Legend />
-                <Bar dataKey="payment" name={t.payment} stackId="a" fill="#059669" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="po" name={t.po} stackId="a" fill="#22C55E" />
-                <Bar dataKey="quotation" name={t.quotation} stackId="a" fill="#F7941D" />
-                <Bar dataKey="proposal" name={t.proposal} stackId="a" fill="#003087" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="payment" name={t.payment} fill="#059669" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="po" name={t.po} fill="#22C55E" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="quotation" name={t.quotation} fill="#F7941D" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="proposal" name={t.proposal} fill="#003087" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Revenue Forecast Breakdown */}
-          {fc && (
+          {/* Revenue Forecast Timeline */}
+          {forecastChartData.length > 0 && (
             <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <TrendingUp size={14} className="text-[#003087]" /> {t.forecastBreakdown}
+              <h3 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2">
+                <TrendingUp size={14} className="text-[#003087]" /> {t.forecastTimelineTitle || t.forecastBreakdown}
               </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Waterfall-style forecast */}
-                <div>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={[
-                      { name: t.forecastActual, value: fc.actualRevenue, fill: "#059669" },
-                      { name: t.forecastPO, value: fc.currentPO, fill: "#22C55E" },
-                      { name: t.forecastQuotation, value: fc.estimatedFromQuotation, fill: "#F7941D" },
-                      { name: t.forecastProposal, value: fc.estimatedFromProposal, fill: "#003087" },
-                    ]} layout="vertical" margin={{ left: 10, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                      <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(1)}M`} />
-                      <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={120} />
-                      <Tooltip formatter={(v: any) => [`THB ${fmtM(v)}`, ""]} />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                        {[
-                          { fill: "#059669" }, { fill: "#22C55E" }, { fill: "#F7941D" }, { fill: "#003087" },
-                        ].map((c, i) => <Cell key={i} fill={c.fill} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+              <p className="text-[11px] text-gray-400 mb-4">
+                {t.past}: ■ {t.payment} &nbsp;|&nbsp; {t.future}: ■ {t.po} ■ {t.quotation} ■ {t.proposal} — {t.trend}
+              </p>
+              <ResponsiveContainer width="100%" height={340}>
+                <ComposedChart data={forecastChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#059669" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={50} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
+                  <Tooltip formatter={(v: any, name: any) => [`THB ${fmtM(v)}`, name]} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Area type="monotone" dataKey="actual" name={t.forecastActual} fill="url(#gradActual)" stroke="#059669" strokeWidth={2} />
+                  <Bar dataKey="po" name={t.forecastPO} fill="#22C55E" radius={[3, 3, 0, 0]} barSize={16} />
+                  <Bar dataKey="quotation" name={t.forecastQuotation} fill="#F7941D" radius={[3, 3, 0, 0]} barSize={16} />
+                  <Bar dataKey="proposal" name={t.forecastProposal} fill="#003087" radius={[3, 3, 0, 0]} barSize={16} />
+                  <Line type="monotone" dataKey="trend" name={t.trend || "Trend"} stroke="#EF4444" strokeWidth={2} strokeDasharray="6 3" dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
 
-                {/* Forecast summary */}
-                <div className="space-y-3">
+              {/* Forecast summary row */}
+              {fc && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4 pt-4 border-t border-[#E2E8F0]">
                   <ForecastRow label={t.forecastActual} value={fc.actualRevenue} color="#059669" icon={<CheckCircle2 size={14} />} />
                   <ForecastRow label={t.forecastPO} value={fc.currentPO} color="#22C55E" icon={<FileText size={14} />} />
-                  <ForecastRow label={`${t.forecastQuotation} — ${t.convRate} ${fc.quotationToWonRate}%`} value={fc.estimatedFromQuotation} color="#F7941D" icon={<Briefcase size={14} />} />
-                  <ForecastRow label={`${t.forecastProposal} — ${t.convRateProposal} ${fc.proposalToWonRate}%`} value={fc.estimatedFromProposal} color="#003087" icon={<Target size={14} />} />
-                  <div className="border-t-2 border-[#003087] pt-3 mt-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#003087]">{t.forecastTotal}</span>
-                      <span className="text-lg font-bold text-[#003087]">THB {fmtM(fc.totalForecast)}</span>
-                    </div>
-                  </div>
+                  <ForecastRow label={`${t.forecastQuotation} (${fc.quotationToWonRate}%)`} value={fc.estimatedFromQuotation} color="#F7941D" icon={<Briefcase size={14} />} />
+                  <ForecastRow label={`${t.forecastProposal} (${fc.proposalToWonRate}%)`} value={fc.estimatedFromProposal} color="#003087" icon={<Target size={14} />} />
+                  <ForecastRow label={t.forecastTotal} value={fc.totalForecast} color="#003087" icon={<TrendingUp size={14} />} />
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Pipeline by expected close month */}
-          {data?.pipelineByMonth && Object.keys(data.pipelineByMonth).length > 0 && (
-            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-gray-800 mb-3">{t.forecast} — Pipeline</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={Object.entries(data.pipelineByMonth).sort().map(([month, d]) => ({ name: month, total: d.total, weighted: d.weighted }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
-                  <Tooltip formatter={(v: any) => `THB ${fmtM(v)}`} />
-                  <Legend />
-                  <Bar dataKey="total" name={t.total} fill="#00AEEF" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="weighted" name={t.weightedShort} fill="#003087" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              )}
             </div>
           )}
         </div>

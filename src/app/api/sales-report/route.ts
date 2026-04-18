@@ -179,13 +179,82 @@ export async function GET(req: NextRequest) {
     monthlyNewDeals[m].value += Number(d.value || 0);
   });
 
+  // ── Forecast timeline: month-by-month prediction ──
+  // Past months: actual revenue (payment_received)
+  // Current/near future: PO (expected_close_date), Quotation (expected_close_date * conversion), Proposal (expected * conversion)
+  // Far future: extrapolate from growth trend
+  const nowMonth = new Date().toISOString().slice(0, 7);
+  const forecastTimeline: Record<string, { actual: number; po: number; quotation: number; proposal: number; trend: number }> = {};
+
+  // Fill past actual revenue (payment_received deals)
+  allDeals.filter(d => d.stage === 'payment_received').forEach(d => {
+    const dateStr = d.actual_close_date || (d as any).updated_at?.slice(0, 10) || d.created_at?.slice(0, 10);
+    if (!dateStr) return;
+    const m = dateStr.slice(0, 7);
+    if (!forecastTimeline[m]) forecastTimeline[m] = { actual: 0, po: 0, quotation: 0, proposal: 0, trend: 0 };
+    forecastTimeline[m].actual += Number(d.value || 0);
+  });
+
+  // Fill PO deals by expected_close_date (confirmed future revenue)
+  allDeals.filter(d => d.stage === 'po_received' && d.expected_close_date).forEach(d => {
+    const m = d.expected_close_date!.slice(0, 7);
+    if (!forecastTimeline[m]) forecastTimeline[m] = { actual: 0, po: 0, quotation: 0, proposal: 0, trend: 0 };
+    forecastTimeline[m].po += Number(d.value || 0);
+  });
+  // PO without expected_close_date → put in current month
+  allDeals.filter(d => d.stage === 'po_received' && !d.expected_close_date).forEach(d => {
+    if (!forecastTimeline[nowMonth]) forecastTimeline[nowMonth] = { actual: 0, po: 0, quotation: 0, proposal: 0, trend: 0 };
+    forecastTimeline[nowMonth].po += Number(d.value || 0);
+  });
+
+  // Fill quotation deals by expected_close_date * conversion rate
+  allDeals.filter(d => ['quotation', 'negotiation', 'waiting_po'].includes(d.stage)).forEach(d => {
+    const m = d.expected_close_date ? d.expected_close_date.slice(0, 7) : nowMonth;
+    if (!forecastTimeline[m]) forecastTimeline[m] = { actual: 0, po: 0, quotation: 0, proposal: 0, trend: 0 };
+    forecastTimeline[m].quotation += Number(d.value || 0) * quotationToWon;
+  });
+
+  // Fill proposal deals by expected_close_date * conversion rate
+  allDeals.filter(d => ['proposal_submitted', 'proposal_confirmed'].includes(d.stage)).forEach(d => {
+    const m = d.expected_close_date ? d.expected_close_date.slice(0, 7) : nowMonth;
+    if (!forecastTimeline[m]) forecastTimeline[m] = { actual: 0, po: 0, quotation: 0, proposal: 0, trend: 0 };
+    forecastTimeline[m].proposal += Number(d.value || 0) * proposalToWon;
+  });
+
+  // Calculate average monthly revenue for trend projection
+  const pastMonths = Object.entries(forecastTimeline).filter(([m]) => m <= nowMonth).sort();
+  const pastRevenues = pastMonths.map(([, d]) => d.actual);
+  const avgMonthlyRevenue = pastRevenues.length > 0 ? pastRevenues.reduce((a, b) => a + b, 0) / pastRevenues.length : 0;
+  // Simple growth rate from first half to second half
+  let growthRate = 0;
+  if (pastRevenues.length >= 4) {
+    const half = Math.floor(pastRevenues.length / 2);
+    const firstHalf = pastRevenues.slice(0, half).reduce((a, b) => a + b, 0) / half;
+    const secondHalf = pastRevenues.slice(half).reduce((a, b) => a + b, 0) / (pastRevenues.length - half);
+    growthRate = firstHalf > 0 ? (secondHalf - firstHalf) / firstHalf : 0;
+  }
+
+  // Fill trend for future months that have no pipeline data
+  const yr = new Date().getFullYear();
+  for (let i = 0; i < 12; i++) {
+    const m = `${yr}-${String(i + 1).padStart(2, '0')}`;
+    if (!forecastTimeline[m]) forecastTimeline[m] = { actual: 0, po: 0, quotation: 0, proposal: 0, trend: 0 };
+    if (m > nowMonth && forecastTimeline[m].po === 0 && forecastTimeline[m].quotation === 0 && forecastTimeline[m].proposal === 0) {
+      // Project trend for far-future months
+      const monthsAhead = (i + 1) - (new Date().getMonth() + 1);
+      if (monthsAhead > 0) {
+        forecastTimeline[m].trend = avgMonthlyRevenue * (1 + growthRate * monthsAhead / 12);
+      }
+    }
+  }
+
   return NextResponse.json({
     summary: { totalDeals, totalPipeline, wonValue, wonCount, lostCount, conversionRate },
     stageCount, stageValue, monthlyData, topCustomers: topCust,
     recentActivities: (activities ?? []).slice(0, 10),
-    pipelineByMonth,
     monthlyByStage,
     monthlyNewDeals,
+    forecastTimeline,
     forecast: {
       actualRevenue,
       currentPO,
