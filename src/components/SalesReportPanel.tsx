@@ -523,7 +523,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
-                <Tooltip formatter={(v: any, name: string) => [`THB ${fmtM(v)}`, name]} />
+                <Tooltip formatter={(v: any, name: any) => [`THB ${fmtM(v)}`, name]} />
                 <Legend />
                 <Bar dataKey="payment" name={t.payment} stackId="a" fill="#059669" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="po" name={t.po} stackId="a" fill="#22C55E" />
