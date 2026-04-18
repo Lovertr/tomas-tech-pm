@@ -21,7 +21,7 @@ interface Deal {
   customer_id: string;
   customer_name: string;
   value: number;
-  stage: 'si_request' | 'online_meeting' | 'site_meeting' | 'wait_for_consider' | 'proposal_concept' | 'quotation' | 'demo' | 'waiting_po' | 'concept_design' | 'development' | 'uat' | 'project_complete' | 'loss' | 'refuse';
+  stage: 'waiting_present' | 'contacted' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'cancelled' | 'refused';
   expected_close_date?: string;
   probability?: number;
   owner_id?: string;
@@ -45,37 +45,29 @@ interface Member {
 
 /* ─── Stage config ─── */
 const stageLabels: Record<string, Record<string, string>> = {
-  si_request:        { th: 'สอบถาม',           en: 'SI Request',         jp: 'SI要求' },
-  online_meeting:    { th: 'ประชุมออนไลน์',     en: 'Online Meeting',      jp: 'オンライン会議' },
-  site_meeting:      { th: 'เข้าพบลูกค้า',     en: 'Site Meeting',        jp: 'サイト訪問' },
-  wait_for_consider: { th: 'รอพิจารณา',       en: 'Wait for Consider',   jp: '検討待機' },
-  proposal_concept:  { th: 'เสนอแนวคิด',      en: 'Proposal/Concept',    jp: '提案' },
-  quotation:         { th: 'ใบเสนอราคา',      en: 'Quotation',           jp: '見積もり' },
-  demo:              { th: 'สาธิต',            en: 'Demo',                jp: 'デモ' },
-  waiting_po:        { th: 'รอ PO',            en: 'Waiting PO',          jp: 'PO待機' },
-  concept_design:    { th: 'ออกแบบ',           en: 'Concept Design',      jp: 'デザイン' },
-  development:       { th: 'พัฒนา',            en: 'Development',         jp: '開発' },
-  uat:               { th: 'ทดสอบ',            en: 'UAT',                 jp: 'テスト' },
-  project_complete:  { th: 'เสร็จสิ้น',        en: 'Project Complete',    jp: '完了' },
-  loss:              { th: 'ไม่สำเร็จ',        en: 'Loss',                jp: '失注' },
-  refuse:            { th: 'ปฏิเสธ',           en: 'Refuse',              jp: '拒否' },
+  waiting_present:    { th: 'รอนำเสนอ',          en: 'Waiting to Present',    jp: 'プレゼン待ち' },
+  contacted:          { th: 'ติดต่อแล้ว',         en: 'Contacted',             jp: '連絡済み' },
+  proposal_submitted: { th: 'เสนอ Proposal',     en: 'Proposal Submitted',    jp: '提案済み' },
+  proposal_confirmed: { th: 'คอนเฟิร์ม Proposal', en: 'Proposal Confirmed',   jp: '提案承認' },
+  quotation:          { th: 'เสนอราคา',           en: 'Quotation',             jp: '見積もり' },
+  negotiation:        { th: 'เจรจาต่อรอง',        en: 'Negotiation',           jp: '交渉中' },
+  waiting_po:         { th: 'รอ PO',              en: 'Waiting PO',            jp: 'PO待機' },
+  po_received:        { th: 'ได้รับ PO',           en: 'PO Received',           jp: 'PO受領' },
+  cancelled:          { th: 'ยกเลิก',             en: 'Cancelled',             jp: 'キャンセル' },
+  refused:            { th: 'ปฏิเสธ',             en: 'Refused',               jp: '拒否' },
 };
 
 const stageColors: Record<string, string> = {
-  si_request: '#6B7280',
-  online_meeting: '#3B82F6',
-  site_meeting: '#0EA5E9',
-  wait_for_consider: '#8B5CF6',
-  proposal_concept: '#F59E0B',
+  waiting_present: '#6B7280',
+  contacted: '#3B82F6',
+  proposal_submitted: '#F59E0B',
+  proposal_confirmed: '#8B5CF6',
   quotation: '#F7941D',
-  demo: '#EC4899',
+  negotiation: '#EC4899',
   waiting_po: '#14B8A6',
-  concept_design: '#6366F1',
-  development: '#003087',
-  uat: '#06B6D4',
-  project_complete: '#22C55E',
-  loss: '#EF4444',
-  refuse: '#9CA3AF',
+  po_received: '#22C55E',
+  cancelled: '#EF4444',
+  refused: '#9CA3AF',
 };
 
 /* ─── i18n text ─── */
@@ -106,20 +98,16 @@ const panelText: Record<string, Record<string, string>> = {
 };
 
 const stageKeys: Array<Deal['stage']> = [
-  'si_request',
-  'online_meeting',
-  'site_meeting',
-  'wait_for_consider',
-  'proposal_concept',
+  'waiting_present',
+  'contacted',
+  'proposal_submitted',
+  'proposal_confirmed',
   'quotation',
-  'demo',
+  'negotiation',
   'waiting_po',
-  'concept_design',
-  'development',
-  'uat',
-  'project_complete',
-  'loss',
-  'refuse',
+  'po_received',
+  'cancelled',
+  'refused',
 ];
 
 /** Format number with commas: 3800000 → "3,800,000" */
@@ -154,7 +142,7 @@ export default function DealsPipelinePanel({
     customer_id: '',
     owner_id: '',
     value: 0,
-    stage: 'si_request' as Deal['stage'],
+    stage: 'waiting_present' as Deal['stage'],
     expected_close_date: '',
     probability: 50,
     notes: '',
@@ -259,7 +247,7 @@ export default function DealsPipelinePanel({
   const resetForm = () => {
     setFormData({
       title: '', customer_id: '', owner_id: '', value: 0,
-      stage: 'si_request', expected_close_date: '', probability: 50, notes: '',
+      stage: 'waiting_present', expected_close_date: '', probability: 50, notes: '',
     });
     setSelectedDeal(null);
   };
@@ -390,8 +378,8 @@ export default function DealsPipelinePanel({
 
                         {/* Value */}
                         <p className={`text-sm font-bold mt-2 ${
-                          stage === 'project_complete' ? 'text-green-600'
-                            : stage === 'loss' || stage === 'refuse' ? 'text-red-500'
+                          stage === 'po_received' ? 'text-green-600'
+                            : stage === 'cancelled' || stage === 'refused' ? 'text-red-500'
                             : 'text-gray-800'
                         }`}>
                           {fmt(deal.value)} THB

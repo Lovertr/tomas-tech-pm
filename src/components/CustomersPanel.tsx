@@ -72,20 +72,16 @@ const statusColors: Record<string, { bg: string; text: string; badge: string }> 
 const defaultStatusColor = { bg: 'bg-gray-50', text: 'text-gray-700', badge: '#4B5563' };
 
 const pipelineStageColors: Record<string, string> = {
-  si_request: '#6B7280',
-  online_meeting: '#3B82F6',
-  site_meeting: '#0EA5E9',
-  wait_for_consider: '#8B5CF6',
-  proposal_concept: '#F59E0B',
+  waiting_present: '#6B7280',
+  contacted: '#3B82F6',
+  proposal_submitted: '#F59E0B',
+  proposal_confirmed: '#8B5CF6',
   quotation: '#F7941D',
-  demo: '#EC4899',
+  negotiation: '#EC4899',
   waiting_po: '#14B8A6',
-  concept_design: '#6366F1',
-  development: '#003087',
-  uat: '#06B6D4',
-  project_complete: '#22C55E',
-  loss: '#EF4444',
-  refuse: '#9CA3AF',
+  po_received: '#22C55E',
+  cancelled: '#EF4444',
+  refused: '#9CA3AF',
 };
 
 const L = (key: string, lang: Lang = 'th'): string => {
@@ -302,15 +298,35 @@ export default function CustomersPanel({
       const detailRes = await fetch(`/api/customers/${customer.id}/detail`);
       if (detailRes.ok) {
         const detailData = await detailRes.json();
-        setDeals(detailData.deals ?? []);
-        setActivities(detailData.activities ?? []);
+        // Map deals: extract owner display_name from joined object
+        setDeals((detailData.deals ?? []).map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          stage: d.stage,
+          value: d.value || 0,
+          probability: d.probability || 0,
+          owner: d.owner?.display_name || d.owner?.email || '',
+        })));
+        // Map activities: extract performer display_name from joined object
+        setActivities((detailData.activities ?? []).map((a: any) => ({
+          id: a.id,
+          type: a.activity_type || 'other',
+          description: a.subject || a.description || '',
+          date: a.activity_date || a.created_at,
+          performer: a.performer?.display_name || a.performer?.email || '',
+        })));
       }
 
       // Fetch comments
       const commentsRes = await fetch(`/api/customers/${customer.id}/comments`);
       if (commentsRes.ok) {
         const commentsData = await commentsRes.json();
-        setComments(commentsData.comments ?? []);
+        setComments((commentsData.comments ?? []).map((c: any) => ({
+          id: c.id,
+          content: c.content,
+          user_name: c.user_name || c.author?.display_name || c.author?.email || 'Anonymous',
+          created_at: c.created_at,
+        })));
       }
     } catch (error) {
       console.error('Failed to fetch customer detail:', error);
@@ -355,8 +371,17 @@ export default function CustomersPanel({
 
       if (res.ok) {
         const commentData = await res.json();
-        setComments([commentData.comment, ...comments]);
+        const c = commentData.comment;
+        setComments([{
+          id: c.id,
+          content: c.content,
+          user_name: c.user_name || c.author?.display_name || c.author?.email || 'You',
+          created_at: c.created_at,
+        }, ...comments]);
         setNewComment('');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        console.error('Comment POST failed:', res.status, err);
       }
     } catch (error) {
       console.error('Failed to add comment:', error);
@@ -739,20 +764,20 @@ export default function CustomersPanel({
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{L('wonDeals', lang)}</p>
                     <p className="text-lg font-bold text-green-600">
-                      {deals.filter(d => d.stage === 'project_complete').length} / {deals.length}
+                      {deals.filter(d => d.stage === 'po_received').length} / {deals.length}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{L('winRate', lang)}</p>
                     <p className="text-lg font-bold text-gray-900">
-                      {deals.length > 0 ? Math.round((deals.filter(d => d.stage === 'project_complete').length / deals.length) * 100) : 0}%
+                      {deals.length > 0 ? Math.round((deals.filter(d => d.stage === 'po_received').length / deals.length) * 100) : 0}%
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{L('totalRevenue', lang)}</p>
                     <p className="text-lg font-bold text-gray-900">
                       {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(
-                        deals.filter(d => d.stage === 'project_complete').reduce((sum, d) => sum + (d.value || 0), 0)
+                        deals.filter(d => d.stage === 'po_received').reduce((sum, d) => sum + (d.value || 0), 0)
                       )}
                     </p>
                   </div>

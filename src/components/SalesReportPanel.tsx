@@ -48,20 +48,16 @@ interface SalesReportData {
 const COLORS = ['#003087', '#F7941D', '#00AEEF', '#10B981', '#6366F1', '#EF4444', '#8B5CF6'];
 
 const stageNamesI18n: Record<string, Record<string, string>> = {
-  si_request:        { th: 'สอบถาม',           en: 'SI Request',         jp: 'SI要求' },
-  online_meeting:    { th: 'ประชุมออนไลน์',     en: 'Online Meeting',      jp: 'オンライン会議' },
-  site_meeting:      { th: 'เข้าพบลูกค้า',     en: 'Site Meeting',        jp: 'サイト訪問' },
-  wait_for_consider: { th: 'รอพิจารณา',       en: 'Wait for Consider',   jp: '検討待機' },
-  proposal_concept:  { th: 'เสนอแนวคิด',      en: 'Proposal/Concept',    jp: '提案' },
-  quotation:         { th: 'ใบเสนอราคา',      en: 'Quotation',           jp: '見積もり' },
-  demo:              { th: 'สาธิต',            en: 'Demo',                jp: 'デモ' },
-  waiting_po:        { th: 'รอ PO',            en: 'Waiting PO',          jp: 'PO待機' },
-  concept_design:    { th: 'ออกแบบ',           en: 'Concept Design',      jp: 'デザイン' },
-  development:       { th: 'พัฒนา',            en: 'Development',         jp: '開発' },
-  uat:               { th: 'ทดสอบ',            en: 'UAT',                 jp: 'テスト' },
-  project_complete:  { th: 'เสร็จสิ้น',        en: 'Project Complete',    jp: '完了' },
-  loss:              { th: 'ไม่สำเร็จ',        en: 'Loss',                jp: '失注' },
-  refuse:            { th: 'ปฏิเสธ',           en: 'Refuse',              jp: '拒否' },
+  waiting_present:    { th: 'รอนำเสนอ',          en: 'Waiting to Present',    jp: 'プレゼン待ち' },
+  contacted:          { th: 'ติดต่อแล้ว',         en: 'Contacted',             jp: '連絡済み' },
+  proposal_submitted: { th: 'เสนอ Proposal',     en: 'Proposal Submitted',    jp: '提案済み' },
+  proposal_confirmed: { th: 'คอนเฟิร์ม Proposal', en: 'Proposal Confirmed',   jp: '提案承認' },
+  quotation:          { th: 'เสนอราคา',           en: 'Quotation',             jp: '見積もり' },
+  negotiation:        { th: 'เจรจาต่อรอง',        en: 'Negotiation',           jp: '交渉中' },
+  waiting_po:         { th: 'รอ PO',              en: 'Waiting PO',            jp: 'PO待機' },
+  po_received:        { th: 'ได้รับ PO',           en: 'PO Received',           jp: 'PO受領' },
+  cancelled:          { th: 'ยกเลิก',             en: 'Cancelled',             jp: 'キャンセル' },
+  refused:            { th: 'ปฏิเสธ',             en: 'Refused',               jp: '拒否' },
 };
 
 export default function SalesReportPanel({
