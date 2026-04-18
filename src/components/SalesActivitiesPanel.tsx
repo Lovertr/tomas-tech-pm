@@ -62,11 +62,10 @@ interface Deal {
 
 interface User {
   id: string;
-  first_name_th?: string | null;
-  last_name_th?: string | null;
-  first_name_en?: string | null;
-  last_name_en?: string | null;
+  display_name?: string | null;
+  display_name_th?: string | null;
   email?: string;
+  department?: string | null;
 }
 
 const activityTypeConfig = {
@@ -302,11 +301,8 @@ export default function SalesActivitiesPanel({
 
   const getUserName = (user: User | undefined, lang: Lang): string => {
     if (!user) return '';
-    if (lang === 'en') {
-      return `${user.first_name_en || ''} ${user.last_name_en || ''}`.trim();
-    }
-    if (lang === 'jp') return user.email || '';
-    return `${user.first_name_th || ''} ${user.last_name_th || ''}`.trim();
+    if (lang === 'th' && user.display_name_th) return user.display_name_th;
+    return user.display_name || user.email || '';
   };
 
   const [activities, setActivities] = useState<DealActivity[]>([]);
@@ -346,7 +342,7 @@ export default function SalesActivitiesPanel({
           type: (a.activity_type ?? 'call_contact') as ActivityType,
           description: a.subject ?? '',
           date: a.activity_date ?? '',
-          performer: (a.performer as { email?: string })?.email ?? '',
+          performer: (a.performer as { display_name?: string })?.display_name ?? (a.performer as { email?: string })?.email ?? '',
           performer_id: (a.performer as { id?: string })?.id,
         }));
         setActivities(mapped.sort((a: DealActivity, b: DealActivity) =>
@@ -379,17 +375,19 @@ export default function SalesActivitiesPanel({
 
   const fetchUsers = async () => {
     try {
+      // Try /api/users first (admin), fallback to extracting performers from activities
       const res = await fetch('/api/users');
       if (res.ok) {
         const json = await res.json();
-        const mapped = (json.users ?? []).map((u: Record<string, unknown>) => ({
-          id: u.id as string,
-          first_name_th: u.first_name_th as string | null,
-          last_name_th: u.last_name_th as string | null,
-          first_name_en: u.first_name_en as string | null,
-          last_name_en: u.last_name_en as string | null,
-          email: u.email as string,
-        }));
+        const mapped = (json.users ?? [])
+          .filter((u: Record<string, unknown>) => u.is_active)
+          .map((u: Record<string, unknown>) => ({
+            id: u.id as string,
+            display_name: u.display_name as string | null,
+            display_name_th: u.display_name_th as string | null,
+            email: u.email as string,
+            department: u.department as string | null,
+          }));
         setUsers(mapped);
       }
     } catch (error) {

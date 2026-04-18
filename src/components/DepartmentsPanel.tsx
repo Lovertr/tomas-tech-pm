@@ -26,6 +26,13 @@ interface AppUser {
   email: string;
 }
 
+interface DeptMember {
+  id: string;
+  display_name: string;
+  email: string;
+  department_id: string;
+}
+
 interface Module {
   key: string;
   label_th: string;
@@ -107,6 +114,25 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
   const [formData, setFormData] = useState({
     code: "", name_th: "", name_en: "", name_jp: "", head_user_id: "", is_active: true,
   });
+
+  // Department detail state (member list)
+  const [detailDept, setDetailDept] = useState<Department | null>(null);
+  const [detailMembers, setDetailMembers] = useState<DeptMember[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const openDetail = async (d: Department) => {
+    setDetailDept(d);
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/departments/${d.id}`);
+      if (res.ok) {
+        const json = await res.json();
+        setDetailMembers(json.members ?? []);
+      }
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   // Permissions state
   const [permDeptId, setPermDeptId] = useState<string | null>(null);
@@ -272,7 +298,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#003087] to-[#00AEEF] flex items-center justify-center">
-            <Building2 size={20} className="text-gray-900" />
+            <Building2 size={20} className="text-white" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900">{L('header_title')}</h2>
@@ -293,8 +319,8 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {departments.map(d => (
-            <div key={d.id}
-              className={`bg-[#FFFFFF] border rounded-2xl p-4 hover:shadow-lg transition-all ${d.is_active ? "border-[#E2E8F0]" : "border-red-300 opacity-60"}`}>
+            <div key={d.id} onClick={() => openDetail(d)}
+              className={`bg-[#FFFFFF] border rounded-2xl p-4 hover:shadow-lg transition-all cursor-pointer ${d.is_active ? "border-[#E2E8F0]" : "border-red-300 opacity-60"}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -310,7 +336,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                   {d.name_jp && <p className="text-xs text-slate-500">{d.name_jp}</p>}
                 </div>
                 {canManage && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                     <button onClick={() => openPerms(d)}
                       className="p-1.5 text-purple-600 hover:bg-purple-100 rounded-lg" title={L('perm_tooltip')}>
                       <Shield size={14} />
@@ -420,7 +446,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
             <div className="flex items-start justify-between border-b border-[#E2E8F0] px-3 md:px-5 py-3 md:py-4 gap-2">
               <div className="flex items-start gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shrink-0">
-                  <Shield size={20} className="text-gray-900" />
+                  <Shield size={20} className="text-white" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-gray-900 font-bold text-base md:text-lg">{L('perm_title')}</h3>
@@ -534,10 +560,72 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={() => setPermDeptId(null)} className="px-3 md:px-4 py-2 text-sm text-slate-600 hover:text-gray-900">{L('form_cancel')}</button>
                 <button onClick={savePerms} disabled={permSaving || !permDirty}
-                  className="px-3 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 whitespace-nowrap">
+                  className="px-3 md:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 whitespace-nowrap">
                   <Save size={14} /> {permSaving ? L('perm_saving') : L('perm_save')}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ─── Department Detail Modal (Members) ─── */}
+      {detailDept && (
+        <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setDetailDept(null)}>
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs font-mono rounded">{detailDept.code}</span>
+                  <h3 className="text-gray-900 font-bold text-lg">{detailDept.name_th}</h3>
+                </div>
+                {detailDept.name_en && <p className="text-xs text-gray-500 mt-0.5">{detailDept.name_en}</p>}
+              </div>
+              <button onClick={() => setDetailDept(null)} className="text-gray-500 hover:text-gray-900"><X size={20} /></button>
+            </div>
+
+            {/* Head */}
+            {detailDept.head && (
+              <div className="px-5 py-3 border-b border-[#E2E8F0] bg-blue-50/50">
+                <p className="text-xs text-gray-500 mb-1">{L('head_label')}</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#003087] to-[#00AEEF] flex items-center justify-center text-white text-xs font-bold">
+                    {detailDept.head.display_name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{detailDept.head.display_name}</p>
+                    <p className="text-xs text-gray-500">{detailDept.head.email}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Members */}
+            <div className="flex-1 overflow-y-auto p-5">
+              <p className="text-sm font-semibold text-gray-900 mb-3">
+                {lang === 'en' ? 'Members' : lang === 'jp' ? 'メンバー' : 'สมาชิกในแผนก'} ({detailMembers.length})
+              </p>
+              {detailLoading ? (
+                <p className="text-sm text-gray-500 text-center py-4">Loading...</p>
+              ) : detailMembers.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  {lang === 'en' ? 'No members in this department' : lang === 'jp' ? 'メンバーなし' : 'ยังไม่มีสมาชิกในแผนกนี้'}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {detailMembers.map(m => (
+                    <div key={m.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-[#E2E8F0]">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        {m.display_name.charAt(0)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">{m.display_name}</p>
+                        <p className="text-xs text-gray-500 truncate">{m.email}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

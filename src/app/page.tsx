@@ -229,6 +229,7 @@ export default function App() {
     { id: "sales_report", icon: PieChartIcon, label: t.salesReport, module: "sales_report", group: "crm" },
     // Reports & Admin
     { id: "departments", icon: Building2, label: t.departments, module: "departments", group: "admin" },
+    { id: "user_management", icon: UserCog, label: t.userManagement, module: "departments", group: "admin" },
     { id: "reports", icon: BarChart3, label: t.reports, module: "reports", group: "reports" },
     { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
   ];
@@ -905,7 +906,7 @@ export default function App() {
                       {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                     </button>
                     {!collapsed && g.items.map(item => (
-                      <button key={item.id} onClick={() => { setPage(item.id); setMobileMenuOpen(false); }}
+                      <button key={item.id} onClick={() => { if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } setMobileMenuOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
                         style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
                         <item.icon size={20} /><span className="truncate">{item.label}</span>
@@ -960,7 +961,7 @@ export default function App() {
                   <div className="h-px bg-[#E2E8F0] mx-2 my-2" />
                 )}
                 {!collapsed && g.items.map(item => (
-                  <button key={item.id} onClick={() => setPage(item.id)} title={!sidebarOpen ? item.label : undefined}
+                  <button key={item.id} onClick={() => { if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } }} title={!sidebarOpen ? item.label : undefined}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
                     style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
                     <item.icon size={20} />{sidebarOpen && <span className="truncate">{item.label}</span>}
