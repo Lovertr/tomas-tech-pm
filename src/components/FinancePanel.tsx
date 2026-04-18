@@ -68,16 +68,16 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
         </div>
         {tab === "pnl" && (
           <div className="flex items-center gap-2">
-            <input type="date" value={start} onChange={e => setStart(e.target.value)} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-sm text-slate-900" />
-            <span className="text-slate-600">→</span>
-            <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-sm text-slate-900" />
+            <input type="date" value={start} onChange={e => setStart(e.target.value)} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm text-slate-900 max-w-[130px] md:max-w-none" />
+            <span className="text-slate-600 text-xs">→</span>
+            <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm text-slate-900 max-w-[130px] md:max-w-none" />
           </div>
         )}
       </div>
 
       {tab === "pnl" && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
             <KPI icon={DollarSign} label="รายได้" value={fmtMoney(t.revenue)} color="#00AEEF" />
             <KPI icon={TrendingDown} label="ต้นทุน" value={fmtMoney(t.cost)} color="#EF4444" />
             <KPI icon={t.profit >= 0 ? TrendingUp : TrendingDown} label="กำไรขั้นต้น" value={fmtMoney(t.profit)}
@@ -137,7 +137,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
 
       {tab === "evm" && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-3">
             <KPI icon={Target} label="โครงการ Healthy" value={String(evm.filter(e => e.health === "green").length)} color="#22C55E" />
             <KPI icon={Activity} label="ต้องระวัง" value={String(evm.filter(e => e.health === "yellow").length)} color="#F7941D" />
             <KPI icon={TrendingDown} label="ต้องแก้ไขด่วน" value={String(evm.filter(e => e.health === "red").length)} color="#EF4444" />
@@ -162,7 +162,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                       <span className="text-[10px] uppercase tracking-wide" style={{ color: healthColor }}>● {e.health === "green" ? "Healthy" : e.health === "yellow" ? "At Risk" : "Critical"}</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3 mb-3">
                     <Metric label="BAC" value={fmtMoney(e.bac)} />
                     <Metric label="PV" value={fmtMoney(e.pv)} />
                     <Metric label="EV" value={fmtMoney(e.ev)} color="#00AEEF" />
@@ -170,7 +170,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                     <Metric label="EAC" value={fmtMoney(e.eac)} color="#F7941D" />
                     <Metric label="VAC" value={fmtMoney(e.vac)} color={e.vac >= 0 ? "#22C55E" : "#EF4444"} />
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                     <Metric label="CPI" value={e.cpi.toFixed(2)} color={e.cpi >= 1 ? "#22C55E" : e.cpi >= 0.85 ? "#F7941D" : "#EF4444"} />
                     <Metric label="SPI" value={e.spi.toFixed(2)} color={e.spi >= 1 ? "#22C55E" : e.spi >= 0.85 ? "#F7941D" : "#EF4444"} />
                     <Metric label="Planned %" value={fmtPct(e.planned_pct)} />
@@ -198,18 +198,18 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
 
 function KPI({ icon: Icon, label, value, color, sub }: { icon: React.ComponentType<{ size?: number }>; label: string; value: string; color: string; sub?: string }) {
   return (
-    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3">
-      <div className="flex items-center gap-2 text-xs text-slate-600 mb-1"><Icon size={12} /> {label}</div>
-      <div className="text-base font-bold" style={{ color }}>{value}</div>
-      {sub && <div className="text-xs mt-0.5" style={{ color }}>{sub}</div>}
+    <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-3 min-w-0 overflow-hidden">
+      <div className="flex items-center gap-1.5 text-[11px] text-slate-600 mb-1 truncate"><Icon size={12} className="flex-shrink-0" /> <span className="truncate">{label}</span></div>
+      <div className="text-sm md:text-base font-bold truncate" style={{ color }}>{value}</div>
+      {sub && <div className="text-xs mt-0.5 truncate" style={{ color }}>{sub}</div>}
     </div>
   );
 }
 function Metric({ label, value, color = "#FFFFFF" }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-[#F5F5F5] rounded-lg p-2">
-      <div className="text-[10px] text-slate-500 uppercase tracking-wide">{label}</div>
-      <div className="text-sm font-medium" style={{ color }}>{value}</div>
+    <div className="bg-[#F5F5F5] rounded-lg p-2 min-w-0 overflow-hidden">
+      <div className="text-[10px] text-slate-500 uppercase tracking-wide truncate">{label}</div>
+      <div className="text-xs md:text-sm font-medium truncate" style={{ color }}>{value}</div>
     </div>
   );
 }

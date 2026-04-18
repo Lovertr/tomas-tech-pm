@@ -89,6 +89,21 @@ export default function App() {
   const [page, setPage] = useState("dashboard");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Auto-collapse sidebar in landscape mobile (md breakpoint but short height)
+  useEffect(() => {
+    const handleResize = () => {
+      const isLandscapeMobile = window.innerWidth >= 768 && window.innerWidth <= 1024 && window.innerHeight < 500;
+      if (isLandscapeMobile) setSidebarOpen(false);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', () => setTimeout(handleResize, 300));
+    };
+  }, []);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const toggleGroup = (k: string) => setCollapsedGroups(s => ({ ...s, [k]: !s[k] }));
 
@@ -940,8 +955,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Desktop Sidebar - hidden on mobile */}
-      <div className={`hidden md:flex ${sidebarOpen ? "w-64" : "w-20"} flex-col border-r border-[#E2E8F0] bg-white transition-all duration-300 flex-shrink-0`}>
+      {/* Desktop Sidebar - hidden on mobile, collapsible on landscape tablet */}
+      <div className={`hidden md:flex ${sidebarOpen ? "w-52 lg:w-64" : "w-16 lg:w-20"} flex-col border-r border-[#E2E8F0] bg-white transition-all duration-300 flex-shrink-0`}>
         <div className="p-4 flex items-center gap-3 border-b border-[#E2E8F0]">
           <Image src="/logo.png" alt="TOMAS TECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
           {sidebarOpen && <div><div className="font-bold text-sm text-gray-800">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>}
