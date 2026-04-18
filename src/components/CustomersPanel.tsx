@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X, Briefcase, TrendingUp, MessageSquare, FileCheck, Clock, Eye, Heart, Users, DollarSign } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X, Briefcase, TrendingUp, MessageSquare, FileCheck, Clock, Eye, Heart, Users, DollarSign, ExternalLink } from 'lucide-react';
 import type { Lang } from '@/lib/i18n';
 import TranslateButton from './TranslateButton';
 
@@ -13,6 +13,7 @@ interface Props {
   refreshKey?: number;
   lang?: Lang;
   currentUserId?: string;
+  onNavigate?: (pageId: string, filterId?: string) => void;
 }
 
 interface Customer {
@@ -170,6 +171,7 @@ export default function CustomersPanel({
   refreshKey = 0,
   lang = 'th',
   currentUserId,
+  onNavigate,
 }: Props) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
@@ -1165,8 +1167,8 @@ export default function CustomersPanel({
                         {customerProjects.map((p: any) => (
                           <div key={p.id} className="bg-white border border-[#E2E8F0] rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => {
-                              // Navigate to project — close drawer and user can find it in sidebar
                               setShowDetail(false);
+                              if (onNavigate) onNavigate('tasks', p.id);
                             }}>
                             <div className="flex items-center justify-between">
                               <div>
@@ -1204,6 +1206,7 @@ export default function CustomersPanel({
                           <div key={q.id} className="bg-white border border-[#E2E8F0] rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => {
                               setShowDetail(false);
+                              if (onNavigate) onNavigate('quotations');
                             }}>
                             <div className="flex items-center justify-between">
                               <div>

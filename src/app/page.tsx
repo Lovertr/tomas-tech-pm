@@ -609,7 +609,8 @@ export default function App() {
     <div className="space-y-6">
       <CustomersPanel projects={data.projects} members={data.members}
         canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
-        currentUserId={currentUser?.id} />
+        currentUserId={currentUser?.id}
+        onNavigate={(pageId, filterId) => { if (filterId) setTaskFilter(filterId); setPage(pageId); }} />
     </div>
   );
   const DealsPipelinePage = () => (
