@@ -216,9 +216,12 @@ export default function App() {
   }, [data.members, data.positions]);
 
   const filteredMembers = useMemo(() => {
-    if (deptFilter === "all") return mockMembers;
-    return mockMembers.filter(m => m.dept === deptFilter);
-  }, [mockMembers, deptFilter]);
+    if (deptFilter === "all") return data.members;
+    return data.members.filter(m => {
+      const pos = data.positions.find(p => p.id === m.position_id);
+      return pos && (pos.name_th === deptFilter || pos.name_en === deptFilter);
+    });
+  }, [data.members, data.positions, deptFilter]);
 
   const tipStyle = { background: "#FFFFFF", border: "none", borderRadius: 12, color: "#F8FAFC", boxShadow: "0 4px 20px rgba(0,0,0,0.4)" };
 
@@ -742,7 +745,7 @@ export default function App() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredMembers.map(mem => {
-            const pos = getPos(mem.position_id || "");
+            const pos = getPos(mem.position_id);
             const mh = approvedLogs.filter(l => l.member_id === mem.id).reduce((s, l) => s + l.hours, 0);
             const mc = approvedLogs.filter(l => l.member_id === mem.id).reduce((s, l) => s + l.hours * l.rate, 0);
             const mp = [...new Set(mockTimeLogs.filter(l => l.member_id === mem.id).map(l => l.project_id))].length;
@@ -1202,7 +1205,7 @@ export default function App() {
         onSubmit={async (payload) => { await data.createTimelog(payload); }}
       />
       <TaskDetailDrawer
-        open={!!drawerTaskId}
+        open={\!\!drawerTaskId}
         taskId={drawerTaskId}
         onClose={() => setDrawerTaskId(null)}
         onChange={() => { data.refetchTasks?.(); setBoardRefreshKey(k => k + 1); }}
@@ -1218,10 +1221,8 @@ export default function App() {
         open={memberProfileOpen}
         memberId={memberProfileId}
         onClose={() => setMemberProfileOpen(false)}
-        onNavigateProject={(projectId) => { setPage("projects"); setMemberProfileOpen(false); }}
+        onNavigate={(taskId) => { setPage("tasks"); setDrawerTaskId(taskId); setMemberProfileOpen(false); }}
       />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} items={paletteItems} />
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
-      </div>
-  );
-}
+  
