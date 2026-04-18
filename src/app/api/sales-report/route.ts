@@ -6,8 +6,9 @@ export async function GET(req: NextRequest) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Deals by stage
-  const { data: deals } = await supabaseAdmin.from("deals").select("id, stage, value, created_at, actual_close_date");
+  // Deals with owner info
+  const { data: deals } = await supabaseAdmin.from("deals")
+    .select("id, title, stage, value, probability, created_at, actual_close_date, expected_close_date, customer_id, owner_id, customers(id, company_name, industry), owner:app_users!deals_owner_id_fkey(id, display_name)");
   const stageCount: Record<string, number> = {};
   const stageValue: Record<string, number> = {};
   let totalPipeline = 0, wonValue = 0, lostCount = 0, wonCount = 0;
@@ -29,10 +30,10 @@ export async function GET(req: NextRequest) {
   });
   const monthlyData = Object.entries(monthly).sort().map(([month, value]) => ({ month, value }));
 
-  // Recent activities
+  // All activities with types for analysis
   const { data: activities } = await supabaseAdmin.from("deal_activities")
-    .select("*, performer:app_users!performed_by(id, email), deals(id, title)")
-    .order("activity_date", { ascending: false }).limit(10);
+    .select("*, performer:app_users!performed_by(id, display_name, email), deals(id, title)")
+    .order("activity_date", { ascending: false }).limit(100);
 
   // Top customers by deal value
   const { data: topCustomers } = await supabaseAdmin.from("deals")
@@ -49,9 +50,70 @@ export async function GET(req: NextRequest) {
   });
   const topCust = Object.values(custMap).sort((a, b) => b.total - a.total).slice(0, 5);
 
+  // ── AI Analysis data ──
+  // Sales by owner
+  const ownerStats: Record<string, { name: string; deals: number; value: number; won: number; wonValue: number; activities: number }> = {};
+  (deals ?? []).forEach(d => {
+    const ownerId = d.owner_id ?? 'unknown';
+    const ownerName = (d.owner as any)?.display_name ?? 'ไม่ระบุ';
+    if (!ownerStats[ownerId]) ownerStats[ownerId] = { name: ownerName, deals: 0, value: 0, won: 0, wonValue: 0, activities: 0 };
+    ownerStats[ownerId].deals++;
+    ownerStats[ownerId].value += Number(d.value || 0);
+    if (d.stage === 'po_received') { ownerStats[ownerId].won++; ownerStats[ownerId].wonValue += Number(d.value || 0); }
+  });
+  (activities ?? []).forEach(a => {
+    const pid = a.performed_by;
+    if (pid && ownerStats[pid]) ownerStats[pid].activities++;
+  });
+
+  // Activity type distribution
+  const activityTypeCount: Record<string, number> = {};
+  (activities ?? []).forEach(a => {
+    activityTypeCount[a.activity_type] = (activityTypeCount[a.activity_type] || 0) + 1;
+  });
+
+  // Industry distribution
+  const industryStats: Record<string, { count: number; value: number }> = {};
+  (deals ?? []).forEach(d => {
+    const industry = (d.customers as any)?.industry || 'ไม่ระบุ';
+    if (!industryStats[industry]) industryStats[industry] = { count: 0, value: 0 };
+    industryStats[industry].count++;
+    industryStats[industry].value += Number(d.value || 0);
+  });
+
+  // Deals with overdue expected close
+  const now = new Date().toISOString().split('T')[0];
+  const overdueDeals = (deals ?? []).filter(d =>
+    d.expected_close_date && d.expected_close_date < now &&
+    !['po_received', 'cancelled', 'refused'].includes(d.stage)
+  ).length;
+
+  // Average deal age (days from created to now for active deals)
+  const activeDealAges = (deals ?? [])
+    .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage))
+    .map(d => Math.floor((Date.now() - new Date(d.created_at).getTime()) / (1000 * 60 * 60 * 24)));
+  const avgDealAge = activeDealAges.length > 0
+    ? Math.round(activeDealAges.reduce((a, b) => a + b, 0) / activeDealAges.length) : 0;
+
+  // Weighted pipeline
+  const weightedPipeline = (deals ?? [])
+    .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage))
+    .reduce((sum, d) => sum + Number(d.value || 0) * (Number(d.probability || 0) / 100), 0);
+
   return NextResponse.json({
     summary: { totalDeals, totalPipeline, wonValue, wonCount, lostCount, conversionRate },
     stageCount, stageValue, monthlyData, topCustomers: topCust,
-    recentActivities: activities ?? [],
+    recentActivities: (activities ?? []).slice(0, 10),
+    // Extended data for AI analysis
+    aiData: {
+      ownerStats: Object.values(ownerStats),
+      activityTypeCount,
+      industryStats,
+      overdueDeals,
+      avgDealAge,
+      weightedPipeline,
+      totalActivities: (activities ?? []).length,
+      activeDealsCount: activeDealAges.length,
+    },
   });
 }

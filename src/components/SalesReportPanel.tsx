@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Lang } from '@/lib/i18n';
 import {
   BarChart,
@@ -17,7 +17,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { TrendingUp, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { TrendingUp, DollarSign, CheckCircle, AlertCircle, Brain, ChevronDown, ChevronUp, Users, Activity, Target, Zap } from 'lucide-react';
 import TranslateButton from './TranslateButton';
 
 interface Props {
@@ -27,6 +27,26 @@ interface Props {
   canManage?: boolean;
   refreshKey?: number;
   lang?: Lang;
+}
+
+interface OwnerStat {
+  name: string;
+  deals: number;
+  value: number;
+  won: number;
+  wonValue: number;
+  activities: number;
+}
+
+interface AIData {
+  ownerStats: OwnerStat[];
+  activityTypeCount: Record<string, number>;
+  industryStats: Record<string, { count: number; value: number }>;
+  overdueDeals: number;
+  avgDealAge: number;
+  weightedPipeline: number;
+  totalActivities: number;
+  activeDealsCount: number;
 }
 
 interface SalesReportData {
@@ -43,6 +63,7 @@ interface SalesReportData {
   monthlyData: Array<{ month: string; value: number }>;
   topCustomers: Array<{ name: string; total: number; count: number }>;
   recentActivities: Array<{ id: string; description: string; date: string }>;
+  aiData?: AIData;
 }
 
 const COLORS = ['#003087', '#F7941D', '#00AEEF', '#10B981', '#6366F1', '#EF4444', '#8B5CF6'];
@@ -92,6 +113,19 @@ export default function SalesReportPanel({
         recentActivities: 'กิจกรรมล่าสุด',
         refresh: 'รีเฟรช',
         export: 'ส่งออก PDF',
+        aiAnalysis: 'วิเคราะห์โดย AI',
+        aiAnalysisDesc: 'วิเคราะห์ข้อมูลการขายทั้งหมดด้วย AI เพื่อให้คำแนะนำ',
+        analyzing: 'กำลังวิเคราะห์...',
+        pipelineHealth: 'สุขภาพ Pipeline',
+        salesVelocity: 'ความเร็วการขาย',
+        teamPerformance: 'ประสิทธิภาพทีม',
+        industryInsights: 'อุตสาหกรรม',
+        activityAnalysis: 'การวิเคราะห์กิจกรรม',
+        recommendations: 'คำแนะนำเพื่อเพิ่มยอดขาย',
+        overdueDealAlert: 'ดีลเลยกำหนด',
+        weightedPipeline: 'Pipeline (ถ่วงน้ำหนัก)',
+        avgDealAge: 'อายุดีลเฉลี่ย',
+        days: 'วัน',
       },
       en: {
         loading: 'Loading...',
@@ -115,6 +149,19 @@ export default function SalesReportPanel({
         recentActivities: 'Recent Activities',
         refresh: 'Refresh',
         export: 'Export PDF',
+        aiAnalysis: 'AI Analysis',
+        aiAnalysisDesc: 'Analyze all sales data with AI for actionable insights',
+        analyzing: 'Analyzing...',
+        pipelineHealth: 'Pipeline Health',
+        salesVelocity: 'Sales Velocity',
+        teamPerformance: 'Team Performance',
+        industryInsights: 'Industry Insights',
+        activityAnalysis: 'Activity Analysis',
+        recommendations: 'Recommendations to Increase Sales',
+        overdueDealAlert: 'Overdue Deals',
+        weightedPipeline: 'Weighted Pipeline',
+        avgDealAge: 'Avg Deal Age',
+        days: 'days',
       },
       jp: {
         loading: '読み込み中...',
@@ -138,12 +185,28 @@ export default function SalesReportPanel({
         recentActivities: '最近のアクティビティ',
         refresh: '更新',
         export: 'PDF をエクスポート',
+        aiAnalysis: 'AI分析',
+        aiAnalysisDesc: 'AIで全売上データを分析し、提案を取得',
+        analyzing: '分析中...',
+        pipelineHealth: 'パイプライン健全性',
+        salesVelocity: '営業速度',
+        teamPerformance: 'チームパフォーマンス',
+        industryInsights: '業界インサイト',
+        activityAnalysis: 'アクティビティ分析',
+        recommendations: '売上向上のための提案',
+        overdueDealAlert: '期限超過',
+        weightedPipeline: '加重パイプライン',
+        avgDealAge: '平均取引期間',
+        days: '日',
       },
     };
     return panelText[lang][key] || key;
   };
   const [reportData, setReportData] = useState<SalesReportData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiExpanded, setAiExpanded] = useState(true);
 
   useEffect(() => {
     fetchReport();
@@ -163,6 +226,80 @@ export default function SalesReportPanel({
       setLoading(false);
     }
   };
+
+  const generateAIAnalysis = useCallback(() => {
+    if (!reportData?.aiData) return;
+    setAiLoading(true);
+    setAiExpanded(true);
+
+    // Simulate a brief analysis delay for UX feel
+    setTimeout(() => {
+      const ai = reportData.aiData!;
+      const s = reportData.summary;
+      const insights: string[] = [];
+
+      // 1. Pipeline Health
+      const pipelineRatio = s.wonValue > 0 ? (s.totalPipeline / s.wonValue) : 0;
+      if (ai.overdueDeals > 0) {
+        insights.push(`⚠️ [${L('overdueDealAlert')}] ${lang === 'en' ? `${ai.overdueDeals} deals are past their expected close date. Review and update timelines or re-engage these prospects.` : lang === 'jp' ? `${ai.overdueDeals}件の取引が予定終了日を過ぎています。タイムラインを見直すか、再度アプローチしてください。` : `มี ${ai.overdueDeals} ดีลที่เลยกำหนดปิดการขาย ควรทบทวนและติดตามหรือปรับแผนใหม่`}`);
+      }
+      insights.push(`📊 [${L('pipelineHealth')}] ${lang === 'en' ? `Weighted pipeline value: ฿${(ai.weightedPipeline / 1000).toFixed(0)}K. Active deals: ${ai.activeDealsCount}. Pipeline-to-won ratio: ${pipelineRatio.toFixed(1)}x.${pipelineRatio < 3 ? ' Consider adding more leads to maintain healthy coverage (target 3-5x).' : pipelineRatio > 6 ? ' Pipeline is large relative to wins — focus on converting existing opportunities.' : ' Pipeline coverage is healthy.'}` : lang === 'jp' ? `加重パイプライン: ฿${(ai.weightedPipeline / 1000).toFixed(0)}K、アクティブ取引: ${ai.activeDealsCount}件、カバレッジ比: ${pipelineRatio.toFixed(1)}x` : `Pipeline ถ่วงน้ำหนัก: ฿${(ai.weightedPipeline / 1000).toFixed(0)}K, ดีลที่กำลังดำเนินการ: ${ai.activeDealsCount}, อัตราส่วน Pipeline ต่อยอดขาย: ${pipelineRatio.toFixed(1)}x${pipelineRatio < 3 ? ' — ควรเพิ่ม Lead ใหม่ (เป้าหมาย 3-5x)' : pipelineRatio > 6 ? ' — Pipeline ใหญ่เกินไป ควรเน้นปิดดีลที่มีอยู่' : ' — สมดุลดี'}`}`);
+
+      // 2. Sales Velocity
+      insights.push(`⚡ [${L('salesVelocity')}] ${lang === 'en' ? `Average deal age: ${ai.avgDealAge} days. Conversion rate: ${s.conversionRate}%.${ai.avgDealAge > 60 ? ' Deals are aging — consider shortening the sales cycle with faster follow-ups and clearer proposals.' : ai.avgDealAge > 30 ? ' Moderate pace. Look for bottleneck stages.' : ' Fast-moving pipeline!'}` : lang === 'jp' ? `平均取引期間: ${ai.avgDealAge}日、コンバージョン率: ${s.conversionRate}%` : `อายุดีลเฉลี่ย: ${ai.avgDealAge} วัน, อัตราปิดการขาย: ${s.conversionRate}%${ai.avgDealAge > 60 ? ' — ดีลค้างนาน ควรเร่งติดตามและส่ง Proposal ที่ชัดเจน' : ai.avgDealAge > 30 ? ' — ความเร็วปานกลาง ตรวจสอบขั้นตอนที่ติดขัด' : ' — Pipeline เคลื่อนไหวดี!'}`}`);
+
+      // 3. Team Performance
+      if (ai.ownerStats.length > 0) {
+        const sorted = [...ai.ownerStats].sort((a, b) => b.wonValue - a.wonValue);
+        const topSeller = sorted[0];
+        const totalTeamValue = sorted.reduce((sum, o) => sum + o.value, 0);
+        const topPct = totalTeamValue > 0 ? ((topSeller.value / totalTeamValue) * 100).toFixed(0) : '0';
+        insights.push(`👥 [${L('teamPerformance')}] ${lang === 'en' ? `Top seller: ${topSeller.name} (Won ฿${(topSeller.wonValue / 1000).toFixed(0)}K from ${topSeller.won} deals, ${topSeller.activities} activities). Handles ${topPct}% of total pipeline value.${sorted.length > 1 && sorted[sorted.length - 1].activities < sorted[0].activities * 0.3 ? ' Some team members have low activity — consider coaching or redistributing leads.' : ''}` : lang === 'jp' ? `トップセラー: ${topSeller.name} (成約 ฿${(topSeller.wonValue / 1000).toFixed(0)}K, ${topSeller.won}件)` : `ผู้ขายอันดับ 1: ${topSeller.name} (ปิดได้ ฿${(topSeller.wonValue / 1000).toFixed(0)}K จาก ${topSeller.won} ดีล, กิจกรรม ${topSeller.activities} ครั้ง) รับผิดชอบ ${topPct}% ของ Pipeline ทั้งหมด${sorted.length > 1 && sorted[sorted.length - 1].activities < sorted[0].activities * 0.3 ? ' — บางคนมีกิจกรรมน้อย ควรให้คำแนะนำหรือกระจาย Lead ใหม่' : ''}`}`);
+      }
+
+      // 4. Industry Insights
+      const industryArr = Object.entries(ai.industryStats).sort((a, b) => b[1].value - a[1].value);
+      if (industryArr.length > 0) {
+        const topInd = industryArr.slice(0, 3).map(([name, stat]) =>
+          `${name} (${stat.count} ${lang === 'en' ? 'deals' : lang === 'jp' ? '件' : 'ดีล'}, ฿${(stat.value / 1000).toFixed(0)}K)`
+        ).join(', ');
+        insights.push(`🏭 [${L('industryInsights')}] ${lang === 'en' ? `Top industries: ${topInd}. Focus prospecting in your strongest verticals to maximize conversion.` : lang === 'jp' ? `主要業界: ${topInd}` : `อุตสาหกรรมหลัก: ${topInd} — ควรเน้นหาลูกค้าใหม่ในอุตสาหกรรมที่แข็งแกร่งเพื่อเพิ่มโอกาสปิดการขาย`}`);
+      }
+
+      // 5. Activity Analysis
+      const actTypes = Object.entries(ai.activityTypeCount).sort((a, b) => b[1] - a[1]);
+      if (actTypes.length > 0) {
+        const topActs = actTypes.slice(0, 3).map(([type, count]) => `${type} (${count})`).join(', ');
+        const hasProposal = ai.activityTypeCount['present_proposal'] || 0;
+        const hasMeeting = (ai.activityTypeCount['online_meeting'] || 0) + (ai.activityTypeCount['site_meeting'] || 0);
+        insights.push(`📋 [${L('activityAnalysis')}] ${lang === 'en' ? `Total activities: ${ai.totalActivities}. Most common: ${topActs}.${hasMeeting < hasProposal ? ' More meetings could help strengthen proposals.' : ''}` : lang === 'jp' ? `総アクティビティ: ${ai.totalActivities}件。主要: ${topActs}` : `กิจกรรมทั้งหมด: ${ai.totalActivities} ครั้ง, มากที่สุด: ${topActs}${hasMeeting < hasProposal ? ' — ควรเพิ่มการประชุมเพื่อเสริมความแข็งแกร่งของ Proposal' : ''}`}`);
+      }
+
+      // 6. Recommendations
+      const recs: string[] = [];
+      if (ai.overdueDeals > 0) {
+        recs.push(lang === 'en' ? `Immediately review ${ai.overdueDeals} overdue deals — close, reschedule, or disqualify` : lang === 'jp' ? `${ai.overdueDeals}件の期限超過取引を即座にレビュー` : `ทบทวน ${ai.overdueDeals} ดีลที่เลยกำหนดทันที — ปิด, เลื่อน, หรือยกเลิก`);
+      }
+      if (parseFloat(s.conversionRate) < 20) {
+        recs.push(lang === 'en' ? 'Improve qualification criteria — conversion rate is below 20%' : lang === 'jp' ? '評価基準を改善 — コンバージョン率が20%未満' : 'ปรับปรุงเกณฑ์คัดกรอง Lead — อัตราปิดการขายต่ำกว่า 20%');
+      }
+      if (ai.avgDealAge > 45) {
+        recs.push(lang === 'en' ? `Shorten sales cycle (currently ${ai.avgDealAge} days avg) — set clear next steps after each meeting` : lang === 'jp' ? `営業サイクルを短縮（現在平均${ai.avgDealAge}日）` : `ลดระยะเวลาปิดการขาย (ปัจจุบันเฉลี่ย ${ai.avgDealAge} วัน) — กำหนด next step ชัดเจนหลังทุกการประชุม`);
+      }
+      if (ai.totalActivities < ai.activeDealsCount * 2) {
+        recs.push(lang === 'en' ? 'Increase activity volume — aim for at least 2-3 touchpoints per active deal per week' : lang === 'jp' ? 'アクティビティ量を増やす — アクティブ取引あたり週2-3回を目標' : 'เพิ่มจำนวนกิจกรรม — เป้าหมายอย่างน้อย 2-3 ครั้งต่อดีลต่อสัปดาห์');
+      }
+      recs.push(lang === 'en' ? 'Schedule weekly pipeline reviews to keep deals moving and identify stalled opportunities early' : lang === 'jp' ? '毎週パイプラインレビューを実施し、停滞案件を早期に特定' : 'จัดประชุม Review Pipeline ทุกสัปดาห์เพื่อให้ดีลเดินหน้าและพบปัญหาเร็ว');
+      if (industryArr.length > 2) {
+        recs.push(lang === 'en' ? `Double down on top industry (${industryArr[0][0]}) — it has the highest deal value` : lang === 'jp' ? `トップ業界（${industryArr[0][0]}）に注力` : `เน้นอุตสาหกรรม ${industryArr[0][0]} ซึ่งมีมูลค่าดีลสูงสุด`);
+      }
+
+      insights.push(`💡 [${L('recommendations')}]\n${recs.map((r, i) => `   ${i + 1}. ${r}`).join('\n')}`);
+
+      setAiAnalysis(insights);
+      setAiLoading(false);
+    }, 1500);
+  }, [reportData, lang]);
 
   if (loading) {
     return (
@@ -286,16 +423,18 @@ export default function SalesReportPanel({
         {/* Stage Value Pie Chart */}
         <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4">
           <h3 className="font-semibold text-gray-900 mb-4">{L('valueByStage')}</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={340}>
             <PieChart>
               <Pie
                 data={pieChartData}
                 cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
+                cy="45%"
+                innerRadius={55}
+                outerRadius={95}
                 paddingAngle={2}
                 dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={{ strokeWidth: 1 }}
               >
                 {pieChartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -304,6 +443,15 @@ export default function SalesReportPanel({
               <Tooltip
                 contentStyle={tooltipConfig}
                 formatter={(value: any) => `฿${(value / 1000).toFixed(0)}K`}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                formatter={(value: string, entry: any) => {
+                  const item = pieChartData.find(d => d.name === value);
+                  return item ? `${value}: ฿${(item.value / 1000).toFixed(0)}K` : value;
+                }}
+                wrapperStyle={{ fontSize: '12px' }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -393,6 +541,98 @@ export default function SalesReportPanel({
                 </div>
               </div>
             ))
+          )}
+        </div>
+      </div>
+
+      {/* AI Analysis Section */}
+      <div className="bg-gradient-to-br from-[#003087]/5 to-[#00AEEF]/5 rounded-xl border border-[#003087]/20 overflow-hidden">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#003087] to-[#00AEEF] rounded-xl flex items-center justify-center">
+                <Brain size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{L('aiAnalysis')}</h3>
+                <p className="text-xs text-gray-500">{L('aiAnalysisDesc')}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {aiAnalysis && (
+                <button
+                  onClick={() => setAiExpanded(!aiExpanded)}
+                  className="p-1.5 rounded-lg hover:bg-white/60 text-gray-500 transition"
+                >
+                  {aiExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </button>
+              )}
+              <button
+                onClick={generateAIAnalysis}
+                disabled={aiLoading || !reportData?.aiData}
+                className="px-4 py-2 bg-gradient-to-r from-[#003087] to-[#00AEEF] hover:from-[#0040B0] hover:to-[#00BFF0] text-white rounded-lg text-sm font-medium transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {aiLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {L('analyzing')}
+                  </>
+                ) : (
+                  <>
+                    <Zap size={16} />
+                    {L('aiAnalysis')}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* AI Quick Stats */}
+          {reportData?.aiData && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="bg-white/70 rounded-lg p-3 border border-[#E2E8F0]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Target size={14} className="text-[#003087]" />
+                  <span className="text-xs text-gray-500">{L('weightedPipeline')}</span>
+                </div>
+                <p className="text-lg font-bold text-[#003087]">฿{(reportData.aiData.weightedPipeline / 1000).toFixed(0)}K</p>
+              </div>
+              <div className="bg-white/70 rounded-lg p-3 border border-[#E2E8F0]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Activity size={14} className="text-[#F7941D]" />
+                  <span className="text-xs text-gray-500">{L('avgDealAge')}</span>
+                </div>
+                <p className="text-lg font-bold text-[#F7941D]">{reportData.aiData.avgDealAge} {L('days')}</p>
+              </div>
+              <div className="bg-white/70 rounded-lg p-3 border border-[#E2E8F0]">
+                <div className="flex items-center gap-2 mb-1">
+                  <AlertCircle size={14} className="text-red-600" />
+                  <span className="text-xs text-gray-500">{L('overdueDealAlert')}</span>
+                </div>
+                <p className="text-lg font-bold text-red-600">{reportData.aiData.overdueDeals}</p>
+              </div>
+              <div className="bg-white/70 rounded-lg p-3 border border-[#E2E8F0]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users size={14} className="text-[#00AEEF]" />
+                  <span className="text-xs text-gray-500">{L('teamPerformance')}</span>
+                </div>
+                <p className="text-lg font-bold text-[#00AEEF]">{reportData.aiData.ownerStats.length} {lang === 'en' ? 'sellers' : lang === 'jp' ? '名' : 'คน'}</p>
+              </div>
+            </div>
+          )}
+
+          {/* AI Analysis Results */}
+          {aiAnalysis && aiExpanded && (
+            <div className="space-y-3 mt-3">
+              {aiAnalysis.map((insight, index) => (
+                <div
+                  key={index}
+                  className="bg-white/80 rounded-lg p-4 border border-[#E2E8F0] text-sm text-gray-800 whitespace-pre-line leading-relaxed"
+                >
+                  {insight}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

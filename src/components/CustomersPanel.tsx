@@ -314,7 +314,7 @@ export default function CustomersPanel({
         // Map activities: extract performer display_name from joined object
         setActivities((detailData.activities ?? []).map((a: any) => ({
           id: a.id,
-          type: a.activity_type || 'other',
+          type: a.activity_type || 'follow_update',
           description: a.subject || a.description || '',
           date: a.activity_date || a.created_at,
           performer: a.performer?.display_name || a.performer?.email || '',
