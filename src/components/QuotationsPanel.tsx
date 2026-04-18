@@ -499,8 +499,14 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
 
   const addItem = () => setFormItems([...formItems, { description: "", qty: 1, unit: "Set", unit_price: 0, sub_items: [], notes: "" }]);
   const removeItem = (idx: number) => setFormItems(formItems.filter((_, i) => i !== idx));
-  const updateItem = (idx: number, field: string, value: unknown) => {
-    const ni = [...formItems]; (ni[idx] as Record<string, unknown>)[field] = value; setFormItems(ni);
+  const updateItem = (idx: number, field: keyof QuotationItemForm, value: string | number | string[]) => {
+    const ni = [...formItems];
+    const item = { ...ni[idx] };
+    if (field === "description" || field === "unit" || field === "notes") item[field] = value as string;
+    else if (field === "qty" || field === "unit_price") item[field] = value as number;
+    else if (field === "sub_items") item[field] = value as string[];
+    ni[idx] = item;
+    setFormItems(ni);
   };
   const addSubItem = (idx: number) => {
     const ni = [...formItems]; ni[idx].sub_items = [...ni[idx].sub_items, ""]; setFormItems(ni);
