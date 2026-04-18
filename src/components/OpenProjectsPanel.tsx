@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Briefcase, UserPlus, Check } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Briefcase, UserPlus, Check, Clock, ChevronDown, ChevronUp, Shield, Settings, Users, X, CheckCircle, XCircle } from 'lucide-react';
 import type { Lang } from '@/lib/i18n';
 
 interface Props {
   currentUserId?: string;
   lang?: Lang;
+  userRole?: string;
 }
 
 interface OpenProject {
@@ -20,33 +21,79 @@ interface OpenProject {
   tags: string[] | null;
   member_count: number;
   already_joined: boolean;
+  application_pending: boolean;
+  is_enrollment_open: boolean;
+  open_positions: string[];
+  pm_member_id: string | null;
+  pm_name: string | null;
+  pending_applications: number;
+}
+
+interface EnrollmentApp {
+  id: string;
+  project_id: string;
+  team_member_id: string;
+  role_in_project: string;
+  status: string;
+  applied_at: string;
+  team_members: {
+    first_name_th?: string | null;
+    last_name_th?: string | null;
+    first_name_en?: string | null;
+    last_name_en?: string | null;
+    positions?: { name_th?: string | null; name_en?: string | null } | null;
+  };
 }
 
 /* ─── i18n ─── */
-const panelText: Record<string, Record<string, string>> = {
+const T: Record<string, Record<string, string>> = {
   title:           { th: 'โครงการว่าง — สมัครเข้าร่วม',  en: 'Open Projects — Join',            jp: 'オープンプロジェクト — 参加申請' },
   customer:        { th: 'ลูกค้า:',                      en: 'Customer:',                       jp: '顧客:' },
   type:            { th: 'ประเภท:',                       en: 'Type:',                           jp: '種別:' },
   status:          { th: 'สถานะ:',                        en: 'Status:',                         jp: 'ステータス:' },
-  join:            { th: 'สมัครเข้าร่วม',                  en: 'Join Project',                    jp: '参加申請' },
+  join:            { th: 'สมัครเข้าร่วม',                  en: 'Apply to Join',                   jp: '参加申請' },
   joined:          { th: 'เข้าร่วมแล้ว',                   en: 'Joined',                          jp: '参加済み' },
   pending:         { th: 'รอการอนุมัติ',                   en: 'Pending Approval',                jp: '承認待ち' },
   noProjects:      { th: 'ไม่มีโครงการที่เปิดรับ',          en: 'No open projects',                jp: 'オープンなプロジェクトはありません' },
   selectRole:      { th: 'เลือกตำแหน่ง',                  en: 'Select role',                     jp: '役割を選択' },
   members:         { th: 'สมาชิก',                        en: 'members',                         jp: 'メンバー' },
-  // status labels
-  planning:        { th: 'planning',                      en: 'planning',                        jp: 'planning' },
-  active:          { th: 'active',                        en: 'active',                          jp: 'active' },
-  on_hold:         { th: 'on hold',                       en: 'on hold',                         jp: '保留' },
+  pm:              { th: 'PM:',                           en: 'PM:',                             jp: 'PM:' },
+  noPm:            { th: 'ยังไม่มี PM',                    en: 'No PM assigned',                  jp: 'PM未割当' },
+  openPositions:   { th: 'ตำแหน่งที่เปิดรับ:',             en: 'Open positions:',                 jp: '募集中:' },
+  allPositions:    { th: 'ทุกตำแหน่ง',                    en: 'All positions',                   jp: '全ポジション' },
+  manageTitle:     { th: 'จัดการการรับสมัคร',              en: 'Manage Enrollment',               jp: '申請管理' },
+  pendingApps:     { th: 'รอดำเนินการ',                   en: 'Pending',                         jp: '保留中' },
+  approve:         { th: 'อนุมัติ',                        en: 'Approve',                         jp: '承認' },
+  reject:          { th: 'ปฏิเสธ',                        en: 'Reject',                          jp: '拒否' },
+  noApps:          { th: 'ไม่มีใบสมัครรอดำเนินการ',         en: 'No pending applications',         jp: '保留中の申請はありません' },
+  applied:         { th: 'ส่งใบสมัครแล้ว',                 en: 'Application sent!',               jp: '申請済み!' },
+  position:        { th: 'ตำแหน่ง',                        en: 'Position',                        jp: '役割' },
 };
 
-const ROLE_OPTIONS = [
+const ROLE_LABELS: Record<string, string> = {
+  developer: 'Developer',
+  tester: 'Tester',
+  designer: 'Designer',
+  project_manager: 'Project Manager',
+  pm: 'Project Manager',
+  business_analyst: 'Business Analyst',
+  system_admin: 'System Admin',
+  consultant: 'Consultant',
+  support: 'Support',
+  engineer: 'Engineer',
+  leader: 'Team Leader',
+  qa: 'QA',
+  devops: 'DevOps',
+  data_scientist: 'Data Scientist',
+};
+
+const ALL_ROLES = [
   'developer', 'tester', 'designer', 'project_manager', 'business_analyst',
-  'system_admin', 'consultant', 'support',
+  'system_admin', 'consultant', 'support', 'engineer', 'qa', 'devops', 'data_scientist',
 ];
 
-export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props) {
-  const L = (key: string) => panelText[key]?.[lang] ?? panelText[key]?.en ?? key;
+export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole = 'member' }: Props) {
+  const L = (key: string) => T[key]?.[lang] ?? T[key]?.en ?? key;
 
   const [projects, setProjects] = useState<OpenProject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,11 +101,15 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    fetchOpenProjects();
-  }, []);
+  // Management state
+  const [showManage, setShowManage] = useState(false);
+  const [manageApps, setManageApps] = useState<EnrollmentApp[]>([]);
+  const [manageProjects, setManageProjects] = useState<OpenProject[]>([]);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
-  const fetchOpenProjects = async () => {
+  const isManager = ['admin', 'manager', 'leader'].includes(userRole);
+
+  const fetchOpenProjects = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/open-projects');
@@ -71,11 +122,30 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const fetchManageData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/open-projects/manage');
+      if (res.ok) {
+        const json = await res.json();
+        setManageApps(json.applications ?? []);
+        setManageProjects(json.projects ?? []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch manage data:', error);
+    }
+  }, []);
+
+  useEffect(() => { fetchOpenProjects(); }, [fetchOpenProjects]);
+
+  useEffect(() => {
+    if (showManage) fetchManageData();
+  }, [showManage, fetchManageData]);
 
   const handleApply = async (projectId: string) => {
     const role = selectedRoles[projectId] || 'developer';
-    setApplyingIds((prev) => new Set(prev).add(projectId));
+    setApplyingIds(prev => new Set(prev).add(projectId));
     try {
       const res = await fetch('/api/open-projects/apply', {
         method: 'POST',
@@ -83,111 +153,313 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th' }: Props)
         body: JSON.stringify({ project_id: projectId, role_in_project: role }),
       });
       if (res.ok) {
-        setAppliedIds((prev) => new Set(prev).add(projectId));
+        setAppliedIds(prev => new Set(prev).add(projectId));
+        // Update project state to show pending
+        setProjects(prev => prev.map(p => p.id === projectId ? { ...p, application_pending: true } : p));
       }
     } catch (error) {
       console.error('Failed to apply:', error);
     } finally {
-      setApplyingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(projectId);
-        return next;
-      });
+      setApplyingIds(prev => { const next = new Set(prev); next.delete(projectId); return next; });
     }
   };
 
-  const getProjectName = (p: OpenProject) => {
+  const handleReviewApp = async (appId: string, action: 'approve' | 'reject') => {
+    setProcessingIds(prev => new Set(prev).add(appId));
+    try {
+      const res = await fetch('/api/open-projects/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, application_id: appId }),
+      });
+      if (res.ok) {
+        setManageApps(prev => prev.filter(a => a.id !== appId));
+        fetchOpenProjects(); // refresh counts
+      }
+    } catch (error) {
+      console.error('Review failed:', error);
+    } finally {
+      setProcessingIds(prev => { const next = new Set(prev); next.delete(appId); return next; });
+    }
+  };
+
+  const handleToggleEnrollment = async (projectId: string, isOpen: boolean) => {
+    try {
+      await fetch('/api/open-projects/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_settings', project_id: projectId, is_enrollment_open: isOpen }),
+      });
+      fetchManageData();
+      fetchOpenProjects();
+    } catch (error) {
+      console.error('Toggle enrollment failed:', error);
+    }
+  };
+
+  const getProjectName = (p: { name_th?: string | null; name_en?: string | null; name_jp?: string | null }) => {
     if (lang === 'jp' && p.name_jp) return p.name_jp;
     if (lang === 'en' && p.name_en) return p.name_en;
     return p.name_th || p.name_en || '';
   };
 
-  const getProjectType = (p: OpenProject): string => {
-    if (p.tags && p.tags.length > 0) return p.tags[0];
-    return '';
+  const getApplicantName = (a: EnrollmentApp) => {
+    const m = a.team_members;
+    return [m.first_name_th, m.last_name_th].filter(Boolean).join(' ')
+      || [m.first_name_en, m.last_name_en].filter(Boolean).join(' ') || '—';
   };
+
+  const getRolesForProject = (p: OpenProject): string[] => {
+    if (p.open_positions && p.open_positions.length > 0) return p.open_positions;
+    return ALL_ROLES;
+  };
+
+  const totalPending = projects.reduce((s, p) => s + (p.pending_applications || 0), 0);
 
   if (loading) {
     return (
-      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] p-6">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6">
         <div className="text-center text-gray-500 py-8">Loading...</div>
       </div>
     );
   }
 
-  if (projects.length === 0) return null;
+  if (projects.length === 0 && !isManager) return null;
 
   return (
     <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
-      <h3 className="text-[#003087] font-bold text-lg mb-4 flex items-center gap-2">
-        <Briefcase size={20} />
-        {L('title')}
-      </h3>
-
-      <div className="flex gap-4 overflow-x-auto pb-2">
-        {projects.map((p) => {
-          const applied = appliedIds.has(p.id) || p.already_joined;
-          const applying = applyingIds.has(p.id);
-          const projectType = getProjectType(p);
-
-          return (
-            <div
-              key={p.id}
-              className="flex-shrink-0 bg-white rounded-xl p-4 shadow-md"
-              style={{ minWidth: 280, maxWidth: 300 }}
-            >
-              <h4 className="font-bold text-gray-900 text-sm leading-tight mb-3">
-                {getProjectName(p)}
-              </h4>
-
-              <div className="space-y-1 text-xs text-gray-600 mb-4">
-                {p.client_name && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">{L('customer')}</span>
-                    <span className="font-medium text-gray-800 text-right">{p.client_name}</span>
-                  </div>
-                )}
-                {projectType && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">{L('type')}</span>
-                    <span className="font-medium text-gray-800">{projectType}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-500">{L('status')}</span>
-                  <span className="font-medium text-gray-800">{p.status}</span>
-                </div>
-              </div>
-
-              {applied ? (
-                <div className="flex items-center justify-center gap-2 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
-                  <Check size={14} />
-                  {L('joined')}
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <select
-                    value={selectedRoles[p.id] || 'developer'}
-                    onChange={(e) => setSelectedRoles({ ...selectedRoles, [p.id]: e.target.value })}
-                    className="flex-1 bg-white border border-gray-300 rounded-lg px-2 py-2 text-gray-800 text-xs focus:ring-2 focus:ring-[#003087]"
-                  >
-                    {ROLE_OPTIONS.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => handleApply(p.id)}
-                    disabled={applying}
-                    className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50"
-                  >
-                    {applying ? '...' : L('join')}
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[#003087] font-bold text-lg flex items-center gap-2">
+          <Briefcase size={20} />
+          {L('title')}
+        </h3>
+        {isManager && (
+          <button
+            onClick={() => setShowManage(!showManage)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#003087] text-white rounded-lg text-xs font-medium hover:bg-[#002266] transition-colors"
+          >
+            <Settings size={14} />
+            {L('manageTitle')}
+            {totalPending > 0 && (
+              <span className="ml-1 bg-orange-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold">{totalPending}</span>
+            )}
+            {showManage ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        )}
       </div>
+
+      {/* Management Panel */}
+      {showManage && isManager && (
+        <div className="mb-5 bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-4">
+          {/* Pending Applications */}
+          <div>
+            <h4 className="text-sm font-bold text-[#003087] mb-2 flex items-center gap-1.5">
+              <Users size={14} />
+              {L('pendingApps')} ({manageApps.length})
+            </h4>
+            {manageApps.length === 0 ? (
+              <p className="text-xs text-gray-500">{L('noApps')}</p>
+            ) : (
+              <div className="space-y-2">
+                {manageApps.map(app => {
+                  const proj = manageProjects.find(p => p.id === app.project_id);
+                  const isProcessing = processingIds.has(app.id);
+                  return (
+                    <div key={app.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-blue-100 text-sm">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-gray-900">{getApplicantName(app)}</span>
+                        {app.team_members.positions && (
+                          <span className="text-gray-400 text-xs ml-1">
+                            ({lang === 'th' ? app.team_members.positions.name_th : app.team_members.positions.name_en})
+                          </span>
+                        )}
+                        <span className="text-gray-500 mx-1.5">&rarr;</span>
+                        <span className="text-[#003087] font-medium">
+                          {proj ? (proj.project_code ? `[${proj.project_code}] ` : '') + getProjectName(proj) : app.project_id.slice(0, 8)}
+                        </span>
+                        <span className="ml-2 inline-block bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">
+                          {ROLE_LABELS[app.role_in_project] || app.role_in_project}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
+                        <button
+                          onClick={() => handleReviewApp(app.id, 'approve')}
+                          disabled={isProcessing}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                        >
+                          <CheckCircle size={12} /> {L('approve')}
+                        </button>
+                        <button
+                          onClick={() => handleReviewApp(app.id, 'reject')}
+                          disabled={isProcessing}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-red-500 text-white rounded-md text-xs font-medium hover:bg-red-600 disabled:opacity-50"
+                        >
+                          <XCircle size={12} /> {L('reject')}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Enrollment Settings per project */}
+          <div>
+            <h4 className="text-sm font-bold text-[#003087] mb-2 flex items-center gap-1.5">
+              <Settings size={14} />
+              {lang === 'th' ? 'ตั้งค่าการรับสมัคร' : 'Enrollment Settings'}
+            </h4>
+            <div className="space-y-1.5">
+              {manageProjects.map(p => (
+                <div key={p.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-blue-100 text-xs">
+                  <span className="font-medium text-gray-800 truncate flex-1 mr-2">
+                    {p.project_code ? `[${p.project_code}] ` : ''}{getProjectName(p)}
+                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {p.pm_member_id && (
+                      <span className="text-blue-600 text-[10px] bg-blue-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                        <Shield size={10} /> PM
+                      </span>
+                    )}
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <span className={p.is_enrollment_open ? 'text-green-600' : 'text-gray-400'}>
+                        {p.is_enrollment_open ? (lang === 'th' ? 'เปิดรับ' : 'Open') : (lang === 'th' ? 'ปิดรับ' : 'Closed')}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={p.is_enrollment_open}
+                        onChange={(e) => handleToggleEnrollment(p.id, e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-[#003087] focus:ring-[#003087]"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Project Cards */}
+      {projects.length === 0 ? (
+        <p className="text-center text-gray-400 text-sm py-4">{L('noProjects')}</p>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {projects.map((p) => {
+            const applied = appliedIds.has(p.id) || p.already_joined;
+            const isPending = p.application_pending && !applied;
+            const applying = applyingIds.has(p.id);
+            const projectType = p.tags && p.tags.length > 0 ? p.tags[0] : '';
+            const roles = getRolesForProject(p);
+
+            return (
+              <div
+                key={p.id}
+                className="flex-shrink-0 bg-white rounded-xl p-4 shadow-md border border-gray-100"
+                style={{ minWidth: 290, maxWidth: 320 }}
+              >
+                {/* Project Code Badge */}
+                {p.project_code && (
+                  <span className="inline-block bg-[#003087]/10 text-[#003087] text-[10px] font-bold px-2 py-0.5 rounded mb-2">
+                    {p.project_code}
+                  </span>
+                )}
+
+                <h4 className="font-bold text-gray-900 text-sm leading-tight mb-2">
+                  {getProjectName(p)}
+                </h4>
+
+                <div className="space-y-1 text-xs text-gray-600 mb-3">
+                  {p.client_name && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">{L('customer')}</span>
+                      <span className="font-medium text-gray-800 text-right">{p.client_name}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">{L('status')}</span>
+                    <span className={`font-medium px-1.5 py-0.5 rounded text-[10px] ${
+                      p.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>{p.status}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">{L('members')}</span>
+                    <span className="font-medium text-gray-800">{p.member_count}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">{L('pm')}</span>
+                    <span className={`font-medium ${p.pm_name ? 'text-[#003087]' : 'text-gray-400 italic'}`}>
+                      {p.pm_name || L('noPm')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Open Positions Tags */}
+                {p.open_positions && p.open_positions.length > 0 ? (
+                  <div className="mb-3">
+                    <span className="text-[10px] text-gray-500 block mb-1">{L('openPositions')}</span>
+                    <div className="flex flex-wrap gap-1">
+                      {p.open_positions.map(pos => (
+                        <span key={pos} className="bg-[#00AEEF]/10 text-[#00AEEF] text-[10px] px-1.5 py-0.5 rounded font-medium">
+                          {ROLE_LABELS[pos] || pos}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-3">
+                    <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded">{L('allPositions')}</span>
+                  </div>
+                )}
+
+                {/* Action area */}
+                {applied ? (
+                  <div className="flex items-center justify-center gap-2 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
+                    <Check size={14} />
+                    {L('joined')}
+                  </div>
+                ) : isPending ? (
+                  <div className="flex items-center justify-center gap-2 py-2 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium">
+                    <Clock size={14} />
+                    {L('pending')}
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedRoles[p.id] || roles[0] || 'developer'}
+                      onChange={(e) => setSelectedRoles({ ...selectedRoles, [p.id]: e.target.value })}
+                      className="flex-1 bg-white border border-gray-300 rounded-lg px-2 py-2 text-gray-800 text-xs focus:ring-2 focus:ring-[#003087]"
+                    >
+                      {roles.map(r => (
+                        <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => handleApply(p.id)}
+                      disabled={applying}
+                      className="px-3 py-2 bg-[#F7941D] hover:bg-[#e0850f] text-white rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <UserPlus size={12} />
+                      {applying ? '...' : L('join')}
+                    </button>
+                  </div>
+                )}
+
+                {/* Pending count for managers */}
+                {isManager && p.pending_applications > 0 && (
+                  <div className="mt-2 text-center">
+                    <span className="text-[10px] text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full font-medium">
+                      {p.pending_applications} {L('pendingApps')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

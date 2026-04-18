@@ -646,8 +646,8 @@ export default function App() {
   );
   const SalesReportPage = () => (
     <div className="space-y-6">
-      <SalesReportPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+      <SalesReportPanel
+        refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 

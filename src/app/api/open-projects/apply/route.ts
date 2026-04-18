@@ -4,7 +4,7 @@ import { getAuthContext } from "@/lib/auth-server";
 
 /**
  * POST /api/open-projects/apply
- * Allows a user to self-enroll into a project with a specified role.
+ * Creates an enrollment application (pending approval).
  * Body: { project_id: string, role_in_project: string }
  */
 export async function POST(request: NextRequest) {
@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "project_id is required" }, { status: 400 });
     }
 
-    // Verify the project exists and is not archived
+    // Verify project exists, is open for enrollment, and not archived
     const { data: project } = await supabaseAdmin
       .from("projects")
-      .select("id, status")
+      .select("id, status, is_enrollment_open, open_positions, pm_member_id, project_code, name_th, name_en")
       .eq("id", project_id)
       .eq("is_archived", false)
       .maybeSingle();
@@ -30,15 +30,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    if (!project.is_enrollment_open) {
+      return NextResponse.json({ error: "Project is not open for enrollment" }, { status: 400 });
+    }
+
+    // Check if position is allowed (if open_positions is specified)
+    const role = role_in_project || "developer";
+    if (project.open_positions && project.open_positions.length > 0) {
+      if (!project.open_positions.includes(role)) {
+        return NextResponse.json({ error: "This position is not open for enrollment" }, { status: 400 });
+      }
+    }
+
     // Get the user's team_member_id
     const { data: tm } = await supabaseAdmin
       .from("team_members")
-      .select("id")
+      .select("id, first_name_th, last_name_th, first_name_en, last_name_en")
       .eq("user_id", ctx.userId)
       .maybeSingle();
 
     if (!tm) {
-      return NextResponse.json({ error: "No team member profile found for this user" }, { status: 400 });
+      return NextResponse.json({ error: "No team member profile found" }, { status: 400 });
     }
 
     // Check if already joined
@@ -54,18 +66,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Already joined this project" }, { status: 409 });
     }
 
-    // Insert allocation
-    const today = new Date().toISOString().split("T")[0];
-    const { data: allocation, error } = await supabaseAdmin
-      .from("project_members")
+    // Check if already has pending application
+    const { data: pendingApp } = await supabaseAdmin
+      .from("enrollment_applications")
+      .select("id")
+      .eq("project_id", project_id)
+      .eq("team_member_id", tm.id)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (pendingApp) {
+      return NextResponse.json({ error: "Already have a pending application" }, { status: 409 });
+    }
+
+    // Create enrollment application
+    const { data: application, error } = await supabaseAdmin
+      .from("enrollment_applications")
       .insert({
         project_id,
         team_member_id: tm.id,
-        allocation_pct: 0, // Will be adjusted by manager
-        role_in_project: role_in_project || "developer",
-        start_date: today,
-        is_active: true,
-        notes: "[SELF-ENROLLED]",
+        role_in_project: role,
+        status: "pending",
       })
       .select()
       .single();
@@ -74,7 +95,49 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ allocation }, { status: 201 });
+    // Build names for notification
+    const memberName = [tm.first_name_th, tm.last_name_th].filter(Boolean).join(" ")
+      || [tm.first_name_en, tm.last_name_en].filter(Boolean).join(" ") || "Unknown";
+    const projName = (project.project_code ? `[${project.project_code}] ` : "") + (project.name_th || project.name_en || "");
+
+    // Notify PM (if assigned) or admin/manager/leader
+    try {
+      const notifyUserIds: string[] = [];
+
+      if (project.pm_member_id) {
+        // Get PM's user_id
+        const { data: pmMember } = await supabaseAdmin
+          .from("team_members")
+          .select("user_id")
+          .eq("id", project.pm_member_id)
+          .maybeSingle();
+        if (pmMember?.user_id) {
+          notifyUserIds.push(pmMember.user_id);
+        }
+      } else {
+        // No PM — notify admin/manager/leader
+        const { data: managers } = await supabaseAdmin
+          .from("app_users")
+          .select("id")
+          .in("role", ["admin", "manager", "leader"]);
+        (managers ?? []).forEach(u => notifyUserIds.push(u.id));
+      }
+
+      if (notifyUserIds.length > 0) {
+        await supabaseAdmin.from("notifications").insert(
+          notifyUserIds.map(uid => ({
+            user_id: uid,
+            title: "\u0e21\u0e35\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21\u0e42\u0e04\u0e23\u0e07\u0e01\u0e32\u0e23",
+            message: `${memberName} \u0e2a\u0e21\u0e31\u0e04\u0e23\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21 ${projName} (\u0e15\u0e33\u0e41\u0e2b\u0e19\u0e48\u0e07: ${role}) \u0e23\u0e2d\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34`,
+            type: "project_enrollment",
+            link: `/allocation`,
+            is_read: false,
+          }))
+        );
+      }
+    } catch (_) { /* non-critical */ }
+
+    return NextResponse.json({ application }, { status: 201 });
   } catch (err) {
     console.error("Apply to project error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

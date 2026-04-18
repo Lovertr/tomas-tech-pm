@@ -28,6 +28,23 @@ interface Props {
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
+const ROLE_OPTIONS = [
+  { value: "pm", label: "Project Manager" },
+  { value: "developer", label: "Developer" },
+  { value: "tester", label: "Tester" },
+  { value: "engineer", label: "Engineer" },
+  { value: "support", label: "Support" },
+  { value: "leader", label: "Team Leader" },
+  { value: "designer", label: "Designer" },
+  { value: "qa", label: "QA" },
+  { value: "business_analyst", label: "Business Analyst" },
+  { value: "consultant", label: "Consultant" },
+  { value: "system_admin", label: "System Admin" },
+  { value: "devops", label: "DevOps" },
+  { value: "data_scientist", label: "Data Scientist" },
+  { value: "other", label: "อื่นๆ (Other)" },
+];
+
 export default function AllocationModal({ open, onClose, onSave, initial, projects, members }: Props) {
   const [form, setForm] = useState<AllocationFormValue>({
     project_id: "", team_member_id: "", allocation_pct: 100,
@@ -35,16 +52,20 @@ export default function AllocationModal({ open, onClose, onSave, initial, projec
   });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [useCustomRole, setUseCustomRole] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setErr(null);
+    const initRole = initial?.role_in_project ?? null;
+    const isCustom = initRole ? !ROLE_OPTIONS.some(r => r.value === initRole) : false;
+    setUseCustomRole(isCustom);
     setForm({
       id: initial?.id,
       project_id: initial?.project_id ?? "",
       team_member_id: initial?.team_member_id ?? "",
       allocation_pct: initial?.allocation_pct ?? 100,
-      role_in_project: initial?.role_in_project ?? null,
+      role_in_project: initRole,
       start_date: initial?.start_date ?? todayISO(),
       end_date: initial?.end_date ?? null,
       notes: initial?.notes ?? null,
@@ -119,9 +140,33 @@ export default function AllocationModal({ open, onClose, onSave, initial, projec
 
         <div>
           <label className={fieldLabel}>Role in Project</label>
-          <input type="text" className={fieldInput} placeholder="เช่น Lead Engineer, PM, QA"
-            value={form.role_in_project ?? ""}
-            onChange={(e) => setForm({ ...form, role_in_project: e.target.value || null })} />
+          {useCustomRole ? (
+            <div className="flex gap-2">
+              <input type="text" className={fieldInput} placeholder="ระบุบทบาท..."
+                value={form.role_in_project ?? ""}
+                onChange={(e) => setForm({ ...form, role_in_project: e.target.value || null })} />
+              <button type="button" className="px-3 py-2 text-xs rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 whitespace-nowrap"
+                onClick={() => { setUseCustomRole(false); setForm({ ...form, role_in_project: null }); }}>
+                เลือกจากรายการ
+              </button>
+            </div>
+          ) : (
+            <select className={fieldInput}
+              value={ROLE_OPTIONS.some(r => r.value === form.role_in_project) ? (form.role_in_project ?? "") : ""}
+              onChange={(e) => {
+                if (e.target.value === "other") {
+                  setUseCustomRole(true);
+                  setForm({ ...form, role_in_project: "" });
+                } else {
+                  setForm({ ...form, role_in_project: e.target.value || null });
+                }
+              }}>
+              <option value="">— เลือก Role —</option>
+              {ROLE_OPTIONS.map(r => (
+                <option key={r.value} value={r.value}>{r.label}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div>
