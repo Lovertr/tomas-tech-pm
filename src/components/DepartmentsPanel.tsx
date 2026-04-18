@@ -281,7 +281,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
         </div>
         {canManage && (
           <button onClick={openAdd}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2">
+            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
             <Plus size={16} /> {L('add_button')}
           </button>
         )}
@@ -403,7 +403,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
               <button onClick={() => setShowForm(false)}
                 className="px-4 py-2 text-sm text-slate-600 hover:text-gray-900">{L('form_cancel')}</button>
               <button onClick={saveDept}
-                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2">
+                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2">
                 <Save size={14} /> {editingId ? L('form_update') : L('form_create')}
               </button>
             </div>

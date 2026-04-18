@@ -104,13 +104,13 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
               <Section title="ผู้เข้าร่วม" icon={Users}>
                 <div className="flex flex-wrap gap-1.5">
                   {n.attendees.map((a, i) => (
-                    <span key={i} className="text-xs bg-[#F1F5F9] border border-gray-300 rounded-full px-2 py-0.5 text-gray-500">{a}</span>
+                    <span key={i} className="text-xs bg-[#F1F5F9] border border-gray-300 rounded-full px-2 py-0.5 text-gray-700">{a}</span>
                   ))}
                 </div>
               </Section>
             )}
-            {n.agenda && <Section title="Agenda" icon={FileText}><div className="text-sm text-gray-500 whitespace-pre-wrap">{n.agenda}</div><TranslateButton text={n.agenda} /></Section>}
-            {n.notes && <Section title="บันทึกการประชุม" icon={FileText}><div className="text-sm text-gray-500 whitespace-pre-wrap">{n.notes}</div><TranslateButton text={n.notes} /></Section>}
+            {n.agenda && <Section title="Agenda" icon={FileText}><div className="text-sm text-gray-800 whitespace-pre-wrap">{n.agenda}</div><TranslateButton text={n.agenda} /></Section>}
+            {n.notes && <Section title="บันทึกการประชุม" icon={FileText}><div className="text-sm text-gray-800 whitespace-pre-wrap">{n.notes}</div><TranslateButton text={n.notes} /></Section>}
             {ai.length > 0 && (
               <Section title="Action Items" icon={ListChecks}>
                 <div className="space-y-1">
@@ -446,7 +446,7 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
           {form.attendees && form.attendees.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {form.attendees.map((a, i) => (
-                <span key={i} className="text-xs bg-[#F1F5F9] border border-gray-300 rounded-full pl-2 pr-1 py-0.5 text-gray-500 flex items-center gap-1">
+                <span key={i} className="text-xs bg-[#F1F5F9] border border-gray-300 rounded-full pl-2 pr-1 py-0.5 text-gray-700 flex items-center gap-1">
                   {a} <button onClick={() => removeAttendee(i)} className="text-red-600"><X size={10} /></button>
                 </span>
               ))}
@@ -479,7 +479,7 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
 
             <span className="text-gray-600 text-xs">หรือ</span>
 
-            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200/50 border border-gray-300 text-gray-500 hover:bg-slate-200 text-xs font-medium cursor-pointer">
+            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200/50 border border-gray-300 text-gray-700 hover:bg-slate-200 text-xs font-medium cursor-pointer">
               <Upload size={14} /> อัปโหลดไฟล์เสียง
               <input type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} />
             </label>

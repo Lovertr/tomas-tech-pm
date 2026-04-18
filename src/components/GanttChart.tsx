@@ -22,7 +22,6 @@ type Zoom = "day" | "week" | "month";
 const PX_PER_UNIT: Record<Zoom, number> = { day: 32, week: 18, month: 6 };
 const ROW_H = 36;
 const HEADER_H = 48;
-const LEFT_W = 260;
 
 const dayDiff = (a: Date, b: Date) => Math.round((a.getTime() - b.getTime()) / 86400000);
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -38,6 +37,14 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
   const [data, setData] = useState<{ project: Project | null; tasks: GTask[]; milestones: Milestone[]; dependencies: Dep[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [zoom, setZoom] = useState<Zoom>("week");
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  const LEFT_W = isMobile ? 120 : 260;
   const [hoverTask, setHoverTask] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -170,23 +177,23 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
   return (
     <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar size={16} className="text-[#00AEEF]" />
-          <span className="font-semibold text-gray-900">{data.project?.name_th || data.project?.name_en}</span>
-          <span className="text-xs text-gray-600">({data.project?.project_code})</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-300 gap-2">
+        <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+          <Calendar size={16} className="text-[#00AEEF] shrink-0" />
+          <span className="font-semibold text-gray-900 truncate">{data.project?.name_th || data.project?.name_en}</span>
+          <span className="text-xs text-gray-600 shrink-0">({data.project?.project_code})</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-gray-50 rounded-lg p-0.5 sm:p-1">
             {(["day", "week", "month"] as Zoom[]).map(z => (
               <button key={z} onClick={() => setZoom(z)}
-                className={`px-2.5 py-1 text-xs rounded ${zoom === z ? "bg-blue-600 text-gray-900" : "text-gray-500 hover:text-gray-900"}`}>
+                className={`px-2 sm:px-2.5 py-1 text-xs rounded ${zoom === z ? "bg-blue-600 text-white" : "text-gray-500 hover:text-gray-900"}`}>
                 {z === "day" ? "วัน" : z === "week" ? "สัปดาห์" : "เดือน"}
               </button>
             ))}
           </div>
-          <button onClick={() => setZoom(z => z === "month" ? "week" : "day")} className="p-1.5 text-gray-500 hover:text-gray-900" title="Zoom in"><ZoomIn size={16} /></button>
-          <button onClick={() => setZoom(z => z === "day" ? "week" : "month")} className="p-1.5 text-gray-500 hover:text-gray-900" title="Zoom out"><ZoomOut size={16} /></button>
+          <button onClick={() => setZoom(z => z === "month" ? "week" : "day")} className="p-1 sm:p-1.5 text-gray-500 hover:text-gray-900" title="Zoom in"><ZoomIn size={16} /></button>
+          <button onClick={() => setZoom(z => z === "day" ? "week" : "month")} className="p-1 sm:p-1.5 text-gray-500 hover:text-gray-900" title="Zoom out"><ZoomOut size={16} /></button>
         </div>
       </div>
 

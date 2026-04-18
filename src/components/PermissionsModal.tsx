@@ -212,7 +212,7 @@ export default function PermissionsModal({ user, open, onClose, onSaved }: Props
           <div className="flex items-center gap-2">
             <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">ยกเลิก</button>
             <button onClick={save} disabled={saving || !dirty}
-              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
+              className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
               <Save size={14} /> {saving ? "กำลังบันทึก..." : "บันทึกสิทธิ์"}
             </button>
           </div>

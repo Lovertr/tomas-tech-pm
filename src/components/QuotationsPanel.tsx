@@ -179,7 +179,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
         {canManage && (
           <button
             onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2"
+            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
             <Plus size={16} /> {L("createQuotation")}
           </button>
@@ -577,7 +577,7 @@ function CreateQuotationModal({
           <button
             onClick={submit}
             disabled={busy}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
             {busy ? L("creating") : L("create")}
           </button>

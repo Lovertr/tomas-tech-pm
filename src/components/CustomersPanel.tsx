@@ -187,6 +187,8 @@ export default function CustomersPanel({
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [customerProjects, setCustomerProjects] = useState<{ id: string; project_code?: string; name_th?: string; name_en?: string; status?: string; budget_limit?: number }[]>([]);
+  const [customerQuotations, setCustomerQuotations] = useState<{ id: string; quotation_number?: string; title?: string; total_amount?: number; status?: string; created_at?: string }[]>([]);
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -315,6 +317,9 @@ export default function CustomersPanel({
           date: a.activity_date || a.created_at,
           performer: a.performer?.display_name || a.performer?.email || '',
         })));
+        // Set projects & quotations
+        setCustomerProjects(detailData.projects ?? []);
+        setCustomerQuotations(detailData.quotations ?? []);
       }
 
       // Fetch comments
@@ -328,6 +333,8 @@ export default function CustomersPanel({
           created_at: c.created_at,
         })));
       }
+
+      // Projects & quotations already set above from detailData
     } catch (error) {
       console.error('Failed to fetch customer detail:', error);
     } finally {
@@ -1144,12 +1151,82 @@ export default function CustomersPanel({
                   )}
                 </div>
               ) : detailTab === 'projects' ? (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <FileCheck size={20} className="text-[#003087]" />
-                    {L('projects', lang)}
-                  </h3>
-                  <p className="text-gray-500">{L('noProjects', lang)}</p>
+                <div className="space-y-6">
+                  {/* Projects Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Briefcase size={20} className="text-[#003087]" />
+                      {lang === 'th' ? 'โปรเจค' : lang === 'jp' ? 'プロジェクト' : 'Projects'}
+                    </h3>
+                    {customerProjects.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{lang === 'th' ? 'ไม่มีโปรเจค' : 'No projects'}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {customerProjects.map((p: any) => (
+                          <div key={p.id} className="bg-white border border-[#E2E8F0] rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => {
+                              // Navigate to project — close drawer and user can find it in sidebar
+                              setShowDetail(false);
+                            }}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  {p.project_code && <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{p.project_code}</span>}
+                                  <span className={`text-xs px-2 py-0.5 rounded ${p.status === 'active' || p.status === 'in_progress' ? 'bg-green-50 text-green-700' : p.status === 'completed' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    {p.status || 'planning'}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-900">{p.name_th || p.name_en || 'Untitled'}</p>
+                              </div>
+                              {p.budget_limit > 0 && (
+                                <span className="text-sm font-bold text-[#003087]">
+                                  {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(p.budget_limit)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quotations Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <FileCheck size={20} className="text-[#F7941D]" />
+                      {lang === 'th' ? 'ใบเสนอราคา' : lang === 'jp' ? '見積書' : 'Quotations'}
+                    </h3>
+                    {customerQuotations.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{lang === 'th' ? 'ไม่มีใบเสนอราคา' : 'No quotations'}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {customerQuotations.map((q: any) => (
+                          <div key={q.id} className="bg-white border border-[#E2E8F0] rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => {
+                              setShowDetail(false);
+                            }}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  {q.quotation_number && <span className="text-xs font-mono bg-orange-50 text-orange-700 px-2 py-0.5 rounded">{q.quotation_number}</span>}
+                                  <span className={`text-xs px-2 py-0.5 rounded ${q.status === 'accepted' ? 'bg-green-50 text-green-700' : q.status === 'rejected' ? 'bg-red-50 text-red-700' : q.status === 'sent' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    {q.status || 'draft'}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-900">{q.title || q.quotation_number || 'Untitled'}</p>
+                                {q.created_at && <p className="text-xs text-gray-500 mt-1">{new Date(q.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>}
+                              </div>
+                              {q.total_amount > 0 && (
+                                <span className="text-sm font-bold text-[#F7941D]">
+                                  {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(q.total_amount)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div>

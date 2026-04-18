@@ -409,7 +409,7 @@ export default function DealsPipelinePanel({
                               <Edit2 size={10} /> {lang === 'th' ? 'แก้ไข' : lang === 'jp' ? '編集' : 'Edit'}
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }}
-                              className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-gray-900 rounded text-xs flex items-center justify-center gap-1">
+                              className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs flex items-center justify-center gap-1">
                               <Trash2 size={10} /> {lang === 'th' ? 'ลบ' : lang === 'jp' ? '削除' : 'Del'}
                             </button>
                           </div>

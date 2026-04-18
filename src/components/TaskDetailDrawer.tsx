@@ -406,7 +406,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   placeholder="เพิ่มรายการ..." value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addChecklist()} />
-                <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm">
+                <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm">
                   <Plus size={16} />
                 </button>
               </div>
@@ -446,7 +446,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                     <select className={inp + " flex-1"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
                       {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
-                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
+                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
                   </div>
                 </div>
               </div>

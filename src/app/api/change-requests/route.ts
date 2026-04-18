@@ -31,5 +31,22 @@ export async function POST(req: NextRequest) {
     impact_budget: b.impact_budget || null, requested_by: b.requested_by || null, status: "pending",
   }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Auto-create a Decision Log entry for this CR
+  try {
+    const crCode = data.cr_code || data.id.slice(0, 8);
+    await supabaseAdmin.from("decisions").insert({
+      project_id: b.project_id,
+      title: `[CR] ${b.title}`,
+      context: `Change Request ${crCode}: ${b.description || b.title}\n\nผลกระทบ: ${b.impact_scope || '-'}\nกระทบวัน: ${b.impact_schedule_days || 0} วัน\nกระทบงบ: ${b.impact_budget || 0} บาท`,
+      decision: null,
+      rationale: null,
+      decided_by: null,
+      decided_at: null,
+    });
+  } catch (e) {
+    console.error("Auto-create decision log failed:", e);
+  }
+
   return NextResponse.json({ item: data }, { status: 201 });
 }

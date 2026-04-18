@@ -135,7 +135,7 @@ export default function MilestonesPanel({ projects, filterProjectId = "all", can
           <Stat label="เสร็จแล้ว" value={groups.completed.length} color="#22C55E" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-blue-600 hover:bg-[#0040B0] text-gray-900 rounded-xl text-sm font-medium flex items-center gap-2">
+          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-blue-600 hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
             <Plus size={16} /> เพิ่ม Milestone
           </button>
         )}
@@ -237,7 +237,7 @@ function MilestoneModal({ initial, projects, defaultProjectId, onClose, onSaved 
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-[#0040B0] text-gray-900 rounded-lg text-sm disabled:opacity-50">
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-blue-600 hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </div>

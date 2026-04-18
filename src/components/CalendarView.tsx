@@ -72,17 +72,17 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
   return (
     <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-3 border-b border-gray-300 gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="p-1.5 text-gray-500 hover:text-gray-900"><ChevronLeft size={18} /></button>
-          <h2 className="text-lg font-semibold text-gray-900 min-w-40 text-center">{monthLabel}</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 min-w-32 sm:min-w-40 text-center">{monthLabel}</h2>
           <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="p-1.5 text-gray-500 hover:text-gray-900"><ChevronRight size={18} /></button>
-          <button onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); }} className="ml-2 px-3 py-1 text-xs bg-gray-50 text-gray-600 hover:text-gray-900 rounded-lg border border-gray-300">วันนี้</button>
+          <button onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); }} className="ml-1 sm:ml-2 px-2 sm:px-3 py-1 text-xs bg-gray-50 text-gray-600 hover:text-gray-900 rounded-lg border border-gray-300">วันนี้</button>
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500">
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-600" /> Task</span>
-          <span className="flex items-center gap-1"><Flag size={11} className="text-orange-600" /> Milestone</span>
-          <span className="flex items-center gap-1"><CalIcon size={11} className="text-purple-600" /> Meeting</span>
+          <span className="flex items-center gap-1"><Flag size={11} className="text-orange-600" /> Mil</span>
+          <span className="flex items-center gap-1"><CalIcon size={11} className="text-purple-600" /> Meet</span>
         </div>
       </div>
 
@@ -96,19 +96,21 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
       {/* Grid */}
       <div className="grid grid-cols-7 auto-rows-fr">
         {grid.map((c, i) => {
-          if (!c.date) return <div key={i} className="border-b border-r border-gray-300 bg-gray-50 min-h-24" />;
+          if (!c.date) return <div key={i} className="border-b border-r border-gray-300 bg-gray-50 min-h-16 sm:min-h-24" />;
           const k = dayKey(c.date);
           const ev = eventsByDay.get(k);
           const isToday = c.date.getTime() === today.getTime();
           const isSel = selected === k;
           const dow = c.date.getDay();
+          const totalEv = ev ? ev.tasks.length + ev.milestones.length + ev.meetings.length : 0;
           return (
             <div key={i} onClick={() => setSelected(k)}
-              className={`border-b border-r border-gray-300 min-h-24 p-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${isSel ? "bg-blue-100 ring-1 ring-blue-500" : ""}`}>
-              <div className={`text-xs font-medium mb-1 ${isToday ? "inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-gray-900" : dow === 0 ? "text-red-600" : dow === 6 ? "text-blue-600" : "text-gray-600"}`}>
+              className={`border-b border-r border-gray-300 min-h-16 sm:min-h-24 p-1 sm:p-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${isSel ? "bg-blue-100 ring-1 ring-blue-500" : ""}`}>
+              <div className={`text-xs font-medium mb-0.5 sm:mb-1 ${isToday ? "inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-white" : dow === 0 ? "text-red-600" : dow === 6 ? "text-blue-600" : "text-gray-600"}`}>
                 {c.date.getDate()}
               </div>
-              <div className="space-y-0.5">
+              {/* Mobile: show dots only. Desktop: show event names */}
+              <div className="hidden sm:block space-y-0.5">
                 {ev?.milestones.slice(0, 2).map(m => (
                   <div key={m.id} className="flex items-center gap-1 text-[10px] text-orange-600 truncate">
                     <Flag size={9} /> {m.title}
@@ -126,8 +128,23 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
                     {t.title}
                   </div>
                 ))}
-                {ev && (ev.tasks.length + ev.milestones.length + ev.meetings.length) > 5 && (
-                  <div className="text-[10px] text-gray-600">+{(ev.tasks.length + ev.milestones.length + ev.meetings.length) - 5} more</div>
+                {totalEv > 5 && (
+                  <div className="text-[10px] text-gray-600">+{totalEv - 5} more</div>
+                )}
+              </div>
+              {/* Mobile: compact dot indicators */}
+              <div className="flex flex-wrap gap-0.5 sm:hidden">
+                {ev?.milestones.slice(0, 2).map(m => (
+                  <span key={m.id} className="w-2 h-2 rounded-full bg-orange-500" />
+                ))}
+                {ev?.meetings.slice(0, 2).map(m => (
+                  <span key={m.id} className="w-2 h-2 rounded-full bg-purple-500" />
+                ))}
+                {ev?.tasks.slice(0, 3).map(t => (
+                  <span key={t.id} className={`w-2 h-2 rounded-full ${PRIO_DOT[t.priority] || "bg-slate-400"}`} />
+                ))}
+                {totalEv > 5 && (
+                  <span className="text-[8px] text-gray-500">+{totalEv - 5}</span>
                 )}
               </div>
             </div>
