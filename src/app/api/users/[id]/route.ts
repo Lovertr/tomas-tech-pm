@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireAdmin, requireManager } from "@/lib/auth-server";
 
-// PATCH /api/users/[id] - update a user (admin only)
+// PATCH /api/users/[id] - update a user (admin or manager)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const ctx = await requireAdmin(request);
+  const ctx = await requireManager(request);
   if ("error" in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }
@@ -62,12 +62,12 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/users/[id] - delete a user (admin only, cannot delete self or admin)
+// DELETE /api/users/[id] - delete a user (admin or manager, cannot delete self or admin)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const ctx = await requireAdmin(request);
+  const ctx = await requireManager(request);
   if ("error" in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }

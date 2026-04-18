@@ -638,7 +638,7 @@ export default function App() {
   // ── DEPARTMENTS ──
   const DepartmentsPage = () => (
     <div className="space-y-6">
-      <DepartmentsPanel canManage={isAdmin} lang={lang} />
+      <DepartmentsPanel canManage={isAdmin} lang={lang} currentUserId={currentUser?.id ?? ''} currentUserRole={currentUser?.role ?? 'member'} currentUserDeptHeadOf={null} />
     </div>
   );
 

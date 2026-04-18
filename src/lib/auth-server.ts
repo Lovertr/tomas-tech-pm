@@ -56,6 +56,17 @@ export async function requireAdmin(
   return ctx;
 }
 
+/** Require admin or manager role. */
+export async function requireManager(
+  request: NextRequest
+): Promise<AuthContext | { error: string; status: number }> {
+  const ctx = await getAuthContext(request);
+  if (!ctx) return { error: "Unauthorized", status: 401 };
+  if (ctx.role !== "admin" && ctx.role !== "manager")
+    return { error: "Forbidden: Manager access required", status: 403 };
+  return ctx;
+}
+
 /**
  * For role=member, return the list of project IDs they can access:
  *   - projects they're allocated to via project_members

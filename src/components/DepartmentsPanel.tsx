@@ -3,7 +3,7 @@ import type { Lang } from '@/lib/i18n';
 import { useEffect, useState, useCallback } from "react";
 import {
   Building2, Plus, Edit3, Trash2, Users, Shield, Save, X, Search,
-  ChevronDown, ChevronRight, RotateCcw,
+  ChevronDown, ChevronRight, RotateCcw, ArrowRightLeft, UserMinus, MoreVertical,
 } from "lucide-react";
 import { PERM_LABEL_TH, PERM_COLOR } from "@/lib/permissions";
 
@@ -55,9 +55,12 @@ const PERM_LABEL_SHORT: Record<number, string> = {
 interface Props {
   canManage: boolean;
   lang?: Lang;
+  currentUserId?: string;
+  currentUserRole?: string;
+  currentUserDeptHeadOf?: string | null; // department_id if user is head of HR dept
 }
 
-export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
+export default function DepartmentsPanel({ canManage, lang = 'th', currentUserId = '', currentUserRole = 'member', currentUserDeptHeadOf = null }: Props) {
   /* ─── Localization ─── */
   const panelText = {
     header_title: { th: 'จัดการแผนก', en: 'Manage Departments', jp: '部門管理' },
@@ -100,6 +103,15 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
     perm_changes_pending: { th: '● มีการเปลี่ยนแปลงที่ยังไม่บันทึก', en: '● Pending changes', jp: '● 保存待機中の変更' },
     perm_save: { th: 'บันทึกสิทธิ์แผนก', en: 'Save Permissions', jp: '権限を保存' },
     perm_saving: { th: 'กำลังบันทึก...', en: 'Saving...', jp: '保存中...' },
+    mgmt_transfer: { th: 'ย้ายแผนก', en: 'Transfer Department', jp: '部門異動' },
+    mgmt_delete_account: { th: 'ลบบัญชี', en: 'Delete Account', jp: 'アカウント削除' },
+    mgmt_confirm_delete: { th: 'ยืนยันลบบัญชีผู้ใช้นี้? ข้อมูลทั้งหมดจะถูกลบอย่างถาวร', en: 'Confirm delete this user account? All data will be permanently removed.', jp: 'このユーザーアカウントを削除してもよろしいですか？すべてのデータが完全に削除されます。' },
+    mgmt_confirm_transfer: { th: 'ยืนยันย้ายพนักงานไปแผนก', en: 'Confirm transfer employee to department', jp: '従業員を部門に異動することを確認' },
+    mgmt_transfer_title: { th: 'ย้ายพนักงานไปแผนกอื่น', en: 'Transfer to Another Department', jp: '他の部門に異動' },
+    mgmt_select_dept: { th: 'เลือกแผนกปลายทาง', en: 'Select Target Department', jp: '異動先の部門を選択' },
+    mgmt_cancel: { th: 'ยกเลิก', en: 'Cancel', jp: 'キャンセル' },
+    mgmt_confirm: { th: 'ยืนยันย้าย', en: 'Confirm Transfer', jp: '異動を確認' },
+    mgmt_no_permission: { th: 'คุณไม่มีสิทธิ์จัดการพนักงาน', en: 'You do not have permission to manage employees', jp: '従業員を管理する権限がありません' },
   };
 
   const L = (key: string) => panelText[key as keyof typeof panelText]?.[lang] ?? panelText[key as keyof typeof panelText]?.th ?? key;
@@ -131,6 +143,63 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
       }
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  // Employee management state
+  const [transferMember, setTransferMember] = useState<DeptMember | null>(null);
+  const [transferTargetDeptId, setTransferTargetDeptId] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [memberMenuId, setMemberMenuId] = useState<string | null>(null);
+
+  // Permission: admin + manager always can manage. Department head can manage their own dept.
+  const canManageDeptMembers = (deptId: string) => {
+    if (currentUserRole === 'admin' || currentUserRole === 'manager') return true;
+    // Check if current user is head of this department
+    const dept = departments.find(d => d.id === deptId);
+    if (dept && dept.head_user_id === currentUserId) return true;
+    return false;
+  };
+
+  const transferEmployee = async () => {
+    if (!transferMember || !transferTargetDeptId) return;
+    const targetDept = departments.find(d => d.id === transferTargetDeptId);
+    if (!confirm(`${L('mgmt_confirm_transfer')} "${targetDept?.name_th ?? ''}"?`)) return;
+    setTransferLoading(true);
+    try {
+      const res = await fetch(`/api/users/${transferMember.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ department_id: transferTargetDeptId }),
+      });
+      if (res.ok) {
+        setTransferMember(null);
+        setTransferTargetDeptId('');
+        // Refresh detail and departments
+        if (detailDept) openDetail(detailDept);
+        fetchDepartments();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Transfer failed');
+      }
+    } finally {
+      setTransferLoading(false);
+    }
+  };
+
+  const deleteEmployee = async (member: DeptMember) => {
+    if (!confirm(`${L('mgmt_confirm_delete')}\n\n${member.display_name} (${member.email})`)) return;
+    try {
+      const res = await fetch(`/api/users/${member.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (detailDept) openDetail(detailDept);
+        fetchDepartments();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Delete failed');
+      }
+    } catch {
+      alert('Delete failed');
     }
   };
 
@@ -568,10 +637,10 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
           </div>
         </div>
       )}
-      {/* ─── Department Detail Modal (Members) ─── */}
+      {/* ─── Department Detail Modal (Members + Management) ─── */}
       {detailDept && (
-        <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setDetailDept(null)}>
-          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => { setDetailDept(null); setMemberMenuId(null); }}>
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl" onClick={e => { e.stopPropagation(); setMemberMenuId(null); }}>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
               <div>
@@ -581,7 +650,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                 </div>
                 {detailDept.name_en && <p className="text-xs text-gray-500 mt-0.5">{detailDept.name_en}</p>}
               </div>
-              <button onClick={() => setDetailDept(null)} className="text-gray-500 hover:text-gray-900"><X size={20} /></button>
+              <button onClick={() => { setDetailDept(null); setMemberMenuId(null); }} className="text-gray-500 hover:text-gray-900"><X size={20} /></button>
             </div>
 
             {/* Head */}
@@ -613,19 +682,127 @@ export default function DepartmentsPanel({ canManage, lang = 'th' }: Props) {
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {detailMembers.map(m => (
-                    <div key={m.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-[#E2E8F0]">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                        {m.display_name.charAt(0)}
+                  {detailMembers.map(m => {
+                    const showMenu = memberMenuId === m.id;
+                    const isHead = detailDept.head_user_id === m.id;
+                    const isSelf = m.id === currentUserId;
+                    const canManageThis = canManageDeptMembers(detailDept.id);
+                    return (
+                      <div key={m.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-[#E2E8F0] relative">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          {m.display_name.charAt(0)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-medium text-gray-900 truncate">{m.display_name}</p>
+                            {isHead && (
+                              <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium shrink-0">
+                                {lang === 'en' ? 'Head' : lang === 'jp' ? 'リーダー' : 'หัวหน้า'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 truncate">{m.email}</p>
+                        </div>
+                        {/* Action menu button */}
+                        {canManageThis && !isSelf && (
+                          <div className="relative shrink-0">
+                            <button
+                              onClick={e => { e.stopPropagation(); setMemberMenuId(showMenu ? null : m.id); }}
+                              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                              title={lang === 'en' ? 'Actions' : 'จัดการ'}
+                            >
+                              <MoreVertical size={16} />
+                            </button>
+                            {showMenu && (
+                              <div className="absolute right-0 top-full mt-1 bg-white border border-[#E2E8F0] rounded-xl shadow-lg z-20 w-48 py-1 overflow-hidden"
+                                onClick={e => e.stopPropagation()}>
+                                <button
+                                  onClick={() => { setTransferMember(m); setTransferTargetDeptId(''); setMemberMenuId(null); }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition"
+                                >
+                                  <ArrowRightLeft size={15} className="text-blue-500" />
+                                  {L('mgmt_transfer')}
+                                </button>
+                                <button
+                                  onClick={() => { deleteEmployee(m); setMemberMenuId(null); }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                                >
+                                  <UserMinus size={15} />
+                                  {L('mgmt_delete_account')}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{m.display_name}</p>
-                        <p className="text-xs text-gray-500 truncate">{m.email}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Transfer Employee Modal ─── */}
+      {transferMember && (
+        <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setTransferMember(null)}>
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+              <h3 className="text-gray-900 font-bold text-lg">{L('mgmt_transfer_title')}</h3>
+              <button onClick={() => setTransferMember(null)} className="text-gray-500 hover:text-gray-900"><X size={20} /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Employee info */}
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-[#E2E8F0]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {transferMember.display_name.charAt(0)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{transferMember.display_name}</p>
+                  <p className="text-xs text-gray-500 truncate">{transferMember.email}</p>
+                </div>
+              </div>
+
+              {/* From department */}
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">
+                  {lang === 'en' ? 'Current Department' : lang === 'jp' ? '現在の部門' : 'แผนกปัจจุบัน'}
+                </label>
+                <div className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 border border-[#E2E8F0]">
+                  {detailDept?.name_th ?? '-'}
+                </div>
+              </div>
+
+              {/* To department */}
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">{L('mgmt_select_dept')}</label>
+                <select
+                  value={transferTargetDeptId}
+                  onChange={e => setTransferTargetDeptId(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2.5 text-sm text-gray-900"
+                >
+                  <option value="">-- {L('mgmt_select_dept')} --</option>
+                  {departments
+                    .filter(d => d.id !== detailDept?.id && d.is_active)
+                    .map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.name_th} ({d.code})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+            <div className="border-t border-[#E2E8F0] px-5 py-3 flex justify-end gap-2">
+              <button onClick={() => setTransferMember(null)}
+                className="px-4 py-2 text-sm text-slate-600 hover:text-gray-900">{L('mgmt_cancel')}</button>
+              <button
+                onClick={transferEmployee}
+                disabled={!transferTargetDeptId || transferLoading}
+                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+              >
+                <ArrowRightLeft size={14} /> {transferLoading ? '...' : L('mgmt_confirm')}
+              </button>
             </div>
           </div>
         </div>
