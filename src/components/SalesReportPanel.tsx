@@ -14,36 +14,52 @@ import {
 const months = ["\u0e21.\u0e04.","\u0e01.\u0e1e.","\u0e21\u0e35.\u0e04.","\u0e40.\u0e21.\u0e22.","\u0e1e.\u0e04.","\u0e21\u0e34.\u0e22.","\u0e01.\u0e04.","\u0e2a.\u0e04.","\u0e01.\u0e22.","\u0e15.\u0e04.","\u0e1e.\u0e22.","\u0e18.\u0e04."];
 const i18n: Record<string, Record<string, string>> = {
   th: {
-    sales: "\u0e01\u0e32\u0e23\u0e02\u0e32\u0e22", revenue: "\u0e23\u0e32\u0e22\u0e44\u0e14\u0e49",
-    insights: "AI \u0e1c\u0e25\u0e27\u0e34\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c",
-    totalDeals: "\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e14\u0e49\u0e32\u0e19\u0e02\u0e32\u0e22",
-    closedWon: "\u0e1b\u0e34\u0e14\u0e17\u0e33",
-    conversion: "\u0e2d\u0e31\u0e15\u0e23\u0e32\u0e01\u0e32\u0e23",
-    lost: "\u0e2b\u0e32\u0e22\u0e44\u0e1b",
-    avgDeal: "\u0e01\u0e32\u0e23\u0e23\u0e14\u0e40\u0e09\u0e25\u0e22\u0e18\u0e38\u0e23\u0e01\u0e34\u0e08",
-    pipeline: "\u0e21\u0e39\u0e25\u0e04\u0e48\u0e32\u0e43\u0e19 Pipeline",
-    stageBreakdown: "\u0e2a\u0e31\u0e14\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e32\u0e21 Stage",
-    topCustomers: "\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32\u0e22\u0e2d\u0e14",
-    customer: "\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32",
-    value: "\u0e21\u0e39\u0e25\u0e04\u0e48\u0e32 (THB)",
-    deals: "\u0e14\u0e35\u0e25",
-    month: "\u0e40\u0e14\u0e37\u0e2d\u0e19", year: "\u0e1b\u0e35",
-    noData: "\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",
-    downloadCsv: "\u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14 CSV",
-    downloadPdf: "\u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14 PDF",
-    ownerPerformance: "\u0e1c\u0e25\u0e07\u0e32\u0e19\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e02\u0e32\u0e22",
-    activityTypes: "\u0e1b\u0e23\u0e30\u0e40\u0e20\u0e17\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21",
-    industryDist: "\u0e2d\u0e38\u0e15\u0e2a\u0e32\u0e2b\u0e01\u0e23\u0e23\u0e21",
-    overdue: "\u0e14\u0e35\u0e25\u0e40\u0e25\u0e22\u0e01\u0e33\u0e2b\u0e19\u0e14",
-    avgAge: "\u0e2d\u0e32\u0e22\u0e38\u0e40\u0e09\u0e25\u0e35\u0e48\u0e22 (days)",
-    weighted: "Weighted Pipeline",
-    forecast: "\u0e1e\u0e22\u0e32\u0e01\u0e23\u0e13\u0e4c",
-    loading: "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e42\u0e2b\u0e25\u0e14...",
-    name: "\u0e0a\u0e37\u0e48\u0e2d",
-    dealCount: "\u0e08\u0e33\u0e19\u0e27\u0e19\u0e14\u0e35\u0e25",
-    wonDeals: "\u0e1b\u0e34\u0e14\u0e44\u0e14\u0e49",
-    totalValue: "\u0e21\u0e39\u0e25\u0e04\u0e48\u0e32\u0e23\u0e27\u0e21",
-    activities: "\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21",
+    sales: "การขาย", revenue: "รายได้",
+    insights: "AI วิเคราะห์",
+    totalDeals: "สถานะด้านขาย",
+    closedWon: "ปิดทำ",
+    conversion: "อัตราการ",
+    lost: "หายไป",
+    avgDeal: "การรดเฉลียธุรกิจ",
+    pipeline: "มูลค่าใน Pipeline",
+    stageBreakdown: "สัดส่วนตาม Stage",
+    topCustomers: "ลูกค้ายอด",
+    customer: "ลูกค้า",
+    value: "มูลค่า (THB)",
+    deals: "ดีล",
+    month: "เดือน", year: "ปี",
+    noData: "ยังไม่มีข้อมูล",
+    downloadCsv: "ดาวน์โหลด CSV",
+    downloadPdf: "ดาวน์โหลด PDF",
+    ownerPerformance: "ผลงานพนักงานขาย",
+    activityTypes: "ประเภทกิจกรรม",
+    industryDist: "อุตสาหกรรม",
+    overdue: "ดีลเลยกำหนด",
+    avgAge: "อายุเฉลี่ย (วัน)",
+    weighted: "Pipeline ถ่วงน้ำหนัก",
+    forecast: "พยากรณ์",
+    loading: "กำลังโหลด...",
+    name: "ชื่อ",
+    dealCount: "จำนวนดีล",
+    wonDeals: "ปิดได้",
+    totalValue: "มูลค่ารวม",
+    activities: "กิจกรรม",
+    aiRecommendations: "AI แนะนำ",
+    overdueTitle: "ดีลเลยกำหนด",
+    overdueText: "ดีลเกินกำหนดปิด ควรตรวจสอบและอัปเดตกำหนดการหรือปิดดีล",
+    lowConversion: "อัตราการปิดต่ำ",
+    lowConversionText: "อัตราปิดดีล {rate}% ต่ำกว่าเป้า ควรเน้นคุณภาพการนำเสนอ",
+    coachingNeeded: "ต้องการโค้ชชิ่ง",
+    coachingText: "พนักงานขายบางรายมีดีลแต่ยังไม่ปิดสำเร็จ ควรจับคู่กับนักขายมือหนึ่ง",
+    pipelineHealth: "สุขภาพ Pipeline",
+    pipelineHealthText: "Pipeline ถ่วงน้ำหนัก: THB {value}M จาก {count} ดีล อายุเฉลี่ย: {age} วัน",
+    topActivity: "กิจกรรมยอดนิยม",
+    topActivityText: "กิจกรรมที่ทำบ่อยสุด: \"{name}\" ({count} ครั้ง) ควรหลากหลายวิธีการเข้าถึง",
+    topIndustry: "อุตสาหกรรมนำ",
+    topIndustryText: "\"{name}\" นำด้วย THB {value}M ({count} ดีล) ควรเจาะลึกกลุ่มนี้",
+    days: "วัน",
+    total: "รวม",
+    weightedShort: "ถ่วงน้ำหนัก",
   },
   en: {
     sales: "Sales", revenue: "Revenue", insights: "AI Insights",
@@ -58,18 +74,73 @@ const i18n: Record<string, Record<string, string>> = {
     weighted: "Weighted Pipeline", forecast: "Forecast", loading: "Loading...",
     name: "Name", dealCount: "Deals", wonDeals: "Won", totalValue: "Total Value",
     activities: "Activities",
+    aiRecommendations: "AI Recommendations",
+    overdueTitle: "Overdue Deals",
+    overdueText: "{count} deals past expected close date. Review and update timelines or close them.",
+    lowConversion: "Low Conversion",
+    lowConversionText: "Conversion rate {rate}% is below target. Focus on qualification and proposal quality.",
+    coachingNeeded: "Coaching Needed",
+    coachingText: "Some sales reps have deals but no wins yet. Consider pairing them with top performers.",
+    pipelineHealth: "Pipeline Health",
+    pipelineHealthText: "Weighted pipeline: THB {value}M across {count} active deals. Average age: {age} days.",
+    topActivity: "Top Activity",
+    topActivityText: "Most common: \"{name}\" ({count} times). Diversify engagement strategies.",
+    topIndustry: "Top Industry",
+    topIndustryText: "\"{name}\" leads with THB {value}M ({count} deals). Consider deepening focus.",
+    days: "days",
+    total: "Total",
+    weightedShort: "Weighted",
+  },
+  jp: {
+    sales: "営業", revenue: "売上", insights: "AI分析",
+    totalDeals: "総ディール数", closedWon: "成約", conversion: "成約率",
+    lost: "失注", avgDeal: "平均ディール", pipeline: "パイプライン",
+    stageBreakdown: "ステージ別", topCustomers: "上位顧客",
+    customer: "顧客", value: "金額 (THB)", deals: "ディール",
+    month: "月", year: "年", noData: "データなし",
+    downloadCsv: "CSV DL", downloadPdf: "PDF DL",
+    ownerPerformance: "営業成績", activityTypes: "活動種別",
+    industryDist: "業界分布", overdue: "期限超過", avgAge: "平均日数",
+    weighted: "加重パイプライン", forecast: "予測", loading: "読み込み中...",
+    name: "名前", dealCount: "件数", wonDeals: "成約", totalValue: "合計金額",
+    activities: "活動",
+    aiRecommendations: "AIの提案",
+    overdueTitle: "期限超過ディール",
+    overdueText: "期限超過{count}件。スケジュールの見直しまたはクローズを検討してください。",
+    lowConversion: "低成約率",
+    lowConversionText: "成約率{rate}%が目標以下。提案品質の向上に注力してください。",
+    coachingNeeded: "コーチング必要",
+    coachingText: "一部の営業がまだ成約なし。トップパフォーマーとのペアリングを検討してください。",
+    pipelineHealth: "パイプライン状況",
+    pipelineHealthText: "加重パイプライン: THB {value}M（{count}件）平均{age}日。",
+    topActivity: "主要活動",
+    topActivityText: "最多: \"{name}\"（{count}回）。多様なアプローチを検討してください。",
+    topIndustry: "主要業界",
+    topIndustryText: "\"{name}\"がTHB {value}M（{count}件）でリード。深耕を検討してください。",
+    days: "日",
+    total: "合計",
+    weightedShort: "加重",
   },
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  lead: "#6B7280", qualified: "#3B82F6", proposal_sent: "#8B5CF6",
-  quotation: "#F59E0B", negotiation: "#F97316", po_received: "#22C55E",
-  cancelled: "#EF4444", refused: "#DC2626",
+  waiting_present: "#6B7280", contacted: "#3B82F6", proposal_submitted: "#F59E0B",
+  proposal_confirmed: "#8B5CF6", quotation: "#F7941D", negotiation: "#EC4899",
+  waiting_po: "#14B8A6", po_received: "#22C55E", payment_received: "#059669",
+  cancelled: "#EF4444", refused: "#9CA3AF",
 };
-const STAGE_LABELS: Record<string, string> = {
-  lead: "Lead", qualified: "Qualified", proposal_sent: "Proposal",
-  quotation: "Quotation", negotiation: "Negotiation", po_received: "PO Received",
-  cancelled: "Cancelled", refused: "Refused",
+const STAGE_LABELS_I18N: Record<string, Record<string, string>> = {
+  waiting_present:    { th: "รอนำเสนอ",           en: "Waiting to Present",    jp: "プレゼン待ち" },
+  contacted:          { th: "ติดต่อแล้ว",          en: "Contacted",             jp: "連絡済み" },
+  proposal_submitted: { th: "เสนอ Proposal",      en: "Proposal Submitted",    jp: "提案済み" },
+  proposal_confirmed: { th: "คอนเฟิร์ม Proposal", en: "Proposal Confirmed",   jp: "提案承認" },
+  quotation:          { th: "เสนอราคา",            en: "Quotation",             jp: "見積もり" },
+  negotiation:        { th: "เจรจาต่อรอง",         en: "Negotiation",           jp: "交渉中" },
+  waiting_po:         { th: "รอ PO",               en: "Waiting PO",            jp: "PO待機" },
+  po_received:        { th: "ได้รับ PO",            en: "PO Received",           jp: "PO受領" },
+  payment_received:   { th: "ได้รับยอดชำระแล้ว",    en: "Payment Received",      jp: "入金済み" },
+  cancelled:          { th: "ยกเลิก",              en: "Cancelled",             jp: "キャンセル" },
+  refused:            { th: "ปฏิเสธ",              en: "Refused",               jp: "拒否" },
 };
 const PIE_COLORS = ["#003087", "#00AEEF", "#F7941D", "#22C55E", "#8B5CF6", "#EF4444", "#EC4899", "#6366F1"];
 
@@ -95,7 +166,8 @@ interface SalesData {
 
 export default function SalesReportPanel({ lang = "th", filterProjectId = "all", refreshKey = 0 }:
   { lang?: "th" | "en" | "jp"; filterProjectId?: string; refreshKey?: number }) {
-  const t = i18n[lang === "jp" ? "en" : lang] || i18n.th;
+  const t = i18n[lang] || i18n.th;
+  const getStageName = (stage: string) => STAGE_LABELS_I18N[stage]?.[lang] || STAGE_LABELS_I18N[stage]?.en || stage;
   const [tab, setTab] = useState<"summary" | "revenue" | "analysis">("summary");
   const [view, setView] = useState<"month" | "year">("year");
   const [data, setData] = useState<SalesData | null>(null);
@@ -120,13 +192,13 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
     return Object.entries(data.stageValue)
       .filter(([, v]) => v > 0)
       .map(([stage, value]) => ({
-        name: STAGE_LABELS[stage] || stage,
+        name: getStageName(stage),
         value,
         count: data.stageCount[stage] || 0,
         color: STAGE_COLORS[stage] || "#6B7280",
       }))
       .sort((a, b) => b.value - a.value);
-  }, [data]);
+  }, [data, lang]);
 
   const revenueChartData = useMemo(() => {
     if (!data) return [];
@@ -167,7 +239,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
     if (!data) return;
     const rows = [["Stage", "Deals", "Value (THB)"]];
     Object.entries(data.stageValue).forEach(([stage, value]) => {
-      rows.push([STAGE_LABELS[stage] || stage, String(data.stageCount[stage] || 0), String(value)]);
+      rows.push([getStageName(stage), String(data.stageCount[stage] || 0), String(value)]);
     });
     rows.push([]);
     rows.push(["Top Customer", "Value (THB)", "Deals"]);
@@ -360,8 +432,8 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
                   <Tooltip formatter={(v: any) => `THB ${(v / 1e6).toFixed(2)}M`} />
                   <Legend />
-                  <Bar dataKey="total" name="Total" fill="#00AEEF" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="weighted" name="Weighted" fill="#003087" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="total" name={t.total} fill="#00AEEF" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="weighted" name={t.weightedShort} fill="#003087" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -379,7 +451,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
               {/* AI Summary Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <KPI icon={Target} label={t.weighted} value={`THB ${(ai.weightedPipeline / 1e6).toFixed(1)}M`} color="#003087" />
-                <KPI icon={Clock} label={t.avgAge} value={`${ai.avgDealAge} days`} color="#F7941D" />
+                <KPI icon={Clock} label={t.avgAge} value={`${ai.avgDealAge} ${t.days}`} color="#F7941D" />
                 <KPI icon={AlertCircle} label={t.overdue} value={String(ai.overdueDeals)} color="#EF4444" />
                 <KPI icon={Activity} label={t.activities} value={String(ai.totalActivities)} color="#00AEEF" />
               </div>
@@ -481,37 +553,37 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
               {/* AI Insight Cards */}
               <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
                 <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Lightbulb size={14} className="text-[#F7941D]" /> AI Recommendations
+                  <Lightbulb size={14} className="text-[#F7941D]" /> {t.aiRecommendations}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {ai.overdueDeals > 0 && (
-                    <InsightCard icon={<AlertCircle size={16} className="text-red-500" />} title="Overdue Deals"
-                      text={`${ai.overdueDeals} deals past expected close date. Review and update timelines or close them.`} severity="high" />
+                    <InsightCard icon={<AlertCircle size={16} className="text-red-500" />} title={t.overdueTitle}
+                      text={t.overdueText.replace("{count}", String(ai.overdueDeals))} severity="high" />
                   )}
                   {ai.activeDealsCount > 0 && Number(s?.conversionRate || 0) < 30 && (
-                    <InsightCard icon={<Target size={16} className="text-orange-500" />} title="Low Conversion"
-                      text={`Conversion rate ${s?.conversionRate}% is below target. Focus on qualification and proposal quality.`} severity="medium" />
+                    <InsightCard icon={<Target size={16} className="text-orange-500" />} title={t.lowConversion}
+                      text={t.lowConversionText.replace("{rate}", s?.conversionRate || "0")} severity="medium" />
                   )}
                   {ai.ownerStats.some(o => o.deals > 0 && o.won === 0) && (
-                    <InsightCard icon={<Users size={16} className="text-blue-500" />} title="Coaching Needed"
-                      text={`Some sales reps have deals but no wins yet. Consider pairing them with top performers.`} severity="medium" />
+                    <InsightCard icon={<Users size={16} className="text-blue-500" />} title={t.coachingNeeded}
+                      text={t.coachingText} severity="medium" />
                   )}
                   {ai.weightedPipeline > 0 && (
-                    <InsightCard icon={<DollarSign size={16} className="text-green-500" />} title="Pipeline Health"
-                      text={`Weighted pipeline: THB ${(ai.weightedPipeline / 1e6).toFixed(1)}M across ${ai.activeDealsCount} active deals. Average age: ${ai.avgDealAge} days.`} severity="info" />
+                    <InsightCard icon={<DollarSign size={16} className="text-green-500" />} title={t.pipelineHealth}
+                      text={t.pipelineHealthText.replace("{value}", (ai.weightedPipeline / 1e6).toFixed(1)).replace("{count}", String(ai.activeDealsCount)).replace("{age}", String(ai.avgDealAge))} severity="info" />
                   )}
                   {(() => {
                     const topType = activityChartData[0];
                     return topType ? (
-                      <InsightCard icon={<Zap size={16} className="text-yellow-500" />} title="Top Activity"
-                        text={`Most common: "${topType.name}" (${topType.value} times). Diversify engagement strategies.`} severity="info" />
+                      <InsightCard icon={<Zap size={16} className="text-yellow-500" />} title={t.topActivity}
+                        text={t.topActivityText.replace("{name}", topType.name).replace("{count}", String(topType.value))} severity="info" />
                     ) : null;
                   })()}
                   {(() => {
                     const topInd = industryChartData[0];
                     return topInd ? (
-                      <InsightCard icon={<Building2 size={16} className="text-purple-500" />} title="Top Industry"
-                        text={`"${topInd.name}" leads with THB ${(topInd.value / 1e6).toFixed(1)}M (${topInd.count} deals). Consider deepening focus.`} severity="info" />
+                      <InsightCard icon={<Building2 size={16} className="text-purple-500" />} title={t.topIndustry}
+                        text={t.topIndustryText.replace("{name}", topInd.name).replace("{value}", (topInd.value / 1e6).toFixed(1)).replace("{count}", String(topInd.count))} severity="info" />
                     ) : null;
                   })()}
                 </div>

@@ -15,17 +15,19 @@ export async function GET(req: NextRequest) {
   (deals ?? []).forEach(d => {
     stageCount[d.stage] = (stageCount[d.stage] || 0) + 1;
     stageValue[d.stage] = (stageValue[d.stage] || 0) + Number(d.value || 0);
-    if (d.stage === "po_received") { wonValue += Number(d.value || 0); wonCount++; }
+    if (d.stage === "po_received" || d.stage === "payment_received") { wonValue += Number(d.value || 0); wonCount++; }
     else if (d.stage === "cancelled" || d.stage === "refused") lostCount++;
     else totalPipeline += Number(d.value || 0);
   });
   const totalDeals = deals?.length || 0;
   const conversionRate = totalDeals > 0 ? ((wonCount / totalDeals) * 100).toFixed(1) : "0";
 
-  // Monthly revenue (won deals)
+  // Monthly revenue (won deals — use actual_close_date, fallback to updated_at or created_at)
   const monthly: Record<string, number> = {};
-  (deals ?? []).filter(d => d.stage === "po_received" && d.actual_close_date).forEach(d => {
-    const m = d.actual_close_date!.slice(0, 7);
+  (deals ?? []).filter(d => d.stage === "po_received" || d.stage === "payment_received").forEach(d => {
+    const dateStr = d.actual_close_date || (d as any).updated_at?.slice(0, 10) || d.created_at?.slice(0, 10);
+    if (!dateStr) return;
+    const m = dateStr.slice(0, 7);
     monthly[m] = (monthly[m] || 0) + Number(d.value || 0);
   });
   const monthlyData = Object.entries(monthly).sort().map(([month, value]) => ({ month, value }));
@@ -38,7 +40,7 @@ export async function GET(req: NextRequest) {
   // Top customers by deal value
   const { data: topCustomers } = await supabaseAdmin.from("deals")
     .select("customer_id, value, customers(id, company_name)")
-    .eq("stage", "po_received");
+    .in("stage", ["po_received", "payment_received"]);
   const custMap: Record<string, { name: string; total: number; count: number }> = {};
   (topCustomers ?? []).forEach(d => {
     const cid = d.customer_id;
@@ -59,7 +61,7 @@ export async function GET(req: NextRequest) {
     if (!ownerStats[ownerId]) ownerStats[ownerId] = { name: ownerName, deals: 0, value: 0, won: 0, wonValue: 0, activities: 0 };
     ownerStats[ownerId].deals++;
     ownerStats[ownerId].value += Number(d.value || 0);
-    if (d.stage === 'po_received') { ownerStats[ownerId].won++; ownerStats[ownerId].wonValue += Number(d.value || 0); }
+    if (d.stage === 'po_received' || d.stage === 'payment_received') { ownerStats[ownerId].won++; ownerStats[ownerId].wonValue += Number(d.value || 0); }
   });
   (activities ?? []).forEach(a => {
     const pid = a.performed_by;
@@ -85,24 +87,24 @@ export async function GET(req: NextRequest) {
   const now = new Date().toISOString().split('T')[0];
   const overdueDeals = (deals ?? []).filter(d =>
     d.expected_close_date && d.expected_close_date < now &&
-    !['po_received', 'cancelled', 'refused'].includes(d.stage)
+    !['po_received', 'payment_received', 'cancelled', 'refused'].includes(d.stage)
   ).length;
 
   // Average deal age (days from created to now for active deals)
   const activeDealAges = (deals ?? [])
-    .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage))
+    .filter(d => !['po_received', 'payment_received', 'cancelled', 'refused'].includes(d.stage))
     .map(d => Math.floor((Date.now() - new Date(d.created_at).getTime()) / (1000 * 60 * 60 * 24)));
   const avgDealAge = activeDealAges.length > 0
     ? Math.round(activeDealAges.reduce((a, b) => a + b, 0) / activeDealAges.length) : 0;
 
   // Weighted pipeline
   const weightedPipeline = (deals ?? [])
-    .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage))
+    .filter(d => !['po_received', 'payment_received', 'cancelled', 'refused'].includes(d.stage))
     .reduce((sum, d) => sum + Number(d.value || 0) * (Number(d.probability || 0) / 100), 0);
 
   // Pipeline deals for forecasting (active deals with expected close date)
   const pipelineForForecast = (deals ?? [])
-    .filter(d => !['po_received', 'cancelled', 'refused'].includes(d.stage) && d.expected_close_date)
+    .filter(d => !['po_received', 'payment_received', 'cancelled', 'refused'].includes(d.stage) && d.expected_close_date)
     .map(d => ({
       month: d.expected_close_date!.slice(0, 7),
       value: Number(d.value || 0),

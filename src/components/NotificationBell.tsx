@@ -24,6 +24,7 @@ const TYPE_META: Record<string, { icon: typeof Bell; color: string }> = {
   task_overdue:        { icon: AlertTriangle,   color: "#EF4444" },
   deal_stage_changed:  { icon: TrendingUp,      color: "#003087" },
   deal_won:            { icon: DollarSign,      color: "#22C55E" },
+  deal_payment:        { icon: DollarSign,      color: "#059669" },
   deal_created:        { icon: Briefcase,       color: "#003087" },
   comment:             { icon: MessageSquare,   color: "#A855F7" },
   mention:             { icon: MessageSquare,   color: "#F7941D" },

@@ -4,12 +4,15 @@ import { getAuthContext } from "@/lib/auth-server";
 import { notify, getAdminManagerIds } from "@/lib/notify";
 
 const STAGE_LABELS: Record<string, string> = {
-  lead: "Lead",
-  qualified: "Qualified",
-  proposal_sent: "เสนอราคาแล้ว",
-  quotation: "ใบเสนอราคา",
-  negotiation: "เจรจา",
+  waiting_present: "รอนำเสนอ",
+  contacted: "ติดต่อแล้ว",
+  proposal_submitted: "เสนอ Proposal",
+  proposal_confirmed: "คอนเฟิร์ม Proposal",
+  quotation: "เสนอราคา",
+  negotiation: "เจรจาต่อรอง",
+  waiting_po: "รอ PO",
   po_received: "ได้รับ PO",
+  payment_received: "ได้รับยอดชำระแล้ว",
   cancelled: "ยกเลิก",
   refused: "ปฏิเสธ",
 };
@@ -39,17 +42,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         "deal_stage_changed"
       );
 
-      // If stage becomes po_received, notify admin+manager
-      if (body.stage === "po_received" && oldDeal.stage !== "po_received") {
+      // If stage becomes po_received or payment_received, notify admin+manager
+      if ((body.stage === "po_received" || body.stage === "payment_received") && oldDeal.stage !== body.stage) {
         const adminManagerIds = await getAdminManagerIds();
         const value = data.value || oldDeal.value || 0;
         const formattedValue = new Intl.NumberFormat("th-TH").format(Number(value));
+        const isPayment = body.stage === "payment_received";
         for (const userId of adminManagerIds) {
           await notify(
             userId,
-            "ดีลปิดสำเร็จ!",
+            isPayment ? "ได้รับยอดชำระแล้ว!" : "ดีลปิดสำเร็จ!",
             `${data.title} - THB ${formattedValue}`,
-            "deal_won"
+            isPayment ? "deal_payment" : "deal_won"
           );
         }
       }
@@ -58,8 +62,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     console.error("Deal update notification error:", notifyErr);
   }
 
-  // Auto-create project when deal stage changes to po_received
-  if (body.stage === "po_received" && oldDeal && oldDeal.stage !== "po_received") {
+  // Auto-create project when deal stage changes to po_received or payment_received
+  if ((body.stage === "po_received" || body.stage === "payment_received") && oldDeal && !["po_received", "payment_received"].includes(oldDeal.stage)) {
     try {
       const clientName = (oldDeal.customers as any)?.company_name || "";
       const dealTitle = oldDeal.title || data.title || "New Project";

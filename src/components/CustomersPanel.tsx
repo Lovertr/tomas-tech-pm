@@ -81,6 +81,7 @@ const pipelineStageColors: Record<string, string> = {
   negotiation: '#EC4899',
   waiting_po: '#14B8A6',
   po_received: '#22C55E',
+  payment_received: '#059669',
   cancelled: '#EF4444',
   refused: '#9CA3AF',
 };
@@ -773,20 +774,20 @@ export default function CustomersPanel({
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{L('wonDeals', lang)}</p>
                     <p className="text-lg font-bold text-green-600">
-                      {deals.filter(d => d.stage === 'po_received').length} / {deals.length}
+                      {deals.filter(d => d.stage === 'po_received' || d.stage === 'payment_received').length} / {deals.length}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{L('winRate', lang)}</p>
                     <p className="text-lg font-bold text-gray-900">
-                      {deals.length > 0 ? Math.round((deals.filter(d => d.stage === 'po_received').length / deals.length) * 100) : 0}%
+                      {deals.length > 0 ? Math.round((deals.filter(d => d.stage === 'po_received' || d.stage === 'payment_received').length / deals.length) * 100) : 0}%
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{L('totalRevenue', lang)}</p>
                     <p className="text-lg font-bold text-gray-900">
                       {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(
-                        deals.filter(d => d.stage === 'po_received').reduce((sum, d) => sum + (d.value || 0), 0)
+                        deals.filter(d => d.stage === 'po_received' || d.stage === 'payment_received').reduce((sum, d) => sum + (d.value || 0), 0)
                       )}
                     </p>
                   </div>

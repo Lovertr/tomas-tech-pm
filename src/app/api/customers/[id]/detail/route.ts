@@ -64,7 +64,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     // Calculate summary stats
     const totalDealValue = deals?.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0;
-    const wonDeals = deals?.filter((deal) => deal.stage === "po_received") || [];
+    const wonDeals = deals?.filter((deal) => deal.stage === "po_received" || deal.stage === "payment_received") || [];
     const wonDealsCount = wonDeals.length;
     const winRate = deals?.length ? ((wonDealsCount / deals.length) * 100).toFixed(2) : "0";
     const totalRevenue = wonDeals.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0;

@@ -21,7 +21,7 @@ interface Deal {
   customer_id: string;
   customer_name: string;
   value: number;
-  stage: 'waiting_present' | 'contacted' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'cancelled' | 'refused';
+  stage: 'waiting_present' | 'contacted' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'payment_received' | 'cancelled' | 'refused';
   expected_close_date?: string;
   probability?: number;
   owner_id?: string;
@@ -53,6 +53,7 @@ const stageLabels: Record<string, Record<string, string>> = {
   negotiation:        { th: 'เจรจาต่อรอง',        en: 'Negotiation',           jp: '交渉中' },
   waiting_po:         { th: 'รอ PO',              en: 'Waiting PO',            jp: 'PO待機' },
   po_received:        { th: 'ได้รับ PO',           en: 'PO Received',           jp: 'PO受領' },
+  payment_received:   { th: 'ได้รับยอดชำระแล้ว',    en: 'Payment Received',      jp: '入金済み' },
   cancelled:          { th: 'ยกเลิก',             en: 'Cancelled',             jp: 'キャンセル' },
   refused:            { th: 'ปฏิเสธ',             en: 'Refused',               jp: '拒否' },
 };
@@ -66,6 +67,7 @@ const stageColors: Record<string, string> = {
   negotiation: '#EC4899',
   waiting_po: '#14B8A6',
   po_received: '#22C55E',
+  payment_received: '#059669',
   cancelled: '#EF4444',
   refused: '#9CA3AF',
 };
@@ -106,6 +108,7 @@ const stageKeys: Array<Deal['stage']> = [
   'negotiation',
   'waiting_po',
   'po_received',
+  'payment_received',
   'cancelled',
   'refused',
 ];
@@ -378,7 +381,7 @@ export default function DealsPipelinePanel({
 
                         {/* Value */}
                         <p className={`text-sm font-bold mt-2 ${
-                          stage === 'po_received' ? 'text-green-600'
+                          stage === 'po_received' || stage === 'payment_received' ? 'text-green-600'
                             : stage === 'cancelled' || stage === 'refused' ? 'text-red-500'
                             : 'text-gray-800'
                         }`}>
