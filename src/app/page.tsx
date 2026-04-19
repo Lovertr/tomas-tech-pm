@@ -78,7 +78,7 @@ const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444"
 
 export default function App() {
   const router = useRouter();
-  const { user: currentUser, isAdmin, logout, hasPermission, canView, canCreate, canDelete, moduleLevel } = useAuth();
+  const { user: currentUser, isAdmin, isManager, logout, hasPermission, canView, canCreate, canDelete, moduleLevel } = useAuth();
   void canCreate; void canDelete; void moduleLevel;
   const data = useData();
   // Aliases so existing UI code keeps working (legacy mockData shape)
@@ -722,11 +722,11 @@ export default function App() {
   const Team = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.team}</h1>
-        {hasPermission("can_manage_members") && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
-      <div className="flex gap-2">{["members", "positions"].map(tb => (
+        {hasPermission("can_manage_members") && (teamTab === "members" || isManager) && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
+      {isManager && <div className="flex gap-2">{["members", "positions"].map(tb => (
         <button key={tb} onClick={() => setTeamTab(tb)} className={`px-4 py-2 rounded-xl text-sm font-medium ${teamTab === tb ? "text-white" : "text-gray-500"}`} style={teamTab === tb ? { background: "#003087" } : {}}>{tb === "members" ? t.teamMembers : t.positionMgmt}</button>
-      ))}</div>
-      {teamTab === "members" ? (
+      ))}</div>}
+      {(teamTab === "members" || !isManager) ? (
         <>
           {/* Department filter */}
           <div className="flex items-center gap-3 mb-4">
@@ -752,9 +752,9 @@ export default function App() {
                   <div><h3 className="font-semibold text-gray-800">{getName(mem)}</h3><p className="text-sm" style={{ color: pos?.color }}>{pos ? getName(pos) : ""}</p></div>
                 </div>
                 <div className="text-xs text-gray-500 mb-3">{mem.dept}</div>
-                <div className={`grid ${canView("manpower") ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
+                <div className={`grid ${isManager ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
                   <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.hours}</div><div className="text-sm font-semibold text-gray-800">{mh.toFixed(1)}</div></div>
-                  {canView("manpower") && (
+                  {isManager && (
                     <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">฿{mc.toLocaleString()}</div></div>
                   )}
                   <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.projects}</div><div className="text-sm font-semibold text-gray-800">{mp}</div></div>
@@ -776,7 +776,7 @@ export default function App() {
                   );
                 })()}
                 <div className="mt-3 flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
-                  {canView("manpower")
+                  {isManager
                     ? <span className="text-sm font-semibold text-[#003087]">฿{mem.rate}{t.perHour}</span>
                     : <span className="text-xs text-slate-500">{mem.dept}</span>}
                   <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
@@ -792,16 +792,16 @@ export default function App() {
       ) : (
         <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] overflow-hidden">
           <table className="w-full"><thead><tr className="bg-slate-100/50">
-            {[t.position, ...(canView("manpower") ? [t.hourlyRate] : []), t.teamMembers, ...(canView("manpower") ? [t.totalCost] : []), t.actions].map(h => <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>)}
+            {[t.position, ...(isManager ? [t.hourlyRate] : []), t.teamMembers, ...(isManager ? [t.totalCost] : []), t.actions].map(h => <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>)}
           </tr></thead><tbody>
             {mockPositions.map(pos => {
               const pm = mockMembers.filter(m => m.position_id === pos.id);
               const pc = approvedLogs.filter(l => pm.some(m => m.id === l.member_id)).reduce((s, l) => s + l.hours * l.rate, 0);
               return (<tr key={pos.id} className="border-t border-[#E2E8F0] hover:bg-slate-100/30">
                 <td className="px-5 py-4"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${pos.color}20` }}><Briefcase size={16} style={{ color: pos.color }} /></div><span className="font-medium text-gray-800">{getName(pos)}</span></div></td>
-                {canView("manpower") && <td className="px-5 py-4 text-[#003087] font-semibold">฿{pos.rate}{t.perHour}</td>}
+                {isManager && <td className="px-5 py-4 text-[#003087] font-semibold">฿{pos.rate}{t.perHour}</td>}
                 <td className="px-5 py-4 text-gray-800">{pm.length}</td>
-                {canView("manpower") && <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>}
+                {isManager && <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>}
                 <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1">
                   {hasPermission("can_manage_members") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
                   {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
