@@ -24,10 +24,20 @@ export async function POST(req: NextRequest) {
     // Step 1: Download audio from the URL (Supabase Storage)
     const audioRes = await fetch(url);
     if (!audioRes.ok) {
-      return NextResponse.json({ error: "ไม่สามารถดาวน์โหลดไฟล์เสียงได้" }, { status: 400 });
+      return NextResponse.json({ error: `ไม่สามารถดาวน์โหลดไฟล์เสียงได้ (${audioRes.status})` }, { status: 400 });
     }
     const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
     const mimeType = audioRes.headers.get("content-type") || "audio/webm";
+    const fileSizeMB = (audioBuffer.length / (1024 * 1024)).toFixed(1);
+    console.log(`transcribe-audio-url: downloaded ${fileSizeMB}MB, mime=${mimeType}`);
+
+    // Gemini File API supports up to 2GB, but Vercel memory limits apply (~150MB practical)
+    if (audioBuffer.length > 100 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: `ไฟล์เสียงใหญ่เกินไป (${fileSizeMB}MB) — แนะนำให้แบ่งอัดเสียงเป็นช่วงสั้นๆ` },
+        { status: 400 }
+      );
+    }
 
     // Step 2: Upload to Gemini File API
     const uploadUrl = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`;
@@ -49,15 +59,22 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": `multipart/related; boundary=${boundary}`,
         "Content-Length": String(fullBody.length),
+        "X-Goog-Upload-Protocol": "multipart",
       },
       body: fullBody,
     });
 
     if (!uploadRes.ok) {
       const errText = await uploadRes.text();
-      console.error("Gemini File API upload error:", errText);
+      console.error("Gemini File API upload error:", uploadRes.status, errText);
+      // Parse Gemini error for user-facing message
+      let detail = "";
+      try {
+        const errJson = JSON.parse(errText);
+        detail = errJson?.error?.message || errText.slice(0, 200);
+      } catch { detail = errText.slice(0, 200); }
       return NextResponse.json(
-        { error: "ไม่สามารถอัพโหลดไฟล์ไป Gemini ได้ — กรุณาลองใหม่" },
+        { error: `ไม่สามารถอัพโหลดไฟล์ไป Gemini ได้ (${uploadRes.status}): ${detail}` },
         { status: 502 }
       );
     }
