@@ -372,7 +372,7 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
     return (j.transcript as string) || "";
   };
 
-  // Transcribe a large file via Supabase Storage (direct upload) + Gemini File API
+  // Transcribe a large file via direct Supabase Storage upload + Gemini File API
   const transcribeLargeFile = async (source: Blob | File): Promise<string> => {
     // Step 1: Upload directly to Supabase Storage (bypasses Vercel body limit)
     setTranscribeProgress("กำลังอัพโหลดไฟล์เสียง...");
