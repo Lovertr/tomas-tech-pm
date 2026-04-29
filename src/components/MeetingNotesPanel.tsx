@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, Edit3, Calendar, Users, ListChecks, FileText, X, Check, Mic, Square, Upload, Loader2, Play, Pause, Volume2 } from "lucide-react";
 import TranslateButton from "./TranslateButton";
+import { supabase } from "@/lib/supabase";
 
 interface ActionItem { text: string; assignee?: string; due?: string; done?: boolean; }
 interface MeetingNote {
@@ -236,49 +237,91 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
   const [recordingTime, setRecordingTime] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioSegments, setAudioSegments] = useState<Blob[]>([]); // auto-segments for long recordings
   const [audioUrl, setAudioUrl] = useState<string | null>(initial?.audio_url ?? null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [transcribing, setTranscribing] = useState(false);
+  const [transcribeProgress, setTranscribeProgress] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
 
-  // Recording timer
+  // Recording timer & refs
   const timerRef = { current: null as NodeJS.Timeout | null };
+  const SEGMENT_DURATION = 180; // 3 minutes per segment
+  const DIRECT_UPLOAD_LIMIT = 3.5 * 1024 * 1024; // 3.5MB — safe for Vercel body limit
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
-      const chunks: Blob[] = [];
+      const segments: Blob[] = [];
+      let currentChunks: Blob[] = [];
+      let segmentStart = 0;
+      let elapsed = 0;
 
-      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        setAudioBlob(blob);
-        setAudioPreviewUrl(URL.createObjectURL(blob));
-        stream.getTracks().forEach(t => t.stop());
+      const createRecorder = () => {
+        const rec = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+        currentChunks = [];
+        rec.ondataavailable = (e) => { if (e.data.size > 0) currentChunks.push(e.data); };
+        rec.onstop = () => {
+          if (currentChunks.length > 0) {
+            segments.push(new Blob(currentChunks, { type: "audio/webm" }));
+          }
+        };
+        return rec;
       };
 
+      let recorder = createRecorder();
       recorder.start(1000);
       setMediaRecorder(recorder);
       setIsRecording(true);
       setRecordingTime(0);
       setAudioBlob(null);
+      setAudioSegments([]);
       setAudioPreviewUrl(null);
+      segmentStart = Date.now();
 
-      const interval = setInterval(() => setRecordingTime(t => t + 1), 1000);
+      const interval = setInterval(() => {
+        elapsed++;
+        setRecordingTime(elapsed);
+
+        // Auto-segment every 3 minutes
+        if (elapsed > 0 && elapsed % SEGMENT_DURATION === 0 && recorder.state === "recording") {
+          recorder.stop(); // triggers onstop → saves segment
+          recorder = createRecorder();
+          recorder.start(1000);
+          setMediaRecorder(recorder);
+          segmentStart = Date.now();
+        }
+      }, 1000);
       timerRef.current = interval;
+
+      // Store cleanup function for stopRecording
+      (window as unknown as Record<string, unknown>).__stopRecordingCleanup = () => {
+        if (recorder.state !== "inactive") recorder.stop();
+        stream.getTracks().forEach(t => t.stop());
+        clearInterval(interval);
+
+        // Combine all segments into one blob for preview
+        setTimeout(() => {
+          const allSegments = [...segments];
+          if (allSegments.length > 0) {
+            const combined = new Blob(allSegments, { type: "audio/webm" });
+            setAudioBlob(combined);
+            setAudioSegments(allSegments);
+            setAudioPreviewUrl(URL.createObjectURL(combined));
+          }
+        }, 200); // wait for last onstop to fire
+      };
     } catch {
       setErr("ไม่สามารถเข้าถึงไมโครโฟนได้ — กรุณาอนุญาตการใช้งานไมโครโฟน");
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
-    }
     setIsRecording(false);
     if (timerRef.current) clearInterval(timerRef.current);
+    const cleanup = (window as unknown as Record<string, unknown>).__stopRecordingCleanup as (() => void) | undefined;
+    if (cleanup) { cleanup(); delete (window as unknown as Record<string, unknown>).__stopRecordingCleanup; }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -288,26 +331,14 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
       setErr("กรุณาเลือกไฟล์เสียง (mp3, wav, m4a, webm)");
       return;
     }
-    if (file.size > 20 * 1024 * 1024) {
-      setErr("ไฟล์เสียงใหญ่เกิน 20MB — กรุณาอัดเสียงให้สั้นลง");
+    if (file.size > 200 * 1024 * 1024) {
+      setErr("ไฟล์เสียงใหญ่เกิน 200MB");
       return;
     }
     setUploadedFile(file);
     setAudioBlob(null);
+    setAudioSegments([]);
     setAudioPreviewUrl(URL.createObjectURL(file));
-  };
-
-  // Helper: split a Blob into chunks of maxBytes
-  const splitAudioBlob = async (blob: Blob, maxBytes: number): Promise<Blob[]> => {
-    if (blob.size <= maxBytes) return [blob];
-    const chunks: Blob[] = [];
-    let offset = 0;
-    while (offset < blob.size) {
-      const end = Math.min(offset + maxBytes, blob.size);
-      chunks.push(blob.slice(offset, end, blob.type));
-      offset = end;
-    }
-    return chunks;
   };
 
   // Helper: safe fetch + JSON parse with friendly error
@@ -318,7 +349,6 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
     try {
       j = JSON.parse(text);
     } catch {
-      // Response was not JSON (e.g. Vercel "Request Entity Too Large" HTML page)
       if (r.status === 413 || text.includes("Request Entity Too Large") || text.includes("FUNCTION_PAYLOAD_TOO_LARGE") || text.includes("BODY_LIMIT")) {
         throw new Error("ไฟล์เสียงใหญ่เกินไป — กรุณาอัดเสียงให้สั้นลง (แนะนำไม่เกิน 3 นาทีต่อครั้ง)");
       }
@@ -328,39 +358,75 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
     return j;
   };
 
-  const CHUNK_MAX_BYTES = 3.5 * 1024 * 1024; // 3.5MB per chunk (safe for Vercel 4.5MB body limit after base64 overhead)
+  // Transcribe a single small audio blob directly (inline base64)
+  const transcribeSmallBlob = async (blob: Blob, label?: string): Promise<string> => {
+    if (label) setTranscribeProgress(label);
+    const fd = new FormData();
+    fd.append("audio", blob, "recording.webm");
+    fd.append("lang", "th");
+    const j = await safeFetchJson("/api/ai/transcribe-audio", { method: "POST", body: fd });
+    return (j.transcript as string) || "";
+  };
+
+  // Transcribe a large file via Supabase Storage (direct upload) + Gemini File API
+  const transcribeLargeFile = async (source: Blob | File): Promise<string> => {
+    // Step 1: Upload directly to Supabase Storage (bypasses Vercel body limit)
+    setTranscribeProgress("กำลังอัพโหลดไฟล์เสียง...");
+    const ext = source instanceof File ? (source.name.split(".").pop() || "webm") : "webm";
+    const filename = `meetings/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("meeting-audio")
+      .upload(filename, source, { contentType: source.type || "audio/webm", upsert: false });
+    if (uploadErr) throw new Error("อัพโหลดไฟล์เสียงไม่สำเร็จ: " + uploadErr.message);
+
+    const { data: urlData } = supabase.storage.from("meeting-audio").getPublicUrl(filename);
+    const storageUrl = urlData.publicUrl;
+    if (!storageUrl) throw new Error("ไม่สามารถสร้าง URL สำหรับไฟล์เสียงได้");
+
+    // Step 2: Call transcribe-audio-url with the storage URL
+    setTranscribeProgress("กำลังถอดเสียง (อาจใช้เวลา 1-2 นาที)...");
+    const j = await safeFetchJson("/api/ai/transcribe-audio-url", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: storageUrl, lang: "th" }),
+    });
+    return (j.transcript as string) || "";
+  };
 
   const transcribeAudio = async () => {
     const source = audioBlob || uploadedFile;
     if (!source) return;
 
-    // Client-side size check: warn if very large
-    if (source.size > 20 * 1024 * 1024) {
-      setErr("ไฟล์เสียงใหญ่เกิน 20MB — กรุณาอัดเสียงให้สั้นลง หรืออัพโหลดไฟล์ที่เล็กกว่า");
-      return;
-    }
-
-    setTranscribing(true); setErr(null);
+    setTranscribing(true); setErr(null); setTranscribeProgress(null);
     try {
-      const chunks = await splitAudioBlob(source, CHUNK_MAX_BYTES);
-      const transcripts: string[] = [];
+      let fullTranscript = "";
 
-      for (let i = 0; i < chunks.length; i++) {
-        if (chunks.length > 1) {
-          setErr(`กำลังถอดเสียงส่วนที่ ${i + 1}/${chunks.length}...`);
+      // Case 1: Multiple segments from auto-segmented recording
+      if (audioSegments.length > 1) {
+        const transcripts: string[] = [];
+        for (let i = 0; i < audioSegments.length; i++) {
+          const seg = audioSegments[i];
+          if (seg.size <= DIRECT_UPLOAD_LIMIT) {
+            transcripts.push(await transcribeSmallBlob(seg, `กำลังถอดเสียงส่วนที่ ${i + 1}/${audioSegments.length}...`));
+          } else {
+            setTranscribeProgress(`กำลังถอดเสียงส่วนที่ ${i + 1}/${audioSegments.length} (ไฟล์ใหญ่)...`);
+            transcripts.push(await transcribeLargeFile(seg));
+          }
         }
-        const fd = new FormData();
-        fd.append("audio", chunks[i], uploadedFile?.name || "recording.webm");
-        fd.append("lang", "th");
-        if (chunks.length > 1) {
-          fd.append("chunk_info", `Part ${i + 1} of ${chunks.length}`);
-        }
-        const j = await safeFetchJson("/api/ai/transcribe-audio", { method: "POST", body: fd });
-        if (j.transcript) transcripts.push(j.transcript as string);
+        fullTranscript = transcripts.filter(Boolean).join("\n\n---\n\n");
+      }
+      // Case 2: Small file → direct upload
+      else if (source.size <= DIRECT_UPLOAD_LIMIT) {
+        fullTranscript = await transcribeSmallBlob(source, "กำลังถอดเสียง...");
+      }
+      // Case 3: Large file → upload to storage first, then Gemini File API
+      else {
+        fullTranscript = await transcribeLargeFile(source);
       }
 
-      setErr(null);
-      const fullTranscript = transcripts.join("\n\n---\n\n");
+      setTranscribeProgress(null);
+      if (!fullTranscript) throw new Error("AI ไม่สามารถถอดเสียงได้ — อาจเป็นเพราะไฟล์เสียงไม่ชัด");
+
       // Put transcript into AI raw for extraction, and also into notes
       setAiRaw(fullTranscript);
       setForm(f => ({
@@ -368,7 +434,7 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
         notes: ((f.notes ?? "") + (f.notes ? "\n\n" : "") + "📝 [Transcript]\n" + fullTranscript).trim(),
       }));
     } catch (e) { setErr(e instanceof Error ? e.message : "Transcription failed"); }
-    finally { setTranscribing(false); }
+    finally { setTranscribing(false); setTranscribeProgress(null); }
   };
 
   const uploadAudioToStorage = async (): Promise<string | null> => {
@@ -545,11 +611,14 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
               <div className="flex items-center gap-2">
                 <button type="button" onClick={transcribeAudio} disabled={transcribing}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-gray-900 text-xs font-medium disabled:opacity-40">
-                  {transcribing ? <><Loader2 size={14} className="animate-spin" /> กำลังถอดเสียง...</> : <>✨ AI ถอดเสียง</>}
+                  {transcribing ? <><Loader2 size={14} className="animate-spin" /> {transcribeProgress || "กำลังถอดเสียง..."}</> : <>✨ AI ถอดเสียง</>}
                 </button>
-                <button type="button" onClick={() => { setAudioBlob(null); setUploadedFile(null); setAudioPreviewUrl(null); }}
+                <button type="button" onClick={() => { setAudioBlob(null); setUploadedFile(null); setAudioSegments([]); setAudioPreviewUrl(null); }}
                   className="text-xs text-gray-600 hover:text-red-600">ลบเสียง</button>
               </div>
+              {audioSegments.length > 1 && (
+                <div className="text-xs text-blue-600">บันทึก {audioSegments.length} ส่วน (แบ่งอัตโนมัติทุก 3 นาที)</div>
+              )}
             </div>
           )}
 

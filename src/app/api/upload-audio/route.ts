@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
+export const maxDuration = 60; // allow longer for large uploads
+
 // POST /api/upload-audio — upload audio to Supabase Storage, return public URL
 export async function POST(req: NextRequest) {
   const ctx = await getAuthContext(req);
