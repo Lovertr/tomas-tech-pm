@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-server";
 import { AiNotConfiguredError, langInstruction } from "@/lib/ai";
 
+// Increase body size limit for audio uploads (default is 1MB on Vercel)
+export const config = {
+  api: { bodyParser: { sizeLimit: "6mb" } },
+};
+// Next.js App Router: max request body
+export const maxDuration = 60; // allow longer processing for audio
+
 // POST /api/ai/transcribe-audio
 // Accepts multipart form: audio file + optional lang
 // Uses Gemini multimodal (audio) to transcribe meeting recordings
@@ -18,9 +25,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "audio file required" }, { status: 400 });
     }
 
-    // Validate file size (max 20MB for Gemini inline data)
-    if (file.size > 20 * 1024 * 1024) {
-      return NextResponse.json({ error: "ไฟล์เสียงใหญ่เกิน 20MB" }, { status: 400 });
+    // Validate file size — Vercel serverless has ~4.5MB body limit
+    // After base64 encoding, 3.5MB raw ≈ 4.7MB payload, so keep raw limit at 3.5MB
+    const MAX_SIZE = 3.5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: `ไฟล์เสียงใหญ่เกิน ${(MAX_SIZE / 1024 / 1024).toFixed(1)}MB — กรุณาอัดเสียงให้สั้นลง (แนะนำไม่เกิน 3 นาทีต่อครั้ง)` },
+        { status: 400 }
+      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;

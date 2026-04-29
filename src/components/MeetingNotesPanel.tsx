@@ -289,7 +289,7 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
       return;
     }
     if (file.size > 20 * 1024 * 1024) {
-      setErr("ไฟล์เสียงใหญ่เกิน 20MB");
+      setErr("ไฟล์เสียงใหญ่เกิน 20MB — กรุณาอัดเสียงให้สั้นลง");
       return;
     }
     setUploadedFile(file);
@@ -297,22 +297,75 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
     setAudioPreviewUrl(URL.createObjectURL(file));
   };
 
+  // Helper: split a Blob into chunks of maxBytes
+  const splitAudioBlob = async (blob: Blob, maxBytes: number): Promise<Blob[]> => {
+    if (blob.size <= maxBytes) return [blob];
+    const chunks: Blob[] = [];
+    let offset = 0;
+    while (offset < blob.size) {
+      const end = Math.min(offset + maxBytes, blob.size);
+      chunks.push(blob.slice(offset, end, blob.type));
+      offset = end;
+    }
+    return chunks;
+  };
+
+  // Helper: safe fetch + JSON parse with friendly error
+  const safeFetchJson = async (url: string, opts: RequestInit) => {
+    const r = await fetch(url, opts);
+    const text = await r.text();
+    let j: Record<string, unknown>;
+    try {
+      j = JSON.parse(text);
+    } catch {
+      // Response was not JSON (e.g. Vercel "Request Entity Too Large" HTML page)
+      if (r.status === 413 || text.includes("Request Entity Too Large") || text.includes("FUNCTION_PAYLOAD_TOO_LARGE") || text.includes("BODY_LIMIT")) {
+        throw new Error("ไฟล์เสียงใหญ่เกินไป — กรุณาอัดเสียงให้สั้นลง (แนะนำไม่เกิน 3 นาทีต่อครั้ง)");
+      }
+      throw new Error(`Server error (${r.status}) — ไม่สามารถถอดเสียงได้ กรุณาลองใหม่`);
+    }
+    if (!r.ok) throw new Error((j.error as string) || "Transcription failed");
+    return j;
+  };
+
+  const CHUNK_MAX_BYTES = 3.5 * 1024 * 1024; // 3.5MB per chunk (safe for Vercel 4.5MB body limit after base64 overhead)
+
   const transcribeAudio = async () => {
     const source = audioBlob || uploadedFile;
     if (!source) return;
+
+    // Client-side size check: warn if very large
+    if (source.size > 20 * 1024 * 1024) {
+      setErr("ไฟล์เสียงใหญ่เกิน 20MB — กรุณาอัดเสียงให้สั้นลง หรืออัพโหลดไฟล์ที่เล็กกว่า");
+      return;
+    }
+
     setTranscribing(true); setErr(null);
     try {
-      const fd = new FormData();
-      fd.append("audio", source, uploadedFile?.name || "recording.webm");
-      fd.append("lang", "th");
-      const r = await fetch("/api/ai/transcribe-audio", { method: "POST", body: fd });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Transcription failed");
+      const chunks = await splitAudioBlob(source, CHUNK_MAX_BYTES);
+      const transcripts: string[] = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        if (chunks.length > 1) {
+          setErr(`กำลังถอดเสียงส่วนที่ ${i + 1}/${chunks.length}...`);
+        }
+        const fd = new FormData();
+        fd.append("audio", chunks[i], uploadedFile?.name || "recording.webm");
+        fd.append("lang", "th");
+        if (chunks.length > 1) {
+          fd.append("chunk_info", `Part ${i + 1} of ${chunks.length}`);
+        }
+        const j = await safeFetchJson("/api/ai/transcribe-audio", { method: "POST", body: fd });
+        if (j.transcript) transcripts.push(j.transcript as string);
+      }
+
+      setErr(null);
+      const fullTranscript = transcripts.join("\n\n---\n\n");
       // Put transcript into AI raw for extraction, and also into notes
-      setAiRaw(j.transcript);
+      setAiRaw(fullTranscript);
       setForm(f => ({
         ...f,
-        notes: ((f.notes ?? "") + (f.notes ? "\n\n" : "") + "📝 [Transcript]\n" + j.transcript).trim(),
+        notes: ((f.notes ?? "") + (f.notes ? "\n\n" : "") + "📝 [Transcript]\n" + fullTranscript).trim(),
       }));
     } catch (e) { setErr(e instanceof Error ? e.message : "Transcription failed"); }
     finally { setTranscribing(false); }
