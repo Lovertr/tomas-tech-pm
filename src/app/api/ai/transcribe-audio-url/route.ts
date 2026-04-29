@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-server";
-import { AiNotConfiguredError, langInstruction } from "@/lib/ai";
+import { AiNotConfiguredError, langInstruction, detectTranscriptHallucination } from "@/lib/ai";
 
 export const maxDuration = 120; // 2 minutes for large file processing
 
@@ -94,10 +94,16 @@ export async function POST(req: NextRequest) {
 
     // Step 4: Transcribe using the uploaded file URI
     const systemText = [
-      "You are an expert meeting transcription assistant for Tomas Tech, a Thai engineering/IT company.",
-      "Transcribe the audio accurately, preserving the speaker's language (Thai, English, or mixed).",
-      "Format the transcript clearly with timestamps if possible.",
-      "If multiple speakers, label them as Speaker 1, Speaker 2, etc.",
+      "You are a strict audio-to-text transcription engine for Tomas Tech, a Thai engineering/IT company.",
+      "CRITICAL RULES — violating any of these is a failure:",
+      "1. ONLY output words that are actually spoken in the audio. NEVER invent, fabricate, or hallucinate content.",
+      "2. If a section is unclear or inaudible, write [ไม่ชัด] (unclear). Do NOT guess or make up words.",
+      "3. If the audio is silence, noise, or contains no speech, respond ONLY with: [ไม่มีเสียงพูด]",
+      "4. NEVER generate repetitive text. If you find yourself writing the same phrase more than twice, stop and re-listen.",
+      "5. Do NOT create fake meeting agendas, project names, or structured meeting minutes that weren't spoken.",
+      "6. Preserve the speaker's actual language (Thai, English, or mixed). Do not translate.",
+      "7. If multiple speakers are clearly distinguishable, label them Speaker 1, Speaker 2, etc. Otherwise, omit labels.",
+      "8. Keep the transcript as a faithful raw transcription, not a polished summary.",
       langInstruction(lang),
     ].join("\n");
 
@@ -115,7 +121,7 @@ export async function POST(req: NextRequest) {
             parts: [
               { fileData: { mimeType, fileUri } },
               {
-                text: "ถอดเสียงการประชุมนี้ให้เป็นข้อความ (transcript) อย่างละเอียด ถ้ามีหลายคนพูดให้ระบุ Speaker แต่ถ้าฟังไม่ออกว่าใครพูดก็ไม่ต้องระบุ",
+                text: "ถอดเสียงจากไฟล์นี้เป็นข้อความตามที่ได้ยินจริงเท่านั้น ห้ามแต่งเติมหรือสร้างเนื้อหาขึ้นมาเอง ถ้าฟังไม่ออกให้เขียน [ไม่ชัด] ถ้าไม่มีเสียงพูดให้ตอบ [ไม่มีเสียงพูด]",
               },
             ],
           },
@@ -152,6 +158,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "AI ไม่สามารถถอดเสียงได้ — อาจเป็นเพราะไฟล์เสียงไม่ชัด" },
         { status: 502 }
+      );
+    }
+
+    // Check for hallucinated / repetitive output
+    const hallucinationError = detectTranscriptHallucination(transcript);
+    if (hallucinationError) {
+      return NextResponse.json(
+        { error: hallucinationError, transcript, hallucinated: true },
+        { status: 422 }
       );
     }
 

@@ -354,6 +354,10 @@ function MeetingModal({ initial, projects, defaultProjectId, onClose, onSaved }:
       }
       throw new Error(`Server error (${r.status}) — ไม่สามารถถอดเสียงได้ กรุณาลองใหม่`);
     }
+    // Hallucination detected — warn but still return partial data
+    if (r.status === 422 && j.hallucinated) {
+      throw new Error((j.error as string) || "ตรวจพบว่า AI อาจถอดเสียงผิดพลาด — กรุณาลองใหม่");
+    }
     if (!r.ok) throw new Error((j.error as string) || "Transcription failed");
     return j;
   };
