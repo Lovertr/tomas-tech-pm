@@ -25,8 +25,16 @@ import {
   CalendarCheck,
   MonitorSmartphone,
   Building,
+  Mic,
+  Square,
+  Upload,
+  Loader2,
+  Play,
+  Pause,
+  Volume2,
 } from 'lucide-react';
 import TranslateButton from './TranslateButton';
+import { supabase } from '@/lib/supabase';
 
 interface Props {
   projects: { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null }[];
@@ -54,6 +62,11 @@ interface Deal {
   id: string;
   title: string;
   customer_name: string;
+}
+
+interface Customer {
+  id: string;
+  company_name: string;
 }
 
 interface User {
@@ -86,6 +99,20 @@ const activityTypeConfig = {
 
 type ActivityType = keyof typeof activityTypeConfig;
 
+const SEGMENT_DURATION = 180000; // 3 minutes in milliseconds
+const DIRECT_UPLOAD_LIMIT = 3.5 * 1024 * 1024; // 3.5 MB
+
+async function safeFetchJson(response: Response) {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error('Failed to parse JSON:', e);
+    return null;
+  }
+}
+
 const panelText = {
   th: {
     title: 'กิจกรรมการขาย',
@@ -112,12 +139,24 @@ const panelText = {
     },
     form: {
       title: 'เพิ่มกิจกรรมใหม่',
-      dealLabel: 'ดีล *',
+      dealLabel: 'ดีล',
       dealPlaceholder: 'เลือกดีล',
+      noDeal: '— ไม่ระบุ —',
+      customerLabel: 'ลูกค้า',
+      customerPlaceholder: 'เลือกลูกค้า (ไม่บังคับ)',
       typeLabel: 'ประเภทกิจกรรม *',
       dateLabel: 'วันที่ *',
       descriptionLabel: 'คำอธิบาย *',
       descriptionPlaceholder: 'อธิบายกิจกรรมในรายละเอียด...',
+      audioSection: 'บันทึกเสียง',
+      recordButton: 'บันทึก',
+      stopButton: 'หยุด',
+      uploadButton: 'อัพโหลด',
+      transcribeButton: 'แปลงเป็นข้อความ',
+      transcribing: 'กำลังแปลง...',
+      extractSection: 'สกัดข้อมูลจาก AI',
+      extractButton: 'สกัดข้อมูล',
+      extracting: 'กำลังสกัด...',
       save: 'บันทึก',
       cancel: 'ยกเลิก',
     },
@@ -167,12 +206,24 @@ const panelText = {
     },
     form: {
       title: 'Add New Activity',
-      dealLabel: 'Deal *',
+      dealLabel: 'Deal',
       dealPlaceholder: 'Select a deal',
+      noDeal: '— No Deal —',
+      customerLabel: 'Customer',
+      customerPlaceholder: 'Select a customer (optional)',
       typeLabel: 'Activity Type *',
       dateLabel: 'Date *',
       descriptionLabel: 'Description *',
       descriptionPlaceholder: 'Describe the activity in detail...',
+      audioSection: 'Audio Recording',
+      recordButton: 'Record',
+      stopButton: 'Stop',
+      uploadButton: 'Upload',
+      transcribeButton: 'Transcribe',
+      transcribing: 'Transcribing...',
+      extractSection: 'AI Extract',
+      extractButton: 'Extract',
+      extracting: 'Extracting...',
       save: 'Save',
       cancel: 'Cancel',
     },
@@ -222,12 +273,24 @@ const panelText = {
     },
     form: {
       title: '新規活動を追加',
-      dealLabel: '取引 *',
+      dealLabel: '取引',
       dealPlaceholder: '取引を選択',
+      noDeal: '— 取引なし —',
+      customerLabel: '顧客',
+      customerPlaceholder: '顧客を選択 (オプション)',
       typeLabel: '活動タイプ *',
       dateLabel: '日付 *',
       descriptionLabel: '説明 *',
       descriptionPlaceholder: '活動の詳細を説明してください...',
+      audioSection: '音声録音',
+      recordButton: '記録',
+      stopButton: '停止',
+      uploadButton: 'アップロード',
+      transcribeButton: 'テキスト化',
+      transcribing: 'テキスト化中...',
+      extractSection: 'AI抽出',
+      extractButton: '抽出',
+      extracting: '抽出中...',
       save: '保存',
       cancel: 'キャンセル',
     },
@@ -287,6 +350,7 @@ export default function SalesActivitiesPanel({
 
   const [activities, setActivities] = useState<DealActivity[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -295,16 +359,39 @@ export default function SalesActivitiesPanel({
   const [groupByDate, setGroupByDate] = useState(true);
   const [groupBySalesperson, setGroupBySalesperson] = useState(false);
 
+  // Audio states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioSegments, setAudioSegments] = useState<Blob[]>([]);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcribeProgress, setTranscribeProgress] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string>('');
+  const [extractedData, setExtractedData] = useState<{
+    action_items?: Array<{ text?: string; owner?: string; due_date?: string }>;
+    decisions?: string[];
+    risks?: string[];
+    change_requests?: string[];
+    summary?: string;
+  } | null>(null);
+  const [extracting, setExtracting] = useState(false);
+
   const [formData, setFormData] = useState({
     deal_id: '',
+    customer_id: '',
     type: 'call_contact' as ActivityType,
     description: '',
     date: new Date().toISOString().split('T')[0],
+    audio_url: '',
   });
 
   useEffect(() => {
     fetchActivities();
     fetchDeals();
+    fetchCustomers();
     fetchUsers();
   }, [filterProjectId, refreshKey]);
 
@@ -353,6 +440,22 @@ export default function SalesActivitiesPanel({
     }
   };
 
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch('/api/customers');
+      if (res.ok) {
+        const json = await res.json();
+        const mapped = (json.customers ?? []).map((c: Record<string, unknown>) => ({
+          id: c.id as string,
+          company_name: c.company_name as string,
+        }));
+        setCustomers(mapped);
+      }
+    } catch (error) {
+      console.error('Failed to fetch customers:', error);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       // Try /api/users first (admin), fallback to extracting performers from activities
@@ -382,10 +485,12 @@ export default function SalesActivitiesPanel({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          deal_id: formData.deal_id,
+          deal_id: formData.deal_id || null,
+          customer_id: formData.customer_id || null,
           activity_type: formData.type,
           subject: formData.description,
           activity_date: formData.date,
+          audio_url: formData.audio_url || null,
         }),
       });
 
@@ -414,10 +519,191 @@ export default function SalesActivitiesPanel({
   const resetForm = () => {
     setFormData({
       deal_id: '',
+      customer_id: '',
       type: 'call_contact',
       description: '',
       date: new Date().toISOString().split('T')[0],
+      audio_url: '',
     });
+    setAudioBlob(null);
+    setAudioSegments([]);
+    setUploadedFile(null);
+    setAudioPreviewUrl('');
+    setExtractedData(null);
+    setTranscribeProgress('');
+    setRecordingTime(0);
+    setIsRecording(false);
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      let chunks: Blob[] = [];
+      let segmentTime = 0;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        if (chunks.length > 0) {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          setAudioSegments((prev) => [...prev, blob]);
+          chunks = [];
+        }
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingTime(0);
+      setAudioBlob(null);
+      setAudioSegments([]);
+      recorder.start();
+
+      const interval = setInterval(() => {
+        setRecordingTime((t) => t + 1);
+        segmentTime += 1;
+        if (segmentTime >= SEGMENT_DURATION / 1000) {
+          recorder.stop();
+          recorder.start();
+          segmentTime = 0;
+        }
+      }, 1000);
+
+      const cleanup = () => clearInterval(interval);
+      return cleanup;
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleUploadAudio = async (file: File) => {
+    try {
+      setUploading(true);
+      const size = file.size;
+
+      if (size <= DIRECT_UPLOAD_LIMIT) {
+        // Direct upload
+        const formData = new FormData();
+        formData.append('audio', file);
+        const res = await fetch('/api/ai/transcribe-audio', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const json = await safeFetchJson(res);
+        if (json?.transcript) {
+          setFormData((prev) => ({
+            ...prev,
+            description: prev.description ? `${prev.description}\n\n[Transcript]\n${json.transcript}` : `[Transcript]\n${json.transcript}`,
+          }));
+          setAudioPreviewUrl(URL.createObjectURL(file));
+          setUploadedFile({ name: file.name, url: '' });
+        }
+      } else {
+        // Upload to Supabase first
+        const { data, error } = await supabase.storage
+          .from('deal-activity-audio')
+          .upload(`${Date.now()}-${file.name}`, file);
+
+        if (error) throw error;
+        if (data) {
+          const { data: publicUrl } = supabase.storage
+            .from('deal-activity-audio')
+            .getPublicUrl(data.path);
+
+          const res = await fetch('/api/ai/transcribe-audio-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio_url: publicUrl.publicUrl }),
+          });
+
+          const json = await safeFetchJson(res);
+          if (json?.transcript) {
+            setFormData((prev) => ({
+              ...prev,
+              description: prev.description ? `${prev.description}\n\n[Transcript]\n${json.transcript}` : `[Transcript]\n${json.transcript}`,
+              audio_url: publicUrl.publicUrl,
+            }));
+            setAudioPreviewUrl(URL.createObjectURL(file));
+            setUploadedFile({ name: file.name, url: publicUrl.publicUrl });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to upload audio:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleTranscribeSegments = async () => {
+    if (audioSegments.length === 0) return;
+
+    try {
+      setTranscribing(true);
+      let fullTranscript = '';
+
+      for (let i = 0; i < audioSegments.length; i++) {
+        setTranscribeProgress(`${i + 1}/${audioSegments.length}`);
+        const blob = audioSegments[i];
+        const formData = new FormData();
+        formData.append('audio', blob);
+
+        const res = await fetch('/api/ai/transcribe-audio', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const json = await safeFetchJson(res);
+        if (json?.transcript) {
+          fullTranscript += json.transcript + ' ';
+        }
+      }
+
+      if (fullTranscript) {
+        setFormData((prev) => ({
+          ...prev,
+          description: prev.description ? `${prev.description}\n\n[Transcript]\n${fullTranscript}` : `[Transcript]\n${fullTranscript}`,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to transcribe segments:', error);
+    } finally {
+      setTranscribing(false);
+      setTranscribeProgress('');
+    }
+  };
+
+  const handleExtractData = async () => {
+    if (!formData.description) return;
+
+    try {
+      setExtracting(true);
+      const res = await fetch('/api/ai/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw_text: formData.description }),
+      });
+
+      const json = await safeFetchJson(res);
+      if (json) {
+        setExtractedData(json);
+      }
+    } catch (error) {
+      console.error('Failed to extract data:', error);
+    } finally {
+      setExtracting(false);
+    }
   };
 
   const filteredActivities = activities.filter((a) => {
@@ -709,17 +995,17 @@ export default function SalesActivitiesPanel({
             </div>
 
             <form onSubmit={handleAddActivity} className="space-y-4">
+              {/* Deal Dropdown - Optional */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.dealLabel')}
                 </label>
                 <select
-                  required
                   value={formData.deal_id}
                   onChange={(e) => setFormData({ ...formData, deal_id: e.target.value })}
                   className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value="">{L('form.dealPlaceholder')}</option>
+                  <option value="">{L('form.noDeal')}</option>
                   {deals.map((deal) => (
                     <option key={deal.id} value={deal.id}>
                       {deal.title} - {deal.customer_name}
@@ -728,6 +1014,26 @@ export default function SalesActivitiesPanel({
                 </select>
               </div>
 
+              {/* Customer Dropdown - Optional */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {L('form.customerLabel')}
+                </label>
+                <select
+                  value={formData.customer_id}
+                  onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
+                >
+                  <option value="">{L('form.customerPlaceholder')}</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.company_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Activity Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.typeLabel')}
@@ -745,6 +1051,7 @@ export default function SalesActivitiesPanel({
                 </select>
               </div>
 
+              {/* Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.dateLabel')}
@@ -758,6 +1065,7 @@ export default function SalesActivitiesPanel({
                 />
               </div>
 
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.descriptionLabel')}
@@ -774,6 +1082,170 @@ export default function SalesActivitiesPanel({
                 />
               </div>
 
+              {/* Audio Recording Section */}
+              <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Mic size={16} className="text-blue-600" />
+                  {L('form.audioSection')}
+                </h4>
+
+                <div className="space-y-3">
+                  {/* Recording Controls */}
+                  <div className="flex gap-2">
+                    {!isRecording ? (
+                      <button
+                        type="button"
+                        onClick={handleStartRecording}
+                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                      >
+                        <Mic size={14} />
+                        {L('form.recordButton')}
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleStopRecording}
+                          className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          <Square size={14} />
+                          {L('form.stopButton')}
+                        </button>
+                        <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg text-sm text-gray-700">
+                          {Math.floor(recordingTime / 60)}:{String(recordingTime % 60).padStart(2, '0')}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* File Upload */}
+                  <div>
+                    <label className="block w-full px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium text-center cursor-pointer transition">
+                      <Upload size={14} className="inline mr-2" />
+                      {L('form.uploadButton')}
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleUploadAudio(file);
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Transcribe Button */}
+                  {audioSegments.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleTranscribeSegments}
+                      disabled={transcribing}
+                      className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                    >
+                      {transcribing ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          {L('form.transcribing')} {transcribeProgress}
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 size={14} />
+                          {L('form.transcribeButton')}
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Audio Preview */}
+                  {audioPreviewUrl && (
+                    <div className="bg-white rounded-lg p-3">
+                      <audio
+                        src={audioPreviewUrl}
+                        controls
+                        className="w-full h-8"
+                      />
+                      {uploadedFile && (
+                        <p className="text-xs text-gray-600 mt-2">{uploadedFile.name}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* AI Extract Section */}
+              <div className="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Zap size={16} className="text-purple-600" />
+                  {L('form.extractSection')}
+                </h4>
+
+                <button
+                  type="button"
+                  onClick={handleExtractData}
+                  disabled={extracting || !formData.description}
+                  className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-3"
+                >
+                  {extracting ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      {L('form.extracting')}
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={14} />
+                      {L('form.extractButton')}
+                    </>
+                  )}
+                </button>
+
+                {extractedData && (
+                  <div className="bg-white rounded-lg p-3 space-y-2 text-xs">
+                    {extractedData.action_items && extractedData.action_items.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-700">Action Items:</p>
+                        <ul className="list-disc list-inside text-gray-600">
+                          {extractedData.action_items.map((item, i) => (
+                            <li key={i}>
+                              {item.text}
+                              {item.owner && ` (${item.owner})`}
+                              {item.due_date && ` - Due: ${item.due_date}`}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {extractedData.decisions && extractedData.decisions.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-700">Decisions:</p>
+                        <ul className="list-disc list-inside text-gray-600">
+                          {extractedData.decisions.map((d, i) => (
+                            <li key={i}>{d}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {extractedData.risks && extractedData.risks.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-700">Risks:</p>
+                        <ul className="list-disc list-inside text-gray-600">
+                          {extractedData.risks.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {extractedData.summary && (
+                      <div>
+                        <p className="font-semibold text-gray-700">Summary:</p>
+                        <p className="text-gray-600">{extractedData.summary}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Form Buttons */}
               <div className="flex gap-2 pt-4">
                 <button
                   type="submit"

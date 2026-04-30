@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json();
-  if (!body.subject?.trim() || !body.activity_type) return NextResponse.json({ error: "subject and activity_type required" }, { status: 400 });
+  if (!body.activity_type) return NextResponse.json({ error: "activity_type required" }, { status: 400 });
+  if (!body.subject?.trim()) body.subject = body.activity_type; // default subject to activity type if not provided
   const { data, error } = await supabaseAdmin.from("deal_activities")
     .insert({ ...body, performed_by: body.performed_by || ctx.userId }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
