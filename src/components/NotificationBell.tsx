@@ -99,7 +99,7 @@ export default function NotificationBell({ onNavigate }: Props) {
       <button onClick={() => setOpen(!open)} className="p-2 rounded-xl bg-slate-100 relative text-gray-500 hover:text-gray-700">
         <Bell size={18} />
         {unread.length > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center bg-[#F7941D]">
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-gray-900 text-[10px] font-bold flex items-center justify-center bg-[#F7941D]">
             {unread.length > 99 ? "99+" : unread.length}
           </span>
         )}

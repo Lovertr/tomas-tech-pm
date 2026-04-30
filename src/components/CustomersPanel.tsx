@@ -86,6 +86,14 @@ const pipelineStageColors: Record<string, string> = {
   refused: '#9CA3AF',
 };
 
+const getTextColorForBackground = (bgColor: string): string => {
+  const lightColors = ['#F7941D', '#F59E0B', '#6B7280', '#9CA3AF', '#14B8A6', '#22C55E', '#EC4899'];
+  const darkColors = ['#3B82F6', '#8B5CF6', '#EF4444', '#059669'];
+  if (lightColors.includes(bgColor)) return '#1F2937';
+  if (darkColors.includes(bgColor)) return '#FFFFFF';
+  return '#FFFFFF';
+};
+
 const L = (key: string, lang: Lang = 'th'): string => {
   const panelText: Record<string, Record<Lang, string>> = {
     title: { th: 'ลูกค้า', en: 'Customers', jp: '顧客' },
@@ -931,7 +939,7 @@ export default function CustomersPanel({
                                 <div className="flex items-center gap-2 mb-2">
                                   <p className="font-semibold text-gray-900">{contact.first_name} {contact.last_name || ''}</p>
                                   {contact.is_primary && (
-                                    <span className="px-2 py-0.5 bg-[#F7941D] text-white text-xs rounded font-medium">
+                                    <span className="px-2 py-0.5 bg-[#F7941D] text-gray-900 text-xs rounded font-medium">
                                       {L('primaryContact', lang)}
                                     </span>
                                   )}
@@ -1086,8 +1094,8 @@ export default function CustomersPanel({
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-semibold text-gray-900">{deal.title}</h4>
                             <span
-                              className="px-2 py-1 rounded text-xs font-medium text-white"
-                              style={{ backgroundColor: pipelineStageColors[deal.stage] || '#6B7280' }}
+                              className="px-2 py-1 rounded text-xs font-medium"
+                              style={{ backgroundColor: pipelineStageColors[deal.stage] || '#6B7280', color: getTextColorForBackground(pipelineStageColors[deal.stage] || '#6B7280') }}
                             >
                               {deal.stage}
                             </span>

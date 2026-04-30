@@ -439,7 +439,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                     <button
                       onClick={() => handleApply(p.id)}
                       disabled={applying}
-                      className="px-3 py-2 bg-[#F7941D] hover:bg-[#e0850f] text-white rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1"
+                      className="px-3 py-2 bg-[#F7941D] hover:bg-[#e0850f] text-gray-900 rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1"
                     >
                       <UserPlus size={12} />
                       {applying ? '...' : L('join')}
