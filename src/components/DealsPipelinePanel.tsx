@@ -21,7 +21,7 @@ interface Deal {
   customer_id: string;
   customer_name: string;
   value: number;
-  stage: 'waiting_present' | 'contacted' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'payment_received' | 'cancelled' | 'refused';
+  stage: 'new_lead' | 'waiting_present' | 'contacted' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'payment_received' | 'cancelled' | 'refused';
   expected_close_date?: string;
   probability?: number;
   owner_id?: string;
@@ -45,6 +45,7 @@ interface Member {
 
 /* ─── Stage config ─── */
 const stageLabels: Record<string, Record<string, string>> = {
+  new_lead:           { th: 'ลีดใหม่',            en: 'New Lead',              jp: '新規リード' },
   waiting_present:    { th: 'รอนำเสนอ',          en: 'Waiting to Present',    jp: 'プレゼン待ち' },
   contacted:          { th: 'ติดต่อแล้ว',         en: 'Contacted',             jp: '連絡済み' },
   proposal_submitted: { th: 'เสนอ Proposal',     en: 'Proposal Submitted',    jp: '提案済み' },
@@ -59,6 +60,7 @@ const stageLabels: Record<string, Record<string, string>> = {
 };
 
 const stageColors: Record<string, string> = {
+  new_lead: '#0EA5E9',
   waiting_present: '#6B7280',
   contacted: '#3B82F6',
   proposal_submitted: '#F59E0B',
@@ -72,7 +74,15 @@ const stageColors: Record<string, string> = {
   refused: '#9CA3AF',
 };
 
-/* ─── i18n text ─── */
+const getTextColorForBackground = (bgColor: string): string => {
+  const lightColors = ['#F7941D', '#F59E0B', '#6B7280', '#9CA3AF', '#14B8A6', '#22C55E', '#EC4899'];
+  const darkColors = ['#0EA5E9', '#3B82F6', '#8B5CF6', '#EF4444', '#059669'];
+  if (lightColors.includes(bgColor)) return '#1F2937';
+  if (darkColors.includes(bgColor)) return '#FFFFFF';
+  return '#FFFFFF';
+};
+
+/* --- i18n text --- */
 const panelText: Record<string, Record<string, string>> = {
   title:           { th: 'Sales Pipeline',                        en: 'Sales Pipeline',                  jp: '営業パイプライン' },
   addDeal:         { th: 'เพิ่ม Deal',                             en: 'Add Deal',                        jp: 'ディール追加' },
@@ -100,6 +110,7 @@ const panelText: Record<string, Record<string, string>> = {
 };
 
 const stageKeys: Array<Deal['stage']> = [
+  'new_lead',
   'waiting_present',
   'contacted',
   'proposal_submitted',
@@ -145,9 +156,9 @@ export default function DealsPipelinePanel({
     customer_id: '',
     owner_id: '',
     value: 0,
-    stage: 'waiting_present' as Deal['stage'],
+    stage: 'new_lead' as Deal['stage'],
     expected_close_date: '',
-    probability: 50,
+    probability: 0,
     notes: '',
   });
 
@@ -250,7 +261,7 @@ export default function DealsPipelinePanel({
   const resetForm = () => {
     setFormData({
       title: '', customer_id: '', owner_id: '', value: 0,
-      stage: 'waiting_present', expected_close_date: '', probability: 50, notes: '',
+      stage: 'new_lead', expected_close_date: '', probability: 0, notes: '',
     });
     setSelectedDeal(null);
   };
@@ -344,8 +355,8 @@ export default function DealsPipelinePanel({
             <div key={stage} className="flex-shrink-0" style={{ minWidth: 220, width: 220 }}>
               {/* Column header */}
               <div
-                className="rounded-t-lg px-3 py-2 font-bold text-white flex items-center justify-between"
-                style={{ backgroundColor: stageColors[stage] }}
+                className="rounded-t-lg px-3 py-2 font-bold flex items-center justify-between"
+                style={{ backgroundColor: stageColors[stage], color: getTextColorForBackground(stageColors[stage]) }}
               >
                 <span>{stageName(stage)} ({col.length})</span>
               </div>

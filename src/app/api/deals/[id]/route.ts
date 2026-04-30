@@ -4,6 +4,7 @@ import { getAuthContext } from "@/lib/auth-server";
 import { notify, getAdminManagerIds } from "@/lib/notify";
 
 const STAGE_LABELS: Record<string, string> = {
+  new_lead: "ลีดใหม่",
   waiting_present: "รอนำเสนอ",
   contacted: "ติดต่อแล้ว",
   proposal_submitted: "เสนอ Proposal",
