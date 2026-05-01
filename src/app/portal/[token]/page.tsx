@@ -15,7 +15,7 @@ interface Project {
   start_date?: string; end_date?: string; progress: number; client_name?: string;
 }
 interface Milestone { id: string; title: string; status: string; due_date?: string; completed_date?: string; }
-interface Task { id: string; title: string; status: string; priority: string; due_date?: string; source?: string; client_request_id?: string; }
+interface Task { id: string; title: string; status: string; priority: string; due_date?: string; start_date?: string; source?: string; client_request_id?: string; }
 interface ClientRequest {
   id: string; request_type: string; title: string; description?: string;
   status: string; priority: string; attachments?: Attachment[];
@@ -218,6 +218,45 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         {/* Tab Content */}
         {activeTab === "overview" && (
           <div className="space-y-4">
+            {/* Task Status Summary */}
+            {permissions.view_tasks && tasks.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Target size={18} style={{ color: "#003087" }} />
+                  สถานะงานทั้งหมด
+                </h3>
+                {(() => {
+                  const statusGroups: Record<string, number> = {};
+                  for (const t of tasks) { statusGroups[t.status] = (statusGroups[t.status] || 0) + 1; }
+                  const total = tasks.length;
+                  const statusOrder = ["done", "in_progress", "review", "todo", "backlog", "cancelled"];
+                  const statusColors: Record<string, string> = { done: "#22C55E", in_progress: "#3B82F6", review: "#F59E0B", todo: "#6B7280", backlog: "#94A3B8", cancelled: "#EF4444" };
+                  const statusLabels: Record<string, string> = { done: "เสร็จแล้ว", in_progress: "กำลังทำ", review: "รอตรวจสอบ", todo: "รอเริ่ม", backlog: "Backlog", cancelled: "ยกเลิก" };
+                  return (
+                    <>
+                      {/* Stacked bar */}
+                      <div className="flex rounded-full h-4 overflow-hidden mb-3">
+                        {statusOrder.filter(s => statusGroups[s]).map(s => (
+                          <div key={s} style={{ width: `${(statusGroups[s] / total) * 100}%`, backgroundColor: statusColors[s] }} title={`${statusLabels[s]}: ${statusGroups[s]}`} />
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        {statusOrder.filter(s => statusGroups[s]).map(s => (
+                          <div key={s} className="flex items-center gap-1.5 text-xs text-gray-600">
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: statusColors[s] }} />
+                            {statusLabels[s]} <span className="font-semibold text-gray-900">{statusGroups[s]}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Gantt Chart */}
+            {permissions.view_tasks && <GanttChart tasks={tasks} milestones={milestones} project={project} />}
+
             {/* Milestones timeline */}
             {permissions.view_milestones && milestones.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
@@ -486,6 +525,147 @@ function RequestCard({ request: cr }: { request: ClientRequest }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones: Milestone[]; project: Project }) {
+  // Filter tasks that have dates
+  const datedTasks = tasks.filter(t => t.start_date || t.due_date);
+  if (datedTasks.length === 0 && milestones.length === 0) return null;
+
+  // Calculate date range from project or tasks
+  const allDates: number[] = [];
+  if (project.start_date) allDates.push(new Date(project.start_date).getTime());
+  if (project.end_date) allDates.push(new Date(project.end_date).getTime());
+  for (const t of datedTasks) {
+    if (t.start_date) allDates.push(new Date(t.start_date).getTime());
+    if (t.due_date) allDates.push(new Date(t.due_date).getTime());
+  }
+  for (const m of milestones) {
+    if (m.due_date) allDates.push(new Date(m.due_date).getTime());
+  }
+
+  if (allDates.length < 2) return null;
+
+  const minDate = Math.min(...allDates);
+  const maxDate = Math.max(...allDates);
+  const rangeMs = maxDate - minDate || 1;
+  const today = Date.now();
+  const todayPct = Math.max(0, Math.min(100, ((today - minDate) / rangeMs) * 100));
+
+  // Generate month labels
+  const months: { label: string; left: number }[] = [];
+  const startMonth = new Date(minDate);
+  startMonth.setDate(1);
+  const endMonth = new Date(maxDate);
+  endMonth.setMonth(endMonth.getMonth() + 1);
+  const cur = new Date(startMonth);
+  while (cur <= endMonth) {
+    const pct = ((cur.getTime() - minDate) / rangeMs) * 100;
+    if (pct >= 0 && pct <= 100) {
+      months.push({ label: cur.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }), left: pct });
+    }
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  const statusColors: Record<string, string> = { done: "#22C55E", in_progress: "#3B82F6", review: "#F59E0B", todo: "#94A3B8", backlog: "#D1D5DB", cancelled: "#FCA5A5" };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border p-6">
+      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <BarChart3 size={18} style={{ color: "#003087" }} />
+        แผนงานโครงการ (Gantt)
+      </h3>
+
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: 500 }}>
+          {/* Month headers */}
+          <div className="relative h-6 border-b mb-2">
+            {months.map((m, i) => (
+              <span key={i} className="absolute text-[10px] text-gray-400 font-medium" style={{ left: `${m.left}%`, transform: "translateX(-50%)" }}>
+                {m.label}
+              </span>
+            ))}
+          </div>
+
+          {/* Today line */}
+          {todayPct > 0 && todayPct < 100 && (
+            <div className="relative h-0">
+              <div className="absolute top-0 bottom-0 w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%`, height: `${(datedTasks.length + milestones.length) * 32 + 8}px` }} />
+              <span className="absolute text-[9px] text-red-500 font-medium" style={{ left: `${todayPct}%`, top: -14, transform: "translateX(-50%)" }}>วันนี้</span>
+            </div>
+          )}
+
+          {/* Task bars */}
+          <div className="space-y-1">
+            {datedTasks.map(t => {
+              const s = t.start_date ? new Date(t.start_date).getTime() : (t.due_date ? new Date(t.due_date).getTime() - 7 * 86400000 : minDate);
+              const e = t.due_date ? new Date(t.due_date).getTime() : s + 14 * 86400000;
+              const left = Math.max(0, ((s - minDate) / rangeMs) * 100);
+              const width = Math.max(2, Math.min(100 - left, ((e - s) / rangeMs) * 100));
+              const color = statusColors[t.status] || "#94A3B8";
+              return (
+                <div key={t.id} className="flex items-center gap-2 h-7">
+                  <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right">{t.title}</div>
+                  <div className="flex-1 relative h-5 bg-gray-50 rounded">
+                    <div
+                      className="absolute h-full rounded-sm transition-all"
+                      style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.7 : 1 }}
+                      title={`${t.title}: ${t.start_date ? new Date(t.start_date).toLocaleDateString("th-TH") : "?"} → ${t.due_date ? new Date(t.due_date).toLocaleDateString("th-TH") : "?"}`}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Milestone diamonds */}
+            {milestones.filter(m => m.due_date).map(m => {
+              const mDate = new Date(m.due_date!).getTime();
+              const left = ((mDate - minDate) / rangeMs) * 100;
+              const done = m.status === "completed";
+              return (
+                <div key={m.id} className="flex items-center gap-2 h-7">
+                  <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right flex items-center justify-end gap-1">
+                    <Flag size={10} style={{ color: "#F7941D" }} />
+                    {m.title}
+                  </div>
+                  <div className="flex-1 relative h-5">
+                    <div
+                      className="absolute w-3 h-3 rotate-45 top-1"
+                      style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }}
+                      title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString("th-TH")}`}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-4 pt-3 border-t">
+        {[
+          { label: "กำลังทำ", color: "#3B82F6" },
+          { label: "รอตรวจสอบ", color: "#F59E0B" },
+          { label: "เสร็จแล้ว", color: "#22C55E" },
+          { label: "รอเริ่ม", color: "#94A3B8" },
+        ].map(l => (
+          <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
+            <div className="w-3 h-2 rounded-sm" style={{ backgroundColor: l.color }} />
+            {l.label}
+          </div>
+        ))}
+        <div className="flex items-center gap-1 text-[10px] text-gray-500">
+          <div className="w-2 h-2 rotate-45" style={{ backgroundColor: "#F7941D" }} />
+          Milestone
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-gray-500">
+          <div className="w-3 h-0.5 bg-red-400" />
+          วันนี้
+        </div>
+      </div>
     </div>
   );
 }

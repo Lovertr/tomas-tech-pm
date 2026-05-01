@@ -86,35 +86,57 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (project) {
-      // Get PM's user_id
+      // Get PM's user_id — pm_member_id is a team_members.id
       const notifyUserIds: string[] = [];
 
       if (project.pm_member_id) {
-        const { data: pmMember } = await supabaseAdmin
-          .from("project_members")
-          .select("team_member_id")
+        const { data: tm } = await supabaseAdmin
+          .from("team_members")
+          .select("user_id")
           .eq("id", project.pm_member_id)
           .single();
+        if (tm?.user_id) notifyUserIds.push(tm.user_id);
+      }
 
-        if (pmMember) {
-          const { data: tm } = await supabaseAdmin
+      // Also notify project members (manager role in project)
+      const { data: projMembers } = await supabaseAdmin
+        .from("project_members")
+        .select("team_member_id")
+        .eq("project_id", project.id)
+        .eq("is_active", true);
+      if (projMembers) {
+        const tmIds = projMembers.map(pm => pm.team_member_id).filter(Boolean);
+        if (tmIds.length > 0) {
+          const { data: tms } = await supabaseAdmin
             .from("team_members")
             .select("user_id")
-            .eq("id", pmMember.team_member_id)
-            .single();
-          if (tm?.user_id) notifyUserIds.push(tm.user_id);
+            .in("id", tmIds);
+          if (tms) {
+            for (const t of tms) {
+              if (t.user_id && !notifyUserIds.includes(t.user_id)) notifyUserIds.push(t.user_id);
+            }
+          }
         }
       }
 
-      // Also notify admins
-      const { data: admins } = await supabaseAdmin
-        .from("app_users")
+      // Also notify admins — role_id references roles table
+      const { data: adminRole } = await supabaseAdmin
+        .from("roles")
         .select("id")
-        .eq("role", "admin");
+        .eq("name", "admin")
+        .single();
 
-      if (admins) {
-        for (const a of admins) {
-          if (!notifyUserIds.includes(a.id)) notifyUserIds.push(a.id);
+      if (adminRole) {
+        const { data: admins } = await supabaseAdmin
+          .from("app_users")
+          .select("id")
+          .eq("role_id", adminRole.id)
+          .eq("is_active", true);
+
+        if (admins) {
+          for (const a of admins) {
+            if (!notifyUserIds.includes(a.id)) notifyUserIds.push(a.id);
+          }
         }
       }
 
