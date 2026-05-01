@@ -13,6 +13,7 @@ interface TokenRow {
   expires_at?: string | null; active: boolean;
   last_accessed_at?: string | null; access_count?: number | null;
   created_at: string; description?: string | null;
+  projects?: { id: string; project_code: string; name_th?: string; name_en?: string } | null;
 }
 interface ProjectLite { id: string; project_code: string; name_th?: string; name_en?: string }
 interface TeamMemberLite { id: string; first_name_th: string; last_name_th: string; }
@@ -66,20 +67,19 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
       setProjects(projRes.projects ?? []);
       setMembers(membersRes.members ?? []);
 
-      // Fetch requests for all projects or specific project
-      if (filterProjectId !== "all") {
-        const reqRes = await fetch(`/api/client-portal/manage?project_id=${filterProjectId}`);
-        if (reqRes.ok) { const d = await reqRes.json(); setRequests(d.requests ?? []); }
-      } else {
-        // Fetch for all projects
-        const allProjects = projRes.projects ?? [];
-        const allRequests: ClientRequest[] = [];
-        for (const p of allProjects.slice(0, 20)) {
-          const rr = await fetch(`/api/client-portal/manage?project_id=${p.id}`);
+      // Fetch requests — use project IDs from tokens if showing all
+      const projectIds = filterProjectId !== "all"
+        ? [filterProjectId]
+        : [...new Set((tokensRes.tokens ?? []).map((t: TokenRow) => t.project_id))];
+
+      const allRequests: ClientRequest[] = [];
+      for (const pid of projectIds) {
+        try {
+          const rr = await fetch(`/api/client-portal/manage?project_id=${pid}`);
           if (rr.ok) { const d = await rr.json(); allRequests.push(...(d.requests ?? [])); }
-        }
-        setRequests(allRequests);
+        } catch { /* skip */ }
       }
+      setRequests(allRequests);
     } finally { setLoading(false); }
   }, [filterProjectId]);
 
@@ -170,10 +170,12 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {r.client_name && <span className="text-base text-gray-900 font-medium">{r.client_name}</span>}
+                      {r.projects && <span className="text-xs font-mono text-gray-500">{r.projects.project_code}</span>}
+                      {r.projects && <span className="text-sm text-gray-900 font-medium">{r.projects.name_th || r.projects.name_en}</span>}
+                      {r.client_name && <span className="text-sm text-gray-700">→ {r.client_name}</span>}
                       {!r.active && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">หยุดใช้งาน</span>}
-                      {r.description && <span className="text-xs text-gray-500">— {r.description}</span>}
                     </div>
+                    {r.description && <p className="text-xs text-gray-500 mt-0.5">{r.description}</p>}
                     {r.client_email && (
                       <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                         <Mail size={10} />{r.client_email}

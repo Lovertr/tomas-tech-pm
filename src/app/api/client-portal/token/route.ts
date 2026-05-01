@@ -1,24 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
-import crypto from "crypto";
 
 /**
  * GET /api/client-portal/token?project_id=xxx
- * List all tokens for a project (internal, auth required)
+ * List tokens — optionally filtered by project_id (internal, auth required)
  */
 export async function GET(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const projectId = request.nextUrl.searchParams.get("project_id");
-  if (!projectId) return NextResponse.json({ error: "project_id required" }, { status: 400 });
 
-  const { data, error } = await supabaseAdmin
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q: any = supabaseAdmin
     .from("client_portal_tokens")
-    .select("*")
-    .eq("project_id", projectId)
+    .select("*, projects:project_id(id, project_code, name_th, name_en)")
     .order("created_at", { ascending: false });
+
+  if (projectId) {
+    q = q.eq("project_id", projectId);
+  }
+
+  const { data, error } = await q;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ tokens: data || [] });
@@ -41,7 +45,9 @@ export async function POST(request: NextRequest) {
   if (!project_id) return NextResponse.json({ error: "project_id required" }, { status: 400 });
 
   // Generate secure token
-  const token = crypto.randomBytes(24).toString("base64url");
+  const token = Array.from({ length: 32 }, () =>
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"[Math.floor(Math.random() * 64)]
+  ).join("");
 
   const expiresAt = expires_days
     ? new Date(Date.now() + expires_days * 86400000).toISOString()
