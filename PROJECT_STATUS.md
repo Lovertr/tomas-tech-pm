@@ -256,6 +256,10 @@ git push origin main
 - Client Portal Gantt: ปรับใหม่ให้อ่านง่าย (grid lines, date labels on bars)
 - ย้ายพอร์ทัลลูกค้าไป "ติดตาม & ควบคุม"
 - แก้ compile errors จาก duplicate lines + missing definitions
+- ลบ flow เพิ่มสมาชิกซ้ำซ้อน: ปุ่ม "เพิ่มสมาชิก" redirect ไป /admin/users แทน MemberModal
+- MemberModal เป็น edit-only: ลบ dropdown "ผูกกับ User Account" + ลบ fetch /api/users/basic
+- ลบ create branch ออกจาก MemberModal onSubmit (เหลือแค่ edit)
+- สร้าง ROADMAP.md แผนพัฒนา 4 เฟส 22 รายการ
 
 ### 2026-04-30
 - Client Portal: เพิ่มระบบแนบไฟล์ในแชท (ทั้ง portal + internal)
