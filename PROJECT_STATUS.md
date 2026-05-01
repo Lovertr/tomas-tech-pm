@@ -142,10 +142,10 @@ Backend (Supabase)
 > ดูรายละเอียดเต็มที่ **[ROADMAP.md](./ROADMAP.md)** — จัดเป็น 4 Phase, 22 items, ครอบคลุม 6 มิติ
 
 ### Phase 1 — ระบบพื้นฐาน (สัปดาห์ 1-2)
-- [ ] Audit Log / Activity Trail (สูงมาก)
-- [ ] Department Head — หัวหน้าแผนก (สูง)
-- [ ] Notification Preferences (ปานกลาง)
-- [ ] Project Health Score 🟢🟡🔴 (ปานกลาง)
+- [x] Audit Log / Activity Trail (สูงมาก) ✅ เสร็จ 2026-05-01
+- [x] Department Head — หัวหน้าแผนก (สูง) ✅ เสร็จ 2026-05-01 (มีอยู่แล้ว)
+- [x] Notification Preferences (ปานกลาง) ✅ เสร็จ 2026-05-01
+- [x] Project Health Score 🟢🟡🔴 (ปานกลาง) ✅ เสร็จ 2026-05-01
 
 ### Phase 2 — โปรเจค & บุคลากร (สัปดาห์ 3-4)
 - [ ] Project Templates UI (สูง)

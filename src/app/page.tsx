@@ -24,7 +24,7 @@ import KanbanBoard from "@/components/KanbanBoard";
 import MyTasks from "@/components/MyTasks";
 import FloatingTimer from "@/components/FloatingTimer";
 import GanttChart from "@/components/GanttChart";
-import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen } from "lucide-react";
+import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen, Bell as BellIcon } from "lucide-react";
 import MilestonesPanel from "@/components/MilestonesPanel";
 import CalendarView from "@/components/CalendarView";
 import SprintPanel from "@/components/SprintPanel";
@@ -51,6 +51,8 @@ import SalesActivitiesPanel from "@/components/SalesActivitiesPanel";
 import SalesReportPanel from "@/components/SalesReportPanel";
 import DepartmentsPanel from "@/components/DepartmentsPanel";
 import HelpPanel from "@/components/HelpPanel";
+import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
+import ProjectHealthBadge from "@/components/ProjectHealthBadge";
 import CommandPalette, { type CommandItem } from "@/components/CommandPalette";
 import ShortcutsHelp from "@/components/ShortcutsHelp";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
@@ -176,6 +178,8 @@ export default function App() {
   const [taskFilter, setTaskFilter] = useState("all");
   const [teamTab, setTeamTab] = useState("members");
   const [projFilter, setProjFilter] = useState("all");
+  const [healthScores, setHealthScores] = useState<Record<string, { score: number; status: "healthy" | "at_risk" | "critical"; factors: { schedule: number; tasks: number; risks: number; budget: number }; details: Record<string, number> }>>({});
+  useEffect(() => { fetch("/api/projects/health").then(r => r.json()).then(d => { if (d.health) { const map: typeof healthScores = {}; d.health.forEach((h: Record<string, unknown>) => { map[h.project_id as string] = h as unknown as typeof healthScores[string]; }); setHealthScores(map); } }).catch(() => {}); }, []);
 
   const t = translations[lang];
   const getName = useCallback((item: Record<string, unknown>, f = "name") => {
@@ -282,6 +286,7 @@ export default function App() {
     { id: "reports", icon: BarChart3, label: t.reports, module: "reports", group: "reports" },
     { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
     { id: "help_center", icon: BookOpen, label: t.helpCenter, module: "dashboard", group: "admin" },
+    { id: "notif_prefs", icon: BellIcon, label: t.notifPrefs || "ตั้งค่าแจ้งเตือน", module: "settings", group: "admin" },
   ];
   const nav = allNav.filter(n => canView(n.module));
 
@@ -398,6 +403,7 @@ export default function App() {
                   <div><span className="text-xs font-mono text-slate-500">{p.code}</span><h3 className="font-semibold text-gray-800 mt-1">{getName(p)}</h3></div>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColor[p.status] }}>{t[p.status]}</span>
+                    <ProjectHealthBadge health={healthScores[p.id] || null} lang={lang} compact />
                     {hasPermission("can_manage_projects") && (
                       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => openEditProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>
@@ -958,7 +964,8 @@ export default function App() {
     </div>
   );
   const HelpCenterPage = () => <HelpPanel lang={lang} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage };
+  const NotifPrefsPage = () => <NotificationPreferencesPanel lang={lang} />;
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)
