@@ -1,0 +1,705 @@
+"use client";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { use } from "react";
+import {
+  CheckCircle2, Clock, AlertTriangle, XCircle, Send,
+  Paperclip, Image as ImageIcon, Video, FileText, Loader2,
+  ChevronDown, ChevronUp, Flag, Target, MessageSquare,
+  BarChart3, Calendar, Shield, Plus, X, Eye
+} from "lucide-react";
+
+/* ---------- types ---------- */
+interface Project {
+  id: string; project_code: string; name_th: string; name_en?: string;
+  description?: string; status: string; priority: string;
+  start_date?: string; end_date?: string; progress: number; client_name?: string;
+}
+interface Milestone { id: string; title: string; status: string; due_date?: string; completed_date?: string; }
+interface Task { id: string; title: string; status: string; priority: string; due_date?: string; source?: string; client_request_id?: string; }
+interface ClientRequest {
+  id: string; request_type: string; title: string; description?: string;
+  status: string; priority: string; attachments?: Attachment[];
+  response_to_client?: string; created_at: string; updated_at?: string; resolved_at?: string;
+}
+interface Attachment { url: string; name: string; type: string; size: number; }
+interface TokenInfo { id: string; client_name?: string; client_email?: string; }
+interface Permissions { view_progress: boolean; submit_requests: boolean; view_tasks: boolean; view_milestones: boolean; }
+
+/* ---------- constants ---------- */
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+  backlog: { label: "รอดำเนินการ", color: "#94A3B8", icon: Clock },
+  todo: { label: "รอเริ่ม", color: "#6B7280", icon: Clock },
+  in_progress: { label: "กำลังดำเนินการ", color: "#3B82F6", icon: Loader2 },
+  review: { label: "รอตรวจสอบ", color: "#F59E0B", icon: Eye },
+  done: { label: "เสร็จแล้ว", color: "#22C55E", icon: CheckCircle2 },
+  cancelled: { label: "ยกเลิก", color: "#EF4444", icon: XCircle },
+};
+
+const REQUEST_STATUS: Record<string, { label: string; color: string; bg: string }> = {
+  pending: { label: "รอพิจารณา", color: "#F59E0B", bg: "#FFFBEB" },
+  accepted: { label: "รับแล้ว", color: "#3B82F6", bg: "#EFF6FF" },
+  in_progress: { label: "กำลังดำเนินการ", color: "#8B5CF6", bg: "#F5F3FF" },
+  resolved: { label: "แก้ไขแล้ว", color: "#22C55E", bg: "#F0FDF4" },
+  cancelled: { label: "ยกเลิก", color: "#EF4444", bg: "#FEF2F2" },
+};
+
+const REQUEST_TYPES: Record<string, string> = {
+  request: "คำร้องขอ",
+  issue: "รายงานปัญหา",
+  feedback: "ข้อเสนอแนะ",
+  change_request: "ขอเปลี่ยนแปลง",
+};
+
+const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
+  low: { label: "ต่ำ", color: "#94A3B8" },
+  medium: { label: "ปานกลาง", color: "#F59E0B" },
+  high: { label: "สูง", color: "#F97316" },
+  critical: { label: "วิกฤต", color: "#EF4444" },
+};
+
+/* ---------- component ---------- */
+export default function ClientPortalPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [project, setProject] = useState<Project | null>(null);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [clientRequests, setClientRequests] = useState<ClientRequest[]>([]);
+  const [permissions, setPermissions] = useState<Permissions>({
+    view_progress: true, submit_requests: true, view_tasks: true, view_milestones: true
+  });
+  const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
+
+  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "requests">("overview");
+  const [showForm, setShowForm] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/client-portal?token=${token}`);
+      if (!r.ok) {
+        const d = await r.json();
+        setError(d.error || "ลิงก์ไม่ถูกต้องหรือหมดอายุ");
+        return;
+      }
+      const d = await r.json();
+      setProject(d.project);
+      setMilestones(d.milestones || []);
+      setTasks(d.tasks || []);
+      setClientRequests(d.clientRequests || []);
+      setPermissions(d.permissions);
+      setTokenInfo(d.tokenInfo);
+    } catch {
+      setError("ไม่สามารถเชื่อมต่อได้");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="animate-spin mx-auto mb-3" size={32} color="#003087" />
+        <p className="text-gray-600">กำลังโหลดข้อมูลโปรเจค...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+        <Shield size={48} className="mx-auto mb-4 text-red-400" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">ไม่สามารถเข้าถึงได้</h2>
+        <p className="text-gray-600">{error}</p>
+      </div>
+    </div>
+  );
+
+  if (!project) return null;
+
+  const projectStatus: Record<string, { label: string; color: string }> = {
+    planning: { label: "วางแผน", color: "#6B7280" },
+    active: { label: "กำลังดำเนินการ", color: "#3B82F6" },
+    on_hold: { label: "ระงับชั่วคราว", color: "#F59E0B" },
+    completed: { label: "เสร็จสมบูรณ์", color: "#22C55E" },
+    cancelled: { label: "ยกเลิก", color: "#EF4444" },
+  };
+  const ps = projectStatus[project.status] || { label: project.status, color: "#6B7280" };
+
+  // Task stats
+  const tasksDone = tasks.filter(t => t.status === "done").length;
+  const tasksInProgress = tasks.filter(t => t.status === "in_progress").length;
+  const milestonesDone = milestones.filter(m => m.status === "completed").length;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: "#003087" }}>
+              TT
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-medium">TOMAS TECH — Client Portal</p>
+              <h1 className="text-lg font-bold text-gray-900">{project.name_th}</h1>
+            </div>
+          </div>
+          {tokenInfo?.client_name && (
+            <p className="text-sm text-gray-500 ml-[52px]">สวัสดีคุณ {tokenInfo.client_name}</p>
+          )}
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {/* Progress Card */}
+        {permissions.view_progress && (
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-mono text-gray-500">{project.project_code}</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: ps.color }}>{ps.label}</span>
+                </div>
+                {project.description && <p className="text-sm text-gray-600 line-clamp-2">{project.description}</p>}
+              </div>
+              <div className="text-right text-sm text-gray-500">
+                {project.start_date && <p>เริ่ม: {new Date(project.start_date).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}</p>}
+                {project.end_date && <p>สิ้นสุด: {new Date(project.end_date).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}</p>}
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-600 font-medium">ความคืบหน้ารวม</span>
+                <span className="font-bold" style={{ color: "#003087" }}>{project.progress ?? 0}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="h-3 rounded-full transition-all duration-500" style={{ width: `${project.progress ?? 0}%`, backgroundColor: "#003087" }} />
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <StatCard icon={Target} label="งานทั้งหมด" value={tasks.length} color="#003087" />
+              <StatCard icon={Loader2} label="กำลังทำ" value={tasksInProgress} color="#3B82F6" />
+              <StatCard icon={CheckCircle2} label="เสร็จแล้ว" value={tasksDone} color="#22C55E" />
+              <StatCard icon={Flag} label="Milestone" value={`${milestonesDone}/${milestones.length}`} color="#F7941D" />
+            </div>
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white rounded-xl shadow-sm border p-1">
+          {[
+            { key: "overview" as const, label: "ภาพรวม", icon: BarChart3 },
+            ...(permissions.view_tasks ? [{ key: "tasks" as const, label: `งาน (${tasks.length})`, icon: Target }] : []),
+            ...(permissions.submit_requests ? [{ key: "requests" as const, label: `คำร้อง (${clientRequests.length})`, icon: MessageSquare }] : []),
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === tab.key ? "text-white" : "text-gray-600 hover:bg-gray-50"
+              }`}
+              style={activeTab === tab.key ? { backgroundColor: "#003087" } : {}}
+            >
+              <tab.icon size={16} />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "overview" && (
+          <div className="space-y-4">
+            {/* Milestones timeline */}
+            {permissions.view_milestones && milestones.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Flag size={18} style={{ color: "#F7941D" }} />
+                  Milestones
+                </h3>
+                <div className="space-y-3">
+                  {milestones.map((m, i) => {
+                    const done = m.status === "completed";
+                    return (
+                      <div key={m.id} className="flex items-start gap-3">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${done ? "bg-green-500 border-green-500" : "bg-white border-gray-300"}`}>
+                            {done && <CheckCircle2 size={12} className="text-white" />}
+                          </div>
+                          {i < milestones.length - 1 && <div className={`w-0.5 h-6 ${done ? "bg-green-300" : "bg-gray-200"}`} />}
+                        </div>
+                        <div className="flex-1 -mt-0.5">
+                          <p className={`text-sm font-medium ${done ? "text-green-700 line-through" : "text-gray-900"}`}>{m.title}</p>
+                          {m.due_date && (
+                            <p className="text-xs text-gray-500">
+                              {done ? "เสร็จ" : "กำหนด"}: {new Date(m.due_date).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Recent client requests */}
+            {permissions.submit_requests && clientRequests.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <MessageSquare size={18} style={{ color: "#003087" }} />
+                  คำร้องล่าสุดของคุณ
+                </h3>
+                <div className="space-y-2">
+                  {clientRequests.slice(0, 5).map(cr => {
+                    const st = REQUEST_STATUS[cr.status] || REQUEST_STATUS.pending;
+                    return (
+                      <div key={cr.id} className="flex items-center gap-3 p-3 rounded-lg border">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: st.color }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{cr.title}</p>
+                          <p className="text-xs text-gray-500">{new Date(cr.created_at).toLocaleDateString("th-TH")}</p>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{st.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "tasks" && permissions.view_tasks && (
+          <TasksList tasks={tasks} />
+        )}
+
+        {activeTab === "requests" && permissions.submit_requests && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-semibold text-gray-900">คำร้อง / รายงานปัญหา</h3>
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors hover:opacity-90"
+                style={{ backgroundColor: "#F7941D" }}
+              >
+                <Plus size={16} />
+                แจ้งรายการใหม่
+              </button>
+            </div>
+
+            {clientRequests.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+                <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
+                <p className="text-gray-500">ยังไม่มีคำร้อง</p>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="mt-3 text-sm font-medium hover:underline"
+                  style={{ color: "#003087" }}
+                >
+                  แจ้งรายการแรกของคุณ
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {clientRequests.map(cr => (
+                  <RequestCard key={cr.id} request={cr} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Submit Request Form Modal */}
+        {showForm && (
+          <SubmitRequestForm
+            token={token}
+            clientName={tokenInfo?.client_name || ""}
+            clientEmail={tokenInfo?.client_email || ""}
+            onClose={() => setShowForm(false)}
+            onSubmitted={() => { setShowForm(false); fetchData(); }}
+          />
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t bg-white mt-8">
+        <div className="max-w-5xl mx-auto px-4 py-4 text-center text-xs text-gray-400">
+          Powered by TOMAS TECH Project Management System
+        </div>
+      </footer>
+
+      {/* FAB for mobile */}
+      {permissions.submit_requests && !showForm && (
+        <button
+          onClick={() => { setActiveTab("requests"); setShowForm(true); }}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white sm:hidden z-30"
+          style={{ backgroundColor: "#F7941D" }}
+        >
+          <Plus size={24} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Sub Components ---------- */
+
+function StatCard({ icon: Icon, label, value, color }: { icon: typeof Clock; label: string; value: string | number; color: string }) {
+  return (
+    <div className="bg-gray-50 rounded-lg p-3 text-center">
+      <Icon size={20} className="mx-auto mb-1" style={{ color }} />
+      <p className="text-lg font-bold text-gray-900">{value}</p>
+      <p className="text-xs text-gray-500">{label}</p>
+    </div>
+  );
+}
+
+function TasksList({ tasks }: { tasks: Task[] }) {
+  const [expandedStatus, setExpandedStatus] = useState<string[]>(["in_progress", "todo", "backlog"]);
+  const toggle = (s: string) => setExpandedStatus(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+
+  const groups: Record<string, Task[]> = {};
+  for (const t of tasks) {
+    const s = t.status || "backlog";
+    if (!groups[s]) groups[s] = [];
+    groups[s].push(t);
+  }
+
+  const order = ["in_progress", "review", "todo", "backlog", "done", "cancelled"];
+  const sorted = order.filter(s => groups[s]?.length);
+
+  return (
+    <div className="space-y-3">
+      {sorted.map(status => {
+        const config = STATUS_CONFIG[status] || { label: status, color: "#6B7280", icon: Clock };
+        const expanded = expandedStatus.includes(status);
+        return (
+          <div key={status} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <button
+              onClick={() => toggle(status)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: config.color }} />
+                <span className="font-medium text-gray-900">{config.label}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{groups[status].length}</span>
+              </div>
+              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {expanded && (
+              <div className="border-t divide-y">
+                {groups[status].map(t => {
+                  const pri = PRIORITY_CONFIG[t.priority] || PRIORITY_CONFIG.medium;
+                  const isClient = t.source === "client_portal";
+                  return (
+                    <div key={t.id} className="px-4 py-3 flex items-center gap-3">
+                      <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: pri.color }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900">{t.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {t.due_date && (
+                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                              <Calendar size={10} />
+                              {new Date(t.due_date).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                            </span>
+                          )}
+                          {isClient && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-50 text-orange-600 font-medium">จากลูกค้า</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function RequestCard({ request: cr }: { request: ClientRequest }) {
+  const [expanded, setExpanded] = useState(false);
+  const st = REQUEST_STATUS[cr.status] || REQUEST_STATUS.pending;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left hover:bg-gray-50">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{st.label}</span>
+              <span className="text-xs text-gray-400">{REQUEST_TYPES[cr.request_type] || cr.request_type}</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900">{cr.title}</p>
+            <p className="text-xs text-gray-500 mt-1">{new Date(cr.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+          </div>
+          {expanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 border-t pt-3 space-y-3">
+          {cr.description && (
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{cr.description}</p>
+          )}
+
+          {cr.attachments && cr.attachments.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2">ไฟล์แนบ ({cr.attachments.length})</p>
+              <div className="flex flex-wrap gap-2">
+                {cr.attachments.map((a, i) => (
+                  <a
+                    key={i} href={a.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    {a.type?.startsWith("image") ? <ImageIcon size={14} /> : a.type?.startsWith("video") ? <Video size={14} /> : <FileText size={14} />}
+                    <span className="truncate max-w-[120px]">{a.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {cr.response_to_client && (
+            <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+              <p className="text-xs font-medium text-blue-700 mb-1">ตอบกลับจากทีมงาน:</p>
+              <p className="text-sm text-blue-900">{cr.response_to_client}</p>
+            </div>
+          )}
+
+          {cr.resolved_at && (
+            <p className="text-xs text-green-600">
+              แก้ไขเสร็จเมื่อ: {new Date(cr.resolved_at).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubmitRequestForm({
+  token, clientName, clientEmail, onClose, onSubmitted,
+}: {
+  token: string; clientName: string; clientEmail: string;
+  onClose: () => void; onSubmitted: () => void;
+}) {
+  const [form, setForm] = useState({
+    client_name: clientName,
+    client_email: clientEmail,
+    client_phone: "",
+    request_type: "request",
+    title: "",
+    description: "",
+    priority: "medium",
+  });
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (files: FileList) => {
+    setUploading(true);
+    setUploadError("");
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 50 * 1024 * 1024) { setUploadError("ไฟล์ขนาดใหญ่เกินไป (สูงสุด 50MB)"); continue; }
+      const fd = new FormData();
+      fd.append("token", token);
+      fd.append("file", file);
+      try {
+        const r = await fetch("/api/client-portal/upload", { method: "POST", body: fd });
+        const d = await r.json();
+        if (r.ok && d.attachment) {
+          setAttachments(prev => [...prev, d.attachment]);
+        } else {
+          setUploadError(d.error || "อัปโหลดไม่สำเร็จ");
+        }
+      } catch {
+        setUploadError("เกิดข้อผิดพลาดในการอัปโหลด");
+      }
+    }
+    setUploading(false);
+  };
+
+  const removeAttachment = (idx: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSubmit = async () => {
+    if (!form.title.trim()) return;
+    if (!form.client_name.trim()) return;
+    setSubmitting(true);
+    try {
+      const r = await fetch("/api/client-portal/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, token, attachments }),
+      });
+      if (r.ok) {
+        onSubmitted();
+      } else {
+        const d = await r.json();
+        alert(d.error || "เกิดข้อผิดพลาด");
+      }
+    } catch {
+      alert("ไม่สามารถส่งข้อมูลได้");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        className="bg-white w-full sm:w-[500px] sm:rounded-xl rounded-t-xl max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-4 border-b">
+          <h3 className="font-semibold text-gray-900">แจ้งคำร้อง / รายงานปัญหา</h3>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded"><X size={20} /></button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Client Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้แจ้ง <span className="text-red-500">*</span></label>
+            <input
+              type="text" value={form.client_name}
+              onChange={e => setForm({ ...form, client_name: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              placeholder="ชื่อ-สกุล"
+            />
+          </div>
+
+          {/* Contact */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+              <input
+                type="email" value={form.client_email}
+                onChange={e => setForm({ ...form, client_email: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">โทรศัพท์</label>
+              <input
+                type="tel" value={form.client_phone}
+                onChange={e => setForm({ ...form, client_phone: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Type + Priority */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ประเภท</label>
+              <select
+                value={form.request_type}
+                onChange={e => setForm({ ...form, request_type: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              >
+                {Object.entries(REQUEST_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ความเร่งด่วน</label>
+              <select
+                value={form.priority}
+                onChange={e => setForm({ ...form, priority: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              >
+                {Object.entries(PRIORITY_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">หัวข้อ <span className="text-red-500">*</span></label>
+            <input
+              type="text" value={form.title}
+              onChange={e => setForm({ ...form, title: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              placeholder="สรุปสิ่งที่ต้องการแจ้ง"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียด</label>
+            <textarea
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
+              rows={4}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none resize-none"
+              placeholder="อธิบายรายละเอียดเพิ่มเติม..."
+            />
+          </div>
+
+          {/* Attachments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">แนบไฟล์ (รูปภาพ / วีดีโอ / เอกสาร)</label>
+            <input
+              ref={fileRef} type="file" multiple
+              accept="image/*,video/*,application/pdf,.doc,.docx"
+              onChange={e => e.target.files && handleUpload(e.target.files)}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed text-sm text-gray-600 hover:bg-gray-50 w-full justify-center"
+            >
+              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
+              {uploading ? "กำลังอัปโหลด..." : "เลือกไฟล์"}
+            </button>
+            {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
+
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {attachments.map((a, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border text-sm">
+                    {a.type?.startsWith("image") ? <ImageIcon size={14} className="text-blue-500" /> : a.type?.startsWith("video") ? <Video size={14} className="text-purple-500" /> : <FileText size={14} className="text-gray-500" />}
+                    <span className="truncate max-w-[100px]">{a.name}</span>
+                    <button onClick={() => removeAttachment(i)} className="text-gray-400 hover:text-red-500"><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 bg-white border-t p-4 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+            ยกเลิก
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !form.title.trim() || !form.client_name.trim()}
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ backgroundColor: "#003087" }}
+          >
+            {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            ส่งคำร้อง
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
