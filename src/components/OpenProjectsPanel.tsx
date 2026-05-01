@@ -45,15 +45,17 @@ interface EnrollmentApp {
   };
 }
 
-/* ─── i18n ─── */
+/* --- i18n --- */
 const T: Record<string, Record<string, string>> = {
   title:           { th: 'โครงการว่าง — สมัครเข้าร่วม',  en: 'Open Projects — Join',            jp: 'オープンプロジェクト — 参加申請' },
   customer:        { th: 'ลูกค้า:',                      en: 'Customer:',                       jp: '顧客:' },
+  type:            { th: 'ประเภท:',                       en: 'Type:',                           jp: '種別:' },
   status:          { th: 'สถานะ:',                        en: 'Status:',                         jp: 'ステータス:' },
   join:            { th: 'สมัครเข้าร่วม',                  en: 'Apply to Join',                   jp: '参加申請' },
   joined:          { th: 'เข้าร่วมแล้ว',                   en: 'Joined',                          jp: '参加済み' },
   pending:         { th: 'รอการอนุมัติ',                   en: 'Pending Approval',                jp: '承認待ち' },
   noProjects:      { th: 'ไม่มีโครงการที่เปิดรับ',          en: 'No open projects',                jp: 'オープンなプロジェクトはありません' },
+  selectRole:      { th: 'เลือกตำแหน่ง',                  en: 'Select role',                     jp: '役割を選択' },
   members:         { th: 'สมาชิก',                        en: 'members',                         jp: 'メンバー' },
   pm:              { th: 'PM:',                           en: 'PM:',                             jp: 'PM:' },
   noPm:            { th: 'ยังไม่มี PM',                    en: 'No PM assigned',                  jp: 'PM未割当' },
@@ -64,26 +66,26 @@ const T: Record<string, Record<string, string>> = {
   approve:         { th: 'อนุมัติ',                        en: 'Approve',                         jp: '承認' },
   reject:          { th: 'ปฏิเสธ',                        en: 'Reject',                          jp: '拒否' },
   noApps:          { th: 'ไม่มีใบสมัครรอดำเนินการ',         en: 'No pending applications',         jp: '保留中の申請はありません' },
+  applied:         { th: 'ส่งใบสมัครแล้ว',                 en: 'Application sent!',               jp: '申請済み!' },
   position:        { th: 'ตำแหน่ง',                        en: 'Position',                        jp: '役割' },
-  selectPositions: { th: 'เลือกตำแหน่งที่เปิดรับ',         en: 'Select open positions',           jp: '募集ポジションを選択' },
-  savePositions:   { th: 'บันทึก',                        en: 'Save',                            jp: '保存' },
-  statusLabels:    { th: 'สถานะโปรเจค',                   en: 'Project status',                  jp: 'ステータス' },
+  setPositions:    { th: 'ตั้งค่าตำแหน่งที่เปิดรับ',        en: 'Set Open Positions',              jp: '募集ポジション設定' },
+  posNone:         { th: 'ยังไม่ได้กำหนด (เปิดรับทุกตำแหน่ง)', en: 'Not set (all positions open)',  jp: '未設定（全ポジション募集中）' },
 };
 
-const ROLE_LABELS: Record<string, Record<string, string>> = {
-  developer:        { th: 'นักพัฒนา', en: 'Developer', jp: 'Developer' },
-  tester:           { th: 'ผู้ทดสอบ', en: 'Tester', jp: 'Tester' },
-  designer:         { th: 'นักออกแบบ', en: 'Designer', jp: 'Designer' },
-  project_manager:  { th: 'ผู้จัดการโปรเจค', en: 'Project Manager', jp: 'PM' },
-  pm:               { th: 'ผู้จัดการโปรเจค', en: 'Project Manager', jp: 'PM' },
-  business_analyst: { th: 'นักวิเคราะห์ธุรกิจ', en: 'Business Analyst', jp: 'BA' },
-  system_admin:     { th: 'ผู้ดูแลระบบ', en: 'System Admin', jp: 'SA' },
-  consultant:       { th: 'ที่ปรึกษา', en: 'Consultant', jp: 'Consultant' },
-  support:          { th: 'ซัพพอร์ต', en: 'Support', jp: 'Support' },
-  engineer:         { th: 'วิศวกร', en: 'Engineer', jp: 'Engineer' },
-  qa:               { th: 'QA', en: 'QA', jp: 'QA' },
-  devops:           { th: 'DevOps', en: 'DevOps', jp: 'DevOps' },
-  data_scientist:   { th: 'Data Scientist', en: 'Data Scientist', jp: 'Data Scientist' },
+const ROLE_LABELS: Record<string, string> = {
+  developer: 'Developer',
+  tester: 'Tester',
+  designer: 'Designer',
+  project_manager: 'Project Manager',
+  pm: 'Project Manager',
+  business_analyst: 'Business Analyst',
+  system_admin: 'System Admin',
+  consultant: 'Consultant',
+  support: 'Support',
+  engineer: 'Engineer',
+  qa: 'QA',
+  devops: 'DevOps',
+  data_scientist: 'Data Scientist',
 };
 
 const ALL_ROLES = [
@@ -91,21 +93,8 @@ const ALL_ROLES = [
   'system_admin', 'consultant', 'support', 'engineer', 'qa', 'devops', 'data_scientist',
 ];
 
-const STATUS_MAP: Record<string, Record<string, string>> = {
-  planning:    { th: 'วางแผน', en: 'Planning', jp: '計画中' },
-  in_progress: { th: 'กำลังดำเนินการ', en: 'In Progress', jp: '進行中' },
-  on_hold:     { th: 'พักไว้', en: 'On Hold', jp: '保留' },
-  completed:   { th: 'เสร็จสิ้น', en: 'Completed', jp: '完了' },
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  planning: '#64748B', in_progress: '#00AEEF', on_hold: '#F7941D', completed: '#22C55E',
-};
-
 export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole = 'member' }: Props) {
   const L = (key: string) => T[key]?.[lang] ?? T[key]?.en ?? key;
-  const roleLabel = (r: string) => ROLE_LABELS[r]?.[lang] ?? ROLE_LABELS[r]?.en ?? r;
-  const statusLabel = (s: string) => STATUS_MAP[s]?.[lang] ?? STATUS_MAP[s]?.en ?? s;
 
   const [projects, setProjects] = useState<OpenProject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -118,10 +107,6 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
   const [manageApps, setManageApps] = useState<EnrollmentApp[]>([]);
   const [manageProjects, setManageProjects] = useState<OpenProject[]>([]);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
-  // Position editor state
-  const [editingPositions, setEditingPositions] = useState<string | null>(null); // project id
-  const [positionDraft, setPositionDraft] = useState<string[]>([]);
-  const [savingPositions, setSavingPositions] = useState(false);
 
   const isManager = ['admin', 'manager'].includes(userRole);
 
@@ -154,7 +139,10 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
   }, []);
 
   useEffect(() => { fetchOpenProjects(); }, [fetchOpenProjects]);
-  useEffect(() => { if (showManage) fetchManageData(); }, [showManage, fetchManageData]);
+
+  useEffect(() => {
+    if (showManage) fetchManageData();
+  }, [showManage, fetchManageData]);
 
   const handleApply = async (projectId: string) => {
     const role = selectedRoles[projectId] || 'developer';
@@ -209,27 +197,28 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
     }
   };
 
-  const handleSavePositions = async (projectId: string) => {
-    setSavingPositions(true);
+  const handleUpdatePositions = async (projectId: string, positions: string[]) => {
     try {
       await fetch('/api/open-projects/manage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_settings', project_id: projectId, open_positions: positionDraft }),
+        body: JSON.stringify({ action: 'update_settings', project_id: projectId, open_positions: positions }),
       });
-      setEditingPositions(null);
       fetchManageData();
       fetchOpenProjects();
     } catch (error) {
-      console.error('Save positions failed:', error);
-    } finally {
-      setSavingPositions(false);
+      console.error('Update positions failed:', error);
     }
   };
 
-  const togglePositionDraft = (role: string) => {
-    setPositionDraft(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
+  const togglePosition = (projectId: string, role: string, currentPositions: string[]) => {
+    const next = currentPositions.includes(role)
+      ? currentPositions.filter(r => r !== role)
+      : [...currentPositions, role];
+    handleUpdatePositions(projectId, next);
   };
+
+  const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
 
   const getProjectName = (p: { name_th?: string | null; name_en?: string | null; name_jp?: string | null }) => {
     if (lang === 'jp' && p.name_jp) return p.name_jp;
@@ -249,6 +238,12 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
   };
 
   const totalPending = projects.reduce((s, p) => s + (p.pending_applications || 0), 0);
+
+  const getStatusLabel = (status: string) => {
+    if (status === 'in_progress') return lang === 'th' ? 'กำลังดำเนินการ' : lang === 'jp' ? '進行中' : 'In Progress';
+    if (status === 'planning') return lang === 'th' ? 'วางแผน' : lang === 'jp' ? '計画中' : 'Planning';
+    return status;
+  };
 
   if (loading) {
     return (
@@ -313,16 +308,22 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                           {proj ? (proj.project_code ? `[${proj.project_code}] ` : '') + getProjectName(proj) : app.project_id.slice(0, 8)}
                         </span>
                         <span className="ml-2 inline-block bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">
-                          {roleLabel(app.role_in_project)}
+                          {ROLE_LABELS[app.role_in_project] || app.role_in_project}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
-                        <button onClick={() => handleReviewApp(app.id, 'approve')} disabled={isProcessing}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 disabled:opacity-50">
+                        <button
+                          onClick={() => handleReviewApp(app.id, 'approve')}
+                          disabled={isProcessing}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                        >
                           <CheckCircle size={12} /> {L('approve')}
                         </button>
-                        <button onClick={() => handleReviewApp(app.id, 'reject')} disabled={isProcessing}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-red-500 text-white rounded-md text-xs font-medium hover:bg-red-600 disabled:opacity-50">
+                        <button
+                          onClick={() => handleReviewApp(app.id, 'reject')}
+                          disabled={isProcessing}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-red-500 text-white rounded-md text-xs font-medium hover:bg-red-600 disabled:opacity-50"
+                        >
                           <XCircle size={12} /> {L('reject')}
                         </button>
                       </div>
@@ -341,77 +342,67 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
             </h4>
             <div className="space-y-2">
               {manageProjects.map(p => {
-                const isEditingThis = editingPositions === p.id;
-                const posCount = p.open_positions?.length || 0;
+                const isExpanded = expandedPositions.has(p.id);
+                const positions = p.open_positions ?? [];
                 return (
-                  <div key={p.id} className="bg-white rounded-lg border border-blue-100 overflow-hidden">
-                    <div className="flex items-center justify-between px-3 py-2 text-xs">
-                      <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
-                        <span className="font-medium text-gray-800 truncate">
-                          {p.project_code ? `[${p.project_code}] ` : ''}{getProjectName(p)}
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0"
-                          style={{ background: `${STATUS_COLOR[p.status] || '#64748B'}15`, color: STATUS_COLOR[p.status] || '#64748B' }}>
-                          {statusLabel(p.status)}
-                        </span>
-                      </div>
+                  <div key={p.id} className="bg-white rounded-lg border border-blue-100 text-xs overflow-hidden">
+                    <div className="flex items-center justify-between px-3 py-2">
+                      <span className="font-medium text-gray-800 truncate flex-1 mr-2">
+                        {p.project_code ? `[${p.project_code}] ` : ''}{getProjectName(p)}
+                      </span>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {p.pm_member_id && (
                           <span className="text-blue-600 text-[10px] bg-blue-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
                             <Shield size={10} /> PM
                           </span>
                         )}
-                        {/* Position count badge */}
-                        <button onClick={() => {
-                          if (isEditingThis) { setEditingPositions(null); }
-                          else { setEditingPositions(p.id); setPositionDraft(p.open_positions ?? []); }
-                        }}
-                          className={`text-[10px] px-2 py-0.5 rounded flex items-center gap-0.5 transition-colors ${isEditingThis ? 'bg-[#003087] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                          <Users size={10} />
-                          {posCount > 0 ? `${posCount} ${lang === 'th' ? 'ตำแหน่ง' : 'pos'}` : (lang === 'th' ? 'ทุกตำแหน่ง' : 'All')}
+                        <button
+                          onClick={() => setExpandedPositions(prev => {
+                            const next = new Set(prev);
+                            if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                            return next;
+                          })}
+                          className="text-[#003087] hover:bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-medium flex items-center gap-0.5"
+                        >
+                          {L('setPositions')}
+                          {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
                         </button>
                         <label className="flex items-center gap-1.5 cursor-pointer">
-                          <span className={p.is_enrollment_open ? 'text-green-600 font-medium' : 'text-gray-400'}>
+                          <span className={p.is_enrollment_open ? 'text-green-600' : 'text-gray-400'}>
                             {p.is_enrollment_open ? (lang === 'th' ? 'เปิดรับ' : 'Open') : (lang === 'th' ? 'ปิดรับ' : 'Closed')}
                           </span>
-                          <input type="checkbox" checked={p.is_enrollment_open}
+                          <input
+                            type="checkbox"
+                            checked={p.is_enrollment_open}
                             onChange={(e) => handleToggleEnrollment(p.id, e.target.checked)}
-                            className="w-4 h-4 rounded border-gray-300 text-[#003087] focus:ring-[#003087] accent-[#003087]" />
+                            className="w-4 h-4 rounded border-gray-300 text-[#003087] focus:ring-[#003087]"
+                          />
                         </label>
                       </div>
                     </div>
-                    {/* Position multi-select dropdown */}
-                    {isEditingThis && (
-                      <div className="px-3 pb-3 border-t border-blue-100 pt-2">
-                        <div className="text-[10px] text-gray-500 mb-1.5">{L('selectPositions')} ({lang === 'th' ? 'ไม่เลือก = รับทุกตำแหน่ง' : 'none = all positions'})</div>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mb-2">
+                    {/* Position selector */}
+                    {isExpanded && (
+                      <div className="px-3 pb-3 pt-1 border-t border-blue-50">
+                        <p className="text-[10px] text-gray-500 mb-1.5">
+                          {positions.length === 0 ? L('posNone') : `${positions.length} ${L('position')}`}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
                           {ALL_ROLES.map(role => {
-                            const selected = positionDraft.includes(role);
+                            const selected = positions.includes(role);
                             return (
-                              <button key={role} type="button" onClick={() => togglePositionDraft(role)}
-                                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all text-left ${selected ? 'bg-[#00AEEF]/15 border border-[#00AEEF]/40 text-[#00AEEF]' : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
-                                <div className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${selected ? 'bg-[#00AEEF] border-[#00AEEF]' : 'border-gray-400'}`}>
-                                  {selected && <Check size={7} className="text-white" />}
-                                </div>
-                                <span className="truncate">{roleLabel(role)}</span>
+                              <button
+                                key={role}
+                                onClick={() => togglePosition(p.id, role, positions)}
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
+                                  selected
+                                    ? 'bg-[#00AEEF] text-white border-[#00AEEF]'
+                                    : 'bg-white text-gray-500 border-gray-200 hover:border-[#00AEEF] hover:text-[#00AEEF]'
+                                }`}
+                              >
+                                {ROLE_LABELS[role] || role}
                               </button>
                             );
                           })}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-gray-400">
-                            {positionDraft.length === 0 ? (lang === 'th' ? 'รับทุกตำแหน่ง' : 'All positions') : `${positionDraft.length} ${lang === 'th' ? 'ตำแหน่ง' : 'selected'}`}
-                          </span>
-                          <div className="flex gap-1.5">
-                            <button onClick={() => setEditingPositions(null)}
-                              className="px-2.5 py-1 text-[10px] text-gray-500 hover:text-gray-700">
-                              {lang === 'th' ? 'ยกเลิก' : 'Cancel'}
-                            </button>
-                            <button onClick={() => handleSavePositions(p.id)} disabled={savingPositions}
-                              className="px-3 py-1 bg-[#003087] text-white rounded-md text-[10px] font-medium hover:bg-[#002266] disabled:opacity-50">
-                              {savingPositions ? '...' : L('savePositions')}
-                            </button>
-                          </div>
                         </div>
                       </div>
                     )}
@@ -433,22 +424,18 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
             const isPending = p.application_pending && !applied;
             const applying = applyingIds.has(p.id);
             const roles = getRolesForProject(p);
-            const hasSpecificPositions = p.open_positions && p.open_positions.length > 0;
 
             return (
-              <div key={p.id} className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
-                {/* Header: project code + status */}
-                <div className="flex items-center justify-between mb-2">
-                  {p.project_code && (
-                    <span className="inline-block bg-[#003087]/10 text-[#003087] text-[10px] font-bold px-2 py-0.5 rounded">
-                      {p.project_code}
-                    </span>
-                  )}
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-                    style={{ background: `${STATUS_COLOR[p.status] || '#64748B'}15`, color: STATUS_COLOR[p.status] || '#64748B' }}>
-                    {statusLabel(p.status)}
+              <div
+                key={p.id}
+                className="bg-white rounded-xl p-4 shadow-md border border-gray-100 flex flex-col"
+              >
+                {/* Project Code Badge */}
+                {p.project_code && (
+                  <span className="inline-block bg-[#003087]/10 text-[#003087] text-[10px] font-bold px-2 py-0.5 rounded mb-2">
+                    {p.project_code}
                   </span>
-                </div>
+                )}
 
                 <h4 className="font-bold text-gray-900 text-sm leading-tight mb-2">
                   {getProjectName(p)}
@@ -462,6 +449,12 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                     </div>
                   )}
                   <div className="flex justify-between">
+                    <span className="text-gray-500">{L('status')}</span>
+                    <span className={`font-medium px-1.5 py-0.5 rounded text-[10px] ${
+                      p.status === 'in_progress' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>{getStatusLabel(p.status)}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-gray-500">{L('members')}</span>
                     <span className="font-medium text-gray-800">{p.member_count}</span>
                   </div>
@@ -474,29 +467,33 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                 </div>
 
                 {/* Open Positions Tags */}
-                <div className="mb-3">
-                  <span className="text-[10px] text-gray-500 block mb-1">{L('openPositions')}</span>
-                  {hasSpecificPositions ? (
+                {p.open_positions && p.open_positions.length > 0 ? (
+                  <div className="mb-3">
+                    <span className="text-[10px] text-gray-500 block mb-1">{L('openPositions')}</span>
                     <div className="flex flex-wrap gap-1">
                       {p.open_positions.map(pos => (
                         <span key={pos} className="bg-[#00AEEF]/10 text-[#00AEEF] text-[10px] px-1.5 py-0.5 rounded font-medium">
-                          {roleLabel(pos)}
+                          {ROLE_LABELS[pos] || pos}
                         </span>
                       ))}
                     </div>
-                  ) : (
+                  </div>
+                ) : (
+                  <div className="mb-3">
                     <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded">{L('allPositions')}</span>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Action area */}
                 {applied ? (
                   <div className="flex items-center justify-center gap-2 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
-                    <Check size={14} /> {L('joined')}
+                    <Check size={14} />
+                    {L('joined')}
                   </div>
                 ) : isPending ? (
                   <div className="flex items-center justify-center gap-2 py-2 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium">
-                    <Clock size={14} /> {L('pending')}
+                    <Clock size={14} />
+                    {L('pending')}
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -506,11 +503,14 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                       className="flex-1 bg-white border border-gray-300 rounded-lg px-2 py-2 text-gray-800 text-xs focus:ring-2 focus:ring-[#003087]"
                     >
                       {roles.map(r => (
-                        <option key={r} value={r}>{roleLabel(r)}</option>
+                        <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>
                       ))}
                     </select>
-                    <button onClick={() => handleApply(p.id)} disabled={applying}
-                      className="px-3 py-2 bg-[#F7941D] hover:bg-[#e0850f] text-white rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1">
+                    <button
+                      onClick={() => handleApply(p.id)}
+                      disabled={applying}
+                      className="px-3 py-2 bg-[#F7941D] hover:bg-[#e0850f] text-gray-900 rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1"
+                    >
                       <UserPlus size={12} />
                       {applying ? '...' : L('join')}
                     </button>
