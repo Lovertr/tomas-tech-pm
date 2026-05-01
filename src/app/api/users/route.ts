@@ -62,7 +62,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ users });
 }
 
-// POST /api/users - create a new user (admin only)
+// POST /api/users - create a new user + team_member (admin only)
+// Unified flow: creates login account + employee profile in one step
 export async function POST(request: NextRequest) {
   const ctx = await requireAdmin(request);
   if ("error" in ctx) {
@@ -78,15 +79,30 @@ export async function POST(request: NextRequest) {
       display_name_jp,
       email,
       phone,
-      department,
+      department_id,
       role_id,
       position_id,
       language,
+      // Employee-specific fields
+      employee_code,
+      first_name_th, last_name_th,
+      first_name_en, last_name_en,
+      first_name_jp, last_name_jp,
+      hourly_rate,
     } = body;
 
-    if (!username || !display_name || !role_id) {
+    if (!username || !role_id) {
       return NextResponse.json(
-        { error: "username, display_name, role_id are required" },
+        { error: "username and role_id are required" },
+        { status: 400 }
+      );
+    }
+
+    // Require at least one name
+    const hasName = display_name || first_name_en || first_name_th;
+    if (!hasName) {
+      return NextResponse.json(
+        { error: "At least one name (EN or TH) is required" },
         { status: 400 }
       );
     }
@@ -96,6 +112,17 @@ export async function POST(request: NextRequest) {
         { error: "Username must be 3-30 chars (a-z, A-Z, 0-9, . - _ /)" },
         { status: 400 }
       );
+    }
+
+    // Resolve department name from department_id for backward compatibility
+    let departmentText: string | null = null;
+    if (department_id) {
+      const { data: dept } = await supabaseAdmin
+        .from("departments")
+        .select("name_th")
+        .eq("id", department_id)
+        .single();
+      departmentText = dept?.name_th ?? null;
     }
 
     // Hash default password "00000000" via RPC
@@ -111,17 +138,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Build display_name from employee name fields if not provided directly
+    const effectiveDisplayName = display_name
+      || [first_name_en, last_name_en].filter(Boolean).join(" ")
+      || [first_name_th, last_name_th].filter(Boolean).join(" ")
+      || username;
+    const effectiveDisplayNameTh = display_name_th
+      || [first_name_th, last_name_th].filter(Boolean).join(" ")
+      || "";
+    const effectiveDisplayNameJp = display_name_jp
+      || [first_name_jp, last_name_jp].filter(Boolean).join(" ")
+      || "";
+
     const { data, error } = await supabaseAdmin
       .from("app_users")
       .insert({
         username,
         password_hash: hashed,
-        display_name,
-        display_name_th: display_name_th || null,
-        display_name_jp: display_name_jp || null,
+        display_name: effectiveDisplayName,
+        display_name_th: effectiveDisplayNameTh || null,
+        display_name_jp: effectiveDisplayNameJp || null,
         email: email || null,
         phone: phone || null,
-        department: department || null,
+        department: departmentText,
+        department_id: department_id || null,
         role_id,
         position_id: position_id || null,
         language: language || "th",
@@ -141,31 +181,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Auto-create a team_members record so the user shows up in team views
-    const nameParts = (display_name || "").trim().split(/\s+/);
-    const firstName = nameParts[0] || display_name || username;
-    const lastName = nameParts.slice(1).join(" ") || "";
-
-    const namePartsTh = (display_name_th || "").trim().split(/\s+/);
-    const firstNameTh = namePartsTh[0] || "";
-    const lastNameTh = namePartsTh.slice(1).join(" ") || "";
-
-    const namePartsJp = (display_name_jp || "").trim().split(/\s+/);
-    const firstNameJp = namePartsJp[0] || "";
-    const lastNameJp = namePartsJp.slice(1).join(" ") || "";
+    // Auto-create a team_members record
+    const fnEn = first_name_en || effectiveDisplayName.split(/\s+/)[0] || username;
+    const lnEn = last_name_en || effectiveDisplayName.split(/\s+/).slice(1).join(" ") || "";
+    const fnTh = first_name_th || effectiveDisplayNameTh.split(/\s+/)[0] || fnEn;
+    const lnTh = last_name_th || effectiveDisplayNameTh.split(/\s+/).slice(1).join(" ") || lnEn;
 
     await supabaseAdmin.from("team_members").insert({
       user_id: data.id,
-      first_name_en: firstName,
-      last_name_en: lastName,
-      first_name_th: firstNameTh || firstName,
-      last_name_th: lastNameTh || lastName,
-      first_name_jp: firstNameJp || null,
-      last_name_jp: lastNameJp || null,
+      employee_code: employee_code || null,
+      first_name_en: fnEn,
+      last_name_en: lnEn,
+      first_name_th: fnTh,
+      last_name_th: lnTh,
+      first_name_jp: first_name_jp || null,
+      last_name_jp: last_name_jp || null,
       email: email || null,
       phone: phone || null,
-      department: department || null,
+      department: departmentText,
+      department_id: department_id || null,
       position_id: position_id || null,
+      hourly_rate: hourly_rate ?? 0,
       is_active: true,
     });
 

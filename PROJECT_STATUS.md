@@ -35,9 +35,19 @@ Backend (Supabase)
 
 ### Auth & Permissions
 - Login ด้วย username/password → session cookie
-- Roles: admin, manager, leader, member, viewer
+- Roles: admin(100), manager(70), leader(50), member(10), viewer(5)
+- Permission cascade 3 ชั้น: User Override → Department → Role Default → 0
+- 38 permission modules ใน 7 categories: admin, core, crm, finance, people, planning, tracking
+- 5 permission levels: 0(ปิด), 1(ดู), 3(สร้าง/แก้), 4(แก้ทั้งหมด), 5(เต็มสิทธิ์)
 - Department-based permissions + module-level access control
 - ใช้ `getAuthContext()` ตรวจสอบทุก API route
+- `get_user_permission_level()` — Postgres function สำหรับ resolve สิทธิ์
+
+### User + Member Architecture
+- 2 ตาราง: `app_users` (auth/login) + `team_members` (HR/employee profile)
+- ลิงก์ผ่าน `team_members.user_id → app_users.id`
+- สร้างผู้ใช้ = ฟอร์มเดียวสร้างทั้ง user + team_member
+- แผนกเป็น FK dropdown (department_id) ไม่ใช่ free text
 
 ---
 
@@ -96,8 +106,8 @@ Backend (Supabase)
 - [x] Notification Bell (แจ้งเตือน: งาน overdue, deals, quotations, คำร้องลูกค้า)
 
 ### ระบบ & UI
-- [x] Department Management (9 แผนก + สิทธิ์แผนก)
-- [x] User Management (เพิ่ม/แก้ไข/ลบผู้ใช้)
+- [x] Department Management (9 แผนก + สิทธิ์แผนก + department_id FK)
+- [x] User Management (ฟอร์มรวม user+member, 3 ภาษา, dropdown แผนก/ตำแหน่ง)
 - [x] Open Projects (โครงการว่าง — สมัครเข้าร่วม)
 - [x] Command Palette (Ctrl+K)
 - [x] Keyboard Shortcuts (?)
@@ -119,6 +129,10 @@ Backend (Supabase)
 | add_deal_stages | เพิ่ม stages: new_lead, payment_received |
 | add_quotation_columns | ขยาย quotations + quotation_items |
 | add_project_enrollment | open_positions, is_enrollment_open, pm_member_id |
+| add_department_id_to_members | เพิ่ม department_id FK ใน team_members |
+| add_viewer_role | เพิ่ม viewer role (level=5) + default permissions |
+| fix_client_portal_category | ย้าย client_portal จาก finance → tracking |
+| unify_pm_role | role_in_project: "pm" → "project_manager" |
 | ... (และอื่นๆ ก่อนหน้า) | |
 
 ---
@@ -159,7 +173,7 @@ Backend (Supabase)
 ### Priority C — อนาคต (nice-to-have)
 
 - [ ] **Real-time Updates** — ใช้ Supabase Realtime ให้ข้อมูลอัปเดตทันทีโดยไม่ต้อง refresh
-- [ ] **Mobile App** — React Native หรือ PWA
+- [ ] **Mobile PWA** — Service Worker + manifest.json ให้ install เป็น PWA ได้
 - [ ] **API Documentation** — Swagger/OpenAPI สำหรับ API ทั้งหมด
 - [ ] **Automated Testing** — Unit tests + E2E tests
 - [ ] **CI/CD Pipeline** — GitHub Actions auto-deploy
@@ -167,6 +181,16 @@ Backend (Supabase)
 - [ ] **Dark Mode** — โหมดมืด (ตอนนี้ light theme only)
 - [ ] **Custom Fields** — ให้ admin กำหนด field เพิ่มเองได้
 - [ ] **Webhooks** — ส่ง event ไป LINE/Slack เมื่อเกิดเหตุการณ์สำคัญ
+- [ ] **Skill Matrix** — member_skills table (skill, proficiency) สำหรับ AI จัดสรรคน
+- [ ] **Leave/Attendance** — ระบบลา/วันหยุด กระทบ capacity planning
+- [ ] **Invoice → Transaction auto-link** — สร้าง invoice → pending transaction อัตโนมัติ
+- [ ] **Multi-currency** — รองรับ JPY, USD นอกจาก THB
+- [ ] **Quotation Versioning** — เก็บ revision history (v1, v2, v3)
+- [ ] **Lead Scoring** — คะแนน lead อัตโนมัติสำหรับ CRM
+- [ ] **Department Head** — column head_member_id ใน departments สำหรับ auto-route approval
+- [ ] **Project Health Score** — คำนวณ 🟢🟡🔴 จาก task completion, budget, risks
+- [ ] **Notification Preferences** — user เลือกรับ notification ประเภทไหน
+- [ ] **API Rate Limiting** — ป้องกัน abuse บน API routes
 
 ---
 
@@ -224,6 +248,13 @@ git push origin main
 ## 8. ประวัติการอัปเดต (Change Log)
 
 ### 2026-05-01
+- รวมฟอร์มสร้าง user + member เป็นฟอร์มเดียว (admin/users)
+- เปลี่ยนแผนกจาก text input → dropdown FK ทั้งระบบ (members API + MemberModal)
+- เพิ่ม department_id ใน team_members + backfill ข้อมูลเดิม
+- เพิ่ม viewer role (level=5) + default permissions 38 modules
+- แก้ client_portal category: finance → tracking
+- Unify role_in_project: "pm" → "project_manager"
+- ตรวจสอบระบบสิทธิ์ 3 ชั้นครบ + เพิ่มคำแนะนำครอบคลุม 6 มิติ
 - i18n: เพิ่ม title_en, title_jp ใน tasks + recurring_tasks
 - Gantt Chart: ปรับ 2-row header (เดือน/วัน), weekend shading
 - Client Portal Gantt: ปรับใหม่ให้อ่านง่าย (grid lines, date labels on bars)

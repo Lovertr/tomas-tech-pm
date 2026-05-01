@@ -5,7 +5,7 @@ import { getAuthContext } from "@/lib/auth-server";
 const ALLOWED = [
   "employee_code", "first_name_th", "last_name_th", "first_name_en",
   "last_name_en", "first_name_jp", "last_name_jp", "position_id",
-  "hourly_rate", "email", "phone", "department", "is_active", "user_id",
+  "hourly_rate", "email", "phone", "department", "department_id", "is_active", "user_id",
 ];
 
 export async function PATCH(

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const {
       employee_code, first_name_th, last_name_th, first_name_en, last_name_en,
       first_name_jp, last_name_jp, position_id, hourly_rate, email, phone,
-      department, user_id,
+      department, department_id, user_id,
     } = body;
 
     if (!first_name_en && !first_name_th) {
@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
         email: email || null,
         phone: phone || null,
         department: department || null,
+        department_id: department_id || null,
         user_id: user_id || null,
       })
       .select()

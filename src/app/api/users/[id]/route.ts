@@ -16,29 +16,29 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const allowed = [
-      "display_name",
-      "display_name_th",
-      "display_name_jp",
-      "email",
-      "phone",
-      "department",
-      "department_id",
-      "role_id",
-      "position_id",
-      "language",
-      "is_active",
+    // Fields allowed on app_users
+    const allowedUser = [
+      "display_name", "display_name_th", "display_name_jp",
+      "email", "phone", "department", "department_id",
+      "role_id", "position_id", "language", "is_active",
+    ];
+    // Extra fields that go only to team_members
+    const allowedMember = [
+      "employee_code", "first_name_th", "last_name_th",
+      "first_name_en", "last_name_en", "first_name_jp", "last_name_jp",
+      "hourly_rate",
     ];
     const update: Record<string, unknown> = {};
+    const tmExtra: Record<string, unknown> = {};
     const uuidFields = ["role_id", "position_id", "department_id"];
-    for (const k of allowed) {
+    for (const k of allowedUser) {
       if (k in body) {
-        // Convert empty strings to null for UUID fields
-        if (uuidFields.includes(k) && body[k] === "") {
-          update[k] = null;
-        } else {
-          update[k] = body[k];
-        }
+        update[k] = uuidFields.includes(k) && body[k] === "" ? null : body[k];
+      }
+    }
+    for (const k of allowedMember) {
+      if (k in body) {
+        tmExtra[k] = body[k];
       }
     }
 
@@ -60,11 +60,22 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // If department_id changed, resolve department text
+    if (update.department_id) {
+      const { data: dept } = await supabaseAdmin
+        .from("departments")
+        .select("name_th")
+        .eq("id", update.department_id)
+        .single();
+      if (dept) update.department = dept.name_th;
+    }
+
     // Sync team_members record
     const tmUpdate: Record<string, unknown> = {};
     if (update.email !== undefined) tmUpdate.email = update.email;
     if (update.phone !== undefined) tmUpdate.phone = update.phone;
     if (update.department !== undefined) tmUpdate.department = update.department;
+    if (update.department_id !== undefined) tmUpdate.department_id = update.department_id;
     if (update.position_id !== undefined) tmUpdate.position_id = update.position_id;
     if (update.is_active !== undefined) tmUpdate.is_active = update.is_active;
 
@@ -83,6 +94,9 @@ export async function PATCH(
       tmUpdate.first_name_jp = parts[0];
       tmUpdate.last_name_jp = parts.slice(1).join(" ") || "";
     }
+
+    // Merge employee-only fields
+    Object.assign(tmUpdate, tmExtra);
 
     if (Object.keys(tmUpdate).length > 0) {
       await supabaseAdmin.from("team_members").update(tmUpdate).eq("user_id", id);

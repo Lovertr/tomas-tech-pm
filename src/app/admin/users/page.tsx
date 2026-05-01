@@ -48,24 +48,37 @@ type AppUser = {
   created_at: string;
 };
 
+type Department = {
+  id: string;
+  name_th: string;
+  name_en?: string;
+  name_jp?: string;
+  code?: string;
+};
+
 type FormState = {
   username: string;
-  display_name: string;
-  display_name_th: string;
-  display_name_jp: string;
+  first_name_en: string;
+  last_name_en: string;
+  first_name_th: string;
+  last_name_th: string;
+  first_name_jp: string;
+  last_name_jp: string;
   email: string;
   phone: string;
-  department: string;
+  department_id: string;
   role_id: string;
   position_id: string;
   language: string;
   is_active: boolean;
+  employee_code: string;
+  hourly_rate: number;
 };
 
 const emptyForm: FormState = {
-  username: "", display_name: "", display_name_th: "", display_name_jp: "",
-  email: "", phone: "", department: "", role_id: "", position_id: "",
-  language: "th", is_active: true,
+  username: "", first_name_en: "", last_name_en: "", first_name_th: "", last_name_th: "",
+  first_name_jp: "", last_name_jp: "", email: "", phone: "", department_id: "", role_id: "",
+  position_id: "", language: "th", is_active: true, employee_code: "", hourly_rate: 0,
 };
 
 export default function AdminUsersPage() {
@@ -77,6 +90,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
@@ -106,14 +120,16 @@ export default function AdminUsersPage() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [uRes, rRes, pRes] = await Promise.all([
+      const [uRes, rRes, pRes, dRes] = await Promise.all([
         fetch("/api/users"),
         fetch("/api/roles"),
         fetch("/api/positions"),
+        fetch("/api/departments"),
       ]);
       if (uRes.ok) setUsers((await uRes.json()).users ?? []);
       if (rRes.ok) setRoles((await rRes.json()).roles ?? []);
       if (pRes.ok) setPositions((await pRes.json()).positions ?? []);
+      if (dRes.ok) setDepartments((await dRes.json()).departments ?? []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -145,36 +161,68 @@ export default function AdminUsersPage() {
     setShowModal(true);
   };
 
-  const openEdit = (u: AppUser) => {
+  const openEdit = async (u: AppUser) => {
     setEditingId(u.id);
+    // Load team_member data for this user
+    let tm: Record<string, string | number | null> = {};
+    try {
+      const res = await fetch(`/api/members?user_id=${u.id}`);
+      if (res.ok) {
+        const d = await res.json();
+        const found = (d.members ?? []).find((m: { user_id: string }) => m.user_id === u.id);
+        if (found) tm = found;
+      }
+    } catch { /* ignore */ }
+
+    // Find department_id from user or team_member
+    const deptId = (u as Record<string, unknown>).department_id as string
+      ?? (tm.department_id as string)
+      ?? departments.find(d => d.name_th === u.department || d.name_en === u.department)?.id
+      ?? "";
+
     setForm({
       username: u.username,
-      display_name: u.display_name,
-      display_name_th: u.display_name_th ?? "",
-      display_name_jp: u.display_name_jp ?? "",
+      first_name_en: (tm.first_name_en as string) ?? u.display_name?.split(/\s+/)[0] ?? "",
+      last_name_en: (tm.last_name_en as string) ?? u.display_name?.split(/\s+/).slice(1).join(" ") ?? "",
+      first_name_th: (tm.first_name_th as string) ?? u.display_name_th?.split(/\s+/)[0] ?? "",
+      last_name_th: (tm.last_name_th as string) ?? u.display_name_th?.split(/\s+/).slice(1).join(" ") ?? "",
+      first_name_jp: (tm.first_name_jp as string) ?? "",
+      last_name_jp: (tm.last_name_jp as string) ?? "",
       email: u.email ?? "",
       phone: u.phone ?? "",
-      department: u.department ?? "",
+      department_id: deptId,
       role_id: u.role_id,
       position_id: u.position_id ?? "",
       language: u.language,
       is_active: u.is_active,
+      employee_code: (tm.employee_code as string) ?? "",
+      hourly_rate: Number(tm.hourly_rate) || 0,
     });
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    if (!form.display_name || !form.role_id || (!editingId && !form.username)) {
-      showToast("err", "กรุณากรอกข้อมูลที่จำเป็น");
+    const hasName = form.first_name_en || form.first_name_th;
+    if (!hasName || !form.role_id || (!editingId && !form.username)) {
+      showToast("err", "กรุณากรอกชื่ออย่างน้อย 1 ภาษา + สิทธิ์" + (!editingId ? " + ชื่อผู้ใช้" : ""));
+      return;
+    }
+    if (!form.department_id) {
+      showToast("err", "กรุณาเลือกแผนก");
       return;
     }
     setSaving(true);
     try {
       const url = editingId ? `/api/users/${editingId}` : "/api/users";
       const method = editingId ? "PATCH" : "POST";
+      // Build display_name from first/last name for backward compat
+      const display_name = [form.first_name_en, form.last_name_en].filter(Boolean).join(" ")
+        || [form.first_name_th, form.last_name_th].filter(Boolean).join(" ");
+      const display_name_th = [form.first_name_th, form.last_name_th].filter(Boolean).join(" ");
+      const display_name_jp = [form.first_name_jp, form.last_name_jp].filter(Boolean).join(" ");
       const payload = editingId
-        ? { ...form, username: undefined } // username immutable
-        : form;
+        ? { ...form, username: undefined, display_name, display_name_th, display_name_jp }
+        : { ...form, display_name, display_name_th, display_name_jp };
 
       const res = await fetch(url, {
         method,
@@ -442,137 +490,123 @@ export default function AdminUsersPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {!editingId && (
-                <div className="md:col-span-2">
-                  <label className="block text-xs text-gray-500 mb-1">
-                    {t.username} *
-                  </label>
-                  <input
-                    value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    placeholder="e.g. somchai, tanaka"
-                    className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                  />
-                  <p className="text-[10px] text-gray-600 mt-1">
-                    3-30 ตัวอักษร (a-z, A-Z, 0-9, . - _ /) — รหัสผ่านเริ่มต้น: <span className="font-mono text-orange-400">00000000</span>
-                  </p>
+            <div className="p-6 space-y-5">
+              {/* Section: บัญชีผู้ใช้ */}
+              <div>
+                <div className="text-xs font-semibold text-[#003087] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Shield className="w-3.5 h-3.5" /> บัญชีผู้ใช้
                 </div>
-              )}
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {t.name} (EN) *
-                </label>
-                <input
-                  value={form.display_name}
-                  onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {!editingId && (
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">{t.username} *</label>
+                      <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="e.g. somchai" className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                      <p className="text-[10px] text-gray-500 mt-0.5">รหัสผ่านเริ่มต้น: <span className="font-mono text-orange-500">00000000</span></p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">{t.role} *</label>
+                    <select value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm">
+                      <option value="">—</option>
+                      {roles.map((r) => <option key={r.id} value={r.id}>{t[r.name as keyof typeof t] ?? r.name} (Lv.{r.level})</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">{t.language}</label>
+                    <select value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm">
+                      <option value="th">ไทย</option>
+                      <option value="en">English</option>
+                      <option value="jp">日本語</option>
+                    </select>
+                  </div>
+                </div>
               </div>
+
+              {/* Section: ข้อมูลพนักงาน */}
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {t.name} (TH)
-                </label>
-                <input
-                  value={form.display_name_th}
-                  onChange={(e) => setForm({ ...form, display_name_th: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                />
+                <div className="text-xs font-semibold text-[#003087] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5" /> ข้อมูลพนักงาน
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">ชื่อ (TH) *</label>
+                    <input value={form.first_name_th} onChange={(e) => setForm({ ...form, first_name_th: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">นามสกุล (TH)</label>
+                    <input value={form.last_name_th} onChange={(e) => setForm({ ...form, last_name_th: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">รหัสพนักงาน</label>
+                    <input value={form.employee_code} onChange={(e) => setForm({ ...form, employee_code: e.target.value })} placeholder="e.g. EMP-001" className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">First name (EN)</label>
+                    <input value={form.first_name_en} onChange={(e) => setForm({ ...form, first_name_en: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Last name (EN)</label>
+                    <input value={form.last_name_en} onChange={(e) => setForm({ ...form, last_name_en: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div className="hidden md:block" />
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">名 (JP)</label>
+                    <input value={form.first_name_jp} onChange={(e) => setForm({ ...form, first_name_jp: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">姓 (JP)</label>
+                    <input value={form.last_name_jp} onChange={(e) => setForm({ ...form, last_name_jp: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                </div>
               </div>
+
+              {/* Section: แผนก & ตำแหน่ง */}
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {t.name} (JP)
-                </label>
-                <input
-                  value={form.display_name_jp}
-                  onChange={(e) => setForm({ ...form, display_name_jp: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                />
+                <div className="text-xs font-semibold text-[#003087] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <ShieldCheck className="w-3.5 h-3.5" /> แผนก & ตำแหน่ง
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">แผนก *</label>
+                    <select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm">
+                      <option value="">— เลือกแผนก —</option>
+                      {departments.map((d) => <option key={d.id} value={d.id}>{lang === "en" ? (d.name_en || d.name_th) : lang === "jp" ? (d.name_jp || d.name_th) : d.name_th} ({d.code})</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">{t.position}</label>
+                    <select value={form.position_id} onChange={(e) => {
+                      const pid = e.target.value;
+                      const pos = positions.find(p => p.id === pid);
+                      setForm({ ...form, position_id: pid, hourly_rate: pos ? Number((pos as Record<string, unknown>).default_hourly_rate) || form.hourly_rate : form.hourly_rate });
+                    }} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm">
+                      <option value="">—</option>
+                      {positions.map((p) => <option key={p.id} value={p.id}>{lang === "jp" ? (p.name_jp || p.name_th || p.name_en || p.name) : lang === "en" ? (p.name_en || p.name_th || p.name) : (p.name_th || p.name_en || p.name)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">ค่าแรง/ชม. (฿)</label>
+                    <input type="number" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                </div>
               </div>
+
+              {/* Section: ติดต่อ */}
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Phone</label>
-                <input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Department
-                </label>
-                <input
-                  value={form.department}
-                  onChange={(e) => setForm({ ...form, department: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">{t.role} *</label>
-                <select
-                  value={form.role_id}
-                  onChange={(e) => setForm({ ...form, role_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                >
-                  <option value="">—</option>
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {t[r.name as keyof typeof t] ?? r.name} (Lv.{r.level})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {t.position}
-                </label>
-                <select
-                  value={form.position_id}
-                  onChange={(e) => setForm({ ...form, position_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                >
-                  <option value="">—</option>
-                  {positions.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {lang === "jp" ? (p.name_jp || p.name_th || p.name_en || p.name) : lang === "en" ? (p.name_en || p.name_th || p.name) : (p.name_th || p.name_en || p.name)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  {t.language}
-                </label>
-                <select
-                  value={form.language}
-                  onChange={(e) => setForm({ ...form, language: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
-                >
-                  <option value="th">ไทย</option>
-                  <option value="en">English</option>
-                  <option value="jp">日本語</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={form.is_active}
-                  onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                  className="accent-orange-500 w-4 h-4"
-                />
-                <label htmlFor="is_active" className="text-sm text-gray-600">
-                  {t.active}
-                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Email</label>
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Phone</label>
+                    <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <input type="checkbox" id="is_active" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="accent-orange-500 w-4 h-4" />
+                  <label htmlFor="is_active" className="text-sm text-gray-600">{t.active}</label>
+                </div>
               </div>
             </div>
             <div className="sticky bottom-0 bg-white border-t border-gray-300 px-6 py-4 flex justify-end gap-2">

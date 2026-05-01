@@ -29,7 +29,7 @@ interface Props {
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const ROLE_OPTIONS = [
-  { value: "pm", label: "Project Manager" },
+  { value: "project_manager", label: "Project Manager" },
   { value: "developer", label: "Developer" },
   { value: "tester", label: "Tester" },
   { value: "engineer", label: "Engineer" },

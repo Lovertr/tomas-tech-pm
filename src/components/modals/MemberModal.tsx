@@ -12,12 +12,14 @@ interface Props {
 }
 
 interface BasicUser { id: string; username: string; display_name: string | null; display_name_th: string | null; }
+interface Dept { id: string; name_th: string; name_en?: string; code?: string; }
 
 export default function MemberModal({ open, onClose, initial, positions, onSubmit }: Props) {
   const [form, setForm] = useState<Partial<DBMember>>({});
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [users, setUsers] = useState<BasicUser[]>([]);
+  const [departments, setDepartments] = useState<Dept[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -28,6 +30,11 @@ export default function MemberModal({ open, onClose, initial, positions, onSubmi
         .then(r => r.ok ? r.json() : { users: [] })
         .then(d => setUsers(d.users ?? []))
         .catch(() => setUsers([]));
+      // Load departments for dropdown
+      fetch("/api/departments")
+        .then(r => r.ok ? r.json() : { departments: [] })
+        .then(d => setDepartments(d.departments ?? []))
+        .catch(() => setDepartments([]));
     }
   }, [open, initial]);
 
@@ -64,7 +71,14 @@ export default function MemberModal({ open, onClose, initial, positions, onSubmi
           </div>
           <div>
             <label className={fieldLabel}>แผนก</label>
-            <input className={fieldInput} value={form.department ?? ""} onChange={(e) => set("department", e.target.value)} />
+            <select className={fieldInput} value={(form as Record<string, unknown>).department_id as string ?? ""} onChange={(e) => {
+              const did = e.target.value;
+              const dept = departments.find(d => d.id === did);
+              setForm(f => ({ ...f, department_id: did || null, department: dept?.name_th ?? "" } as Partial<DBMember>));
+            }}>
+              <option value="">— เลือกแผนก —</option>
+              {departments.map(d => <option key={d.id} value={d.id}>{d.name_th} ({d.code})</option>)}
+            </select>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
