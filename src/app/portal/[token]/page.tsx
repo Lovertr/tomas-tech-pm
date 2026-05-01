@@ -22,8 +22,201 @@ interface ClientRequest {
   response_to_client?: string; created_at: string; updated_at?: string; resolved_at?: string;
 }
 interface Attachment { url: string; name: string; type: string; size: number; }
+interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; created_at: string; }
 interface TokenInfo { id: string; client_name?: string; client_email?: string; }
 interface Permissions { view_progress: boolean; submit_requests: boolean; view_tasks: boolean; view_milestones: boolean; }
+
+/* ---------- i18n ---------- */
+type PortalLang = "th" | "en" | "jp";
+const PORTAL_LANG_KEY = "portal_lang";
+
+const portalI18n: Record<PortalLang, Record<string, string>> = {
+  th: {
+    loading: "กำลังโหลดข้อมูลโปรเจค...",
+    accessDenied: "ไม่สามารถเข้าถึงได้",
+    hello: "สวัสดีคุณ",
+    projectPlan: "แผนงานโครงการ (Gantt)",
+    overview: "ภาพรวม",
+    tasks: "งาน",
+    requests: "คำร้อง",
+    totalTasks: "งานทั้งหมด",
+    inProgress: "กำลังทำ",
+    completed: "เสร็จแล้ว",
+    milestone: "Milestone",
+    start: "เริ่ม",
+    end: "สิ้นสุด",
+    progress: "ความคืบหน้า",
+    taskStatus: "สถานะงาน",
+    milestoneTimeline: "เหตุการณ์สำคัญ",
+    recentRequests: "คำร้องล่าสุด",
+    submitRequest: "ส่งคำร้อง",
+    noRequests: "ยังไม่มีคำร้อง",
+    noRequestsDesc: "คุณสามารถส่งคำร้อง หรือแจ้งปัญหาได้ผ่านปุ่มด้านบน",
+    attachments: "ไฟล์แนบ",
+    teamReply: "ตอบกลับจากทีมงาน:",
+    resolvedAt: "แก้ไขเสร็จเมื่อ:",
+    communication: "การสื่อสาร",
+    noMessages: "ยังไม่มีข้อความ — พิมพ์เพื่อเริ่มสนทนากับทีมงาน",
+    typeMessage: "พิมพ์ข้อความ...",
+    powered: "Powered by TOMAS TECH Project Management System",
+    clientName: "ชื่อผู้ติดต่อ *",
+    email: "อีเมล",
+    phone: "โทรศัพท์",
+    type: "ประเภท",
+    priority: "ความสำคัญ",
+    title: "หัวข้อ *",
+    titlePlaceholder: "สรุปปัญหาหรือสิ่งที่ต้องการ",
+    description: "รายละเอียด",
+    descPlaceholder: "อธิบายเพิ่มเติม...",
+    selectFile: "เลือกไฟล์",
+    uploading: "กำลังอัปโหลด...",
+    cancel: "ยกเลิก",
+    send: "ส่งคำร้อง",
+    attachLabel: "แนบไฟล์ (รูปภาพ / วีดีโอ / เอกสาร)",
+    fileTooLarge: "ไฟล์ขนาดใหญ่เกินไป (สูงสุด 50MB)",
+    uploadFailed: "อัปโหลดไม่สำเร็จ",
+    submitFailed: "ไม่สามารถส่งข้อมูลได้",
+    connectionError: "ไม่สามารถเชื่อมต่อได้",
+    invalidLink: "ลิงก์ไม่ถูกต้องหรือหมดอายุ",
+    uploadError: "เกิดข้อผิดพลาดในการอัปโหลด",
+    genericError: "เกิดข้อผิดพลาด",
+    due: "กำหนด",
+    done: "เสร็จ",
+    todayLine: "วันนี้",
+    backlog: "รอดำเนินการ", todo: "รอเริ่ม", in_progress_status: "กำลังดำเนินการ",
+    review: "รอตรวจสอบ", done_status: "เสร็จแล้ว", cancelled: "ยกเลิก",
+    pending: "รอพิจารณา", accepted: "รับแล้ว", resolved: "แก้ไขแล้ว",
+    request: "คำร้องขอ", issue: "รายงานปัญหา", feedback: "ข้อเสนอแนะ", change_request: "ขอเปลี่ยนแปลง",
+    low: "ต่ำ", medium: "ปานกลาง", high: "สูง", critical: "วิกฤต",
+    planning: "วางแผน", active: "กำลังดำเนินการ", on_hold: "ระงับชั่วคราว",
+    proj_completed: "เสร็จสมบูรณ์", proj_cancelled: "ยกเลิก",
+    fromClient: "จากลูกค้า",
+  },
+  en: {
+    loading: "Loading project data...",
+    accessDenied: "Access Denied",
+    hello: "Hello",
+    projectPlan: "Project Plan (Gantt)",
+    overview: "Overview",
+    tasks: "Tasks",
+    requests: "Requests",
+    totalTasks: "Total Tasks",
+    inProgress: "In Progress",
+    completed: "Completed",
+    milestone: "Milestone",
+    start: "Start",
+    end: "End",
+    progress: "Progress",
+    taskStatus: "Task Status",
+    milestoneTimeline: "Milestones",
+    recentRequests: "Recent Requests",
+    submitRequest: "Submit Request",
+    noRequests: "No requests yet",
+    noRequestsDesc: "You can submit a request or report an issue using the button above",
+    attachments: "Attachments",
+    teamReply: "Reply from team:",
+    resolvedAt: "Resolved at:",
+    communication: "Communication",
+    noMessages: "No messages yet — type to start a conversation with the team",
+    typeMessage: "Type a message...",
+    powered: "Powered by TOMAS TECH Project Management System",
+    clientName: "Contact Name *",
+    email: "Email",
+    phone: "Phone",
+    type: "Type",
+    priority: "Priority",
+    title: "Title *",
+    titlePlaceholder: "Summarize the issue or request",
+    description: "Description",
+    descPlaceholder: "Provide more details...",
+    selectFile: "Select File",
+    uploading: "Uploading...",
+    cancel: "Cancel",
+    send: "Submit Request",
+    attachLabel: "Attach Files (Images / Videos / Documents)",
+    fileTooLarge: "File too large (max 50MB)",
+    uploadFailed: "Upload failed",
+    submitFailed: "Unable to submit",
+    connectionError: "Unable to connect",
+    invalidLink: "Invalid or expired link",
+    uploadError: "Upload error",
+    genericError: "An error occurred",
+    due: "Due",
+    done: "Done",
+    todayLine: "Today",
+    backlog: "Backlog", todo: "To Do", in_progress_status: "In Progress",
+    review: "In Review", done_status: "Done", cancelled: "Cancelled",
+    pending: "Pending", accepted: "Accepted", resolved: "Resolved",
+    request: "Request", issue: "Issue Report", feedback: "Feedback", change_request: "Change Request",
+    low: "Low", medium: "Medium", high: "High", critical: "Critical",
+    planning: "Planning", active: "Active", on_hold: "On Hold",
+    proj_completed: "Completed", proj_cancelled: "Cancelled",
+    fromClient: "From Client",
+  },
+  jp: {
+    loading: "プロジェクトデータを読み込み中...",
+    accessDenied: "アクセスできません",
+    hello: "こんにちは",
+    projectPlan: "プロジェクト計画 (ガント)",
+    overview: "概要",
+    tasks: "タスク",
+    requests: "リクエスト",
+    totalTasks: "全タスク",
+    inProgress: "進行中",
+    completed: "完了",
+    milestone: "マイルストーン",
+    start: "開始",
+    end: "終了",
+    progress: "進捗",
+    taskStatus: "タスク状況",
+    milestoneTimeline: "マイルストーン",
+    recentRequests: "最近のリクエスト",
+    submitRequest: "リクエスト送信",
+    noRequests: "リクエストはまだありません",
+    noRequestsDesc: "上のボタンから問題報告やリクエストを送信できます",
+    attachments: "添付ファイル",
+    teamReply: "チームからの返信:",
+    resolvedAt: "解決日:",
+    communication: "コミュニケーション",
+    noMessages: "メッセージはまだありません — チームとの会話を始めましょう",
+    typeMessage: "メッセージを入力...",
+    powered: "Powered by TOMAS TECH Project Management System",
+    clientName: "連絡先名 *",
+    email: "メール",
+    phone: "電話",
+    type: "種類",
+    priority: "優先度",
+    title: "件名 *",
+    titlePlaceholder: "問題やリクエストの概要",
+    description: "詳細",
+    descPlaceholder: "詳しく説明してください...",
+    selectFile: "ファイル選択",
+    uploading: "アップロード中...",
+    cancel: "キャンセル",
+    send: "リクエスト送信",
+    attachLabel: "ファイル添付（画像・動画・ドキュメント）",
+    fileTooLarge: "ファイルが大きすぎます（最大50MB）",
+    uploadFailed: "アップロードに失敗しました",
+    submitFailed: "送信できませんでした",
+    connectionError: "接続できません",
+    invalidLink: "リンクが無効または期限切れです",
+    uploadError: "アップロードエラー",
+    genericError: "エラーが発生しました",
+    due: "期限",
+    done: "完了",
+    todayLine: "今日",
+    backlog: "バックログ", todo: "未着手", in_progress_status: "進行中",
+    review: "レビュー中", done_status: "完了", cancelled: "キャンセル",
+    pending: "審査中", accepted: "承認済", resolved: "解決済",
+    request: "リクエスト", issue: "問題報告", feedback: "フィードバック", change_request: "変更リクエスト",
+    low: "低", medium: "中", high: "高", critical: "緊急",
+    planning: "計画中", active: "進行中", on_hold: "保留中",
+    proj_completed: "完了", proj_cancelled: "キャンセル",
+    fromClient: "お客様より",
+  },
+};
+
+const LANG_FLAGS: Record<PortalLang, string> = { th: "🇹🇭", en: "🇺🇸", jp: "🇯🇵" };
 
 /* ---------- constants ---------- */
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -57,6 +250,42 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   critical: { label: "วิกฤต", color: "#EF4444" },
 };
 
+/* Helper: get localized label */
+function getStatusLabel(status: string, t: Record<string, string>): string {
+  const map: Record<string, string> = {
+    backlog: t.backlog, todo: t.todo, in_progress: t.in_progress_status,
+    review: t.review, done: t.done_status, cancelled: t.cancelled,
+  };
+  return map[status] || status;
+}
+function getRequestStatusLabel(status: string, t: Record<string, string>): string {
+  const map: Record<string, string> = {
+    pending: t.pending, accepted: t.accepted, in_progress: t.in_progress_status,
+    resolved: t.resolved, cancelled: t.cancelled,
+  };
+  return map[status] || status;
+}
+function getRequestTypeLabel(type: string, t: Record<string, string>): string {
+  const map: Record<string, string> = {
+    request: t.request, issue: t.issue, feedback: t.feedback, change_request: t.change_request,
+  };
+  return map[type] || type;
+}
+function getPriorityLabel(priority: string, t: Record<string, string>): string {
+  const map: Record<string, string> = { low: t.low, medium: t.medium, high: t.high, critical: t.critical };
+  return map[priority] || priority;
+}
+function getProjectStatusLabel(status: string, t: Record<string, string>): string {
+  const map: Record<string, string> = {
+    planning: t.planning, active: t.active, on_hold: t.on_hold,
+    completed: t.proj_completed, cancelled: t.proj_cancelled,
+  };
+  return map[status] || status;
+}
+function getLocale(lang: PortalLang): string {
+  return lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US";
+}
+
 /* ---------- component ---------- */
 export default function ClientPortalPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -74,13 +303,28 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
 
   const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "requests">("overview");
   const [showForm, setShowForm] = useState(false);
+  const [lang, setLang] = useState<PortalLang>("th");
+
+  // Load saved language preference
+  useEffect(() => {
+    try {
+      const saved = globalThis.localStorage?.getItem(PORTAL_LANG_KEY);
+      if (saved && (saved === "th" || saved === "en" || saved === "jp")) setLang(saved);
+    } catch { /* ignore */ }
+  }, []);
+  const changeLang = (l: PortalLang) => {
+    setLang(l);
+    try { globalThis.localStorage?.setItem(PORTAL_LANG_KEY, l); } catch { /* ignore */ }
+  };
+  const t = portalI18n[lang];
+  const loc = getLocale(lang);
 
   const fetchData = useCallback(async () => {
     try {
       const r = await fetch(`/api/client-portal?token=${token}`);
       if (!r.ok) {
         const d = await r.json();
-        setError(d.error || "ลิงก์ไม่ถูกต้องหรือหมดอายุ");
+        setError(d.error || "Invalid or expired link");
         return;
       }
       const d = await r.json();
@@ -91,7 +335,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
       setPermissions(d.permissions);
       setTokenInfo(d.tokenInfo);
     } catch {
-      setError("ไม่สามารถเชื่อมต่อได้");
+      setError("Connection error");
     } finally {
       setLoading(false);
     }
@@ -103,7 +347,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <Loader2 className="animate-spin mx-auto mb-3" size={32} color="#003087" />
-        <p className="text-gray-600">กำลังโหลดข้อมูลโปรเจค...</p>
+        <p className="text-gray-600">{t.loading}</p>
       </div>
     </div>
   );
@@ -112,7 +356,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
         <Shield size={48} className="mx-auto mb-4 text-red-400" />
-        <h2 className="text-xl font-bold text-gray-900 mb-2">ไม่สามารถเข้าถึงได้</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t.accessDenied}</h2>
         <p className="text-gray-600">{error}</p>
       </div>
     </div>
@@ -120,14 +364,10 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
 
   if (!project) return null;
 
-  const projectStatus: Record<string, { label: string; color: string }> = {
-    planning: { label: "วางแผน", color: "#6B7280" },
-    active: { label: "กำลังดำเนินการ", color: "#3B82F6" },
-    on_hold: { label: "ระงับชั่วคราว", color: "#F59E0B" },
-    completed: { label: "เสร็จสมบูรณ์", color: "#22C55E" },
-    cancelled: { label: "ยกเลิก", color: "#EF4444" },
+  const projectStatusColors: Record<string, string> = {
+    planning: "#6B7280", active: "#3B82F6", on_hold: "#F59E0B", completed: "#22C55E", cancelled: "#EF4444",
   };
-  const ps = projectStatus[project.status] || { label: project.status, color: "#6B7280" };
+  const ps = { label: getProjectStatusLabel(project.status, t), color: projectStatusColors[project.status] || "#6B7280" };
 
   // Task stats
   const tasksDone = tasks.filter(t => t.status === "done").length;
@@ -139,17 +379,32 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
       {/* Header */}
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: "#003087" }}>
-              TT
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: "#003087" }}>
+                TT
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">TOMAS TECH — Client Portal</p>
+                <h1 className="text-lg font-bold text-gray-900">{project.name_th}</h1>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">TOMAS TECH — Client Portal</p>
-              <h1 className="text-lg font-bold text-gray-900">{project.name_th}</h1>
+            {/* Language Selector */}
+            <div className="flex gap-1">
+              {(["th", "en", "jp"] as PortalLang[]).map(l => (
+                <button
+                  key={l}
+                  onClick={() => changeLang(l)}
+                  className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-gray-500 hover:bg-gray-100"}`}
+                  style={lang === l ? { backgroundColor: "#003087" } : {}}
+                >
+                  {LANG_FLAGS[l]} {l.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
           {tokenInfo?.client_name && (
-            <p className="text-sm text-gray-500 ml-[52px]">สวัสดีคุณ {tokenInfo.client_name}</p>
+            <p className="text-sm text-gray-500 ml-[52px]">{t.hello} {tokenInfo.client_name}</p>
           )}
         </div>
       </header>
@@ -167,15 +422,15 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                 {project.description && <p className="text-sm text-gray-600 line-clamp-2">{project.description}</p>}
               </div>
               <div className="text-right text-sm text-gray-500">
-                {project.start_date && <p>เริ่ม: {new Date(project.start_date).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}</p>}
-                {project.end_date && <p>สิ้นสุด: {new Date(project.end_date).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}</p>}
+                {project.start_date && <p>{t.start}: {new Date(project.start_date).toLocaleDateString(loc, { day: "numeric", month: "short", year: "2-digit" })}</p>}
+                {project.end_date && <p>{t.end}: {new Date(project.end_date).toLocaleDateString(loc, { day: "numeric", month: "short", year: "2-digit" })}</p>}
               </div>
             </div>
 
             {/* Progress bar */}
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600 font-medium">ความคืบหน้ารวม</span>
+                <span className="text-gray-600 font-medium">{t.progress}</span>
                 <span className="font-bold" style={{ color: "#003087" }}>{project.progress ?? 0}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
@@ -185,10 +440,10 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
 
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-              <StatCard icon={Target} label="งานทั้งหมด" value={tasks.length} color="#003087" />
-              <StatCard icon={Loader2} label="กำลังทำ" value={tasksInProgress} color="#3B82F6" />
-              <StatCard icon={CheckCircle2} label="เสร็จแล้ว" value={tasksDone} color="#22C55E" />
-              <StatCard icon={Flag} label="Milestone" value={`${milestonesDone}/${milestones.length}`} color="#F7941D" />
+              <StatCard icon={Target} label={t.totalTasks} value={tasks.length} color="#003087" />
+              <StatCard icon={Loader2} label={t.inProgress} value={tasksInProgress} color="#3B82F6" />
+              <StatCard icon={CheckCircle2} label={t.completed} value={tasksDone} color="#22C55E" />
+              <StatCard icon={Flag} label={t.milestone} value={`${milestonesDone}/${milestones.length}`} color="#F7941D" />
             </div>
           </div>
         )}
@@ -196,9 +451,9 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-xl shadow-sm border p-1">
           {[
-            { key: "overview" as const, label: "ภาพรวม", icon: BarChart3 },
-            ...(permissions.view_tasks ? [{ key: "tasks" as const, label: `งาน (${tasks.length})`, icon: Target }] : []),
-            ...(permissions.submit_requests ? [{ key: "requests" as const, label: `คำร้อง (${clientRequests.length})`, icon: MessageSquare }] : []),
+            { key: "overview" as const, label: t.overview, icon: BarChart3 },
+            ...(permissions.view_tasks ? [{ key: "tasks" as const, label: `${t.tasks} (${tasks.length})`, icon: Target }] : []),
+            ...(permissions.submit_requests ? [{ key: "requests" as const, label: `${t.requests} (${clientRequests.length})`, icon: MessageSquare }] : []),
           ].map(tab => (
             <button
               key={tab.key}
@@ -223,28 +478,27 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Target size={18} style={{ color: "#003087" }} />
-                  สถานะงานทั้งหมด
+                  {t.taskStatus}
                 </h3>
                 {(() => {
                   const statusGroups: Record<string, number> = {};
-                  for (const t of tasks) { statusGroups[t.status] = (statusGroups[t.status] || 0) + 1; }
+                  for (const tk of tasks) { statusGroups[tk.status] = (statusGroups[tk.status] || 0) + 1; }
                   const total = tasks.length;
                   const statusOrder = ["done", "in_progress", "review", "todo", "backlog", "cancelled"];
                   const statusColors: Record<string, string> = { done: "#22C55E", in_progress: "#3B82F6", review: "#F59E0B", todo: "#6B7280", backlog: "#94A3B8", cancelled: "#EF4444" };
-                  const statusLabels: Record<string, string> = { done: "เสร็จแล้ว", in_progress: "กำลังทำ", review: "รอตรวจสอบ", todo: "รอเริ่ม", backlog: "Backlog", cancelled: "ยกเลิก" };
                   return (
                     <>
                       {/* Stacked bar */}
                       <div className="flex rounded-full h-4 overflow-hidden mb-3">
                         {statusOrder.filter(s => statusGroups[s]).map(s => (
-                          <div key={s} style={{ width: `${(statusGroups[s] / total) * 100}%`, backgroundColor: statusColors[s] }} title={`${statusLabels[s]}: ${statusGroups[s]}`} />
+                          <div key={s} style={{ width: `${(statusGroups[s] / total) * 100}%`, backgroundColor: statusColors[s] }} title={`${getStatusLabel(s, t)}: ${statusGroups[s]}`} />
                         ))}
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1">
                         {statusOrder.filter(s => statusGroups[s]).map(s => (
                           <div key={s} className="flex items-center gap-1.5 text-xs text-gray-600">
                             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: statusColors[s] }} />
-                            {statusLabels[s]} <span className="font-semibold text-gray-900">{statusGroups[s]}</span>
+                            {getStatusLabel(s, t)} <span className="font-semibold text-gray-900">{statusGroups[s]}</span>
                           </div>
                         ))}
                       </div>
@@ -255,31 +509,31 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             )}
 
             {/* Gantt Chart */}
-            {permissions.view_tasks && <GanttChart tasks={tasks} milestones={milestones} project={project} />}
+            {permissions.view_tasks && <GanttChart tasks={tasks} milestones={milestones} project={project} lang={lang} />}
 
             {/* Milestones timeline */}
             {permissions.view_milestones && milestones.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Flag size={18} style={{ color: "#F7941D" }} />
-                  Milestones
+                  {t.milestoneTimeline}
                 </h3>
                 <div className="space-y-3">
                   {milestones.map((m, i) => {
-                    const done = m.status === "completed";
+                    const isDone = m.status === "completed";
                     return (
                       <div key={m.id} className="flex items-start gap-3">
                         <div className="flex flex-col items-center">
-                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${done ? "bg-green-500 border-green-500" : "bg-white border-gray-300"}`}>
-                            {done && <CheckCircle2 size={12} className="text-white" />}
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${isDone ? "bg-green-500 border-green-500" : "bg-white border-gray-300"}`}>
+                            {isDone && <CheckCircle2 size={12} className="text-white" />}
                           </div>
-                          {i < milestones.length - 1 && <div className={`w-0.5 h-6 ${done ? "bg-green-300" : "bg-gray-200"}`} />}
+                          {i < milestones.length - 1 && <div className={`w-0.5 h-6 ${isDone ? "bg-green-300" : "bg-gray-200"}`} />}
                         </div>
                         <div className="flex-1 -mt-0.5">
-                          <p className={`text-sm font-medium ${done ? "text-green-700 line-through" : "text-gray-900"}`}>{m.title}</p>
+                          <p className={`text-sm font-medium ${isDone ? "text-green-700 line-through" : "text-gray-900"}`}>{m.title}</p>
                           {m.due_date && (
                             <p className="text-xs text-gray-500">
-                              {done ? "เสร็จ" : "กำหนด"}: {new Date(m.due_date).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                              {isDone ? t.done : t.due}: {new Date(m.due_date).toLocaleDateString(loc, { day: "numeric", month: "short" })}
                             </p>
                           )}
                         </div>
@@ -295,7 +549,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <MessageSquare size={18} style={{ color: "#003087" }} />
-                  คำร้องล่าสุดของคุณ
+                  {t.recentRequests}
                 </h3>
                 <div className="space-y-2">
                   {clientRequests.slice(0, 5).map(cr => {
@@ -305,9 +559,9 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: st.color }} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{cr.title}</p>
-                          <p className="text-xs text-gray-500">{new Date(cr.created_at).toLocaleDateString("th-TH")}</p>
+                          <p className="text-xs text-gray-500">{new Date(cr.created_at).toLocaleDateString(loc)}</p>
                         </div>
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{st.label}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{getRequestStatusLabel(cr.status, t)}</span>
                       </div>
                     );
                   })}
@@ -318,39 +572,39 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         )}
 
         {activeTab === "tasks" && permissions.view_tasks && (
-          <TasksList tasks={tasks} />
+          <TasksList tasks={tasks} lang={lang} />
         )}
 
         {activeTab === "requests" && permissions.submit_requests && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">คำร้อง / รายงานปัญหา</h3>
+              <h3 className="font-semibold text-gray-900">{t.requests}</h3>
               <button
                 onClick={() => setShowForm(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors hover:opacity-90"
                 style={{ backgroundColor: "#F7941D" }}
               >
                 <Plus size={16} />
-                แจ้งรายการใหม่
+                {t.submitRequest}
               </button>
             </div>
 
             {clientRequests.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
                 <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
-                <p className="text-gray-500">ยังไม่มีคำร้อง</p>
+                <p className="text-gray-500">{t.noRequests}</p>
                 <button
                   onClick={() => setShowForm(true)}
                   className="mt-3 text-sm font-medium hover:underline"
                   style={{ color: "#003087" }}
                 >
-                  แจ้งรายการแรกของคุณ
+                  {t.submitRequest}
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
                 {clientRequests.map(cr => (
-                  <RequestCard key={cr.id} request={cr} />
+                  <RequestCard key={cr.id} request={cr} token={token} lang={lang} />
                 ))}
               </div>
             )}
@@ -363,6 +617,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             token={token}
             clientName={tokenInfo?.client_name || ""}
             clientEmail={tokenInfo?.client_email || ""}
+            lang={lang}
             onClose={() => setShowForm(false)}
             onSubmitted={() => { setShowForm(false); fetchData(); }}
           />
@@ -372,7 +627,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
       {/* Footer */}
       <footer className="border-t bg-white mt-8">
         <div className="max-w-5xl mx-auto px-4 py-4 text-center text-xs text-gray-400">
-          Powered by TOMAS TECH Project Management System
+          {t.powered}
         </div>
       </footer>
 
@@ -402,15 +657,17 @@ function StatCard({ icon: Icon, label, value, color }: { icon: typeof Clock; lab
   );
 }
 
-function TasksList({ tasks }: { tasks: Task[] }) {
+function TasksList({ tasks, lang }: { tasks: Task[]; lang: PortalLang }) {
+  const tr = portalI18n[lang];
+  const loc = getLocale(lang);
   const [expandedStatus, setExpandedStatus] = useState<string[]>(["in_progress", "todo", "backlog"]);
   const toggle = (s: string) => setExpandedStatus(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
 
   const groups: Record<string, Task[]> = {};
-  for (const t of tasks) {
-    const s = t.status || "backlog";
+  for (const tk of tasks) {
+    const s = tk.status || "backlog";
     if (!groups[s]) groups[s] = [];
-    groups[s].push(t);
+    groups[s].push(tk);
   }
 
   const order = ["in_progress", "review", "todo", "backlog", "done", "cancelled"];
@@ -429,30 +686,30 @@ function TasksList({ tasks }: { tasks: Task[] }) {
             >
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: config.color }} />
-                <span className="font-medium text-gray-900">{config.label}</span>
+                <span className="font-medium text-gray-900">{getStatusLabel(status, tr)}</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{groups[status].length}</span>
               </div>
               {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             {expanded && (
               <div className="border-t divide-y">
-                {groups[status].map(t => {
-                  const pri = PRIORITY_CONFIG[t.priority] || PRIORITY_CONFIG.medium;
-                  const isClient = t.source === "client_portal";
+                {groups[status].map(tk => {
+                  const pri = PRIORITY_CONFIG[tk.priority] || PRIORITY_CONFIG.medium;
+                  const isClient = tk.source === "client_portal";
                   return (
-                    <div key={t.id} className="px-4 py-3 flex items-center gap-3">
+                    <div key={tk.id} className="px-4 py-3 flex items-center gap-3">
                       <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: pri.color }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900">{t.title}</p>
+                        <p className="text-sm text-gray-900">{tk.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          {t.due_date && (
+                          {tk.due_date && (
                             <span className="text-xs text-gray-500 flex items-center gap-1">
                               <Calendar size={10} />
-                              {new Date(t.due_date).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                              {new Date(tk.due_date).toLocaleDateString(loc, { day: "numeric", month: "short" })}
                             </span>
                           )}
                           {isClient && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-50 text-orange-600 font-medium">จากลูกค้า</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-50 text-orange-600 font-medium">{tr.fromClient}</span>
                           )}
                         </div>
                       </div>
@@ -468,9 +725,55 @@ function TasksList({ tasks }: { tasks: Task[] }) {
   );
 }
 
-function RequestCard({ request: cr }: { request: ClientRequest }) {
+function RequestCard({ request: cr, token, lang }: { request: ClientRequest; token: string; lang: PortalLang }) {
+  const t = portalI18n[lang];
+  const loc = getLocale(lang);
   const [expanded, setExpanded] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const st = REQUEST_STATUS[cr.status] || REQUEST_STATUS.pending;
+
+  const fetchComments = useCallback(async () => {
+    setLoadingComments(true);
+    try {
+      const r = await fetch(`/api/client-portal/comments?request_id=${cr.id}&token=${token}`);
+      if (r.ok) {
+        const d = await r.json();
+        setComments(d.comments || []);
+      }
+    } finally {
+      setLoadingComments(false);
+    }
+  }, [cr.id, token]);
+
+  useEffect(() => {
+    if (expanded) fetchComments();
+  }, [expanded, fetchComments]);
+
+  useEffect(() => {
+    if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [comments]);
+
+  const handleSend = async () => {
+    if (!newMsg.trim() || sending) return;
+    setSending(true);
+    try {
+      const r = await fetch("/api/client-portal/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request_id: cr.id, message: newMsg.trim(), token }),
+      });
+      if (r.ok) {
+        setNewMsg("");
+        fetchComments();
+      }
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -478,11 +781,16 @@ function RequestCard({ request: cr }: { request: ClientRequest }) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{st.label}</span>
-              <span className="text-xs text-gray-400">{REQUEST_TYPES[cr.request_type] || cr.request_type}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{getRequestStatusLabel(cr.status, t)}</span>
+              <span className="text-xs text-gray-400">{getRequestTypeLabel(cr.request_type, t)}</span>
+              {comments.length > 0 && (
+                <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                  <MessageSquare size={10} /> {comments.length}
+                </span>
+              )}
             </div>
             <p className="text-sm font-medium text-gray-900">{cr.title}</p>
-            <p className="text-xs text-gray-500 mt-1">{new Date(cr.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+            <p className="text-xs text-gray-500 mt-1">{new Date(cr.created_at).toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
           </div>
           {expanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
         </div>
@@ -496,7 +804,7 @@ function RequestCard({ request: cr }: { request: ClientRequest }) {
 
           {cr.attachments && cr.attachments.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">ไฟล์แนบ ({cr.attachments.length})</p>
+              <p className="text-xs font-medium text-gray-500 mb-2">{t.attachments} ({cr.attachments.length})</p>
               <div className="flex flex-wrap gap-2">
                 {cr.attachments.map((a, i) => (
                   <a
@@ -513,23 +821,85 @@ function RequestCard({ request: cr }: { request: ClientRequest }) {
 
           {cr.response_to_client && (
             <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-              <p className="text-xs font-medium text-blue-700 mb-1">ตอบกลับจากทีมงาน:</p>
+              <p className="text-xs font-medium text-blue-700 mb-1">{t.teamReply}</p>
               <p className="text-sm text-blue-900">{cr.response_to_client}</p>
             </div>
           )}
 
           {cr.resolved_at && (
             <p className="text-xs text-green-600">
-              แก้ไขเสร็จเมื่อ: {new Date(cr.resolved_at).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })}
+              {t.resolvedAt} {new Date(cr.resolved_at).toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric" })}
             </p>
           )}
+
+          {/* Chat / Comments Section */}
+          <div className="border-t pt-3">
+            <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+              <MessageSquare size={14} style={{ color: "#003087" }} />
+              {t.communication}
+            </p>
+
+            {loadingComments ? (
+              <div className="flex justify-center py-4"><Loader2 size={18} className="animate-spin text-gray-400" /></div>
+            ) : comments.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-3">{t.noMessages}</p>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1 mb-2">
+                {comments.map(c => (
+                  <div key={c.id} className={`flex ${c.sender_type === "client" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-3 py-2 ${
+                        c.sender_type === "client"
+                          ? "rounded-br-md text-white"
+                          : "rounded-bl-md bg-gray-100 text-gray-900"
+                      }`}
+                      style={c.sender_type === "client" ? { backgroundColor: "#003087" } : {}}
+                    >
+                      {c.sender_type === "team" && (
+                        <p className="text-[10px] font-semibold text-blue-700 mb-0.5">{c.sender_name}</p>
+                      )}
+                      <p className="text-sm whitespace-pre-wrap">{c.message}</p>
+                      <p className={`text-[10px] mt-1 ${c.sender_type === "client" ? "text-blue-200" : "text-gray-400"}`}>
+                        {new Date(c.created_at).toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" })}
+                        {" · "}
+                        {new Date(c.created_at).toLocaleDateString(loc, { day: "numeric", month: "short" })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+            )}
+
+            {/* Message input */}
+            <div className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={newMsg}
+                onChange={e => setNewMsg(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                placeholder={t.typeMessage}
+                className="flex-1 px-3 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!newMsg.trim() || sending}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
+                style={{ backgroundColor: "#003087" }}
+              >
+                {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones: Milestone[]; project: Project }) {
+function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; milestones: Milestone[]; project: Project; lang: PortalLang }) {
+  const gt = portalI18n[lang];
+  const loc = getLocale(lang);
   // Filter tasks that have dates
   const datedTasks = tasks.filter(t => t.start_date || t.due_date);
   if (datedTasks.length === 0 && milestones.length === 0) return null;
@@ -564,7 +934,7 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
   while (cur <= endMonth) {
     const pct = ((cur.getTime() - minDate) / rangeMs) * 100;
     if (pct >= 0 && pct <= 100) {
-      months.push({ label: cur.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }), left: pct });
+      months.push({ label: cur.toLocaleDateString(loc, { month: "short", year: "2-digit" }), left: pct });
     }
     cur.setMonth(cur.getMonth() + 1);
   }
@@ -575,7 +945,7 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
     <div className="bg-white rounded-xl shadow-sm border p-6">
       <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <BarChart3 size={18} style={{ color: "#003087" }} />
-        แผนงานโครงการ (Gantt)
+        {gt.projectPlan}
       </h3>
 
       <div className="overflow-x-auto">
@@ -593,7 +963,7 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
           {todayPct > 0 && todayPct < 100 && (
             <div className="relative h-0">
               <div className="absolute top-0 bottom-0 w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%`, height: `${(datedTasks.length + milestones.length) * 32 + 8}px` }} />
-              <span className="absolute text-[9px] text-red-500 font-medium" style={{ left: `${todayPct}%`, top: -14, transform: "translateX(-50%)" }}>วันนี้</span>
+              <span className="absolute text-[9px] text-red-500 font-medium" style={{ left: `${todayPct}%`, top: -14, transform: "translateX(-50%)" }}>{gt.todayLine}</span>
             </div>
           )}
 
@@ -612,7 +982,7 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
                     <div
                       className="absolute h-full rounded-sm transition-all"
                       style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.7 : 1 }}
-                      title={`${t.title}: ${t.start_date ? new Date(t.start_date).toLocaleDateString("th-TH") : "?"} → ${t.due_date ? new Date(t.due_date).toLocaleDateString("th-TH") : "?"}`}
+                      title={`${t.title}: ${t.start_date ? new Date(t.start_date).toLocaleDateString(loc) : "?"} → ${t.due_date ? new Date(t.due_date).toLocaleDateString(loc) : "?"}`}
                     />
                   </div>
                 </div>
@@ -634,7 +1004,7 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
                     <div
                       className="absolute w-3 h-3 rotate-45 top-1"
                       style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }}
-                      title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString("th-TH")}`}
+                      title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`}
                     />
                   </div>
                 </div>
@@ -647,10 +1017,10 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
       {/* Legend */}
       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-4 pt-3 border-t">
         {[
-          { label: "กำลังทำ", color: "#3B82F6" },
-          { label: "รอตรวจสอบ", color: "#F59E0B" },
-          { label: "เสร็จแล้ว", color: "#22C55E" },
-          { label: "รอเริ่ม", color: "#94A3B8" },
+          { label: gt.in_progress_status, color: "#3B82F6" },
+          { label: gt.review, color: "#F59E0B" },
+          { label: gt.done_status, color: "#22C55E" },
+          { label: gt.todo, color: "#94A3B8" },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
             <div className="w-3 h-2 rounded-sm" style={{ backgroundColor: l.color }} />
@@ -659,11 +1029,11 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
         ))}
         <div className="flex items-center gap-1 text-[10px] text-gray-500">
           <div className="w-2 h-2 rotate-45" style={{ backgroundColor: "#F7941D" }} />
-          Milestone
+          {gt.milestone}
         </div>
         <div className="flex items-center gap-1 text-[10px] text-gray-500">
           <div className="w-3 h-0.5 bg-red-400" />
-          วันนี้
+          {gt.todayLine}
         </div>
       </div>
     </div>
@@ -671,11 +1041,12 @@ function GanttChart({ tasks, milestones, project }: { tasks: Task[]; milestones:
 }
 
 function SubmitRequestForm({
-  token, clientName, clientEmail, onClose, onSubmitted,
+  token, clientName, clientEmail, lang, onClose, onSubmitted,
 }: {
-  token: string; clientName: string; clientEmail: string;
+  token: string; clientName: string; clientEmail: string; lang: PortalLang;
   onClose: () => void; onSubmitted: () => void;
 }) {
+  const t = portalI18n[lang];
   const [form, setForm] = useState({
     client_name: clientName,
     client_email: clientEmail,
@@ -696,7 +1067,7 @@ function SubmitRequestForm({
     setUploadError("");
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.size > 50 * 1024 * 1024) { setUploadError("ไฟล์ขนาดใหญ่เกินไป (สูงสุด 50MB)"); continue; }
+      if (file.size > 50 * 1024 * 1024) { setUploadError(t.fileTooLarge); continue; }
       const fd = new FormData();
       fd.append("token", token);
       fd.append("file", file);
@@ -706,10 +1077,10 @@ function SubmitRequestForm({
         if (r.ok && d.attachment) {
           setAttachments(prev => [...prev, d.attachment]);
         } else {
-          setUploadError(d.error || "อัปโหลดไม่สำเร็จ");
+          setUploadError(d.error || t.uploadFailed);
         }
       } catch {
-        setUploadError("เกิดข้อผิดพลาดในการอัปโหลด");
+        setUploadError(t.uploadError);
       }
     }
     setUploading(false);
@@ -733,10 +1104,10 @@ function SubmitRequestForm({
         onSubmitted();
       } else {
         const d = await r.json();
-        alert(d.error || "เกิดข้อผิดพลาด");
+        alert(d.error || t.genericError);
       }
     } catch {
-      alert("ไม่สามารถส่งข้อมูลได้");
+      alert(t.submitFailed);
     } finally {
       setSubmitting(false);
     }
@@ -749,26 +1120,26 @@ function SubmitRequestForm({
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-gray-900">แจ้งคำร้อง / รายงานปัญหา</h3>
+          <h3 className="font-semibold text-gray-900">{t.submitRequest}</h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded"><X size={20} /></button>
         </div>
 
         <div className="p-4 space-y-4">
           {/* Client Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้แจ้ง <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.clientName}</label>
             <input
               type="text" value={form.client_name}
               onChange={e => setForm({ ...form, client_name: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              placeholder="ชื่อ-สกุล"
+              placeholder={t.clientName.replace(" *", "")}
             />
           </div>
 
           {/* Contact */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
               <input
                 type="email" value={form.client_email}
                 onChange={e => setForm({ ...form, client_email: e.target.value })}
@@ -776,7 +1147,7 @@ function SubmitRequestForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">โทรศัพท์</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.phone}</label>
               <input
                 type="tel" value={form.client_phone}
                 onChange={e => setForm({ ...form, client_phone: e.target.value })}
@@ -788,53 +1159,53 @@ function SubmitRequestForm({
           {/* Type + Priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">ประเภท</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.type}</label>
               <select
                 value={form.request_type}
                 onChange={e => setForm({ ...form, request_type: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
               >
-                {Object.entries(REQUEST_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                {Object.keys(REQUEST_TYPES).map(k => <option key={k} value={k}>{getRequestTypeLabel(k, t)}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">ความเร่งด่วน</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.priority}</label>
               <select
                 value={form.priority}
                 onChange={e => setForm({ ...form, priority: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
               >
-                {Object.entries(PRIORITY_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                {Object.keys(PRIORITY_CONFIG).map(k => <option key={k} value={k}>{getPriorityLabel(k, t)}</option>)}
               </select>
             </div>
           </div>
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">หัวข้อ <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.title}</label>
             <input
               type="text" value={form.title}
               onChange={e => setForm({ ...form, title: e.target.value })}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
-              placeholder="สรุปสิ่งที่ต้องการแจ้ง"
+              placeholder={t.titlePlaceholder}
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียด</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.description}</label>
             <textarea
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
               rows={4}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none resize-none"
-              placeholder="อธิบายรายละเอียดเพิ่มเติม..."
+              placeholder={t.descPlaceholder}
             />
           </div>
 
           {/* Attachments */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">แนบไฟล์ (รูปภาพ / วีดีโอ / เอกสาร)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.attachLabel}</label>
             <input
               ref={fileRef} type="file" multiple
               accept="image/*,video/*,application/pdf,.doc,.docx"
@@ -847,7 +1218,7 @@ function SubmitRequestForm({
               className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed text-sm text-gray-600 hover:bg-gray-50 w-full justify-center"
             >
               {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
-              {uploading ? "กำลังอัปโหลด..." : "เลือกไฟล์"}
+              {uploading ? t.uploading : t.selectFile}
             </button>
             {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
 
@@ -867,7 +1238,7 @@ function SubmitRequestForm({
 
         <div className="sticky bottom-0 bg-white border-t p-4 flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-            ยกเลิก
+            {t.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -876,7 +1247,7 @@ function SubmitRequestForm({
             style={{ backgroundColor: "#003087" }}
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-            ส่งคำร้อง
+            {t.send}
           </button>
         </div>
       </div>

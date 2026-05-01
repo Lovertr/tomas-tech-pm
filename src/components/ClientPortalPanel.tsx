@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Plus, Link2, Copy, Check, Trash2, Pause, Play, ExternalLink, Eye, Mail,
   MessageSquare, AlertTriangle, CheckCircle2, XCircle, Clock, UserPlus,
-  ChevronDown, ChevronUp, ArrowRightCircle, X, FileText, Image as ImageIcon, Video
+  ChevronDown, ChevronUp, ArrowRightCircle, X, FileText, Image as ImageIcon, Video,
+  Loader2, Send
 } from "lucide-react";
 
 /* ---------- types ---------- */
@@ -420,11 +421,123 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                       <p className="text-sm text-blue-900">{cr.response_to_client}</p>
                     </div>
                   )}
+
+                  {/* Chat Thread */}
+                  <ChatThread requestId={cr.id} />
                 </div>
               )}
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Chat Thread (Team side) ---------- */
+interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; created_at: string; }
+
+function ChatThread({ requestId }: { requestId: string }) {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const fetchComments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await fetch(`/api/client-portal/comments?request_id=${requestId}`);
+      if (r.ok) {
+        const d = await r.json();
+        setComments(d.comments || []);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [requestId]);
+
+  useEffect(() => { fetchComments(); }, [fetchComments]);
+
+  useEffect(() => {
+    if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [comments]);
+
+  const handleSend = async () => {
+    if (!newMsg.trim() || sending) return;
+    setSending(true);
+    try {
+      const r = await fetch("/api/client-portal/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request_id: requestId, message: newMsg.trim() }),
+      });
+      if (r.ok) {
+        setNewMsg("");
+        fetchComments();
+      }
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="border-t pt-3">
+      <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+        <MessageSquare size={14} style={{ color: "#003087" }} />
+        แชทกับลูกค้า
+      </p>
+
+      {loading && comments.length === 0 ? (
+        <div className="flex justify-center py-3"><Loader2 size={16} className="animate-spin text-gray-400" /></div>
+      ) : comments.length === 0 ? (
+        <p className="text-xs text-gray-400 text-center py-2">ยังไม่มีข้อความ</p>
+      ) : (
+        <div className="space-y-2 max-h-60 overflow-y-auto pr-1 mb-2">
+          {comments.map(c => (
+            <div key={c.id} className={`flex ${c.sender_type === "team" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[80%] rounded-2xl px-3 py-2 ${
+                  c.sender_type === "team"
+                    ? "rounded-br-md text-white"
+                    : "rounded-bl-md bg-gray-100 text-gray-900"
+                }`}
+                style={c.sender_type === "team" ? { backgroundColor: "#003087" } : {}}
+              >
+                <p className={`text-[10px] font-semibold mb-0.5 ${c.sender_type === "team" ? "text-blue-200" : "text-orange-600"}`}>
+                  {c.sender_type === "client" ? `🧑 ${c.sender_name}` : c.sender_name}
+                </p>
+                <p className="text-sm whitespace-pre-wrap">{c.message}</p>
+                <p className={`text-[10px] mt-1 ${c.sender_type === "team" ? "text-blue-200" : "text-gray-400"}`}>
+                  {new Date(c.created_at).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}
+                  {" · "}
+                  {new Date(c.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                </p>
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+      )}
+
+      {/* Message input */}
+      <div className="flex gap-2 mt-2">
+        <input
+          type="text"
+          value={newMsg}
+          onChange={e => setNewMsg(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+          placeholder="พิมพ์ข้อความตอบกลับลูกค้า..."
+          className="flex-1 px-3 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+        <button
+          onClick={handleSend}
+          disabled={!newMsg.trim() || sending}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
+          style={{ backgroundColor: "#003087" }}
+        >
+          {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+        </button>
       </div>
     </div>
   );
@@ -538,6 +651,7 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
     </>
   );
 }
+
 
 /* ---------- Create Token Modal ---------- */
 function CreateModal({ projects, defaultProjectId, onClose, onCreated }: { projects: ProjectLite[]; defaultProjectId: string; onClose: () => void; onCreated: () => void }) {

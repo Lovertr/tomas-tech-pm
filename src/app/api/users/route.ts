@@ -109,6 +109,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Auto-create a team_members record so the user shows up in team views
+    const nameParts = (display_name || "").trim().split(/\s+/);
+    const firstName = nameParts[0] || display_name || username;
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    const namePartsTh = (display_name_th || "").trim().split(/\s+/);
+    const firstNameTh = namePartsTh[0] || "";
+    const lastNameTh = namePartsTh.slice(1).join(" ") || "";
+
+    const namePartsJp = (display_name_jp || "").trim().split(/\s+/);
+    const firstNameJp = namePartsJp[0] || "";
+    const lastNameJp = namePartsJp.slice(1).join(" ") || "";
+
+    await supabaseAdmin.from("team_members").insert({
+      user_id: data.id,
+      first_name_en: firstName,
+      last_name_en: lastName,
+      first_name_th: firstNameTh || firstName,
+      last_name_th: lastNameTh || lastName,
+      first_name_jp: firstNameJp || null,
+      last_name_jp: lastNameJp || null,
+      email: email || null,
+      phone: phone || null,
+      department: department || null,
+      position_id: position_id || null,
+      is_active: true,
+    });
+
     return NextResponse.json(
       { user: data, default_password: "00000000" },
       { status: 201 }

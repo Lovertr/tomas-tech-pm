@@ -52,6 +52,34 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Sync team_members record
+    const tmUpdate: Record<string, unknown> = {};
+    if (update.email !== undefined) tmUpdate.email = update.email;
+    if (update.phone !== undefined) tmUpdate.phone = update.phone;
+    if (update.department !== undefined) tmUpdate.department = update.department;
+    if (update.position_id !== undefined) tmUpdate.position_id = update.position_id;
+    if (update.is_active !== undefined) tmUpdate.is_active = update.is_active;
+
+    if (update.display_name) {
+      const parts = (update.display_name as string).trim().split(/\s+/);
+      tmUpdate.first_name_en = parts[0];
+      tmUpdate.last_name_en = parts.slice(1).join(" ") || "";
+    }
+    if (update.display_name_th) {
+      const parts = (update.display_name_th as string).trim().split(/\s+/);
+      tmUpdate.first_name_th = parts[0];
+      tmUpdate.last_name_th = parts.slice(1).join(" ") || "";
+    }
+    if (update.display_name_jp) {
+      const parts = (update.display_name_jp as string).trim().split(/\s+/);
+      tmUpdate.first_name_jp = parts[0];
+      tmUpdate.last_name_jp = parts.slice(1).join(" ") || "";
+    }
+
+    if (Object.keys(tmUpdate).length > 0) {
+      await supabaseAdmin.from("team_members").update(tmUpdate).eq("user_id", id);
+    }
+
     return NextResponse.json({ user: data });
   } catch (err) {
     console.error("Update user error:", err);
@@ -94,6 +122,12 @@ export async function DELETE(
       { status: 400 }
     );
   }
+
+  // Deactivate linked team_members first
+  await supabaseAdmin
+    .from("team_members")
+    .update({ is_active: false, user_id: null })
+    .eq("user_id", id);
 
   const { error } = await supabaseAdmin
     .from("app_users")
