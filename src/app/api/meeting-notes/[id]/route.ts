@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
-const ALLOWED = ["title", "meeting_date", "attendees", "agenda", "notes", "action_items", "audio_url"];
+const ALLOWED = ["title", "meeting_date", "attendees", "agenda", "notes", "action_items", "audio_url", "meeting_type", "department_ids", "client_visible", "project_id"];
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext(req);
@@ -11,6 +11,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json();
   const update: Record<string, unknown> = {};
   for (const k of ALLOWED) if (k in body) update[k] = body[k];
+
+  // If changing to non-project type, clear project_id
+  if (update.meeting_type && update.meeting_type !== "project") {
+    update.project_id = null;
+  }
+
   const { data, error } = await supabaseAdmin.from("meeting_notes").update(update).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ note: data });

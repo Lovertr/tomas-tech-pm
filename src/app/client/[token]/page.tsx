@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useState, use } from "react";
-import { CheckCircle2, Clock, AlertCircle, FileText, Calendar, TrendingUp, Building2, DollarSign, Target } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, FileText, Calendar, TrendingUp, Building2, DollarSign, Target, Users, ListChecks } from "lucide-react";
 
+interface ActionItem { text: string; assignee?: string; due?: string; done?: boolean; }
+interface MeetingNote {
+  id: string; title: string; meeting_date: string;
+  notes?: string | null; action_items?: ActionItem[] | null;
+  attendees?: string[] | null;
+}
 interface PortalData {
   project: {
     id: string; project_code: string; name_th?: string; name_en?: string;
@@ -12,6 +18,7 @@ interface PortalData {
   tasks: { id: string; title: string; status: string; priority?: string; due_date?: string; completed_at?: string }[];
   milestones: { id: string; title: string; due_date?: string; status: string; description?: string }[];
   invoices: { id: string; invoice_number: string; issue_date: string; due_date: string; total: number; status: string; client_name?: string }[];
+  meetings?: MeetingNote[];
   task_stats: { total: number; done: number; in_progress: number; todo: number };
   finance: { billed: number; paid: number; outstanding: number };
   client: { name?: string; email?: string };
@@ -39,6 +46,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
   const [data, setData] = useState<PortalData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedMeeting, setExpandedMeeting] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/public/client/${token}`)
@@ -71,6 +79,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
 
   const p = data.project;
   const completion = data.task_stats.total > 0 ? Math.round((data.task_stats.done / data.task_stats.total) * 100) : (p.progress ?? 0);
+  const meetings = data.meetings ?? [];
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -111,10 +120,10 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             <div className="h-full transition-all" style={{ width: `${completion}%`, background: "linear-gradient(90deg, #003087, #00AEEF, #F7941D)" }} />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 text-center">
-            <Stat label="งานทั้งหมด" value={data.task_stats.total} color="#00AEEF" icon={FileText} />
-            <Stat label="กำลังทำ" value={data.task_stats.in_progress} color="#F7941D" icon={Clock} />
-            <Stat label="เสร็จแล้ว" value={data.task_stats.done} color="#22C55E" icon={CheckCircle2} />
-            <Stat label="คงเหลือ" value={data.task_stats.todo} color="#94A3B8" icon={Target} />
+            <StatCard label="งานทั้งหมด" value={data.task_stats.total} color="#00AEEF" icon={FileText} />
+            <StatCard label="กำลังทำ" value={data.task_stats.in_progress} color="#F7941D" icon={Clock} />
+            <StatCard label="เสร็จแล้ว" value={data.task_stats.done} color="#22C55E" icon={CheckCircle2} />
+            <StatCard label="คงเหลือ" value={data.task_stats.todo} color="#94A3B8" icon={Target} />
           </div>
           {(p.start_date || p.end_date) && (
             <div className="mt-4 flex items-center justify-between text-xs text-gray-500 border-t border-gray-300 pt-3">
@@ -215,6 +224,86 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
           )}
         </div>
 
+        {/* Meeting Summaries (client-visible) */}
+        {meetings.length > 0 && (
+          <div className="bg-white border border-gray-300 rounded-2xl p-6">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Users size={16} className="text-purple-600" /> สรุปการประชุม
+            </h2>
+            <div className="space-y-3">
+              {meetings.map(mtg => {
+                const isExpanded = expandedMeeting === mtg.id;
+                const d = new Date(mtg.meeting_date);
+                const ai = mtg.action_items ?? [];
+                const aiDone = ai.filter(a => a.done).length;
+                return (
+                  <div key={mtg.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => setExpandedMeeting(isExpanded ? null : mtg.id)}>
+                      <div className="w-12 h-12 rounded-lg bg-purple-50 border border-purple-200 flex flex-col items-center justify-center shrink-0">
+                        <div className="text-[10px] text-purple-500 uppercase">{d.toLocaleDateString("th-TH", { month: "short" })}</div>
+                        <div className="text-lg font-bold text-gray-900 leading-none">{d.getDate()}</div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-gray-900">{mtg.title}</div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <span>{fmtDate(mtg.meeting_date)}</span>
+                          {mtg.attendees && mtg.attendees.length > 0 && (
+                            <span className="flex items-center gap-1"><Users size={11} /> {mtg.attendees.length} คน</span>
+                          )}
+                          {ai.length > 0 && (
+                            <span className="flex items-center gap-1"><ListChecks size={11} /> {aiDone}/{ai.length} items</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</div>
+                    </div>
+                    {isExpanded && (
+                      <div className="px-4 pb-4 border-t border-gray-200 pt-3 space-y-3">
+                        {mtg.attendees && mtg.attendees.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">ผู้เข้าร่วม</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {mtg.attendees.map((a, i) => (
+                                <span key={i} className="text-xs bg-gray-100 border border-gray-200 rounded-full px-2 py-0.5 text-gray-600">{a}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {mtg.notes && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">สรุปการประชุม</div>
+                            <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3 border border-gray-200">{mtg.notes}</div>
+                          </div>
+                        )}
+                        {ai.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">Action Items</div>
+                            <div className="space-y-1">
+                              {ai.map((it, i) => (
+                                <div key={i} className="flex items-start gap-2 text-sm">
+                                  <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${it.done ? "bg-green-500 border-green-500" : "border-gray-400"}`}>
+                                    {it.done && <CheckCircle2 size={10} className="text-white" />}
+                                  </span>
+                                  <div className="flex-1">
+                                    <span className={it.done ? "line-through text-gray-400" : "text-gray-700"}>{it.text}</span>
+                                    {it.assignee && <span className="ml-2 text-xs text-blue-500">@{it.assignee}</span>}
+                                    {it.due && <span className="ml-2 text-xs text-orange-500">{it.due}</span>}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Finance */}
         <div className="bg-white border border-gray-300 rounded-2xl p-6">
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><DollarSign size={16} className="text-green-600" /> สรุปการเงิน</h2>
@@ -266,7 +355,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
   );
 }
 
-function Stat({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: React.ComponentType<{ size?: number }> }) {
+function StatCard({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: React.ComponentType<{ size?: number }> }) {
   return (
     <div className="bg-gray-50 rounded-xl p-3 border border-gray-300">
       <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1"><Icon size={12} /> {label}</div>

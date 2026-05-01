@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
 
   const projectId = tokenRow.project_id;
 
-  const [{ data: project }, { data: tasks }, { data: milestones }, { data: invoices }] =
+  const [{ data: project }, { data: tasks }, { data: milestones }, { data: invoices }, { data: meetings }] =
     await Promise.all([
       supabaseAdmin
         .from("projects")
@@ -46,6 +46,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
         .select("id,invoice_number,issue_date,due_date,total,status,client_name")
         .eq("project_id", projectId)
         .order("issue_date", { ascending: false }),
+      // Fetch client-visible meeting summaries for this project
+      supabaseAdmin
+        .from("meeting_notes")
+        .select("id,title,meeting_date,notes,action_items,attendees")
+        .eq("project_id", projectId)
+        .eq("client_visible", true)
+        .order("meeting_date", { ascending: false }),
     ]);
 
   const total = tasks?.length ?? 0;
@@ -61,6 +68,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
     tasks: tasks ?? [],
     milestones: milestones ?? [],
     invoices: invoices ?? [],
+    meetings: meetings ?? [],
     task_stats: taskStats,
     finance: { billed, paid, outstanding: billed - paid },
     client: { name: tokenRow.client_name, email: tokenRow.client_email },
