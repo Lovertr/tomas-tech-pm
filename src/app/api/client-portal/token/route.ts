@@ -53,6 +53,13 @@ export async function POST(request: NextRequest) {
     ? new Date(Date.now() + expires_days * 86400000).toISOString()
     : null;
 
+  // created_by FK references team_members.id, so look up from app_users.id
+  const { data: tm } = await supabaseAdmin
+    .from("team_members")
+    .select("id")
+    .eq("user_id", ctx.userId)
+    .maybeSingle();
+
   const { data, error } = await supabaseAdmin
     .from("client_portal_tokens")
     .insert({
@@ -68,7 +75,7 @@ export async function POST(request: NextRequest) {
         view_tasks: true,
         view_milestones: true,
       },
-      created_by: ctx.userId,
+      created_by: tm?.id || null,
     })
     .select()
     .single();
