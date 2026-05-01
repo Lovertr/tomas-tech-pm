@@ -137,60 +137,56 @@ Backend (Supabase)
 
 ---
 
-## 4. แผนงานที่แนะนำ (Recommended Next Steps)
+## 4. แผนพัฒนาต่อ (Development Roadmap)
 
-### Priority A — ควรทำก่อน (ส่งผลต่อ usability)
+> ดูรายละเอียดเต็มที่ **[ROADMAP.md](./ROADMAP.md)** — จัดเป็น 4 Phase, 22 items, ครอบคลุม 6 มิติ
 
-- [ ] **Reports Dashboard** — หน้ารายงานรวม (ตอนนี้มีแค่เมนูว่าง)
-  - สรุปภาพรวมทุกโปรเจค, ผลงานทีม, timeline, budget vs actual
-  - Export เป็น PDF/Excel
+### Phase 1 — ระบบพื้นฐาน (สัปดาห์ 1-2)
+- [ ] Audit Log / Activity Trail (สูงมาก)
+- [ ] Department Head — หัวหน้าแผนก (สูง)
+- [ ] Notification Preferences (ปานกลาง)
+- [ ] Project Health Score 🟢🟡🔴 (ปานกลาง)
 
-- [ ] **Search & Filter ขั้นสูง** — ค้นหางานข้ามโปรเจค, filter ตามวันที่/สถานะ/คน
-  - ตอนนี้ filter ได้แค่ตามโปรเจค
+### Phase 2 — โปรเจค & บุคลากร (สัปดาห์ 3-4)
+- [ ] Project Templates UI (สูง)
+- [ ] Skill Matrix — ทักษะพนักงาน (สูง)
+- [ ] Leave / Availability Management (ปานกลาง)
+- [ ] Role-Based Project Access (ปานกลาง)
+- [ ] Onboarding Checklist (ต่ำ)
 
-- [ ] **Audit Trail / Activity Log** — บันทึกการเปลี่ยนแปลงทุกอย่างในระบบ
-  - ใครแก้อะไร เมื่อไหร่ (ตอนนี้มีแค่ใน Task Detail)
+### Phase 3 — CRM & การเงิน (สัปดาห์ 5-6)
+- [ ] Invoice → Transaction Auto-Link (สูง)
+- [ ] Quotation Versioning (สูง)
+- [ ] Win/Loss Analysis (ปานกลาง)
+- [ ] Recurring Expenses (ปานกลาง)
+- [ ] Lead Scoring (ต่ำ)
 
-- [ ] **Email Notifications** — แจ้งเตือนทาง Email เมื่อมี task มอบหมาย, deadline ใกล้, comment ใหม่
-  - ตอนนี้แจ้งเตือนแค่ในระบบ (bell)
+### Phase 4 — Technical & ฟีเจอร์ขั้นสูง (สัปดาห์ 7+)
+- [ ] Multi-Currency (THB/JPY/USD)
+- [ ] API Rate Limiting
+- [ ] Cross-Project Dependency
+- [ ] Mobile PWA
+- [ ] Department KPIs Dashboard
+- [ ] Performance Review
+- [ ] Email Integration
+- [ ] Expense Approval Workflow
 
-### Priority B — ดีถ้ามี (เพิ่ม value)
-
-- [ ] **Dashboard Charts** — กราฟสรุปภาพรวม (burndown, velocity, team performance)
-  - ใช้ recharts ที่มีอยู่แล้ว
-
-- [ ] **File Manager** — จัดการเอกสารโปรเจค (ไม่ใช่แค่แนบไฟล์ใน task)
-  - Upload, folder structure, preview
-
-- [ ] **Gantt Dependencies Visual** — ลากเส้น dependency ใน Gantt ได้ (ตอนนี้เป็น arrow แต่ยังสร้างจาก Task Detail เท่านั้น)
-
-- [ ] **Multi-project Gantt** — Gantt รวมหลายโปรเจค
-
-- [ ] **Client Portal — Progress Photos** — ลูกค้าดูรูปความคืบหน้าหน้างานได้
-
-- [ ] **Bulk Operations** — เลือกหลาย task แล้ว update สถานะ/มอบหมายพร้อมกัน
-
-### Priority C — อนาคต (nice-to-have)
-
-- [ ] **Real-time Updates** — ใช้ Supabase Realtime ให้ข้อมูลอัปเดตทันทีโดยไม่ต้อง refresh
-- [ ] **Mobile PWA** — Service Worker + manifest.json ให้ install เป็น PWA ได้
-- [ ] **API Documentation** — Swagger/OpenAPI สำหรับ API ทั้งหมด
-- [ ] **Automated Testing** — Unit tests + E2E tests
-- [ ] **CI/CD Pipeline** — GitHub Actions auto-deploy
-- [ ] **Data Export/Import** — CSV/Excel export ข้อมูลทั้งหมด
-- [ ] **Dark Mode** — โหมดมืด (ตอนนี้ light theme only)
-- [ ] **Custom Fields** — ให้ admin กำหนด field เพิ่มเองได้
-- [ ] **Webhooks** — ส่ง event ไป LINE/Slack เมื่อเกิดเหตุการณ์สำคัญ
-- [ ] **Skill Matrix** — member_skills table (skill, proficiency) สำหรับ AI จัดสรรคน
-- [ ] **Leave/Attendance** — ระบบลา/วันหยุด กระทบ capacity planning
-- [ ] **Invoice → Transaction auto-link** — สร้าง invoice → pending transaction อัตโนมัติ
-- [ ] **Multi-currency** — รองรับ JPY, USD นอกจาก THB
-- [ ] **Quotation Versioning** — เก็บ revision history (v1, v2, v3)
-- [ ] **Lead Scoring** — คะแนน lead อัตโนมัติสำหรับ CRM
-- [ ] **Department Head** — column head_member_id ใน departments สำหรับ auto-route approval
-- [ ] **Project Health Score** — คำนวณ 🟢🟡🔴 จาก task completion, budget, risks
-- [ ] **Notification Preferences** — user เลือกรับ notification ประเภทไหน
-- [ ] **API Rate Limiting** — ป้องกัน abuse บน API routes
+### Backlog (ยังไม่จัด Phase)
+- [ ] Reports Dashboard — หน้ารายงานรวม
+- [ ] Search & Filter ขั้นสูง
+- [ ] Email Notifications (ส่ง email จริง)
+- [ ] Dashboard Charts (burndown, velocity)
+- [ ] File Manager
+- [ ] Gantt Dependencies Visual (ลากเส้น)
+- [ ] Multi-project Gantt
+- [ ] Real-time Updates (Supabase Realtime)
+- [ ] Bulk Operations
+- [ ] Dark Mode
+- [ ] Custom Fields
+- [ ] Webhooks (LINE/Slack)
+- [ ] Automated Testing
+- [ ] CI/CD Pipeline
+- [ ] API Documentation (OpenAPI)
 
 ---
 
