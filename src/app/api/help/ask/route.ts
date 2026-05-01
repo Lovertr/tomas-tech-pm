@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/dal";
+import { getSessionFromCookie } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { aiCall, type AiLang } from "@/lib/ai";
 import { buildHelpContext } from "@/lib/helpContent";
 
 export async function POST(req: NextRequest) {
-  const session = await verifySession().catch(() => null);
+  const token = getSessionFromCookie(req.cookies);
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: session } = await supabaseAdmin
+    .from("sessions")
+    .select("user_id")
+    .eq("token", token)
+    .single();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { question, lang } = (await req.json()) as { question?: string; lang?: string };
