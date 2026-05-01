@@ -260,27 +260,12 @@ git push origin main
 - MemberModal เป็น edit-only: ลบ dropdown "ผูกกับ User Account" + ลบ fetch /api/users/basic
 - ลบ create branch ออกจาก MemberModal onSubmit (เหลือแค่ edit)
 - สร้าง ROADMAP.md แผนพัฒนา 4 เฟส 22 รายการ
+- สร้างศูนย์ช่วยเหลือในแอป (Help Center): คู่มือ 10 หมวด 3 ภาษา (TH/EN/JP)
+- เพิ่ม AI Q&A ถาม-ตอบเกี่ยวกับคู่มือ (ใช้ Gemini via aiCall)
+- เพิ่มดาวน์โหลดคู่มือ PDF (HTML render + TOMAS TECH branding)
+- ไฟล์ใหม่: src/lib/helpContent.ts, src/components/HelpPanel.tsx
+- ไฟล์ใหม่: src/app/api/help/ask/route.ts, src/app/api/help/pdf/route.ts
+- เพิ่มเมนู "ศูนย์ช่วยเหลือ" ใน sidebar (กลุ่ม admin, ทุก role เข้าถึงได้)
 
 ### 2026-04-30
-- Client Portal: เพิ่มระบบแนบไฟล์ในแชท (ทั้ง portal + internal)
-- แก้ username regex รองรับ . - _ /
-
-### 2026-04-29
-- Client Portal: ระบบแชท/คอมเมนต์ระหว่างลูกค้ากับทีม
-- แก้ bug: admin เพิ่ม user ใหม่ไม่แสดง, FK violation, position_id uuid error
-- i18n: แก้ภาษาไม่เปลี่ยนในหลายหน้า
-
-### 2026-04-28
-- Client Portal: สร้างหน้า public + internal management
-- แจ้งเตือนคำร้องลูกค้าที่ notification bell
-- Gantt Chart + รายละเอียดในหน้า Client Portal
-
-### ก่อนหน้านี้
-- ระบบ Quotation ครบวงจร (ฟอร์ม TOMAS TECH + PDF + Excel + อนุมัติ)
-- AI Transcription (Gemini) + anti-hallucination
-- Sales Report: กราฟรายได้ + พยากรณ์ + AI วิเคราะห์
-- CRM ครบ: Customers, Deals, Activities
-- ระบบแจ้งเตือน, Open Projects, Manpower AI
-- Light theme + mobile responsive + keyboard shortcuts
-- 9 แผนก + department permissions
-- Mockup data (พนักงาน, โปรเจค, tasks, CRM, การเงิน)
+- C
