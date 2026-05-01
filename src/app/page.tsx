@@ -269,7 +269,7 @@ export default function App() {
     { id: "invoices", icon: Receipt, label: t.invoices, module: "invoices", group: "finance" },
     { id: "finance", icon: Wallet, label: t.finance, module: "finance", group: "finance" },
     { id: "costs", icon: DollarSign, label: t.costs, module: "costs", group: "finance" },
-    { id: "client_portal", icon: Link2, label: t.clientPortal, module: "client_portal", group: "finance" },
+    { id: "client_portal", icon: Link2, label: t.clientPortal, module: "client_portal", group: "tracking" },
     // CRM & Sales / การขาย
     { id: "customers", icon: Building2, label: t.customers, module: "customers", group: "crm" },
     { id: "deals_pipeline", icon: GitBranch, label: t.dealsPipeline, module: "deals_pipeline", group: "crm" },

@@ -1044,98 +1044,152 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
 
   const statusColors: Record<string, string> = { done: "#22C55E", in_progress: "#3B82F6", review: "#F59E0B", todo: "#94A3B8", backlog: "#D1D5DB", cancelled: "#FCA5A5" };
 
-  return (
-    <div className="bg-white rounded-xl shadow-sm border p-6">
-      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <BarChart3 size={18} style={{ color: "#003087" }} />
-        {gt.projectPlan}
-      </h3>
+  // Generate week grid lines for better readability
+  const weekLines: { left: number; label: string }[] = [];
+  const gridStart = new Date(minDate);
+  // Find first Monday
+  while (gridStart.getDay() !== 1) gridStart.setDate(gridStart.getDate() + 1);
+  const gridCursor = new Date(gridStart);
+  while (gridCursor.getTime() <= maxDate) {
+    const pct = ((gridCursor.getTime() - minDate) / rangeMs) * 100;
+    if (pct >= 0 && pct <= 100) {
+      weekLines.push({ left: pct, label: String(gridCursor.getDate()) });
+    }
+    gridCursor.setDate(gridCursor.getDate() + 7);
+  }
 
-      <div className="overflow-x-auto">
-        <div style={{ minWidth: 500 }}>
-          {/* Month headers */}
-          <div className="relative h-6 border-b mb-2">
-            {months.map((m, i) => (
-              <span key={i} className="absolute text-[10px] text-gray-400 font-medium" style={{ left: `${m.left}%`, transform: "translateX(-50%)" }}>
-                {m.label}
-              </span>
-            ))}
+  return (
+    <div className="bg-white rounded-xl shadow-sm border">
+      <div className="px-6 py-4 border-b">
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <BarChart3 size={18} style={{ color: "#003087" }} />
+          {gt.projectPlan}
+        </h3>
+      </div>
+
+      <div className="overflow-x-auto px-4 pb-4 pt-2">
+        <div style={{ minWidth: 600 }}>
+          {/* Two-row header: top = months, bottom = week numbers */}
+          <div className="flex">
+            <div className="w-[120px] sm:w-[160px] flex-shrink-0" />
+            <div className="flex-1 relative">
+              {/* Month row */}
+              <div className="relative h-6 border-b border-gray-200">
+                {months.map((m, i) => (
+                  <span key={i} className="absolute text-[11px] text-gray-600 font-semibold" style={{ left: `${m.left}%`, top: 2 }}>
+                    {m.label}
+                  </span>
+                ))}
+              </div>
+              {/* Week day row */}
+              <div className="relative h-5 border-b border-gray-100">
+                {weekLines.map((w, i) => (
+                  <span key={i} className="absolute text-[9px] text-gray-400" style={{ left: `${w.left}%`, top: 2 }}>
+                    {w.label}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Today line */}
-          {todayPct > 0 && todayPct < 100 && (
-            <div className="relative h-0">
-              <div className="absolute top-0 bottom-0 w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%`, height: `${(datedTasks.length + milestones.length) * 32 + 8}px` }} />
-              <span className="absolute text-[9px] text-red-500 font-medium" style={{ left: `${todayPct}%`, top: -14, transform: "translateX(-50%)" }}>{gt.todayLine}</span>
+          {/* Chart area with grid */}
+          <div className="relative">
+            {/* Vertical grid lines */}
+            {weekLines.map((w, i) => (
+              <div key={i} className="absolute top-0 bottom-0 border-l border-gray-100" style={{ left: `calc(0px + ${w.left}%)`, height: "100%", marginLeft: "calc(120px + 0.5rem)" }} />
+            ))}
+
+            {/* Today line */}
+            {todayPct > 0 && todayPct < 100 && (
+              <div className="absolute top-0 bottom-0 z-20 pointer-events-none" style={{ left: `calc(120px + 0.5rem + ${todayPct}% * (100% - 120px - 0.5rem) / 100%)` }}>
+              </div>
+            )}
+
+            {/* Task bars */}
+            <div className="space-y-0.5 pt-1">
+              {datedTasks.map((t, idx) => {
+                const s = t.start_date ? new Date(t.start_date).getTime() : (t.due_date ? new Date(t.due_date).getTime() - 7 * 86400000 : minDate);
+                const e = t.due_date ? new Date(t.due_date).getTime() : s + 14 * 86400000;
+                const left = Math.max(0, ((s - minDate) / rangeMs) * 100);
+                const width = Math.max(3, Math.min(100 - left, ((e - s) / rangeMs) * 100));
+                const color = statusColors[t.status] || "#94A3B8";
+                const dateLabel = `${t.start_date ? new Date(t.start_date).toLocaleDateString(loc, { day: "numeric", month: "short" }) : "?"} → ${t.due_date ? new Date(t.due_date).toLocaleDateString(loc, { day: "numeric", month: "short" }) : "?"}`;
+                return (
+                  <div key={t.id} className={`flex items-center gap-2 h-8 ${idx % 2 === 0 ? "" : "bg-gray-50/50"} rounded`}>
+                    <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right font-medium">{t.title}</div>
+                    <div className="flex-1 relative h-6 rounded">
+                      {/* Background track */}
+                      <div className="absolute inset-0 bg-gray-100/60 rounded" />
+                      {/* Bar */}
+                      <div
+                        className="absolute h-full rounded transition-all shadow-sm"
+                        style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.75 : 0.9 }}
+                        title={`${t.title}: ${dateLabel}`}
+                      />
+                      {/* Date label on bar */}
+                      {width > 12 && (
+                        <span className="absolute text-[9px] text-white font-medium pointer-events-none" style={{ left: `${left + 0.5}%`, top: 5, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                          {dateLabel}
+                        </span>
+                      )}
+                      {/* Today indicator */}
+                      {todayPct > 0 && todayPct < 100 && (
+                        <div className="absolute top-0 h-full w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Milestone diamonds */}
+              {milestones.filter(m => m.due_date).map(m => {
+                const mDate = new Date(m.due_date!).getTime();
+                const left = ((mDate - minDate) / rangeMs) * 100;
+                const done = m.status === "completed";
+                return (
+                  <div key={m.id} className="flex items-center gap-2 h-8">
+                    <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-600 pr-2 text-right flex items-center justify-end gap-1 italic">
+                      <Flag size={10} style={{ color: "#F7941D" }} />
+                      {m.title}
+                    </div>
+                    <div className="flex-1 relative h-6">
+                      <div
+                        className="absolute w-3.5 h-3.5 rotate-45 top-1.5 shadow-sm"
+                        style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }}
+                        title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`}
+                      />
+                      {/* Today indicator */}
+                      {todayPct > 0 && todayPct < 100 && (
+                        <div className="absolute top-0 h-full w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-
-          {/* Task bars */}
-          <div className="space-y-1">
-            {datedTasks.map(t => {
-              const s = t.start_date ? new Date(t.start_date).getTime() : (t.due_date ? new Date(t.due_date).getTime() - 7 * 86400000 : minDate);
-              const e = t.due_date ? new Date(t.due_date).getTime() : s + 14 * 86400000;
-              const left = Math.max(0, ((s - minDate) / rangeMs) * 100);
-              const width = Math.max(2, Math.min(100 - left, ((e - s) / rangeMs) * 100));
-              const color = statusColors[t.status] || "#94A3B8";
-              return (
-                <div key={t.id} className="flex items-center gap-2 h-7">
-                  <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right">{t.title}</div>
-                  <div className="flex-1 relative h-5 bg-gray-50 rounded">
-                    <div
-                      className="absolute h-full rounded-sm transition-all"
-                      style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.7 : 1 }}
-                      title={`${t.title}: ${t.start_date ? new Date(t.start_date).toLocaleDateString(loc) : "?"} → ${t.due_date ? new Date(t.due_date).toLocaleDateString(loc) : "?"}`}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Milestone diamonds */}
-            {milestones.filter(m => m.due_date).map(m => {
-              const mDate = new Date(m.due_date!).getTime();
-              const left = ((mDate - minDate) / rangeMs) * 100;
-              const done = m.status === "completed";
-              return (
-                <div key={m.id} className="flex items-center gap-2 h-7">
-                  <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right flex items-center justify-end gap-1">
-                    <Flag size={10} style={{ color: "#F7941D" }} />
-                    {m.title}
-                  </div>
-                  <div className="flex-1 relative h-5">
-                    <div
-                      className="absolute w-3 h-3 rotate-45 top-1"
-                      style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }}
-                      title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`}
-                    />
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-4 pt-3 border-t">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3 border-t bg-gray-50/50 rounded-b-xl">
         {[
           { label: gt.in_progress_status, color: "#3B82F6" },
           { label: gt.review, color: "#F59E0B" },
           { label: gt.done_status, color: "#22C55E" },
           { label: gt.todo, color: "#94A3B8" },
         ].map(l => (
-          <div key={l.label} className="flex items-center gap-1 text-[10px] text-gray-500">
-            <div className="w-3 h-2 rounded-sm" style={{ backgroundColor: l.color }} />
+          <div key={l.label} className="flex items-center gap-1.5 text-[11px] text-gray-500">
+            <div className="w-3 h-2.5 rounded-sm" style={{ backgroundColor: l.color }} />
             {l.label}
           </div>
         ))}
-        <div className="flex items-center gap-1 text-[10px] text-gray-500">
-          <div className="w-2 h-2 rotate-45" style={{ backgroundColor: "#F7941D" }} />
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+          <div className="w-2.5 h-2.5 rotate-45" style={{ backgroundColor: "#F7941D" }} />
           {gt.milestone}
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-gray-500">
-          <div className="w-3 h-0.5 bg-red-400" />
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+          <div className="w-4 h-0.5 bg-red-400 rounded" />
           {gt.todayLine}
         </div>
       </div>
