@@ -27,6 +27,38 @@ export async function GET(request: NextRequest) {
     return { ...rest, role: role?.name ?? "member", role_level: role?.level ?? 0 };
   });
 
+  // Backfill: auto-create team_members for users that don't have one
+  const userIds = users.map((u: Record<string, unknown>) => u.id as string);
+  if (userIds.length > 0) {
+    const { data: existingTm } = await supabaseAdmin
+      .from("team_members")
+      .select("user_id")
+      .in("user_id", userIds);
+
+    const existingUserIds = new Set((existingTm ?? []).map((t: { user_id: string }) => t.user_id));
+    const missing = users.filter((u: Record<string, unknown>) => !existingUserIds.has(u.id as string));
+
+    if (missing.length > 0) {
+      const inserts = missing.map((u: Record<string, unknown>) => {
+        const dn = ((u.display_name as string) || "").trim().split(/\s+/);
+        const dnTh = ((u.display_name_th as string) || "").trim().split(/\s+/);
+        return {
+          user_id: u.id as string,
+          first_name_en: dn[0] || (u.username as string) || "User",
+          last_name_en: dn.slice(1).join(" ") || "",
+          first_name_th: dnTh[0] || dn[0] || (u.username as string) || "User",
+          last_name_th: dnTh.slice(1).join(" ") || dn.slice(1).join(" ") || "",
+          email: (u.email as string) || null,
+          phone: (u.phone as string) || null,
+          department: (u.department as string) || null,
+          position_id: (u.position_id as string) || null,
+          is_active: u.is_active as boolean,
+        };
+      });
+      await supabaseAdmin.from("team_members").insert(inserts);
+    }
+  }
+
   return NextResponse.json({ users });
 }
 
@@ -59,9 +91,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+    if (!/^[a-zA-Z0-9._\-/]{3,30}$/.test(username)) {
       return NextResponse.json(
-        { error: "Username must be 3-30 chars (a-z, A-Z, 0-9, _)" },
+        { error: "Username must be 3-30 chars (a-z, A-Z, 0-9, . - _ /)" },
         { status: 400 }
       );
     }

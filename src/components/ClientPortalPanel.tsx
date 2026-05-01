@@ -44,8 +44,253 @@ const REQUEST_STATUS: Record<string, { label: string; color: string; bg: string;
 const REQUEST_TYPES: Record<string, string> = { request: "คำร้องขอ", issue: "รายงานปัญหา", feedback: "ข้อเสนอแนะ", change_request: "ขอเปลี่ยนแปลง" };
 const PRIORITY_COLORS: Record<string, string> = { low: "#94A3B8", medium: "#F59E0B", high: "#F97316", critical: "#EF4444" };
 
+/* ---------- translations ---------- */
+const cpT: Record<string, Record<string, string>> = {
+  th: {
+    // KPI labels
+    totalLinks: "ลิงก์ทั้งหมด",
+    activeLinks: "ใช้งานอยู่",
+    clientViews: "ลูกค้าเปิดดู",
+    pendingRequests: "คำร้องรอดำเนินการ",
+    // Tabs
+    customerLinks: "ลิงก์ลูกค้า",
+    customerRequests: "คำร้องจากลูกค้า",
+    // Links loading/empty
+    loading: "กำลังโหลด…",
+    links: "ลิงก์",
+    noLinksMsg: "ยังไม่มีลิงก์ลูกค้า — สร้างเพื่อแชร์ความคืบหน้าให้ลูกค้าดู",
+    createLink: "สร้างลิงก์ลูกค้า",
+    // Link status
+    inactive: "หยุดใช้งาน",
+    copyLink: "คัดลอกลิงก์",
+    viewLink: "เปิดดู",
+    toggleActivate: "เปิดใช้งาน",
+    toggleDeactivate: "หยุดใช้งาน",
+    delete: "ลบ",
+    deleteLinkConfirm: "ลบลิงก์นี้? ลูกค้าจะเปิดดูไม่ได้อีก",
+    views: "เปิดดู",
+    times: "ครั้ง",
+    lastOpened: "เปิดล่าสุด:",
+    expires: "หมดอายุ:",
+    // Requests empty
+    noRequestsMsg: "ยังไม่มีคำร้องจากลูกค้า",
+    // Request filter
+    all: "ทั้งหมด",
+    pending: "รอพิจารณา",
+    accepted: "รับแล้ว",
+    inProgress: "กำลังทำ",
+    resolved: "เสร็จ",
+    cancelled: "ยกเลิก",
+    // Request card
+    submittedBy: "แจ้งโดย:",
+    attachments: "ไฟล์แนบ",
+    responsible: "ผู้รับผิดชอบ:",
+    linkedTask: "เชื่อมกับงาน:",
+    // Request actions
+    acceptAction: "รับ",
+    rejectAction: "ปฏิเสธ",
+    rejectMsg: "ขออภัย ไม่สามารถดำเนินการได้ในขณะนี้",
+    assignAction: "มอบหมาย",
+    resolvedAction: "แก้ไขแล้ว",
+    convertToTask: "สร้างเป็นงาน",
+    taskCreated: "สร้างงานแล้ว",
+    responsePrompt: "ข้อความตอบกลับลูกค้า:",
+    respondToClient: "ตอบกลับลูกค้า:",
+    // Chat
+    chatWithClient: "แชทกับลูกค้า",
+    noMessages: "ยังไม่มีข้อความ",
+    chatPlaceholder: "พิมพ์ข้อความตอบกลับลูกค้า...",
+    // Convert modal
+    convertModalTitle: "สร้างเป็นงานในโปรเจค",
+    assignee: "ผู้รับผิดชอบ",
+    notSpecified: "— ยังไม่ระบุ —",
+    dueDate: "กำหนดเสร็จ",
+    cancel: "ยกเลิก",
+    createTask: "สร้างงาน",
+    // Create link modal
+    project: "โครงการ",
+    selectProject: "— เลือกโครงการ —",
+    clientName: "ชื่อลูกค้า / ผู้รับ",
+    clientPlaceholder: "คุณ...",
+    email: "อีเมล (ไม่บังคับ)",
+    description: "คำอธิบาย",
+    descriptionPlaceholder: "เช่น สำหรับทีม QC ลูกค้า",
+    expiresIn: "หมดอายุใน (วัน)",
+    exp30: "30 วัน",
+    exp90: "90 วัน",
+    exp180: "180 วัน",
+    exp365: "1 ปี",
+    noExpiry: "ไม่มีวันหมดอายุ",
+    creating: "กำลังสร้าง...",
+    createLinkBtn: "สร้างลิงก์",
+    createError: "สร้างไม่สำเร็จ",
+    projectRequired: "กรุณาเลือกโครงการ",
+  },
+  en: {
+    // KPI labels
+    totalLinks: "Total Links",
+    activeLinks: "Active",
+    clientViews: "Client Views",
+    pendingRequests: "Pending Requests",
+    // Tabs
+    customerLinks: "Customer Links",
+    customerRequests: "Customer Requests",
+    // Links loading/empty
+    loading: "Loading…",
+    links: "Links",
+    noLinksMsg: "No customer links yet — create one to share progress with clients",
+    createLink: "Create Customer Link",
+    // Link status
+    inactive: "Inactive",
+    copyLink: "Copy link",
+    viewLink: "View",
+    toggleActivate: "Activate",
+    toggleDeactivate: "Deactivate",
+    delete: "Delete",
+    deleteLinkConfirm: "Delete this link? Clients won't be able to access it anymore",
+    views: "Views",
+    times: "times",
+    lastOpened: "Last opened:",
+    expires: "Expires:",
+    // Requests empty
+    noRequestsMsg: "No customer requests yet",
+    // Request filter
+    all: "All",
+    pending: "Pending",
+    accepted: "Accepted",
+    inProgress: "In Progress",
+    resolved: "Resolved",
+    cancelled: "Cancelled",
+    // Request card
+    submittedBy: "Submitted by:",
+    attachments: "Attachments",
+    responsible: "Responsible:",
+    linkedTask: "Linked to task:",
+    // Request actions
+    acceptAction: "Accept",
+    rejectAction: "Reject",
+    rejectMsg: "Sorry, unable to process at this moment",
+    assignAction: "Assign",
+    resolvedAction: "Resolved",
+    convertToTask: "Create Task",
+    taskCreated: "Task Created",
+    responsePrompt: "Response message:",
+    respondToClient: "Response to client:",
+    // Chat
+    chatWithClient: "Chat with Client",
+    noMessages: "No messages yet",
+    chatPlaceholder: "Type your response to the client...",
+    // Convert modal
+    convertModalTitle: "Create Task in Project",
+    assignee: "Assignee",
+    notSpecified: "— Not specified —",
+    dueDate: "Due Date",
+    cancel: "Cancel",
+    createTask: "Create Task",
+    // Create link modal
+    project: "Project",
+    selectProject: "— Select a project —",
+    clientName: "Client Name / Recipient",
+    clientPlaceholder: "Mr./Ms...",
+    email: "Email (optional)",
+    description: "Description",
+    descriptionPlaceholder: "E.g., For client QC team",
+    expiresIn: "Expires in (days)",
+    exp30: "30 days",
+    exp90: "90 days",
+    exp180: "180 days",
+    exp365: "1 year",
+    noExpiry: "No expiration",
+    creating: "Creating...",
+    createLinkBtn: "Create Link",
+    createError: "Failed to create",
+    projectRequired: "Please select a project",
+  },
+  jp: {
+    // KPI labels
+    totalLinks: "リンク合計",
+    activeLinks: "アクティブ",
+    clientViews: "クライアントビュー",
+    pendingRequests: "保留中のリクエスト",
+    // Tabs
+    customerLinks: "顧客リンク",
+    customerRequests: "顧客リクエスト",
+    // Links loading/empty
+    loading: "読み込み中…",
+    links: "リンク",
+    noLinksMsg: "顧客リンクはまだありません。作成してクライアントと進捗を共有してください",
+    createLink: "顧客リンクを作成",
+    // Link status
+    inactive: "非アクティブ",
+    copyLink: "リンクをコピー",
+    viewLink: "表示",
+    toggleActivate: "有効化",
+    toggleDeactivate: "無効化",
+    delete: "削除",
+    deleteLinkConfirm: "このリンクを削除しますか？クライアントはアクセスできなくなります",
+    views: "表示",
+    times: "回",
+    lastOpened: "最後に開いた:",
+    expires: "有効期限:",
+    // Requests empty
+    noRequestsMsg: "顧客リクエストはまだありません",
+    // Request filter
+    all: "すべて",
+    pending: "保留中",
+    accepted: "受け入れ済み",
+    inProgress: "進行中",
+    resolved: "完了",
+    cancelled: "キャンセル",
+    // Request card
+    submittedBy: "送信者:",
+    attachments: "添付ファイル",
+    responsible: "責任者:",
+    linkedTask: "関連タスク:",
+    // Request actions
+    acceptAction: "承認",
+    rejectAction: "却下",
+    rejectMsg: "申し訳ありませんが、現在は処理できません",
+    assignAction: "割り当て",
+    resolvedAction: "完了",
+    convertToTask: "タスクを作成",
+    taskCreated: "タスク作成済み",
+    responsePrompt: "応答メッセージ:",
+    respondToClient: "クライアントへの応答:",
+    // Chat
+    chatWithClient: "クライアントとのチャット",
+    noMessages: "メッセージはまだありません",
+    chatPlaceholder: "クライアントへのメッセージを入力...",
+    // Convert modal
+    convertModalTitle: "プロジェクトでタスクを作成",
+    assignee: "割り当て先",
+    notSpecified: "— 未指定 —",
+    dueDate: "期限",
+    cancel: "キャンセル",
+    createTask: "タスクを作成",
+    // Create link modal
+    project: "プロジェクト",
+    selectProject: "— プロジェクトを選択 —",
+    clientName: "クライアント名 / 受信者",
+    clientPlaceholder: "様...",
+    email: "メール (オプション)",
+    description: "説明",
+    descriptionPlaceholder: "例：顧客QCチーム向け",
+    expiresIn: "有効期間 (日)",
+    exp30: "30日",
+    exp90: "90日",
+    exp180: "180日",
+    exp365: "1年",
+    noExpiry: "有効期限なし",
+    creating: "作成中...",
+    createLinkBtn: "リンクを作成",
+    createError: "作成に失敗しました",
+    projectRequired: "プロジェクトを選択してください",
+  },
+};
+
 /* ---------- main ---------- */
-export default function ClientPortalPanel({ filterProjectId = "all", refreshKey = 0 }: { filterProjectId?: string; refreshKey?: number }) {
+export default function ClientPortalPanel({ filterProjectId = "all", refreshKey = 0, lang = "th" }: { filterProjectId?: string; refreshKey?: number; lang?: string }) {
+  const t = cpT[lang] || cpT.th;
   const [tab, setTab] = useState<"links" | "requests">("links");
   const [rows, setRows] = useState<TokenRow[]>([]);
   const [projects, setProjects] = useState<ProjectLite[]>([]);
@@ -105,7 +350,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
   };
 
   const remove = async (row: TokenRow) => {
-    if (!confirm("ลบลิงก์นี้? ลูกค้าจะเปิดดูไม่ได้อีก")) return;
+    if (!confirm(t.deleteLinkConfirm)) return;
     await fetch(`/api/client-portal/token?id=${row.id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -121,10 +366,10 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPI label="ลิงก์ทั้งหมด" value={stats.total} color="#00AEEF" />
-        <KPI label="ใช้งานอยู่" value={stats.active} color="#22C55E" />
-        <KPI label="ลูกค้าเปิดดู" value={stats.views} color="#F7941D" />
-        <KPI label="คำร้องรอดำเนินการ" value={stats.pendingRequests} color={stats.pendingRequests > 0 ? "#EF4444" : "#94A3B8"} />
+        <KPI label={t.totalLinks} value={stats.total} color="#00AEEF" />
+        <KPI label={t.activeLinks} value={stats.active} color="#22C55E" />
+        <KPI label={t.clientViews} value={stats.views} color="#F7941D" />
+        <KPI label={t.pendingRequests} value={stats.pendingRequests} color={stats.pendingRequests > 0 ? "#EF4444" : "#94A3B8"} />
       </div>
 
       {/* Tabs */}
@@ -134,14 +379,14 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "links" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"}`}
         >
           <Link2 size={14} />
-          ลิงก์ลูกค้า ({rows.length})
+          {t.customerLinks} ({rows.length})
         </button>
         <button
           onClick={() => setTab("requests")}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "requests" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"}`}
         >
           <MessageSquare size={14} />
-          คำร้องจากลูกค้า ({requests.length})
+          {t.customerRequests} ({requests.length})
           {stats.pendingRequests > 0 && (
             <span className="min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">{stats.pendingRequests}</span>
           )}
@@ -152,16 +397,16 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
       {tab === "links" && (
         <>
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="text-sm text-slate-600">{loading ? "กำลังโหลด…" : `${rows.length} ลิงก์`}</div>
+            <div className="text-sm text-slate-600">{loading ? t.loading : `${rows.length} ${t.links}`}</div>
             <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium" style={{ background: "#003087" }}>
-              <Plus size={14} /> สร้างลิงก์ลูกค้า
+              <Plus size={14} /> {t.createLink}
             </button>
           </div>
 
           {!loading && !rows.length && (
             <div className="text-center py-16 bg-white border rounded-2xl text-slate-600">
               <Link2 size={40} className="mx-auto mb-3 text-gray-300" />
-              ยังไม่มีลิงก์ลูกค้า — สร้างเพื่อแชร์ความคืบหน้าให้ลูกค้าดู
+              {t.noLinksMsg}
             </div>
           )}
 
@@ -174,7 +419,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                       {r.projects && <span className="text-xs font-mono text-gray-500">{r.projects.project_code}</span>}
                       {r.projects && <span className="text-sm text-gray-900 font-medium">{r.projects.name_th || r.projects.name_en}</span>}
                       {r.client_name && <span className="text-sm text-gray-700">→ {r.client_name}</span>}
-                      {!r.active && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">หยุดใช้งาน</span>}
+                      {!r.active && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">{t.inactive}</span>}
                     </div>
                     {r.description && <p className="text-xs text-gray-500 mt-0.5">{r.description}</p>}
                     {r.client_email && (
@@ -187,25 +432,25 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                       <code className="text-blue-600">{linkFor(r.token)}</code>
                     </div>
                     <div className="flex items-center gap-4 text-[11px] text-gray-500 mt-2">
-                      <span><Eye size={10} className="inline mr-1" />เปิดดู {r.access_count ?? 0} ครั้ง</span>
-                      <span>เปิดล่าสุด: {fmtDate(r.last_accessed_at)}</span>
-                      {r.expires_at && <span className="text-orange-600">หมดอายุ: {fmtDate(r.expires_at)}</span>}
+                      <span><Eye size={10} className="inline mr-1" />{t.views} {r.access_count ?? 0} {t.times}</span>
+                      <span>{t.lastOpened} {fmtDate(r.last_accessed_at)}</span>
+                      {r.expires_at && <span className="text-orange-600">{t.expires} {fmtDate(r.expires_at)}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => copyLink(r)} title="คัดลอกลิงก์"
+                    <button onClick={() => copyLink(r)} title={t.copyLink}
                       className="p-2 rounded-lg bg-gray-50 border hover:border-blue-400">
                       {copiedId === r.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-gray-600" />}
                     </button>
-                    <a href={linkFor(r.token)} target="_blank" rel="noopener noreferrer" title="เปิดดู"
+                    <a href={linkFor(r.token)} target="_blank" rel="noopener noreferrer" title={t.viewLink}
                       className="p-2 rounded-lg bg-gray-50 border hover:border-blue-400">
                       <ExternalLink size={14} className="text-gray-600" />
                     </a>
-                    <button onClick={() => toggleActive(r)} title={r.active ? "หยุดใช้งาน" : "เปิดใช้งาน"}
+                    <button onClick={() => toggleActive(r)} title={r.active ? t.toggleDeactivate : t.toggleActivate}
                       className="p-2 rounded-lg bg-gray-50 border hover:border-orange-400">
                       {r.active ? <Pause size={14} className="text-gray-600" /> : <Play size={14} className="text-green-600" />}
                     </button>
-                    <button onClick={() => remove(r)} title="ลบ"
+                    <button onClick={() => remove(r)} title={t.delete}
                       className="p-2 rounded-lg bg-gray-50 border hover:border-red-400">
                       <Trash2 size={14} className="text-red-500" />
                     </button>
@@ -219,7 +464,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
 
       {/* Requests Tab */}
       {tab === "requests" && (
-        <RequestsManager requests={requests} members={members} onRefresh={fetchAll} />
+        <RequestsManager requests={requests} members={members} onRefresh={fetchAll} lang={lang} />
       )}
 
       {showCreate && (
@@ -228,6 +473,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
           defaultProjectId={filterProjectId !== "all" ? filterProjectId : ""}
           onClose={() => setShowCreate(false)}
           onCreated={() => { setShowCreate(false); fetchAll(); }}
+          lang={lang}
         />
       )}
     </div>
@@ -235,7 +481,8 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
 }
 
 /* ---------- Requests Manager ---------- */
-function RequestsManager({ requests, members, onRefresh }: { requests: ClientRequest[]; members: TeamMemberLite[]; onRefresh: () => void }) {
+function RequestsManager({ requests, members, onRefresh, lang = "th" }: { requests: ClientRequest[]; members: TeamMemberLite[]; onRefresh: () => void; lang?: string }) {
+  const t = cpT[lang] || cpT.th;
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -260,7 +507,7 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
     return (
       <div className="text-center py-16 bg-white border rounded-2xl text-gray-500">
         <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
-        ยังไม่มีคำร้องจากลูกค้า
+        {t.noRequestsMsg}
       </div>
     );
   }
@@ -270,12 +517,12 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
       {/* Filter */}
       <div className="flex gap-2 flex-wrap">
         {[
-          { key: "all", label: "ทั้งหมด" },
-          { key: "pending", label: "รอพิจารณา" },
-          { key: "accepted", label: "รับแล้ว" },
-          { key: "in_progress", label: "กำลังทำ" },
-          { key: "resolved", label: "เสร็จ" },
-          { key: "cancelled", label: "ยกเลิก" },
+          { key: "all", label: t.all },
+          { key: "pending", label: t.pending },
+          { key: "accepted", label: t.accepted },
+          { key: "in_progress", label: t.inProgress },
+          { key: "resolved", label: t.resolved },
+          { key: "cancelled", label: t.cancelled },
         ].map(f => (
           <button
             key={f.key}
@@ -313,7 +560,7 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                     </div>
                     <p className="text-sm font-medium text-gray-900">{cr.title}</p>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                      <span>แจ้งโดย: {cr.client_name}</span>
+                      <span>{t.submittedBy} {cr.client_name}</span>
                       <span>{fmtDateTime(cr.created_at)}</span>
                     </div>
                   </div>
@@ -334,7 +581,7 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                   {/* Attachments */}
                   {cr.attachments && cr.attachments.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">ไฟล์แนบ ({cr.attachments.length})</p>
+                      <p className="text-xs font-medium text-gray-500 mb-2">{t.attachments} ({cr.attachments.length})</p>
                       <div className="flex flex-wrap gap-2">
                         {cr.attachments.map((a, i) => (
                           <a key={i} href={a.url} target="_blank" rel="noopener noreferrer"
@@ -350,13 +597,13 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                   {/* Assignment info */}
                   {cr.assigned_member && (
                     <div className="text-xs text-gray-600">
-                      ผู้รับผิดชอบ: <span className="font-medium">{cr.assigned_member.first_name_th} {cr.assigned_member.last_name_th}</span>
+                      {t.responsible} <span className="font-medium">{cr.assigned_member.first_name_th} {cr.assigned_member.last_name_th}</span>
                     </div>
                   )}
                   {cr.linked_task && (
                     <div className="text-xs text-blue-600">
                       <ArrowRightCircle size={10} className="inline mr-1" />
-                      เชื่อมกับงาน: {cr.linked_task.title} ({cr.linked_task.status})
+                      {t.linkedTask} {cr.linked_task.title} ({cr.linked_task.status})
                     </div>
                   )}
 
@@ -368,20 +615,21 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                         disabled={isLoading}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                       >
-                        <CheckCircle2 size={12} /> รับ
+                        <CheckCircle2 size={12} /> {t.acceptAction}
                       </button>
                       <button
-                        onClick={() => handleAction(cr.id, "cancel", { response_to_client: "ขออภัย ไม่สามารถดำเนินการได้ในขณะนี้" })}
+                        onClick={() => handleAction(cr.id, "cancel", { response_to_client: t.rejectMsg })}
                         disabled={isLoading}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-50"
                       >
-                        <XCircle size={12} /> ปฏิเสธ
+                        <XCircle size={12} /> {t.rejectAction}
                       </button>
                       <ConvertToTaskButton
                         requestId={cr.id}
                         members={members}
                         isLoading={isLoading}
                         onAction={handleAction}
+                        lang={lang}
                       />
                     </div>
                   )}
@@ -394,6 +642,7 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                         currentAssignee={cr.assigned_to}
                         isLoading={isLoading}
                         onAction={handleAction}
+                        lang={lang}
                       />
                       <ConvertToTaskButton
                         requestId={cr.id}
@@ -401,29 +650,30 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
                         isLoading={isLoading}
                         onAction={handleAction}
                         disabled={!!cr.task_id}
+                        lang={lang}
                       />
                       <button
                         onClick={() => {
-                          const resp = prompt("ข้อความตอบกลับลูกค้า:");
+                          const resp = prompt(t.responsePrompt);
                           if (resp) handleAction(cr.id, "resolve", { response_to_client: resp });
                         }}
                         disabled={isLoading}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                       >
-                        <CheckCircle2 size={12} /> แก้ไขแล้ว
+                        <CheckCircle2 size={12} /> {t.resolvedAction}
                       </button>
                     </div>
                   )}
 
                   {cr.response_to_client && (
                     <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                      <p className="text-xs font-medium text-blue-700 mb-1">ตอบกลับลูกค้า:</p>
+                      <p className="text-xs font-medium text-blue-700 mb-1">{t.respondToClient}</p>
                       <p className="text-sm text-blue-900">{cr.response_to_client}</p>
                     </div>
                   )}
 
                   {/* Chat Thread */}
-                  <ChatThread requestId={cr.id} />
+                  <ChatThread requestId={cr.id} lang={lang} />
                 </div>
               )}
             </div>
@@ -437,7 +687,8 @@ function RequestsManager({ requests, members, onRefresh }: { requests: ClientReq
 /* ---------- Chat Thread (Team side) ---------- */
 interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; created_at: string; }
 
-function ChatThread({ requestId }: { requestId: string }) {
+function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: string }) {
+  const t = cpT[lang] || cpT.th;
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [newMsg, setNewMsg] = useState("");
@@ -485,13 +736,13 @@ function ChatThread({ requestId }: { requestId: string }) {
     <div className="border-t pt-3">
       <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
         <MessageSquare size={14} style={{ color: "#003087" }} />
-        แชทกับลูกค้า
+        {t.chatWithClient}
       </p>
 
       {loading && comments.length === 0 ? (
         <div className="flex justify-center py-3"><Loader2 size={16} className="animate-spin text-gray-400" /></div>
       ) : comments.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-2">ยังไม่มีข้อความ</p>
+        <p className="text-xs text-gray-400 text-center py-2">{t.noMessages}</p>
       ) : (
         <div className="space-y-2 max-h-60 overflow-y-auto pr-1 mb-2">
           {comments.map(c => (
@@ -527,7 +778,7 @@ function ChatThread({ requestId }: { requestId: string }) {
           value={newMsg}
           onChange={e => setNewMsg(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-          placeholder="พิมพ์ข้อความตอบกลับลูกค้า..."
+          placeholder={t.chatPlaceholder}
           className="flex-1 px-3 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
         />
         <button
@@ -544,10 +795,12 @@ function ChatThread({ requestId }: { requestId: string }) {
 }
 
 /* ---------- Assign Dropdown ---------- */
-function AssignDropdown({ requestId, members, currentAssignee, isLoading, onAction }: {
+function AssignDropdown({ requestId, members, currentAssignee, isLoading, onAction, lang = "th" }: {
   requestId: string; members: TeamMemberLite[]; currentAssignee?: string; isLoading: boolean;
   onAction: (id: string, action: string, extra?: Record<string, unknown>) => void;
+  lang?: string;
 }) {
+  const t = cpT[lang] || cpT.th;
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
@@ -556,7 +809,7 @@ function AssignDropdown({ requestId, members, currentAssignee, isLoading, onActi
         disabled={isLoading}
         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
       >
-        <UserPlus size={12} /> มอบหมาย
+        <UserPlus size={12} /> {t.assignAction}
       </button>
       {open && (
         <>
@@ -579,11 +832,13 @@ function AssignDropdown({ requestId, members, currentAssignee, isLoading, onActi
 }
 
 /* ---------- Convert to Task Button ---------- */
-function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled }: {
+function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled, lang = "th" }: {
   requestId: string; members: TeamMemberLite[]; isLoading: boolean;
   onAction: (id: string, action: string, extra?: Record<string, unknown>) => void;
   disabled?: boolean;
+  lang?: string;
 }) {
+  const t = cpT[lang] || cpT.th;
   const [showModal, setShowModal] = useState(false);
   const [assigneeId, setAssigneeId] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -591,7 +846,7 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
   if (disabled) {
     return (
       <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-green-600 bg-green-50">
-        <CheckCircle2 size={12} /> สร้างงานแล้ว
+        <CheckCircle2 size={12} /> {t.taskCreated}
       </span>
     );
   }
@@ -604,33 +859,33 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50"
         style={{ backgroundColor: "#F7941D" }}
       >
-        <ArrowRightCircle size={12} /> สร้างเป็นงาน
+        <ArrowRightCircle size={12} /> {t.convertToTask}
       </button>
 
       {showModal && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-xl w-full max-w-sm p-5" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">สร้างเป็นงานในโปรเจค</h3>
+              <h3 className="font-semibold text-gray-900">{t.convertModalTitle}</h3>
               <button onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-600 block mb-1">ผู้รับผิดชอบ</label>
+                <label className="text-xs text-gray-600 block mb-1">{t.assignee}</label>
                 <select value={assigneeId} onChange={e => setAssigneeId(e.target.value)}
                   className="w-full border rounded-lg px-3 py-2 text-sm">
-                  <option value="">— ยังไม่ระบุ —</option>
+                  <option value="">{t.notSpecified}</option>
                   {members.map(m => <option key={m.id} value={m.id}>{m.first_name_th} {m.last_name_th}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-600 block mb-1">กำหนดเสร็จ</label>
+                <label className="text-xs text-gray-600 block mb-1">{t.dueDate}</label>
                 <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
                   className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2 border rounded-lg text-sm text-gray-700">ยกเลิก</button>
+              <button onClick={() => setShowModal(false)} className="flex-1 py-2 border rounded-lg text-sm text-gray-700">{t.cancel}</button>
               <button
                 onClick={() => {
                   onAction(requestId, "convert_to_task", {
@@ -642,7 +897,7 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
                 className="flex-1 py-2 rounded-lg text-sm font-medium text-white"
                 style={{ backgroundColor: "#003087" }}
               >
-                สร้างงาน
+                {t.createTask}
               </button>
             </div>
           </div>
@@ -654,7 +909,8 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
 
 
 /* ---------- Create Token Modal ---------- */
-function CreateModal({ projects, defaultProjectId, onClose, onCreated }: { projects: ProjectLite[]; defaultProjectId: string; onClose: () => void; onCreated: () => void }) {
+function CreateModal({ projects, defaultProjectId, onClose, onCreated, lang = "th" }: { projects: ProjectLite[]; defaultProjectId: string; onClose: () => void; onCreated: () => void; lang?: string }) {
+  const t = cpT[lang] || cpT.th;
   const [pid, setPid] = useState(defaultProjectId);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -663,7 +919,7 @@ function CreateModal({ projects, defaultProjectId, onClose, onCreated }: { proje
   const [saving, setSaving] = useState(false);
 
   const submit = async () => {
-    if (!pid) return alert("กรุณาเลือกโครงการ");
+    if (!pid) return alert(t.projectRequired);
     setSaving(true);
     const r = await fetch("/api/client-portal/token", {
       method: "POST",
@@ -677,52 +933,52 @@ function CreateModal({ projects, defaultProjectId, onClose, onCreated }: { proje
       }),
     });
     setSaving(false);
-    if (!r.ok) { alert("สร้างไม่สำเร็จ"); return; }
+    if (!r.ok) { alert(t.createError); return; }
     onCreated();
   };
 
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><Link2 size={18} /> สร้างลิงก์ลูกค้า</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><Link2 size={18} /> {t.createLink}</h2>
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-gray-600 block mb-1">โครงการ *</label>
+            <label className="text-xs text-gray-600 block mb-1">{t.project} *</label>
             <select value={pid} onChange={e => setPid(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm">
-              <option value="">— เลือกโครงการ —</option>
+              <option value="">{t.selectProject}</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">ชื่อลูกค้า / ผู้รับ</label>
-            <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="คุณ..."
+            <label className="text-xs text-gray-600 block mb-1">{t.clientName}</label>
+            <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder={t.clientPlaceholder}
               className="w-full border rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">อีเมล (ไม่บังคับ)</label>
+            <label className="text-xs text-gray-600 block mb-1">{t.email}</label>
             <input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">คำอธิบาย</label>
-            <input value={description} onChange={e => setDescription(e.target.value)} placeholder="เช่น สำหรับทีม QC ลูกค้า"
+            <label className="text-xs text-gray-600 block mb-1">{t.description}</label>
+            <input value={description} onChange={e => setDescription(e.target.value)} placeholder={t.descriptionPlaceholder}
               className="w-full border rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">หมดอายุใน (วัน)</label>
+            <label className="text-xs text-gray-600 block mb-1">{t.expiresIn}</label>
             <select value={expiresDays} onChange={e => setExpiresDays(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm">
-              <option value="30">30 วัน</option>
-              <option value="90">90 วัน</option>
-              <option value="180">180 วัน</option>
-              <option value="365">1 ปี</option>
-              <option value="">ไม่มีวันหมดอายุ</option>
+              <option value="30">{t.exp30}</option>
+              <option value="90">{t.exp90}</option>
+              <option value="180">{t.exp180}</option>
+              <option value="365">{t.exp365}</option>
+              <option value="">{t.noExpiry}</option>
             </select>
           </div>
         </div>
         <div className="flex gap-2 mt-5">
-          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-xl border text-gray-700 text-sm">ยกเลิก</button>
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-xl border text-gray-700 text-sm">{t.cancel}</button>
           <button onClick={submit} disabled={saving} className="flex-1 px-4 py-2 rounded-xl text-white text-sm font-medium disabled:opacity-50" style={{ background: "#003087" }}>
-            {saving ? "กำลังสร้าง..." : "สร้างลิงก์"}
+            {saving ? t.creating : t.createLinkBtn}
           </button>
         </div>
       </div>

@@ -22,8 +22,9 @@ type Role = {
 
 type Position = {
   id: string;
-  name: string;
+  name?: string;
   name_th?: string;
+  name_en?: string;
   name_jp?: string;
 };
 
@@ -454,7 +455,7 @@ export default function AdminUsersPage() {
                     className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-300 focus:border-orange-500 outline-none text-sm"
                   />
                   <p className="text-[10px] text-gray-600 mt-1">
-                    3-30 ตัวอักษร (a-z, A-Z, 0-9, _) — รหัสผ่านเริ่มต้น: <span className="font-mono text-orange-400">00000000</span>
+                    3-30 ตัวอักษร (a-z, A-Z, 0-9, . - _ /) — รหัสผ่านเริ่มต้น: <span className="font-mono text-orange-400">00000000</span>
                   </p>
                 </div>
               )}
@@ -542,7 +543,7 @@ export default function AdminUsersPage() {
                   <option value="">—</option>
                   {positions.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name}
+                      {lang === "jp" ? (p.name_jp || p.name_th || p.name_en || p.name) : lang === "en" ? (p.name_en || p.name_th || p.name) : (p.name_th || p.name_en || p.name)}
                     </option>
                   ))}
                 </select>

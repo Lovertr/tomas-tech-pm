@@ -30,8 +30,16 @@ export async function PATCH(
       "is_active",
     ];
     const update: Record<string, unknown> = {};
+    const uuidFields = ["role_id", "position_id", "department_id"];
     for (const k of allowed) {
-      if (k in body) update[k] = body[k];
+      if (k in body) {
+        // Convert empty strings to null for UUID fields
+        if (uuidFields.includes(k) && body[k] === "") {
+          update[k] = null;
+        } else {
+          update[k] = body[k];
+        }
+      }
     }
 
     if (Object.keys(update).length === 0) {

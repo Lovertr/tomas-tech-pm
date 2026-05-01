@@ -620,8 +620,8 @@ export default function App() {
   );
   const ClientPortalPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Client Portal — ลิงก์สำหรับลูกค้า" />
-      <ClientPortalPanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} />
+      <ProjectFilterHeader title={lang === "jp" ? "クライアントポータル — 顧客リンク" : lang === "en" ? "Client Portal — Customer Links" : "Client Portal — ลิงก์สำหรับลูกค้า"} />
+      <ClientPortalPanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
