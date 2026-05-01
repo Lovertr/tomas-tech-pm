@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 import { notify, getAdminManagerIds } from "@/lib/notify";
 
 const STAGE_LABELS: Record<string, string> = {
-  new_lead: "ลีดใหม่",
-  waiting_present: "รอนำเสนอ",
-  contacted: "ติดต่อแล้ว",
-  proposal_submitted: "เสนอ Proposal",
-  proposal_confirmed: "คอนเฟิร์ม Proposal",
-  quotation: "เสนอราคา",
-  negotiation: "เจรจาต่อรอง",
-  waiting_po: "รอ PO",
-  po_received: "ได้รับ PO",
-  payment_received: "ได้รับยอดชำระแล้ว",
-  cancelled: "ยกเลิก",
-  refused: "ปฏิเสธ",
+  new_lead: "ลีดใหม่", waiting_present: "รอนำเสนอ", contacted: "ติดต่อแล้ว",
+  proposal_submitted: "เสนอ Proposal", proposal_confirmed: "คอนเฟิร์ม Proposal",
+  quotation: "เสนอราคา", negotiation: "เจรจาต่อรอง", waiting_po: "รอ PO",
+  po_received: "ได้รับ PO", payment_received: "ได้รับยอดชำระแล้ว",
+  cancelled: "ยกเลิก", refused: "ปฏิเสธ",
 };
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -25,37 +19,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json();
   body.updated_at = new Date().toISOString();
 
-  // Get old deal data to check if stage is changing
   const { data: oldDeal } = await supabaseAdmin.from("deals").select("*, customers(id, company_name)").eq("id", id).single();
 
   const { data, error } = await supabaseAdmin.from("deals").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Handle notifications
   try {
-    // Notify deal owner if stage changed
     if (body.stage && oldDeal && oldDeal.stage !== body.stage) {
       const stageLabel = STAGE_LABELS[body.stage] || body.stage;
-      await notify(
-        data.owner_id,
-        "สถานะดีลเปลี่ยน",
-        `${data.title} เปลี่ยนเป็น ${stageLabel}`,
-        "deal_stage_changed"
-      );
+      await notify(data.owner_id, "สถานะดีลเปลี่ยน", data.title + " เปลี่ยนเป็น " + stageLabel, "deal_stage_changed");
 
-      // If stage becomes po_received or payment_received, notify admin+manager
       if ((body.stage === "po_received" || body.stage === "payment_received") && oldDeal.stage !== body.stage) {
         const adminManagerIds = await getAdminManagerIds();
         const value = data.value || oldDeal.value || 0;
         const formattedValue = new Intl.NumberFormat("th-TH").format(Number(value));
         const isPayment = body.stage === "payment_received";
         for (const userId of adminManagerIds) {
-          await notify(
-            userId,
-            isPayment ? "ได้รับยอดชำระแล้ว!" : "ดีลปิดสำเร็จ!",
-            `${data.title} - THB ${formattedValue}`,
-            isPayment ? "deal_payment" : "deal_won"
-          );
+          await notify(userId, isPayment ? "ได้รับยอดชำระแล้ว!" : "ดีลปิดสำเร็จ!", data.title + " - THB " + formattedValue, isPayment ? "deal_payment" : "deal_won");
         }
       }
     }
@@ -70,40 +50,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const dealTitle = oldDeal.title || data.title || "New Project";
       const dealValue = Number(oldDeal.value || data.value || 0);
       const now = new Date().toISOString().slice(0, 10);
-
-      // Check if a project already exists for this deal (avoid duplicates)
-      const { data: existingProject } = await supabaseAdmin
-        .from("projects")
-        .select("id")
-        .eq("description", `auto:deal:${id}`)
-        .maybeSingle();
-
+      const { data: existingProject } = await supabaseAdmin.from("projects").select("id").eq("description", "auto:deal:" + id).maybeSingle();
       if (!existingProject) {
-        // Generate project code
         const year = new Date().getFullYear();
         const { count } = await supabaseAdmin.from("projects").select("id", { count: "exact", head: true });
         const seq = String((count ?? 0) + 1).padStart(3, "0");
-        const projectCode = `PRJ-${year}-${seq}`;
-
+        const projectCode = "PRJ-" + year + "-" + seq;
         await supabaseAdmin.from("projects").insert({
-          project_code: projectCode,
-          name_th: dealTitle,
-          name_en: dealTitle,
-          description: `auto:deal:${id}`,
-          client_name: clientName,
-          status: "planning",
-          priority: "medium",
-          budget_limit: dealValue,
-          start_date: now,
-          estimated_hours: 0,
-          progress: 0,
+          project_code: projectCode, name_th: dealTitle, name_en: dealTitle,
+          description: "auto:deal:" + id, client_name: clientName, status: "planning",
+          priority: "medium", budget_limit: dealValue, start_date: now, estimated_hours: 0, progress: 0,
         });
       }
     } catch (e) {
       console.error("Auto-create project failed:", e);
-      // Don't fail the deal update if project creation fails
     }
   }
+
+  logAudit({ userId: ctx.userId, action: "UPDATE", tableName: "deals", recordId: id, newValue: body, description: "Updated deal " + id, ip: getClientIp(req.headers) });
 
   return NextResponse.json({ deal: data });
 }
@@ -114,5 +78,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const { error } = await supabaseAdmin.from("deals").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "DELETE", tableName: "deals", recordId: id, description: "Deleted deal " + id, ip: getClientIp(req.headers) });
+
   return NextResponse.json({ ok: true });
 }

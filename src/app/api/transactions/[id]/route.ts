@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthContext } from "@/lib/auth-server";
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+  const { data, error } = await supabaseAdmin.from("transactions").select("*").eq("id", id).single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+  return NextResponse.json({ transaction: data });
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+  const body = await req.json();
+  body.updated_at = new Date().toISOString();
+
+  // Handle expense approval
+  if (body.approval_status === "approved") {
+    body.approved_by = ctx.userId;
+    body.approved_at = new Date().toISOString();
+    if (!body.status) body.status = "completed";
+  }
+  if (body.approval_status === "rejected") {
+    body.approved_by = ctx.userId;
+    body.approved_at = new Date().toISOString();
+    if (!body.status) body.status = "cancelled";
+  }
+
+  const { data, error } = await supabaseAdmin.from("transactions").update(body).eq("id", id).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ transaction: data });
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+  const { error } = await supabaseAdmin.from("transactions").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

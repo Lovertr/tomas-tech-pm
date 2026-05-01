@@ -30,9 +30,11 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="theme-color" content="#020617" />
+        <meta name="theme-color" content="#003087" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>{children}<script dangerouslySetInnerHTML={{__html: `if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{})`}} />
+      </body>
     </html>
   );
 }

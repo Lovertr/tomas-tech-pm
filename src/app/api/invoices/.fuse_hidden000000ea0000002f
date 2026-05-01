@@ -50,5 +50,5 @@ export async function POST(req: NextRequest) {
       items.map((it: Record<string, unknown>, i: number) => ({ ...it, invoice_id: data.id, sort_order: i }))
     );
   }
-  return NextResponse.json({ invoice: data }, { status: 201 });
-}
+
+  // Phase 3.1: Auto-create a pending income transaction linked t

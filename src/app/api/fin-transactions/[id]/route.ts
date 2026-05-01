@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
@@ -10,6 +11,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   body.updated_at = new Date().toISOString();
   const { data, error } = await supabaseAdmin.from("transactions").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "UPDATE", tableName: "transactions", recordId: id, newValue: body, description: "Updated transaction " + id, ip: getClientIp(req.headers) });
+
   return NextResponse.json({ transaction: data });
 }
 
@@ -19,5 +23,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const { error } = await supabaseAdmin.from("transactions").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "DELETE", tableName: "transactions", recordId: id, description: "Deleted transaction " + id, ip: getClientIp(req.headers) });
+
   return NextResponse.json({ ok: true });
 }

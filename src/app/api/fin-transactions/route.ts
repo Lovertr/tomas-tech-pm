@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
@@ -26,5 +27,8 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabaseAdmin.from("transactions")
     .insert({ ...body, recorded_by: ctx.userId }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "INSERT", tableName: "transactions", recordId: data.id, newValue: { type: data.type, amount: data.amount, category: data.category }, description: "Created transaction: " + data.description, ip: getClientIp(req.headers) });
+
   return NextResponse.json({ transaction: data }, { status: 201 });
 }

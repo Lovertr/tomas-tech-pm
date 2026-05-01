@@ -231,9 +231,9 @@ export async function POST(request: NextRequest) {
       const { project_id, pm_member_id } = body;
       if (!project_id) return NextResponse.json({ error: "project_id required" }, { status: 400 });
 
-      // Only admin/manager/leader can assign PM
+      // Only admin/manager can assign PM
       if (!isAdmin) {
-        return NextResponse.json({ error: "Only admin/manager/leader can assign PM" }, { status: 403 });
+        return NextResponse.json({ error: "Only admin/manager can assign PM" }, { status: 403 });
       }
 
       const { error } = await supabaseAdmin
@@ -281,3 +281,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+              

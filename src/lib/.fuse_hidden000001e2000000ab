@@ -44,7 +44,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     mustChangePassword: "กรุณาเปลี่ยนรหัสผ่านก่อนเข้าใช้งาน",
     passwordChanged: "เปลี่ยนรหัสผ่านสำเร็จ", projectMgmtSystem: "ระบบบริหารจัดการโปรเจค",
     userManagement: "จัดการผู้ใช้", addUser: "เพิ่มผู้ใช้", role: "สิทธิ์",
-    admin: "ผู้ดูแลระบบ", manager: "ผู้จัดการ", leader: "หัวหน้าทีม", member: "สมาชิก",
+    admin: "ผู้ดูแลระบบ", manager: "ผู้จัดการ", member: "สมาชิก",
     active: "ใช้งาน", inactive: "ปิดใช้งาน", resetPassword: "รีเซ็ตรหัสผ่าน",
     profile: "โปรไฟล์", myProfile: "โปรไฟล์ของฉัน",
     myTasks: "งานของฉัน", gantt: "Gantt", milestones: "Milestones", calendar: "ปฏิทิน",
@@ -57,7 +57,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     quotations: "ใบเสนอราคา", newInvoices: "ใบแจ้งหนี้ (ใหม่)",
     customers: "ลูกค้า", dealsPipeline: "Pipeline การขาย",
     salesActivities: "กิจกรรมการขาย", salesReport: "รายงานการขาย",
-    departments: "แผนก", helpCenter: "ศูนย์ช่วยเหลือ",
+    departments: "แผนก", helpCenter: "ศูนย์ช่วยเหลือ", auditLog: "บันทึกการใช้งาน", notifPrefs: "ตั้งค่าแจ้งเตือน",
   },
   en: {
     appName: "TOMAS TECH PM", dashboard: "Dashboard", projects: "Projects", tasks: "Tasks",
@@ -102,7 +102,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     mustChangePassword: "Please change your password before continuing",
     passwordChanged: "Password changed successfully", projectMgmtSystem: "Project Management System",
     userManagement: "User Management", addUser: "Add User", role: "Role",
-    admin: "Admin", manager: "Manager", leader: "Leader", member: "Member",
+    admin: "Admin", manager: "Manager", member: "Member",
     active: "Active", inactive: "Inactive", resetPassword: "Reset Password",
     profile: "Profile", myProfile: "My Profile",
     myTasks: "My Tasks", gantt: "Gantt", milestones: "Milestones", calendar: "Calendar",
@@ -115,7 +115,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     quotations: "Quotations", newInvoices: "Invoices (New)",
     customers: "Customers", dealsPipeline: "Sales Pipeline",
     salesActivities: "Sales Activities", salesReport: "Sales Report",
-    departments: "Departments", helpCenter: "Help Center",
+    departments: "Departments", helpCenter: "Help Center", auditLog: "Audit Log", notifPrefs: "Notification Settings",
   },
   jp: {
     appName: "TOMAS TECH PM", dashboard: "ダッシュボード", projects: "プロジェクト", tasks: "タスク",
@@ -160,7 +160,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     mustChangePassword: "続行する前にパスワードを変更してください",
     passwordChanged: "パスワードが変更されました", projectMgmtSystem: "プロジェクト管理システム",
     userManagement: "ユーザー管理", addUser: "ユーザー追加", role: "権限",
-    admin: "管理者", manager: "マネージャー", leader: "リーダー", member: "メンバー",
+    admin: "管理者", manager: "マネージャー", member: "メンバー",
     active: "有効", inactive: "無効", resetPassword: "パスワードリセット",
     profile: "プロフィール", myProfile: "マイプロフィール",
     myTasks: "マイタスク", gantt: "ガント", milestones: "マイルストーン", calendar: "カレンダー",
@@ -172,7 +172,4 @@ export const translations: Record<Lang, Record<string, string>> = {
     projectBudget: "プロジェクト予算", transactions: "収支",
     quotations: "見積書", newInvoices: "請求書（新）",
     customers: "顧客", dealsPipeline: "営業パイプライン",
-    salesActivities: "営業活動", salesReport: "営業レポート",
-    departments: "部門", helpCenter: "ヘルプセンター",
-  },
-};
+    salesActivities: "営業活動", salesRep

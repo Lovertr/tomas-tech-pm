@@ -1,6 +1,37 @@
 import { supabaseAdmin } from "./supabase-admin";
 
-// Insert one notification
+// Map notification type strings to preference column names
+const TYPE_TO_PREF: Record<string, string> = {
+  task_assigned: "notify_task_assigned",
+  task_completed: "notify_task_completed",
+  deal_created: "notify_deal_created",
+  deal_stage_changed: "notify_deal_stage_changed",
+  deal_won: "notify_deal_won",
+  deal_payment: "notify_deal_payment",
+  quotation_approval: "notify_quotation_approval",
+  quotation_approved: "notify_quotation_approved",
+  quotation_rejected: "notify_quotation_rejected",
+  client_request: "notify_client_request",
+};
+
+// Check if user wants this notification type
+async function shouldNotify(userId: string, type: string): Promise<boolean> {
+  const prefCol = TYPE_TO_PREF[type];
+  if (!prefCol) return true; // unknown type = always send
+  try {
+    const { data } = await supabaseAdmin
+      .from("notification_preferences")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!data) return true; // no prefs row = default all on
+    return (data as Record<string, unknown>)[prefCol] !== false;
+  } catch {
+    return true; // on error, send anyway
+  }
+}
+
+// Insert one notification (respects preferences)
 export async function notify(
   userId: string,
   title: string,
@@ -9,6 +40,8 @@ export async function notify(
   link?: string
 ): Promise<void> {
   try {
+    const allowed = await shouldNotify(userId, type);
+    if (!allowed) return;
     await supabaseAdmin.from("notifications").insert({
       user_id: userId,
       title,
@@ -22,7 +55,7 @@ export async function notify(
   }
 }
 
-// Insert multiple notifications (batch)
+// Insert multiple notifications (batch, respects preferences)
 export async function notifyMany(
   userIds: string[],
   title: string,
@@ -32,73 +65,21 @@ export async function notifyMany(
 ): Promise<void> {
   try {
     if (!userIds.length) return;
-    const notifications = userIds.map((userId) => ({
-      user_id: userId,
-      title,
-      message,
-      type,
-      link: link || null,
-      is_read: false,
-    }));
-    await supabaseAdmin.from("notifications").insert(notifications);
-  } catch (err) {
-    console.error("notifyMany() error:", err);
-  }
-}
-
-// Get user_id from team_member_id
-export async function getMemberUserId(memberId: string): Promise<string | null> {
-  try {
-    const { data } = await supabaseAdmin
-      .from("team_members")
-      .select("user_id")
-      .eq("id", memberId)
-      .maybeSingle();
-    return data?.user_id || null;
-  } catch (err) {
-    console.error("getMemberUserId() error:", err);
-    return null;
-  }
-}
-
-// Role IDs (from roles table)
-const ROLE_IDS = {
-  admin: "63b1d7bc-f82b-4d1e-8c6e-4fa1f0fef9bf",
-  manager: "28966e05-7e97-4aef-8ee4-14a8fca1abb9",
-  leader: "a1f626c2-b037-4586-830f-a6b99d27a701",
-  member: "9c592967-d51c-4c1e-9eab-3c963f552069",
-};
-
-// Business Development department ID
-const BD_DEPT_ID = "d0000001-0000-0000-0000-000000000003";
-
-// Get admin + manager user IDs
-export async function getAdminManagerIds(): Promise<string[]> {
-  try {
-    const { data } = await supabaseAdmin
-      .from("app_users")
-      .select("id")
-      .in("role_id", [ROLE_IDS.admin, ROLE_IDS.manager])
-      .eq("is_active", true);
-    return data?.map((u) => u.id) || [];
-  } catch (err) {
-    console.error("getAdminManagerIds() error:", err);
-    return [];
-  }
-}
-
-// Get Sales leaders (role=leader AND department = Business Development "BD")
-export async function getSalesLeaderIds(): Promise<string[]> {
-  try {
-    const { data } = await supabaseAdmin
-      .from("app_users")
-      .select("id")
-      .eq("role_id", ROLE_IDS.leader)
-      .eq("department_id", BD_DEPT_ID)
-      .eq("is_active", true);
-    return data?.map((u) => u.id) || [];
-  } catch (err) {
-    console.error("getSalesLeaderIds() error:", err);
-    return [];
-  }
-}
+    // Check preferences for all users
+    const prefCol = TYPE_TO_PREF[type];
+    let allowedIds = userIds;
+    if (prefCol) {
+      const { data: prefs } = await supabaseAdmin
+        .from("notification_preferences")
+        .select("*")
+        .in("user_id", userIds);
+      // Users with prefs set to false are excluded; users without prefs row get notified
+      const disabledSet = new Set(
+        (prefs || [])
+          .filter((p) => (p as Record<string, unknown>)[prefCol] === false)
+          .map((p) => (p as Record<string, unknown>).user_id as string)
+      );
+      allowedIds = userIds.filter(id => !disabledSet.has(id));
+    }
+    if (!allowedIds.length) return;
+    const notifications 

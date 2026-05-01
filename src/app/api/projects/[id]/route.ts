@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 
 // GET /api/projects/[id] - fetch single project (scoped for role=member)
 export async function GET(
@@ -55,6 +56,9 @@ export async function PATCH(
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "UPDATE", tableName: "projects", recordId: id, newValue: update, description: "Updated project " + id, ip: getClientIp(request.headers) });
+
   return NextResponse.json({ project: data });
 }
 
@@ -70,5 +74,8 @@ export async function DELETE(
   const { id } = await params;
   const { error } = await supabaseAdmin.from("projects").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "DELETE", tableName: "projects", recordId: id, description: "Deleted project " + id, ip: getClientIp(request.headers) });
+
   return NextResponse.json({ success: true });
 }

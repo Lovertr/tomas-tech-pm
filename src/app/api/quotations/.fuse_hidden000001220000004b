@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
-import { notifyMany, getAdminManagerIds, getSalesLeaderIds } from "@/lib/notify";
+import { notifyMany, getAdminManagerIds, getBDManagerIds } from "@/lib/notify";
 
 // QTA + YYMM + 3-digit sequence  e.g. QTA2604001
 async function nextQuotationNo() {
   const now = new Date();
   const yy = String(now.getFullYear()).slice(-2);
   const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const prefix = `QTA${yy}${mm}`;
+  const prefix = "QTA" + yy + mm;
   const { data } = await supabaseAdmin
     .from("quotations")
     .select("quotation_no")
-    .like("quotation_no", `${prefix}%`)
+    .like("quotation_no", prefix + "%")
     .order("quotation_no", { ascending: false })
     .limit(1);
   const last = data?.[0]?.quotation_no;
   const seq = last ? parseInt(last.slice(-3)) + 1 : 1;
-  return `${prefix}${String(seq).padStart(3, "0")}`;
+  return prefix + String(seq).padStart(3, "0");
 }
 
 export async function GET(req: NextRequest) {
@@ -114,11 +115,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Send approval notifications to admin + manager + sales leaders (BD dept only)
+  // Send approval notifications to admin + manager + BD department managers
   try {
     const adminManagerIds = await getAdminManagerIds();
-    const salesLeaderIds = await getSalesLeaderIds();
-    const uniqueIds = Array.from(new Set([...adminManagerIds, ...salesLeaderIds]));
+    const bdManagerIds = await getBDManagerIds();
+    const uniqueIds = Array.from(new Set([...adminManagerIds, ...bdManagerIds]));
 
     if (uniqueIds.length > 0) {
       await notifyMany(
@@ -126,12 +127,11 @@ export async function POST(req: NextRequest) {
         "ใบเสนอราคาใหม่รอการอนุมัติ",
         quotation_no + " - " + body.title,
         "quotation_approval",
-        `/quotations/${data.id}`
+        "/quotations/" + data.id
       );
     }
   } catch (notifyErr) {
     console.error("Quotation notification error:", notifyErr);
   }
 
-  return NextResponse.json({ quotation: data }, { status: 201 });
-}
+  logAudit({ userId: ctx.userId

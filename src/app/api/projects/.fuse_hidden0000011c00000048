@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 
 // GET /api/projects - list projects (scoped for role=member)
 export async function GET(request: NextRequest) {
@@ -65,9 +66,5 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ project: data }, { status: 201 });
-  } catch (err) {
-    console.error("Create project error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+
+    logAudit({ userId: ctx.userId, action: "INSERT", tableName: "projects", recordId: data.id, newValue: { name_en: data.name_en, name_th: data.name_th, status: data

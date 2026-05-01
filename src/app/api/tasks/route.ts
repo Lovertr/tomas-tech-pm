@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext, getScopedAccess } from "@/lib/auth-server";
 import { notify, getMemberUserId } from "@/lib/notify";
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (ids.length === 0) {
       query = query.eq("assignee_id", memberId);
     } else {
-      query = query.or(`assignee_id.eq.${memberId},project_id.in.(${ids.join(",")})`);
+      query = query.or("assignee_id.eq." + memberId + ",project_id.in.(" + ids.join(",") + ")");
     }
   }
 
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
           await notify(
             assigneeUserId,
             "ได้รับมอบหมายงานใหม่",
-            `${title} ในโครงการ ${projectName}`,
+            title + " ในโครงการ " + projectName,
             "task_assigned"
           );
         }
@@ -94,7 +95,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ task: data }, { status: 201 });
+    logAudit({ userId: ctx.userId, action: "INSERT", tableName: "tasks", recordId: data.id, newValue: { title: data.title, status: data.status, project_id: data.project_id }, description: "Created task: " + data.title, ip: getClientIp(request.headers) });
+
     return NextResponse.json({ task: data }, { status: 201 });
   } catch (err) {
     console.error("Create task error:", err);

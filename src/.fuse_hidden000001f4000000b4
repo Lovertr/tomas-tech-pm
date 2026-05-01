@@ -1,49 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-// List of routes that don't require authentication
-const publicRoutes = [
-  "/login",
-  "/api/auth/login",
-  "/_next",
-  "/favicon.ico",
-];
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
-export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+function getRateLimitKey(req: NextRequest): string {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+  return ip;
+}
 
-  // Check if the current route is public
-  const isPublicRoute = publicRoutes.some((route) => {
-    if (route === "/_next" || route === "/favicon.ico") {
-      return pathname.startsWith(route);
-    }
-    return pathname === route;
-  });
+export function middleware(req: NextRequest) {
+  // Only rate limit API routes
+  if (!req.nextUrl.pathname.startsWith("/api/")) return NextResponse.next();
 
-  if (isPublicRoute) {
+  const key = getRateLimitKey(req);
+  const now = Date.now();
+  const isWrite = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  const limit = isWrite ? 30 : 100; // per minute
+  const window = 60000;
+
+  const entry = rateLimitMap.get(key + (isWrite ? ":w" : ":r"));
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key + (isWrite ? ":w" : ":r"), { count: 1, resetAt: now + window });
     return NextResponse.next();
   }
 
-  // Check for session cookie
-  const sessionToken = request.cookies.get("tt_session")?.value;
-
-  if (!sessionToken) {
-    // Redirect to login if no session token
-    return NextResponse.redirect(new URL("/login", request.url));
+  entry.count++;
+  if (entry.count > limit) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((entry.resetAt - now) / 1000)) } }
+    );
   }
 
-  // Allow the request to proceed
   return NextResponse.next();
 }
 
-// Configure which routes to run middleware on
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
-};
+export const 

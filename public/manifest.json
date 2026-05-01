@@ -1,0 +1,14 @@
+{
+  "name": "TOMAS TECH - Project Management",
+  "short_name": "TOMAS PM",
+  "description": "ระบบจัดการโปรเจค TOMAS TECH CO., LTD.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#003087",
+  "orientation": "any",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

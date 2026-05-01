@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
 import { notify, getMemberUserId, getAdminManagerIds } from "@/lib/notify";
@@ -112,7 +113,7 @@ export async function PATCH(
           await notify(
             userId,
             "งานเสร็จสิ้น",
-            `${oldTask?.title || "งาน"} เสร็จสมบูรณ์แล้ว`,
+            (oldTask?.title || "งาน") + " เสร็จสมบูรณ์แล้ว",
             "task_completed"
           );
         }
@@ -121,6 +122,8 @@ export async function PATCH(
   } catch (notifyErr) {
     console.error("Task update notification error:", notifyErr);
   }
+
+  logAudit({ userId: ctx.userId, action: "UPDATE", tableName: "tasks", recordId: id, newValue: update, description: "Updated task " + id, ip: getClientIp(request.headers) });
 
   return NextResponse.json({ task: data });
 }
@@ -137,5 +140,8 @@ export async function DELETE(
   const { id } = await params;
   const { error } = await supabaseAdmin.from("tasks").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "DELETE", tableName: "tasks", recordId: id, description: "Deleted task " + id, ip: getClientIp(request.headers) });
+
   return NextResponse.json({ success: true });
 }

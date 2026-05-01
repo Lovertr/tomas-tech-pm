@@ -12,7 +12,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
   const { data: items } = await supabaseAdmin.from("invoice_items")
     .select("*").eq("invoice_id", id).order("sort_order");
-  return NextResponse.json({ invoice: data, items: items ?? [] });
+  // Also return linked transaction
+  const { data: linkedTx } = await supabaseAdmin.from("transactions")
+    .select("id, status, amount, date").eq("invoice_id", id).limit(1);
+  return NextResponse.json({ invoice: data, items: items ?? [], linked_transaction: linkedTx?.[0] || null });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -43,6 +46,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data, error } = await supabaseAdmin.from("invoices").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Phase 3.1: Auto-update linked transaction when invoice status changes
+  if (body.status) {
+    const txStatus = body.status === "paid" ? "completed" : body.status === "cancelled" ? "cancelled" : "pending";
+    const txUpdate: Record<string, unknown> = { status: txStatus, updated_at: new Date().toISOString() };
+    if (body.status === "paid") {
+      txUpdate.date = new Date().toISOString().slice(0, 10);
+    }
+    if (data.total) txUpdate.amount = data.total;
+    await supabaseAdmin.from("transactions").update(txUpdate).eq("invoice_id", id);
+  }
+
   return NextResponse.json({ invoice: data });
 }
 
@@ -50,6 +65,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
+  // Delete linked transactions first
+  await supabaseAdmin.from("transactions").delete().eq("invoice_id", id);
   const { error } = await supabaseAdmin.from("invoices").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

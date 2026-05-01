@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin, requireManager } from "@/lib/auth-server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 
 // PATCH /api/users/[id] - update a user (admin or manager)
 export async function PATCH(
@@ -102,6 +103,8 @@ export async function PATCH(
       await supabaseAdmin.from("team_members").update(tmUpdate).eq("user_id", id);
     }
 
+    logAudit({ userId: ctx.userId, action: "UPDATE", tableName: "app_users", recordId: id, oldValue: null, newValue: update, description: "Updated user " + id, ip: getClientIp(request.headers) });
+
     return NextResponse.json({ user: data });
   } catch (err) {
     console.error("Update user error:", err);
@@ -159,6 +162,8 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  logAudit({ userId: ctx.userId, action: "DELETE", tableName: "app_users", recordId: id, oldValue: { username: target?.username }, description: "Deleted user: " + (target?.username || id), ip: getClientIp(request.headers) });
 
   return NextResponse.json({ success: true });
 }

@@ -50,5 +50,23 @@ export async function POST(req: NextRequest) {
       items.map((it: Record<string, unknown>, i: number) => ({ ...it, invoice_id: data.id, sort_order: i }))
     );
   }
+
+  // Phase 3.1: Auto-create a pending income transaction linked to this invoice
+  const txData: Record<string, unknown> = {
+    type: "income",
+    category: "invoice_payment",
+    amount: total,
+    description: "Invoice " + invoice_no + " - " + (body.title || ""),
+    status: "pending",
+    date: new Date().toISOString().slice(0, 10),
+    created_by: ctx.userId,
+    invoice_id: data.id,
+    currency: body.currency || "THB",
+    exchange_rate: body.exchange_rate || 1,
+  };
+  if (body.customer_id) txData.customer_id = body.customer_id;
+  if (body.project_id) txData.project_id = body.project_id;
+  await supabaseAdmin.from("transactions").insert(txData);
+
   return NextResponse.json({ invoice: data }, { status: 201 });
 }

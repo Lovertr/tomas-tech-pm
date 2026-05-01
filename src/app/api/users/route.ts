@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth-server";
 
@@ -204,6 +205,8 @@ export async function POST(request: NextRequest) {
       hourly_rate: hourly_rate ?? 0,
       is_active: true,
     });
+
+    logAudit({ userId: ctx.userId, action: "INSERT", tableName: "app_users", recordId: data.id, newValue: { username, display_name: effectiveDisplayName, email, role_id, department_id }, description: `Created user: ${username}`, ip: getClientIp(request.headers) });
 
     return NextResponse.json(
       { user: data, default_password: "00000000" },

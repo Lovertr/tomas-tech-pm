@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
@@ -39,10 +40,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (qt?.created_by) {
       await supabaseAdmin.from("notifications").insert({
         user_id: qt.created_by,
-        title: "\u0e43\u0e1a\u0e40\u0e2a\u0e19\u0e2d\u0e23\u0e32\u0e04\u0e32\u0e44\u0e14\u0e49\u0e23\u0e31\u0e1a\u0e01\u0e32\u0e23\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34",
+        title: "ใบเสนอราคาได้รับการอนุมัติ",
         message: qt.quotation_no + " - " + qt.title + " approved",
         type: "quotation_approved",
-        link: `/quotations/${id}`,
+        link: "/quotations/" + id,
         is_read: false,
       });
     }
@@ -55,10 +56,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (qt?.created_by) {
       await supabaseAdmin.from("notifications").insert({
         user_id: qt.created_by,
-        title: "\u0e43\u0e1a\u0e40\u0e2a\u0e19\u0e2d\u0e23\u0e32\u0e04\u0e32\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18",
+        title: "ใบเสนอราคาถูกปฏิเสธ",
         message: [qt.quotation_no, qt.title, "rejected", body.rejection_reason || ""].filter(Boolean).join(" - "),
         type: "quotation_rejected",
-        link: `/quotations/${id}`,
+        link: "/quotations/" + id,
         is_read: false,
       });
     }
@@ -98,6 +99,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data, error } = await supabaseAdmin.from("quotations").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "UPDATE", tableName: "quotations", recordId: id, newValue: body, description: "Updated quotation " + id + (body.status ? " status->" + body.status : ""), ip: getClientIp(req.headers) });
+
   return NextResponse.json({ quotation: data });
 }
 
@@ -107,5 +111,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const { error } = await supabaseAdmin.from("quotations").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  logAudit({ userId: ctx.userId, action: "DELETE", tableName: "quotations", recordId: id, description: "Deleted quotation " + id, ip: getClientIp(req.headers) });
+
   return NextResponse.json({ ok: true });
 }

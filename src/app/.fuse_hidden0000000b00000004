@@ -24,7 +24,7 @@ import KanbanBoard from "@/components/KanbanBoard";
 import MyTasks from "@/components/MyTasks";
 import FloatingTimer from "@/components/FloatingTimer";
 import GanttChart from "@/components/GanttChart";
-import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen } from "lucide-react";
+import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen, Bell as BellIcon, Award, ClipboardList, UserCheck, Globe, RefreshCcw, Layers, Smartphone, Trophy, Mail, CreditCard } from "lucide-react";
 import MilestonesPanel from "@/components/MilestonesPanel";
 import CalendarView from "@/components/CalendarView";
 import SprintPanel from "@/components/SprintPanel";
@@ -50,9 +50,11 @@ import DealsPipelinePanel from "@/components/DealsPipelinePanel";
 import SalesActivitiesPanel from "@/components/SalesActivitiesPanel";
 import SalesReportPanel from "@/components/SalesReportPanel";
 import DepartmentsPanel from "@/components/DepartmentsPanel";
+import HelpPanel from "@/components/HelpPanel";
+import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
+import ProjectHealthBadge from "@/components/ProjectHealthBadge";
 import CommandPalette, { type CommandItem } from "@/components/CommandPalette";
 import ShortcutsHelp from "@/components/ShortcutsHelp";
-import HelpPanel from "@/components/HelpPanel";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 import MemberModal from "@/components/modals/MemberModal";
 import PositionModal from "@/components/modals/PositionModal";
@@ -64,6 +66,15 @@ import ManpowerReport from "@/components/ManpowerReport";
 import MemberProfileModal from "@/components/MemberProfileModal";
 import ManpowerAIAnalysis from "@/components/ManpowerAIAnalysis";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import SkillMatrixPanel from "@/components/SkillMatrixPanel";
+import LeaveManagementPanel from "@/components/LeaveManagementPanel";
+import RecurringExpensesPanel from "@/components/RecurringExpensesPanel";
+import DeptKPIPanel from "@/components/DeptKPIPanel";
+import WinLossPanel from "@/components/WinLossPanel";
+import ProjectDependencyPanel from "@/components/ProjectDependencyPanel";
+import PerformanceReviewPanel from "@/components/PerformanceReviewPanel";
+import EmailActivityPanel from "@/components/EmailActivityPanel";
+import ExpenseApprovalPanel from "@/components/ExpenseApprovalPanel";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -176,6 +187,8 @@ export default function App() {
   const [taskFilter, setTaskFilter] = useState("all");
   const [teamTab, setTeamTab] = useState("members");
   const [projFilter, setProjFilter] = useState("all");
+  const [healthScores, setHealthScores] = useState<Record<string, { score: number; status: "healthy" | "at_risk" | "critical"; factors: { schedule: number; tasks: number; risks: number; budget: number }; details: Record<string, number> }>>({});
+  useEffect(() => { fetch("/api/projects/health").then(r => r.json()).then(d => { if (d.health) { const map: typeof healthScores = {}; d.health.forEach((h: Record<string, unknown>) => { map[h.project_id as string] = h as unknown as typeof healthScores[string]; }); setHealthScores(map); } }).catch(() => {}); }, []);
 
   const t = translations[lang];
   const getName = useCallback((item: Record<string, unknown>, f = "name") => {
@@ -282,6 +295,15 @@ export default function App() {
     { id: "reports", icon: BarChart3, label: t.reports, module: "reports", group: "reports" },
     { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
     { id: "help_center", icon: BookOpen, label: t.helpCenter, module: "dashboard", group: "admin" },
+    { id: "notif_prefs", icon: BellIcon, label: t.notifPrefs || "ตั้งค่าแจ้งเตือน", module: "settings", group: "admin" },
+    { id: "skill_matrix", icon: Award, label: lang === "th" ? "ทักษะพนักงาน" : lang === "jp" ? "スキルマトリックス" : "Skill Matrix", module: "can_manage_members", group: "people" },
+    { id: "leave_mgmt", icon: CalendarDays, label: lang === "th" ? "จัดการลางาน" : lang === "jp" ? "休暇管理" : "Leave Management", module: "dashboard", group: "people" },
+    { id: "recurring_expenses", icon: RefreshCcw, label: lang === "th" ? "ค่าใช้จ่ายประจำ" : lang === "jp" ? "定期経費" : "Recurring Expenses", module: "transactions", group: "finance" },
+    { id: "dept_kpi", icon: Target, label: lang === "th" ? "KPI แผนก" : lang === "jp" ? "部門KPI" : "Dept KPIs", module: "dashboard", group: "admin" },
+    { id: "win_loss", icon: Trophy, label: lang === "th" ? "วิเคราะห์ Win/Loss" : lang === "jp" ? "Win/Loss分析" : "Win/Loss Analysis", module: "deals_pipeline", group: "crm" },
+    { id: "project_deps", icon: GitBranch, label: lang === "th" ? "การพึ่งพาโครงการ" : lang === "jp" ? "依存関係" : "Dependencies", module: "can_manage_projects", group: "planning" },
+    { id: "perf_review", icon: Trophy, label: lang === "th" ? "ประเมินผลงาน" : lang === "jp" ? "業績評価" : "Performance Review", module: "can_manage_members", group: "people" },
+    { id: "expense_approval", icon: CreditCard, label: lang === "th" ? "อนุมัติค่าใช้จ่าย" : lang === "jp" ? "経費承認" : "Expense Approval", module: "transactions", group: "finance" },
   ];
   const nav = allNav.filter(n => canView(n.module));
 
@@ -398,6 +420,7 @@ export default function App() {
                   <div><span className="text-xs font-mono text-slate-500">{p.code}</span><h3 className="font-semibold text-gray-800 mt-1">{getName(p)}</h3></div>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColor[p.status] }}>{t[p.status]}</span>
+                    <ProjectHealthBadge health={healthScores[p.id] || null} lang={lang} compact />
                     {hasPermission("can_manage_projects") && (
                       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => openEditProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>
@@ -950,7 +973,7 @@ export default function App() {
     />
   );
   const Workload = () => <WorkloadHeatmap weeks={8} />;
-  const Approval = () => <TimeLogApproval canApprove={["admin","manager","leader"].includes(currentUser?.role ?? "")} />;
+  const Approval = () => <TimeLogApproval canApprove={["admin","manager"].includes(currentUser?.role ?? "")} />;
   const Manpower = () => (
     <div className="space-y-6">
       <ManpowerReport positions={data.positions} members={data.members} projects={data.projects} />
@@ -958,7 +981,16 @@ export default function App() {
     </div>
   );
   const HelpCenterPage = () => <HelpPanel lang={lang} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage };
+  const NotifPrefsPage = () => <NotificationPreferencesPanel lang={lang} />;
+  const SkillMatrixPage = () => <SkillMatrixPanel lang={lang} canManage={hasPermission("can_manage_members")} />;
+  const LeaveMgmtPage = () => <LeaveManagementPanel lang={lang} role={currentUser?.role ?? "member"} />;
+  const RecurringExpensesPage = () => <RecurringExpensesPanel lang={lang} canManage={["admin","manager"].includes(currentUser?.role ?? "member")} />;
+  const DeptKPIPage = () => <DeptKPIPanel lang={lang} />;
+  const WinLossPage = () => <WinLossPanel lang={lang} />;
+  const ProjectDepsPage = () => <ProjectDependencyPanel lang={lang} />;
+  const PerfReviewPage = () => <PerformanceReviewPanel lang={lang} canManage={hasPermission("can_manage_members")} />;
+  const ExpenseApprovalPage = () => <ExpenseApprovalPanel lang={lang} canApprove={["admin","manager"].includes(currentUser?.role ?? "member")} />;
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)
@@ -1117,116 +1149,3 @@ export default function App() {
                         {t[currentUser?.role as keyof typeof t] ?? currentUser?.role}
                       </div>
                     </div>
-                    {isAdmin && (
-                      <button onClick={() => { setUserMenuOpen(false); router.push("/admin/users"); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-slate-50 transition">
-                        <UserCog size={16} /> {t.userManagement}
-                      </button>
-                    )}
-                    <button onClick={() => { setUserMenuOpen(false); logout(); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition border-t border-[#E2E8F0]">
-                      <LogOut size={16} /> {t.logout}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Content — less padding on mobile, extra bottom padding for bottom nav */}
-
-        {/* Content — less padding on mobile, extra bottom padding for bottom nav */}
-        <main className="flex-1 overflow-y-auto p-3 md:p-6 pb-20 md:pb-6"><ErrorBoundary key={page}><Page /></ErrorBoundary></main>
-      </div>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t border-[#E2E8F0] safe-area-bottom">
-        <div className="flex items-center justify-around h-14">
-          {MOBILE_NAV.map(item => (
-            <button key={item.id} onClick={() => setPage(item.id)}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${page === item.id ? "text-[#00AEEF]" : "text-slate-500"}`}>
-              <item.icon size={20} />
-              <span className="text-[10px] font-medium">{item.label}</span>
-            </button>
-          ))}
-          <button onClick={() => setMobileMenuOpen(true)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-slate-500`}>
-            <Settings size={20} />
-            <span className="text-[10px] font-medium">{"\u0e40\u0e21\u0e19\u0e39"}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Modals */}
-      <ProjectModal
-        open={projectModalOpen}
-        onClose={() => setProjectModalOpen(false)}
-        initial={editingProject}
-        onSubmit={async (payload) => {
-          if (editingProject) await data.updateProject(editingProject.id, payload);
-          else await data.createProject(payload);
-        }}
-      />
-      <TaskModal
-        open={taskModalOpen}
-        onClose={() => setTaskModalOpen(false)}
-        initial={editingTask}
-        projects={data.projects}
-        members={data.members}
-        lang={lang}
-        onSubmit={async (payload) => {
-          if (editingTask) await data.updateTask(editingTask.id, payload);
-          else await data.createTask(payload);
-          setBoardRefreshKey(k => k + 1);
-        }}
-      />
-      <MemberModal
-        open={memberModalOpen}
-        onClose={() => setMemberModalOpen(false)}
-        initial={editingMember}
-        positions={data.positions}
-        onSubmit={async (payload) => {
-          if (editingMember) await data.updateMember(editingMember.id, payload);
-        }}
-      />
-      <PositionModal
-        open={positionModalOpen}
-        onClose={() => setPositionModalOpen(false)}
-        initial={editingPosition}
-        onSubmit={async (payload) => {
-          if (editingPosition) await data.updatePosition(editingPosition.id, payload);
-          else await data.createPosition(payload);
-        }}
-      />
-      <TimeLogModal
-        open={timelogModalOpen}
-        onClose={() => setTimelogModalOpen(false)}
-        projects={data.projects}
-        tasks={data.tasks}
-        members={data.members}
-        onSubmit={async (payload) => { await data.createTimelog(payload); }}
-      />
-      <TaskDetailDrawer
-        open={!!drawerTaskId}
-        taskId={drawerTaskId}
-        onClose={() => setDrawerTaskId(null)}
-        onChange={() => { data.refetchTasks?.(); setBoardRefreshKey(k => k + 1); }}
-        members={data.members}
-        allTasks={data.tasks}
-        lang={lang}
-      />
-      <FloatingTimer
-        onOpenTask={(id) => setDrawerTaskId(id)}
-        refreshKey={boardRefreshKey}
-        onChange={() => { data.refetchTimelogs?.(); setBoardRefreshKey(k => k + 1); }}
-      />
-      <MemberProfileModal
-        open={memberProfileOpen}
-        memberId={memberProfileId}
-        onClose={() => setMemberProfileOpen(false)}
-        onNavigateProject={(projectId) => { setPage("projects"); setMemberProfileOpen(false); }}
-      />
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} items={paletteItems} />
-      <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
-      </div>
-  );
-}

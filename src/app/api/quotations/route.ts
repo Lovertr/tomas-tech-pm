@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit, getClientIp } from "@/lib/auditLog";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 import { notifyMany, getAdminManagerIds, getBDManagerIds } from "@/lib/notify";
@@ -8,16 +9,16 @@ async function nextQuotationNo() {
   const now = new Date();
   const yy = String(now.getFullYear()).slice(-2);
   const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const prefix = `QTA${yy}${mm}`;
+  const prefix = "QTA" + yy + mm;
   const { data } = await supabaseAdmin
     .from("quotations")
     .select("quotation_no")
-    .like("quotation_no", `${prefix}%`)
+    .like("quotation_no", prefix + "%")
     .order("quotation_no", { ascending: false })
     .limit(1);
   const last = data?.[0]?.quotation_no;
   const seq = last ? parseInt(last.slice(-3)) + 1 : 1;
-  return `${prefix}${String(seq).padStart(3, "0")}`;
+  return prefix + String(seq).padStart(3, "0");
 }
 
 export async function GET(req: NextRequest) {
@@ -126,12 +127,14 @@ export async function POST(req: NextRequest) {
         "ใบเสนอราคาใหม่รอการอนุมัติ",
         quotation_no + " - " + body.title,
         "quotation_approval",
-        `/quotations/${data.id}`
+        "/quotations/" + data.id
       );
     }
   } catch (notifyErr) {
     console.error("Quotation notification error:", notifyErr);
   }
+
+  logAudit({ userId: ctx.userId, action: "INSERT", tableName: "quotations", recordId: data.id, newValue: { quotation_no, title: data.title, total, status: "draft" }, description: "Created quotation: " + quotation_no, ip: getClientIp(req.headers) });
 
   return NextResponse.json({ quotation: data }, { status: 201 });
 }
