@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     .select("id, project_code, name_th, name_en, name_jp, client_name, status, tags, is_enrollment_open, open_positions, pm_member_id")
     .eq("is_archived", false)
     .eq("is_enrollment_open", true)
-    .in("status", ["planning", "active"])
+    .in("status", ["planning", "in_progress"])
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

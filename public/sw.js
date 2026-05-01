@@ -17,6 +17,4 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   if (e.request.url.includes("/api/")) return; // Don't cache API calls
   e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
-});
+    fetch(e.request).catch(() => caches.match(e.
