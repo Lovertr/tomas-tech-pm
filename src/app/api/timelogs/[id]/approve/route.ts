@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
-// POST /api/timelogs/[id]/approve  (admin/manager/leader)
+// POST /api/timelogs/[id]/approve  (admin/manager)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["admin", "manager", "leader"].includes(ctx.role))
+  if (!["admin", "manager"].includes(ctx.role))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;

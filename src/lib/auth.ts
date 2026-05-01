@@ -53,14 +53,6 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     "can_edit_own_tasks",
     "can_log_time",
   ],
-  leader: [
-    "can_manage_tasks",
-    "can_view_reports",
-    "can_approve_timelog",
-    "can_view_projects",
-    "can_edit_own_tasks",
-    "can_log_time",
-  ],
   member: [
     "can_view_projects",
     "can_edit_own_tasks",

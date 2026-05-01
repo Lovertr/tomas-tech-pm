@@ -97,14 +97,6 @@ export function useAuth() {
         'can_edit_own_tasks',
         'can_log_time',
       ],
-      leader: [
-        'can_manage_tasks',
-        'can_view_reports',
-        'can_approve_timelog',
-        'can_view_projects',
-        'can_edit_own_tasks',
-        'can_log_time',
-      ],
       member: [
         'can_view_projects',
         'can_edit_own_tasks',
@@ -118,7 +110,6 @@ export function useAuth() {
 
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager' || isAdmin;
-  const isLeader = user?.role === 'leader' || isManager;
 
   return {
     user,
@@ -127,7 +118,6 @@ export function useAuth() {
     hasPermission,
     isAdmin,
     isManager,
-    isLeader,
     refetch: fetchUser,
     // Granular module permissions
     perms,

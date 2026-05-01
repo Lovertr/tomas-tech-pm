@@ -81,7 +81,6 @@ const ROLE_LABELS: Record<string, string> = {
   consultant: 'Consultant',
   support: 'Support',
   engineer: 'Engineer',
-  leader: 'Team Leader',
   qa: 'QA',
   devops: 'DevOps',
   data_scientist: 'Data Scientist',
@@ -107,7 +106,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
   const [manageProjects, setManageProjects] = useState<OpenProject[]>([]);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
-  const isManager = ['admin', 'manager', 'leader'].includes(userRole);
+  const isManager = ['admin', 'manager'].includes(userRole);
 
   const fetchOpenProjects = useCallback(async () => {
     try {

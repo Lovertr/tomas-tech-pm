@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       || [tm.first_name_en, tm.last_name_en].filter(Boolean).join(" ") || "Unknown";
     const projName = (project.project_code ? `[${project.project_code}] ` : "") + (project.name_th || project.name_en || "");
 
-    // Notify PM (if assigned) or admin/manager/leader
+    // Notify PM (if assigned) or admin/manager
     try {
       const notifyUserIds: string[] = [];
 
@@ -115,11 +115,11 @@ export async function POST(request: NextRequest) {
           notifyUserIds.push(pmMember.user_id);
         }
       } else {
-        // No PM — notify admin/manager/leader
+        // No PM — notify admin/manager
         const { data: managers } = await supabaseAdmin
           .from("app_users")
           .select("id")
-          .in("role", ["admin", "manager", "leader"]);
+          .in("role", ["admin", "manager"]);
         (managers ?? []).forEach(u => notifyUserIds.push(u.id));
       }
 

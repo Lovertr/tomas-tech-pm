@@ -168,7 +168,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
   const [creating, setCreating] = useState(false);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const canApprove = ["admin", "manager", "leader"].includes(userRole);
+  const canApprove = ["admin", "manager"].includes(userRole);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);

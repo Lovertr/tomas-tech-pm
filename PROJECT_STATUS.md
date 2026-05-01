@@ -35,7 +35,7 @@ Backend (Supabase)
 
 ### Auth & Permissions
 - Login ด้วย username/password → session cookie
-- Roles: admin(100), manager(70), leader(50), member(10), viewer(5)
+- Roles: admin(100), manager(70), member(10) — สิทธิ์ member ตามแผนก
 - Permission cascade 3 ชั้น: User Override → Department → Role Default → 0
 - 38 permission modules ใน 7 categories: admin, core, crm, finance, people, planning, tracking
 - 5 permission levels: 0(ปิด), 1(ดู), 3(สร้าง/แก้), 4(แก้ทั้งหมด), 5(เต็มสิทธิ์)
@@ -266,6 +266,12 @@ git push origin main
 - ไฟล์ใหม่: src/lib/helpContent.ts, src/components/HelpPanel.tsx
 - ไฟล์ใหม่: src/app/api/help/ask/route.ts, src/app/api/help/pdf/route.ts
 - เพิ่มเมนู "ศูนย์ช่วยเหลือ" ใน sidebar (กลุ่ม admin, ทุก role เข้าถึงได้)
+- ปรับ Role จาก 5 ระดับ → 3 ระดับ: admin(100), manager(70), member(10)
+- ลบ leader + viewer ออกจาก DB (roles table) + อัปเดต app_users ที่ผูกอยู่
+- ลบ leader/viewer references ทั้งหมดใน code: auth.ts, useAuth.ts, notify.ts, i18n.ts, API routes (20+ files)
+- ปรับ getSalesLeaderIds() → getBDManagerIds() (ใช้ admin/manager ในแผนก BD แทน)
+- อัปเดตคู่มือ (helpContent.ts) ให้สะท้อน 3 roles
+- สิทธิ์ member ตามแผนก (department permissions) ตามเดิม
 
 ### 2026-04-30
 - C

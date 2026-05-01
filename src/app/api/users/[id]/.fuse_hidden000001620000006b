@@ -1,0 +1,164 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireAdmin, requireManager } from "@/lib/auth-server";
+
+// PATCH /api/users/[id] - update a user (admin or manager)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await requireManager(request);
+  if ("error" in ctx) {
+    return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+  }
+
+  const { id } = await params;
+
+  try {
+    const body = await request.json();
+    // Fields allowed on app_users
+    const allowedUser = [
+      "display_name", "display_name_th", "display_name_jp",
+      "email", "phone", "department", "department_id",
+      "role_id", "position_id", "language", "is_active",
+    ];
+    // Extra fields that go only to team_members
+    const allowedMember = [
+      "employee_code", "first_name_th", "last_name_th",
+      "first_name_en", "last_name_en", "first_name_jp", "last_name_jp",
+      "hourly_rate",
+    ];
+    const update: Record<string, unknown> = {};
+    const tmExtra: Record<string, unknown> = {};
+    const uuidFields = ["role_id", "position_id", "department_id"];
+    for (const k of allowedUser) {
+      if (k in body) {
+        update[k] = uuidFields.includes(k) && body[k] === "" ? null : body[k];
+      }
+    }
+    for (const k of allowedMember) {
+      if (k in body) {
+        tmExtra[k] = body[k];
+      }
+    }
+
+    if (Object.keys(update).length === 0) {
+      return NextResponse.json(
+        { error: "No valid fields to update" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("app_users")
+      .update(update)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // If department_id changed, resolve department text
+    if (update.department_id) {
+      const { data: dept } = await supabaseAdmin
+        .from("departments")
+        .select("name_th")
+        .eq("id", update.department_id)
+        .single();
+      if (dept) update.department = dept.name_th;
+    }
+
+    // Sync team_members record
+    const tmUpdate: Record<string, unknown> = {};
+    if (update.email !== undefined) tmUpdate.email = update.email;
+    if (update.phone !== undefined) tmUpdate.phone = update.phone;
+    if (update.department !== undefined) tmUpdate.department = update.department;
+    if (update.department_id !== undefined) tmUpdate.department_id = update.department_id;
+    if (update.position_id !== undefined) tmUpdate.position_id = update.position_id;
+    if (update.is_active !== undefined) tmUpdate.is_active = update.is_active;
+
+    if (update.display_name) {
+      const parts = (update.display_name as string).trim().split(/\s+/);
+      tmUpdate.first_name_en = parts[0];
+      tmUpdate.last_name_en = parts.slice(1).join(" ") || "";
+    }
+    if (update.display_name_th) {
+      const parts = (update.display_name_th as string).trim().split(/\s+/);
+      tmUpdate.first_name_th = parts[0];
+      tmUpdate.last_name_th = parts.slice(1).join(" ") || "";
+    }
+    if (update.display_name_jp) {
+      const parts = (update.display_name_jp as string).trim().split(/\s+/);
+      tmUpdate.first_name_jp = parts[0];
+      tmUpdate.last_name_jp = parts.slice(1).join(" ") || "";
+    }
+
+    // Merge employee-only fields
+    Object.assign(tmUpdate, tmExtra);
+
+    if (Object.keys(tmUpdate).length > 0) {
+      await supabaseAdmin.from("team_members").update(tmUpdate).eq("user_id", id);
+    }
+
+    return NextResponse.json({ user: data });
+  } catch (err) {
+    console.error("Update user error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/users/[id] - delete a user (admin or manager, cannot delete self or admin)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await requireManager(request);
+  if ("error" in ctx) {
+    return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+  }
+
+  const { id } = await params;
+
+  if (id === ctx.userId) {
+    return NextResponse.json(
+      { error: "Cannot delete your own account" },
+      { status: 400 }
+    );
+  }
+
+  // Protect the default admin account
+  const { data: target } = await supabaseAdmin
+    .from("app_users")
+    .select("username")
+    .eq("id", id)
+    .single();
+
+  if (target?.username === "admin") {
+    return NextResponse.json(
+      { error: "Cannot delete the default admin account" },
+      { status: 400 }
+    );
+  }
+
+  // Deactivate linked team_members first
+  await supabaseAdmin
+    .from("team_members")
+    .update({ is_active: false, user_id: null })
+    .eq("user_id", id);
+
+  const { error } = await supabaseAdmin
+    .from("app_users")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}

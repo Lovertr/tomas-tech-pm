@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
-import { notifyMany, getAdminManagerIds, getSalesLeaderIds } from "@/lib/notify";
+import { notifyMany, getAdminManagerIds, getBDManagerIds } from "@/lib/notify";
 
 // QTA + YYMM + 3-digit sequence  e.g. QTA2604001
 async function nextQuotationNo() {
@@ -114,11 +114,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Send approval notifications to admin + manager + sales leaders (BD dept only)
+  // Send approval notifications to admin + manager + BD department managers
   try {
     const adminManagerIds = await getAdminManagerIds();
-    const salesLeaderIds = await getSalesLeaderIds();
-    const uniqueIds = Array.from(new Set([...adminManagerIds, ...salesLeaderIds]));
+    const bdManagerIds = await getBDManagerIds();
+    const uniqueIds = Array.from(new Set([...adminManagerIds, ...bdManagerIds]));
 
     if (uniqueIds.length > 0) {
       await notifyMany(

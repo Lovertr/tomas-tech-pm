@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     .eq("user_id", ctx.userId)
     .maybeSingle();
 
-  const isAdmin = ["admin", "manager", "leader"].includes(ctx.role);
+  const isAdmin = ["admin", "manager"].includes(ctx.role);
 
   // Determine which projects this user can manage
   let managedProjectIds: string[] = [];
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       .eq("user_id", ctx.userId)
       .maybeSingle();
 
-    const isAdmin = ["admin", "manager", "leader"].includes(ctx.role);
+    const isAdmin = ["admin", "manager"].includes(ctx.role);
 
     // Helper: check if user can manage a project
     const canManage = async (projectId: string): Promise<boolean> => {
@@ -231,9 +231,9 @@ export async function POST(request: NextRequest) {
       const { project_id, pm_member_id } = body;
       if (!project_id) return NextResponse.json({ error: "project_id required" }, { status: 400 });
 
-      // Only admin/manager/leader can assign PM
+      // Only admin/manager can assign PM
       if (!isAdmin) {
-        return NextResponse.json({ error: "Only admin/manager/leader can assign PM" }, { status: 403 });
+        return NextResponse.json({ error: "Only admin/manager can assign PM" }, { status: 403 });
       }
 
       const { error } = await supabaseAdmin

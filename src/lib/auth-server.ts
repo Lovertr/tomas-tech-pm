@@ -71,7 +71,7 @@ export async function requireManager(
  * For role=member, return the list of project IDs they can access:
  *   - projects they're allocated to via project_members
  *   - projects containing tasks assigned to them
- * For other roles (admin/manager/leader), returns null = "no scoping, see all".
+ * For other roles (admin/manager), returns null = "no scoping, see all".
  */
 export async function getAccessibleProjectIds(ctx: AuthContext): Promise<string[] | null> {
   if (ctx.role !== "member") return null;

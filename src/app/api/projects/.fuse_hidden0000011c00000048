@@ -1,0 +1,73 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthContext, getAccessibleProjectIds } from "@/lib/auth-server";
+
+// GET /api/projects - list projects (scoped for role=member)
+export async function GET(request: NextRequest) {
+  const ctx = await getAuthContext(request);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  let query = supabaseAdmin
+    .from("projects")
+    .select("*")
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false });
+
+  // Member-level users only see projects they're allocated to or have tasks in
+  const accessible = await getAccessibleProjectIds(ctx);
+  if (accessible !== null) {
+    if (accessible.length === 0) return NextResponse.json({ projects: [] });
+    query = query.in("id", accessible);
+  }
+
+  const { data, error } = await query;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ projects: data ?? [] });
+}
+
+// POST /api/projects - create project (can_manage_projects)
+export async function POST(request: NextRequest) {
+  const ctx = await getAuthContext(request);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!["admin", "manager"].includes(ctx.role))
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  try {
+    const body = await request.json();
+    const {
+      project_code, name_th, name_en, name_jp, description,
+      status, priority, client_name, start_date, end_date,
+      estimated_hours, budget_limit, progress,
+    } = body;
+
+    if (!name_en && !name_th) {
+      return NextResponse.json({ error: "Project name required" }, { status: 400 });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("projects")
+      .insert({
+        project_code: project_code || null,
+        name_th: name_th || name_en,
+        name_en: name_en || name_th,
+        name_jp: name_jp || null,
+        description: description || null,
+        status: status || "planning",
+        priority: priority || "medium",
+        client_name: client_name || null,
+        start_date: start_date || null,
+        end_date: end_date || null,
+        estimated_hours: estimated_hours || 0,
+        budget_limit: budget_limit || 0,
+        progress: progress || 0,
+      })
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ project: data }, { status: 201 });
+  } catch (err) {
+    console.error("Create project error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

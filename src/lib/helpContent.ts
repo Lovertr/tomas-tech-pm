@@ -287,9 +287,9 @@ export const HELP_SECTIONS: HelpSection[] = [
         id: "user_management",
         title: { th: "จัดการผู้ใช้", en: "User Management", jp: "ユーザー管理" },
         content: {
-          th: `ผู้ดูแลระบบ (Admin) สามารถจัดการผู้ใช้ได้ที่ ระบบ → จัดการผู้ใช้:\n\n• เพิ่มผู้ใช้ใหม่ — กรอก username, password, ชื่อ (3 ภาษา), อีเมล, เบอร์โทร, แผนก, ตำแหน่ง, สิทธิ์ (Role)\n• แก้ไขข้อมูล — คลิกที่ผู้ใช้เพื่อแก้ไข\n• ลบผู้ใช้ — ลบบัญชีออกจากระบบ\n\nRole ที่มี:\n• Admin — เข้าถึงทุกฟีเจอร์\n• Manager — จัดการโครงการ, ทีม, อนุมัติ\n• Leader — หัวหน้าทีม\n• Member — พนักงานทั่วไป\n• Viewer — ดูข้อมูลอย่างเดียว`,
-          en: `Admins can manage users at System → User Management:\n\n• Add user — Enter username, password, name (3 languages), email, phone, department, position, role\n• Edit — Click a user to modify\n• Delete — Remove account from system\n\nAvailable roles:\n• Admin — Full access to all features\n• Manager — Manage projects, teams, approvals\n• Leader — Team leader\n• Member — Regular employee\n• Viewer — Read-only access`,
-          jp: `管理者はシステム → ユーザー管理でユーザーを管理できます：\n\n• ユーザー追加 — ユーザー名、パスワード、名前（3言語）、メール、電話、部門、職位、権限を入力\n• 編集 — ユーザーをクリックして変更\n• 削除 — システムからアカウントを削除\n\n利用可能な権限：\n• Admin — すべての機能にフルアクセス\n• Manager — プロジェクト、チーム、承認の管理\n• Leader — チームリーダー\n• Member — 一般社員\n• Viewer — 閲覧のみ`,
+          th: `ผู้ดูแลระบบ (Admin) สามารถจัดการผู้ใช้ได้ที่ ระบบ → จัดการผู้ใช้:\n\n• เพิ่มผู้ใช้ใหม่ — กรอก username, password, ชื่อ (3 ภาษา), อีเมล, เบอร์โทร, แผนก, ตำแหน่ง, สิทธิ์ (Role)\n• แก้ไขข้อมูล — คลิกที่ผู้ใช้เพื่อแก้ไข\n• ลบผู้ใช้ — ลบบัญชีออกจากระบบ\n\nRole ที่มี:\n• Admin — เข้าถึงทุกฟีเจอร์\n• Manager — จัดการโครงการ, ทีม, อนุมัติ\n• Member — สิทธิ์ตามแผนก`,
+          en: `Admins can manage users at System → User Management:\n\n• Add user — Enter username, password, name (3 languages), email, phone, department, position, role\n• Edit — Click a user to modify\n• Delete — Remove account from system\n\nAvailable roles:\n• Admin — Full access to all features\n• Manager — Manage projects, teams, approvals\n• Member — Permissions follow department settings`,
+          jp: `管理者はシステム → ユーザー管理でユーザーを管理できます：\n\n• ユーザー追加 — ユーザー名、パスワード、名前（3言語）、メール、電話、部門、職位、権限を入力\n• 編集 — ユーザーをクリックして変更\n• 削除 — システムからアカウントを削除\n\n利用可能な権限：\n• Admin — すべての機能にフルアクセス\n• Manager — プロジェクト、チーム、承認の管理\n• Member — 部門設定に従った権限`,
         },
         tags: ["user", "admin", "role", "permission", "ผู้ใช้", "สิทธิ์", "ユーザー", "権限"],
       },

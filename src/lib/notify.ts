@@ -65,7 +65,6 @@ export async function getMemberUserId(memberId: string): Promise<string | null> 
 const ROLE_IDS = {
   admin: "63b1d7bc-f82b-4d1e-8c6e-4fa1f0fef9bf",
   manager: "28966e05-7e97-4aef-8ee4-14a8fca1abb9",
-  leader: "a1f626c2-b037-4586-830f-a6b99d27a701",
   member: "9c592967-d51c-4c1e-9eab-3c963f552069",
 };
 
@@ -87,18 +86,18 @@ export async function getAdminManagerIds(): Promise<string[]> {
   }
 }
 
-// Get Sales leaders (role=leader AND department = Business Development "BD")
-export async function getSalesLeaderIds(): Promise<string[]> {
+// Get BD department managers (was formerly "sales leaders")
+export async function getBDManagerIds(): Promise<string[]> {
   try {
     const { data } = await supabaseAdmin
       .from("app_users")
       .select("id")
-      .eq("role_id", ROLE_IDS.leader)
+      .in("role_id", [ROLE_IDS.admin, ROLE_IDS.manager])
       .eq("department_id", BD_DEPT_ID)
       .eq("is_active", true);
     return data?.map((u) => u.id) || [];
   } catch (err) {
-    console.error("getSalesLeaderIds() error:", err);
+    console.error("getBDManagerIds() error:", err);
     return [];
   }
 }

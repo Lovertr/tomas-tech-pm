@@ -30,12 +30,12 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/client-portal/token
- * Generate a new portal token (admin/manager/leader)
+ * Generate a new portal token (admin/manager)
  */
 export async function POST(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["admin", "manager", "leader"].includes(ctx.role)) {
+  if (!["admin", "manager"].includes(ctx.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
