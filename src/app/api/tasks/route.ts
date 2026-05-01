@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      project_id, parent_task_id, title, description, status, priority,
+      project_id, parent_task_id, title, title_en, title_jp, description, status, priority,
       assignee_id, reporter_id, start_date, due_date, estimated_hours, tags,
     } = body;
 
@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
         project_id,
         parent_task_id: parent_task_id || null,
         title,
+        title_en: title_en || null,
+        title_jp: title_jp || null,
         description: description || null,
         status: status || "backlog",
         priority: priority || "medium",
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    return NextResponse.json({ task: data }, { status: 201 });
     return NextResponse.json({ task: data }, { status: 201 });
   } catch (err) {
     console.error("Create task error:", err);

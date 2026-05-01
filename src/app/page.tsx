@@ -435,11 +435,12 @@ export default function App() {
   const MyTasksPage = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">งานของฉัน</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t.myTasks || "งานของฉัน"}</h1>
       </div>
       <MyTasks
         onTaskClick={(id) => setDrawerTaskId(id)}
         refreshKey={boardRefreshKey}
+        lang={lang}
       />
     </div>
   );
@@ -601,7 +602,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Recurring Tasks" />
       <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
@@ -713,6 +714,7 @@ export default function App() {
           onAddTask={() => openAddTask()}
           refreshKey={boardRefreshKey}
           canManage={hasPermission("can_manage_tasks")}
+          lang={lang}
         />
       </div>
     );
@@ -1167,6 +1169,7 @@ export default function App() {
         initial={editingTask}
         projects={data.projects}
         members={data.members}
+        lang={lang}
         onSubmit={async (payload) => {
           if (editingTask) await data.updateTask(editingTask.id, payload);
           else await data.createTask(payload);
@@ -1207,6 +1210,7 @@ export default function App() {
         onChange={() => { data.refetchTasks?.(); setBoardRefreshKey(k => k + 1); }}
         members={data.members}
         allTasks={data.tasks}
+        lang={lang}
       />
       <FloatingTimer
         onOpenTask={(id) => setDrawerTaskId(id)}

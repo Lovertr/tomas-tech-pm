@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
     const { data: due } = await supabaseAdmin.from("recurring_tasks").select("*").eq("active", true).lte("next_run_date", today);
     if (!due?.length) return NextResponse.json({ generated: 0 });
     const newTasks = due.map(r => ({
-      project_id: r.project_id, title: r.title, description: r.description,
-      priority: r.priority, assignee_id: r.assignee_id, estimated_hours: r.estimated_hours,
-      tags: r.tags, status: "todo", due_date: r.next_run_date,
+      project_id: r.project_id, title: r.title, title_en: r.title_en || null, title_jp: r.title_jp || null,
+      description: r.description, priority: r.priority, assignee_id: r.assignee_id,
+      estimated_hours: r.estimated_hours, tags: r.tags, status: "todo", due_date: r.next_run_date,
     }));
     await supabaseAdmin.from("tasks").insert(newTasks);
     for (const r of due) {
@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "title, project_id, frequency, next_run_date required" }, { status: 400 });
   }
   const { data, error } = await supabaseAdmin.from("recurring_tasks").insert({
-    project_id: b.project_id, title: b.title, description: b.description || null,
-    priority: b.priority || "medium", assignee_id: b.assignee_id || null,
+    project_id: b.project_id, title: b.title, title_en: b.title_en || null, title_jp: b.title_jp || null,
+    description: b.description || null, priority: b.priority || "medium", assignee_id: b.assignee_id || null,
     estimated_hours: b.estimated_hours ?? null, tags: b.tags ?? null,
     frequency: b.frequency, day_of_week: b.day_of_week ?? null, day_of_month: b.day_of_month ?? null,
     next_run_date: b.next_run_date, active: b.active ?? true, created_by: ctx.userId,

@@ -6,7 +6,8 @@ import TranslateButton from "./TranslateButton";
 
 interface Member { id: string; first_name_th?: string | null; last_name_th?: string | null; first_name_en?: string | null; last_name_en?: string | null; }
 interface Task {
-  id: string; title: string; description?: string | null; status: string; priority: string;
+  id: string; title: string; title_en?: string | null; title_jp?: string | null;
+  description?: string | null; status: string; priority: string;
   assignee_id?: string | null; due_date?: string | null; start_date?: string | null;
   estimated_hours?: number | null; actual_hours?: number | null; project_id: string;
   tags?: string[] | null;
@@ -66,6 +67,11 @@ const depTypeShort = (v: string) => {
   return v;
 };
 
+const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm";
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>{children}</div>;
+}
+
 interface Props {
   open: boolean;
   taskId: string | null;
@@ -73,11 +79,18 @@ interface Props {
   onChange?: () => void;
   members: Member[];
   allTasks?: Task[];
+  lang?: string;
 }
+
+const getTitle = (t: Task | null, lang: string) => {
+  if (!t) return "";
+  return lang === "jp" ? (t.title_jp || t.title_en || t.title) :
+    lang === "en" ? (t.title_en || t.title) : t.title;
+};
 
 type Tab = "details" | "comments" | "checklist" | "deps" | "files" | "activity";
 
-export default function TaskDetailDrawer({ open, taskId, onClose, onChange, members, allTasks = [] }: Props) {
+export default function TaskDetailDrawer({ open, taskId, onClose, onChange, members, allTasks = [], lang = "th" }: Props) {
   const [tab, setTab] = useState<Tab>("details");
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(false);
@@ -266,9 +279,16 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
             <div className="px-4 md:px-6 pb-3 md:pb-4">
               <input
                 className="w-full bg-transparent text-base md:text-xl font-semibold text-gray-900 border-0 focus:outline-none focus:bg-[#F1F5F9] rounded px-2 py-1 -mx-2"
-                value={task.title}
-                onChange={(e) => setTask({ ...task, title: e.target.value })}
-                onBlur={(e) => e.target.value !== "" && updateTask({ title: e.target.value })}
+                value={lang === "jp" ? (task.title_jp ?? task.title) : lang === "en" ? (task.title_en ?? task.title) : task.title}
+                onChange={(e) => {
+                  const field = lang === "jp" ? "title_jp" : lang === "en" ? "title_en" : "title";
+                  setTask({ ...task, [field]: e.target.value });
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === "") return;
+                  const field = lang === "jp" ? "title_jp" : lang === "en" ? "title_en" : "title";
+                  updateTask({ [field]: e.target.value });
+                }}
               />
               <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-3">
                 <select
@@ -500,17 +520,3 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
     </div>
   );
 }
-
-const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:border-[#00AEEF]";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wide">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-// Suppress unused icon warnings
-void MessageSquare; void CheckSquare; void GitBranch;

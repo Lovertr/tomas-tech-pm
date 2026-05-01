@@ -10,12 +10,20 @@ interface Props {
   projects: DBProject[];
   members: DBMember[];
   onSubmit: (payload: Partial<DBTask>) => Promise<void>;
+  lang?: string;
 }
+
+const labels: Record<string, Record<string, string>> = {
+  th: { taskName: "ชื่อ Task (ไทย) *", taskNameEn: "ชื่อ Task (อังกฤษ)", taskNameJp: "ชื่อ Task (ญี่ปุ่น)", project: "โครงการ *", selectProject: "-- เลือกโครงการ --", assignee: "ผู้รับผิดชอบ", noAssignee: "-- ไม่ระบุ --", description: "รายละเอียด", status: "สถานะ", priority: "ความสำคัญ", dueDate: "Due date", estHours: "ชั่วโมงประมาณ", editTask: "แก้ไข Task", addTask: "เพิ่ม Task ใหม่", required: "Title และ Project จำเป็น" },
+  en: { taskName: "Task Name (Thai) *", taskNameEn: "Task Name (English)", taskNameJp: "Task Name (Japanese)", project: "Project *", selectProject: "-- Select Project --", assignee: "Assignee", noAssignee: "-- None --", description: "Description", status: "Status", priority: "Priority", dueDate: "Due date", estHours: "Est. Hours", editTask: "Edit Task", addTask: "New Task", required: "Title and Project are required" },
+  jp: { taskName: "タスク名（タイ語） *", taskNameEn: "タスク名（英語）", taskNameJp: "タスク名（日本語）", project: "プロジェクト *", selectProject: "-- 選択 --", assignee: "担当者", noAssignee: "-- 未指定 --", description: "説明", status: "ステータス", priority: "優先度", dueDate: "期限", estHours: "見積時間", editTask: "タスク編集", addTask: "新規タスク", required: "タイトルとプロジェクトは必須です" },
+};
 
 const STATUS = ["backlog", "todo", "in_progress", "review", "done"];
 const PRIORITY = ["low", "medium", "high", "urgent"];
 
-export default function TaskModal({ open, onClose, initial, projects, members, onSubmit }: Props) {
+export default function TaskModal({ open, onClose, initial, projects, members, onSubmit, lang = "th" }: Props) {
+  const lb = labels[lang] || labels.th;
   const [form, setForm] = useState<Partial<DBTask>>({});
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -35,7 +43,7 @@ export default function TaskModal({ open, onClose, initial, projects, members, o
 
   const submit = async () => {
     if (!form.title || !form.project_id) {
-      setErr("Title และ Project จำเป็น");
+      setErr(lb.required);
       return;
     }
     setSaving(true); setErr(null);
@@ -45,23 +53,33 @@ export default function TaskModal({ open, onClose, initial, projects, members, o
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={initial ? "แก้ไข Task" : "เพิ่ม Task ใหม่"} maxWidth="max-w-xl">
+    <Modal open={open} onClose={onClose} title={initial ? lb.editTask : lb.addTask} maxWidth="max-w-xl">
       <div className="space-y-4">
         <div>
-          <label className={fieldLabel}>ชื่อ Task *</label>
+          <label className={fieldLabel}>{lb.taskName}</label>
           <input className={fieldInput} value={form.title ?? ""} onChange={(e) => set("title", e.target.value)} />
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={fieldLabel}>{lb.taskNameEn}</label>
+            <input className={fieldInput} value={(form as Record<string, unknown>).title_en as string ?? ""} onChange={(e) => setForm(f => ({ ...f, title_en: e.target.value || null } as Partial<DBTask>))} placeholder="English title" />
+          </div>
+          <div>
+            <label className={fieldLabel}>{lb.taskNameJp}</label>
+            <input className={fieldInput} value={(form as Record<string, unknown>).title_jp as string ?? ""} onChange={(e) => setForm(f => ({ ...f, title_jp: e.target.value || null } as Partial<DBTask>))} placeholder="日本語タイトル" />
+          </div>
+        </div>
         <div>
-          <label className={fieldLabel}>โครงการ *</label>
+          <label className={fieldLabel}>{lb.project}</label>
           <select className={fieldInput} value={form.project_id ?? ""} onChange={(e) => set("project_id", e.target.value)}>
-            <option value="">-- เลือกโครงการ --</option>
+            <option value="">{lb.selectProject}</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.name_th || p.name_en}</option>)}
           </select>
         </div>
         <div>
-          <label className={fieldLabel}>ผู้รับผิดชอบ</label>
+          <label className={fieldLabel}>{lb.assignee}</label>
           <select className={fieldInput} value={form.assignee_id ?? ""} onChange={(e) => set("assignee_id", e.target.value || null)}>
-            <option value="">-- ไม่ระบุ --</option>
+            <option value="">{lb.noAssignee}</option>
             {members.map(m => (
               <option key={m.id} value={m.id}>
                 {[m.first_name_th, m.last_name_th].filter(Boolean).join(" ") || [m.first_name_en, m.last_name_en].filter(Boolean).join(" ")}
@@ -70,18 +88,18 @@ export default function TaskModal({ open, onClose, initial, projects, members, o
           </select>
         </div>
         <div>
-          <label className={fieldLabel}>รายละเอียด</label>
+          <label className={fieldLabel}>{lb.description}</label>
           <textarea className={fieldInput} rows={2} value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={fieldLabel}>สถานะ</label>
+            <label className={fieldLabel}>{lb.status}</label>
             <select className={fieldInput} value={form.status ?? "todo"} onChange={(e) => set("status", e.target.value)}>
               {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <label className={fieldLabel}>ความสำคัญ</label>
+            <label className={fieldLabel}>{lb.priority}</label>
             <select className={fieldInput} value={form.priority ?? "medium"} onChange={(e) => set("priority", e.target.value)}>
               {PRIORITY.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -93,7 +111,7 @@ export default function TaskModal({ open, onClose, initial, projects, members, o
             <input type="date" className={fieldInput} value={form.due_date ?? ""} onChange={(e) => set("due_date", e.target.value || null)} />
           </div>
           <div>
-            <label className={fieldLabel}>ชั่วโมงประมาณ</label>
+            <label className={fieldLabel}>{lb.estHours}</label>
             <div className="flex gap-2">
               <input type="number" className={fieldInput} value={form.estimated_hours ?? ""} onChange={(e) => set("estimated_hours", e.target.value ? Number(e.target.value) : null)} />
               <button

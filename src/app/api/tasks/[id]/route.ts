@@ -36,7 +36,7 @@ export async function GET(
 }
 
 const ALLOWED = [
-  "title", "description", "status", "priority", "assignee_id",
+  "title", "title_en", "title_jp", "description", "status", "priority", "assignee_id",
   "reporter_id", "start_date", "due_date", "completed_at",
   "estimated_hours", "actual_hours", "sort_order", "tags", "parent_task_id",
 ];

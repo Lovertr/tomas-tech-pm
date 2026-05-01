@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
-const ALLOWED = ["title", "description", "priority", "assignee_id", "estimated_hours", "tags",
+const ALLOWED = ["title", "title_en", "title_jp", "description", "priority", "assignee_id", "estimated_hours", "tags",
   "frequency", "day_of_week", "day_of_month", "next_run_date", "active"];
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

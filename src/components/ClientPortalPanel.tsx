@@ -4,7 +4,7 @@ import {
   Plus, Link2, Copy, Check, Trash2, Pause, Play, ExternalLink, Eye, Mail,
   MessageSquare, AlertTriangle, CheckCircle2, XCircle, Clock, UserPlus,
   ChevronDown, ChevronUp, ArrowRightCircle, X, FileText, Image as ImageIcon, Video,
-  Loader2, Send
+  Loader2, Send, Paperclip
 } from "lucide-react";
 
 /* ---------- types ---------- */
@@ -100,6 +100,9 @@ const cpT: Record<string, Record<string, string>> = {
     chatWithClient: "แชทกับลูกค้า",
     noMessages: "ยังไม่มีข้อความ",
     chatPlaceholder: "พิมพ์ข้อความตอบกลับลูกค้า...",
+    chatAttach: "แนบไฟล์",
+    chatUploading: "กำลังอัปโหลด...",
+    chatUploadFailed: "อัปโหลดไม่สำเร็จ",
     // Convert modal
     convertModalTitle: "สร้างเป็นงานในโปรเจค",
     assignee: "ผู้รับผิดชอบ",
@@ -180,6 +183,9 @@ const cpT: Record<string, Record<string, string>> = {
     chatWithClient: "Chat with Client",
     noMessages: "No messages yet",
     chatPlaceholder: "Type your response to the client...",
+    chatAttach: "Attach File",
+    chatUploading: "Uploading...",
+    chatUploadFailed: "Upload failed",
     // Convert modal
     convertModalTitle: "Create Task in Project",
     assignee: "Assignee",
@@ -260,6 +266,9 @@ const cpT: Record<string, Record<string, string>> = {
     chatWithClient: "クライアントとのチャット",
     noMessages: "メッセージはまだありません",
     chatPlaceholder: "クライアントへのメッセージを入力...",
+    chatAttach: "ファイル添付",
+    chatUploading: "アップロード中...",
+    chatUploadFailed: "アップロード失敗",
     // Convert modal
     convertModalTitle: "プロジェクトでタスクを作成",
     assignee: "割り当て先",
@@ -685,7 +694,8 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
 }
 
 /* ---------- Chat Thread (Team side) ---------- */
-interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; created_at: string; }
+interface ChatAttachment { url: string; name: string; type: string; size: number; }
+interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; attachments?: ChatAttachment[]; created_at: string; }
 
 function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: string }) {
   const t = cpT[lang] || cpT.th;
@@ -693,7 +703,10 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
   const [loading, setLoading] = useState(false);
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<ChatAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchComments = useCallback(async () => {
     setLoading(true);
@@ -714,17 +727,42 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      if (file.size > 50 * 1024 * 1024) { alert("File too large (max 50MB)"); continue; }
+      const fd = new FormData();
+      fd.append("file", file);
+      try {
+        const r = await fetch("/api/client-portal/upload", { method: "POST", body: fd });
+        if (r.ok) {
+          const d = await r.json();
+          setPendingFiles(prev => [...prev, d.attachment]);
+        } else { alert(t.chatUploadFailed); }
+      } catch { alert(t.chatUploadFailed); }
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSend = async () => {
-    if (!newMsg.trim() || sending) return;
+    if ((!newMsg.trim() && pendingFiles.length === 0) || sending) return;
     setSending(true);
     try {
       const r = await fetch("/api/client-portal/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request_id: requestId, message: newMsg.trim() }),
+        body: JSON.stringify({
+          request_id: requestId,
+          message: newMsg.trim() || (pendingFiles.length > 0 ? `📎 ${pendingFiles.map(f => f.name).join(", ")}` : ""),
+          attachments: pendingFiles.length > 0 ? pendingFiles : undefined,
+        }),
       });
       if (r.ok) {
         setNewMsg("");
+        setPendingFiles([]);
         fetchComments();
       }
     } finally {
@@ -759,6 +797,27 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
                   {c.sender_type === "client" ? `🧑 ${c.sender_name}` : c.sender_name}
                 </p>
                 <p className="text-sm whitespace-pre-wrap">{c.message}</p>
+                {/* Attachment previews */}
+                {c.attachments && c.attachments.length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {c.attachments.map((a, i) => (
+                      a.type?.startsWith("image") ? (
+                        <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={a.url} alt={a.name} className="max-w-full max-h-48 rounded-lg border border-white/20" />
+                        </a>
+                      ) : a.type?.startsWith("video") ? (
+                        <video key={i} src={a.url} controls className="max-w-full max-h-48 rounded-lg" />
+                      ) : (
+                        <a key={i} href={a.url} target="_blank" rel="noopener noreferrer"
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs ${c.sender_type === "team" ? "bg-white/20 text-white hover:bg-white/30" : "bg-white border text-gray-700 hover:bg-gray-50"}`}
+                        >
+                          <FileText size={12} />
+                          <span className="truncate max-w-[150px]">{a.name}</span>
+                        </a>
+                      )
+                    ))}
+                  </div>
+                )}
                 <p className={`text-[10px] mt-1 ${c.sender_type === "team" ? "text-blue-200" : "text-gray-400"}`}>
                   {new Date(c.created_at).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}
                   {" · "}
@@ -771,8 +830,48 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
         </div>
       )}
 
-      {/* Message input */}
-      <div className="flex gap-2 mt-2">
+      {/* Pending attachments preview */}
+      {pendingFiles.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2 p-2 bg-gray-50 rounded-lg border">
+          {pendingFiles.map((f, i) => (
+            <div key={i} className="relative group">
+              {f.type?.startsWith("image") ? (
+                <img src={f.url} alt={f.name} className="w-16 h-16 object-cover rounded-lg border" />
+              ) : (
+                <div className="w-16 h-16 rounded-lg border bg-white flex flex-col items-center justify-center p-1">
+                  {f.type?.startsWith("video") ? <Video size={16} className="text-purple-500" /> : <FileText size={16} className="text-blue-500" />}
+                  <span className="text-[8px] text-gray-500 truncate w-full text-center mt-1">{f.name}</span>
+                </div>
+              )}
+              <button
+                onClick={() => setPendingFiles(prev => prev.filter((_, idx) => idx !== i))}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Message input with attach button */}
+      <div className="flex gap-2 mt-2 items-end">
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 shrink-0 disabled:opacity-40"
+          title={t.chatAttach}
+        >
+          {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
+        </button>
         <input
           type="text"
           value={newMsg}
@@ -783,7 +882,7 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
         />
         <button
           onClick={handleSend}
-          disabled={!newMsg.trim() || sending}
+          disabled={(!newMsg.trim() && pendingFiles.length === 0) || sending}
           className="w-9 h-9 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
           style={{ backgroundColor: "#003087" }}
         >

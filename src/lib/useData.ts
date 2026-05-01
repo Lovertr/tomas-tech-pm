@@ -65,6 +65,8 @@ export interface DBTask {
   project_id: string;
   parent_task_id: string | null;
   title: string;
+  title_en: string | null;
+  title_jp: string | null;
   description: string | null;
   status: string;
   priority: string;

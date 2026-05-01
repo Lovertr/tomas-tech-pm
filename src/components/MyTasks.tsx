@@ -3,11 +3,16 @@ import { useEffect, useState, useCallback } from "react";
 import { Calendar, AlertCircle, CheckCircle2, Clock, Play, Square, ChevronRight } from "lucide-react";
 
 interface Task {
-  id: string; title: string; status: string; priority: string;
+  id: string; title: string; title_en?: string | null; title_jp?: string | null;
+  status: string; priority: string;
   due_date?: string | null; estimated_hours?: number | null; actual_hours?: number | null;
   project_id: string;
   projects?: { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null };
 }
+
+const tTitle = (t: Task, lang: string) =>
+  lang === "jp" ? (t.title_jp || t.title_en || t.title) :
+  lang === "en" ? (t.title_en || t.title) : t.title;
 
 const PRIO_DOT: Record<string, string> = {
   urgent: "bg-red-600", high: "bg-orange-600", medium: "bg-blue-600", low: "bg-gray-600",
@@ -20,9 +25,10 @@ const STATUS_COLOR: Record<string, string> = {
 interface Props {
   onTaskClick: (id: string) => void;
   refreshKey?: number;
+  lang?: string;
 }
 
-export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
+export default function MyTasks({ onTaskClick, refreshKey = 0, lang = "th" }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState<{ id: string; task_id?: string; started_at: string } | null>(null);
@@ -104,7 +110,7 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{proj?.project_code || "—"}</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_COLOR[t.status] || "bg-gray-100 text-gray-600"}`}>{t.status}</span>
           </div>
-          <div className="text-sm text-gray-900 truncate">{t.title}</div>
+          <div className="text-sm text-gray-900 truncate">{tTitle(t, lang)}</div>
           <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
             {due && <span className="flex items-center gap-1"><Calendar size={11} />{due.toLocaleDateString("th-TH", { month: "short", day: "numeric" })}</span>}
             {t.estimated_hours ? <span className="flex items-center gap-1"><Clock size={11} />{Number(t.estimated_hours).toFixed(1)}h</span> : null}
@@ -146,10 +152,10 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="งานทั้งหมด" value={total} icon={CheckCircle2} color="#00AEEF" />
-        <StatCard label="กำลังทำ" value={inProgress} icon={Clock} color="#F7941D" />
-        <StatCard label="ครบกำหนดวันนี้" value={dueToday} icon={Calendar} color="#A855F7" />
-        <StatCard label="เลยกำหนด" value={overdue} icon={AlertCircle} color="#EF4444" />
+        <StatCard label={lang === "jp" ? "全タスク" : lang === "en" ? "All Tasks" : "งานทั้งหมด"} value={total} icon={CheckCircle2} color="#00AEEF" />
+        <StatCard label={lang === "jp" ? "進行中" : lang === "en" ? "In Progress" : "กำลังทำ"} value={inProgress} icon={Clock} color="#F7941D" />
+        <StatCard label={lang === "jp" ? "本日期限" : lang === "en" ? "Due Today" : "ครบกำหนดวันนี้"} value={dueToday} icon={Calendar} color="#A855F7" />
+        <StatCard label={lang === "jp" ? "期限超過" : lang === "en" ? "Overdue" : "เลยกำหนด"} value={overdue} icon={AlertCircle} color="#EF4444" />
       </div>
 
       {/* Active timer banner */}
@@ -159,7 +165,7 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <div>
               <div className="text-sm font-medium text-gray-900">Timer running</div>
-              <div className="text-xs text-gray-500">{tasks.find(t => t.id === timer.task_id)?.title || "task"}</div>
+              <div className="text-xs text-gray-500">{(() => { const found = tasks.find(t => t.id === timer.task_id); return found ? tTitle(found, lang) : "task"; })()}</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -175,17 +181,18 @@ export default function MyTasks({ onTaskClick, refreshKey = 0 }: Props) {
       {!loading && tasks.length === 0 && (
         <div className="text-center py-16 bg-white border border-gray-300 rounded-2xl">
           <CheckCircle2 size={48} className="mx-auto text-green-400 mb-3" />
-          <div className="text-lg font-semibold text-gray-900">ไม่มีงานค้าง</div>
-          <div className="text-sm text-gray-500 mt-1">เคลียร์งานหมดแล้ว ดีมาก</div>
+          <div className="text-lg font-semibold text-gray-900">{lang === "jp" ? "未処理タスクなし" : lang === "en" ? "No pending tasks" : "ไม่มีงานค้าง"}</div>
+          <div className="text-sm text-gray-500 mt-1">{lang === "jp" ? "全てクリアしました" : lang === "en" ? "All clear, great job!" : "เคลียร์งานหมดแล้ว ดีมาก"}</div>
         </div>
       )}
 
-      <Section title="เลยกำหนด" items={groups.overdue} accent="#EF4444" />
-      <Section title="วันนี้" items={groups.today} accent="#F7941D" />
-      <Section title="3 วันข้างหน้า" items={groups.next3} accent="#00AEEF" />
-      <Section title="7 วันข้างหน้า" items={groups.next7} accent="#3B82F6" />
-      <Section title="ภายหลัง" items={groups.later} accent="#64748B" />
-      <Section title="ไม่กำหนดวัน" items={groups.noDate} accent="#475569" />
+      <Section title={lang === "jp" ? "期限超過" : lang === "en" ? "Overdue" : "เลยกำหนด"} items={groups.overdue} accent="#EF4444" />
+      <Section title={lang === "jp" ? "期限超過" : lang === "en" ? "Overdue" : "เลยกำหนด"} items={groups.overdue} accent="#EF4444" />
+      <Section title={lang === "jp" ? "今日" : lang === "en" ? "Today" : "วันนี้"} items={groups.today} accent="#F7941D" />
+      <Section title={lang === "jp" ? "3日以内" : lang === "en" ? "Next 3 Days" : "3 วันข้างหน้า"} items={groups.next3} accent="#00AEEF" />
+      <Section title={lang === "jp" ? "7日以内" : lang === "en" ? "Next 7 Days" : "7 วันข้างหน้า"} items={groups.next7} accent="#3B82F6" />
+      <Section title={lang === "jp" ? "それ以降" : lang === "en" ? "Later" : "ภายหลัง"} items={groups.later} accent="#64748B" />
+      <Section title={lang === "jp" ? "日付なし" : lang === "en" ? "No Date" : "ไม่กำหนดวัน"} items={groups.noDate} accent="#475569" />
     </div>
   );
 }

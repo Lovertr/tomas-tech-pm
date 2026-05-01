@@ -22,7 +22,7 @@ interface ClientRequest {
   response_to_client?: string; created_at: string; updated_at?: string; resolved_at?: string;
 }
 interface Attachment { url: string; name: string; type: string; size: number; }
-interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; created_at: string; }
+interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; attachments?: Attachment[]; created_at: string; }
 interface TokenInfo { id: string; client_name?: string; client_email?: string; }
 interface Permissions { view_progress: boolean; submit_requests: boolean; view_tasks: boolean; view_milestones: boolean; }
 
@@ -91,6 +91,10 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     planning: "วางแผน", active: "กำลังดำเนินการ", on_hold: "ระงับชั่วคราว",
     proj_completed: "เสร็จสมบูรณ์", proj_cancelled: "ยกเลิก",
     fromClient: "จากลูกค้า",
+    chatAttach: "แนบไฟล์",
+    chatUploading: "กำลังอัปโหลด...",
+    chatUploadFailed: "อัปโหลดไม่สำเร็จ",
+    downloadFile: "ดาวน์โหลด",
   },
   en: {
     loading: "Loading project data...",
@@ -152,6 +156,10 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     planning: "Planning", active: "Active", on_hold: "On Hold",
     proj_completed: "Completed", proj_cancelled: "Cancelled",
     fromClient: "From Client",
+    chatAttach: "Attach File",
+    chatUploading: "Uploading...",
+    chatUploadFailed: "Upload failed",
+    downloadFile: "Download",
   },
   jp: {
     loading: "プロジェクトデータを読み込み中...",
@@ -213,6 +221,10 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     planning: "計画中", active: "進行中", on_hold: "保留中",
     proj_completed: "完了", proj_cancelled: "キャンセル",
     fromClient: "お客様より",
+    chatAttach: "ファイル添付",
+    chatUploading: "アップロード中...",
+    chatUploadFailed: "アップロード失敗",
+    downloadFile: "ダウンロード",
   },
 };
 
@@ -733,7 +745,10 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
   const [loadingComments, setLoadingComments] = useState(false);
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<Attachment[]>([]);
+  const [uploading, setUploading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const st = REQUEST_STATUS[cr.status] || REQUEST_STATUS.pending;
 
   const fetchComments = useCallback(async () => {
@@ -757,17 +772,44 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      if (file.size > 50 * 1024 * 1024) { alert(t.fileTooLarge); continue; }
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("token", token);
+      try {
+        const r = await fetch("/api/client-portal/upload", { method: "POST", body: fd });
+        if (r.ok) {
+          const d = await r.json();
+          setPendingFiles(prev => [...prev, d.attachment]);
+        } else { alert(t.chatUploadFailed); }
+      } catch { alert(t.chatUploadFailed); }
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSend = async () => {
-    if (!newMsg.trim() || sending) return;
+    if ((!newMsg.trim() && pendingFiles.length === 0) || sending) return;
     setSending(true);
     try {
       const r = await fetch("/api/client-portal/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request_id: cr.id, message: newMsg.trim(), token }),
+        body: JSON.stringify({
+          request_id: cr.id,
+          message: newMsg.trim() || (pendingFiles.length > 0 ? `📎 ${pendingFiles.map(f => f.name).join(", ")}` : ""),
+          token,
+          attachments: pendingFiles.length > 0 ? pendingFiles : undefined,
+        }),
       });
       if (r.ok) {
         setNewMsg("");
+        setPendingFiles([]);
         fetchComments();
       }
     } finally {
@@ -859,6 +901,27 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
                         <p className="text-[10px] font-semibold text-blue-700 mb-0.5">{c.sender_name}</p>
                       )}
                       <p className="text-sm whitespace-pre-wrap">{c.message}</p>
+                      {/* Attachment previews */}
+                      {c.attachments && c.attachments.length > 0 && (
+                        <div className="mt-2 space-y-1.5">
+                          {c.attachments.map((a, i) => (
+                            a.type?.startsWith("image") ? (
+                              <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" className="block">
+                                <img src={a.url} alt={a.name} className="max-w-full max-h-48 rounded-lg border border-white/20" />
+                              </a>
+                            ) : a.type?.startsWith("video") ? (
+                              <video key={i} src={a.url} controls className="max-w-full max-h-48 rounded-lg" />
+                            ) : (
+                              <a key={i} href={a.url} target="_blank" rel="noopener noreferrer"
+                                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs ${c.sender_type === "client" ? "bg-white/20 text-white hover:bg-white/30" : "bg-white border text-gray-700 hover:bg-gray-50"}`}
+                              >
+                                <FileText size={12} />
+                                <span className="truncate max-w-[150px]">{a.name}</span>
+                              </a>
+                            )
+                          ))}
+                        </div>
+                      )}
                       <p className={`text-[10px] mt-1 ${c.sender_type === "client" ? "text-blue-200" : "text-gray-400"}`}>
                         {new Date(c.created_at).toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" })}
                         {" · "}
@@ -871,8 +934,48 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
               </div>
             )}
 
-            {/* Message input */}
-            <div className="flex gap-2 mt-2">
+            {/* Pending attachments preview */}
+            {pendingFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2 p-2 bg-gray-50 rounded-lg border">
+                {pendingFiles.map((f, i) => (
+                  <div key={i} className="relative group">
+                    {f.type?.startsWith("image") ? (
+                      <img src={f.url} alt={f.name} className="w-16 h-16 object-cover rounded-lg border" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg border bg-white flex flex-col items-center justify-center p-1">
+                        {f.type?.startsWith("video") ? <Video size={16} className="text-purple-500" /> : <FileText size={16} className="text-blue-500" />}
+                        <span className="text-[8px] text-gray-500 truncate w-full text-center mt-1">{f.name}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setPendingFiles(prev => prev.filter((_, idx) => idx !== i))}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Message input with attach button */}
+            <div className="flex gap-2 mt-2 items-end">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 shrink-0 disabled:opacity-40"
+                title={t.chatAttach}
+              >
+                {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
+              </button>
               <input
                 type="text"
                 value={newMsg}
@@ -883,7 +986,7 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
               />
               <button
                 onClick={handleSend}
-                disabled={!newMsg.trim() || sending}
+                disabled={(!newMsg.trim() && pendingFiles.length === 0) || sending}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
                 style={{ backgroundColor: "#003087" }}
               >

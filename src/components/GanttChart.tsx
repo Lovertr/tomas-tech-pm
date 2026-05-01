@@ -21,7 +21,7 @@ const STATUS_BAR: Record<string, string> = {
 type Zoom = "day" | "week" | "month";
 const PX_PER_UNIT: Record<Zoom, number> = { day: 32, week: 18, month: 6 };
 const ROW_H = 36;
-const HEADER_H = 48;
+const HEADER_H = 52;
 
 const dayDiff = (a: Date, b: Date) => Math.round((a.getTime() - b.getTime()) / 86400000);
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -88,38 +88,79 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
 
   const totalWidth = range ? range.totalDays * pxPerDay : 0;
 
-  // Build header ticks
-  const ticks = useMemo(() => {
-    if (!range) return [];
-    const out: { x: number; label: string; major: boolean }[] = [];
-    const cursor = new Date(range.start);
+  // Build header ticks — two-row: top = month/year, bottom = day/week numbers
+  const headerTicks = useMemo(() => {
+    if (!range) return { top: [] as { x: number; w: number; label: string }[], bottom: [] as { x: number; label: string; sub: string; major: boolean }[] };
+    const top: { x: number; w: number; label: string }[] = [];
+    const bottom: { x: number; label: string; sub: string; major: boolean }[] = [];
+
     if (zoom === "day") {
+      // Top row: month groups
+      let curMonth = -1; let monthStart = 0;
+      for (let i = 0; i <= range.totalDays; i++) {
+        const d = addDays(range.start, i);
+        const m = d.getMonth();
+        if (m !== curMonth) {
+          if (curMonth !== -1) {
+            const md = addDays(range.start, monthStart);
+            top.push({ x: monthStart * pxPerDay, w: (i - monthStart) * pxPerDay, label: md.toLocaleDateString("th-TH", { month: "long", year: "numeric" }) });
+          }
+          curMonth = m; monthStart = i;
+        }
+      }
+      if (curMonth !== -1) {
+        const md = addDays(range.start, monthStart);
+        top.push({ x: monthStart * pxPerDay, w: (range.totalDays - monthStart) * pxPerDay, label: md.toLocaleDateString("th-TH", { month: "long", year: "numeric" }) });
+      }
+      // Bottom row: day numbers
       for (let i = 0; i < range.totalDays; i++) {
         const d = addDays(range.start, i);
-        out.push({ x: i * pxPerDay, label: d.toLocaleDateString("th-TH", { day: "2-digit", month: "short" }), major: d.getDay() === 1 });
+        const isMon = d.getDay() === 1;
+        const isSun = d.getDay() === 0;
+        const isSat = d.getDay() === 6;
+        bottom.push({ x: i * pxPerDay, label: String(d.getDate()), sub: isSun || isSat ? "wknd" : "", major: isMon });
       }
     } else if (zoom === "week") {
-      // Snap to Mondays
-      let i = 0;
-      const d0 = new Date(cursor);
-      while (d0.getDay() !== 1 && i < 7) { d0.setDate(d0.getDate() + 1); i++; }
+      // Top row: month groups
+      let curMonth = -1; let monthStart = 0;
+      for (let i = 0; i <= range.totalDays; i++) {
+        const d = addDays(range.start, i);
+        const m = d.getMonth();
+        if (m !== curMonth) {
+          if (curMonth !== -1) {
+            const md = addDays(range.start, monthStart);
+            top.push({ x: monthStart * pxPerDay, w: (i - monthStart) * pxPerDay, label: md.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }) });
+          }
+          curMonth = m; monthStart = i;
+        }
+      }
+      if (curMonth !== -1) {
+        const md = addDays(range.start, monthStart);
+        top.push({ x: monthStart * pxPerDay, w: (range.totalDays - monthStart) * pxPerDay, label: md.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }) });
+      }
+      // Bottom row: week start dates (Mondays)
+      let si = 0;
+      const d0 = new Date(range.start);
+      while (d0.getDay() !== 1 && si < 7) { d0.setDate(d0.getDate() + 1); si++; }
       const startOffset = dayDiff(d0, range.start);
       for (let j = startOffset; j < range.totalDays; j += 7) {
         const d = addDays(range.start, j);
-        out.push({ x: j * pxPerDay, label: `${d.toLocaleDateString("th-TH", { day: "2-digit", month: "short" })}`, major: true });
+        bottom.push({ x: j * pxPerDay, label: String(d.getDate()), sub: "", major: true });
       }
     } else {
-      // month — first of each month
+      // Month zoom — just month labels
       const firstMonth = new Date(range.start.getFullYear(), range.start.getMonth(), 1);
       const start = firstMonth < range.start ? new Date(range.start.getFullYear(), range.start.getMonth() + 1, 1) : firstMonth;
       const c = new Date(start);
       while (c <= range.end) {
         const off = dayDiff(c, range.start);
-        out.push({ x: off * pxPerDay, label: c.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }), major: true });
+        const next = new Date(c.getFullYear(), c.getMonth() + 1, 1);
+        const nextOff = Math.min(dayDiff(next, range.start), range.totalDays);
+        top.push({ x: off * pxPerDay, w: (nextOff - off) * pxPerDay, label: c.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }) });
         c.setMonth(c.getMonth() + 1);
       }
     }
-    return out;
+    return { top, bottom };
   }, [range, zoom, pxPerDay]);
 
   // Sort tasks: by start date, then due date
@@ -224,14 +265,38 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
           <svg width={totalWidth} height={chartHeight} className="block">
             {/* Header background */}
             <rect x={0} y={0} width={totalWidth} height={HEADER_H} fill="#F1F5F9" />
+            <line x1={0} x2={totalWidth} y1={24} y2={24} stroke="#E2E8F0" strokeWidth={1} />
+            <line x1={0} x2={totalWidth} y1={HEADER_H} y2={HEADER_H} stroke="#CBD5E1" strokeWidth={1} />
 
-            {/* Vertical tick lines */}
-            {ticks.map((tk, i) => (
-              <g key={i}>
-                <line x1={tk.x} x2={tk.x} y1={0} y2={chartHeight}
-                  stroke={tk.major ? "#E2E8F0" : "#E2E8F0"} strokeWidth={1} strokeDasharray={tk.major ? "" : "2 4"} />
-                <text x={tk.x + 4} y={28} fill={tk.major ? "#94A3B8" : "#64748B"} fontSize={11}>{tk.label}</text>
+            {/* Top row: month/year groups */}
+            {headerTicks.top.map((tk, i) => (
+              <g key={`top-${i}`}>
+                <line x1={tk.x} x2={tk.x} y1={0} y2={24} stroke="#CBD5E1" strokeWidth={1} />
+                <text x={tk.x + Math.min(tk.w / 2, 60)} y={16} fill="#475569" fontSize={11} fontWeight={600}
+                  textAnchor={tk.w > 120 ? "middle" : "start"}>{tk.label}</text>
               </g>
+            ))}
+
+            {/* Bottom row: day/week numbers + vertical grid lines */}
+            {headerTicks.bottom.map((tk, i) => (
+              <g key={`bot-${i}`}>
+                <line x1={tk.x} x2={tk.x} y1={24} y2={chartHeight}
+                  stroke={tk.major ? "#CBD5E1" : "#E2E8F0"} strokeWidth={tk.major ? 1 : 0.5} />
+                <text x={tk.x + (zoom === "day" ? pxPerDay / 2 : 4)} y={42}
+                  fill={tk.sub === "wknd" ? "#94A3B8" : "#64748B"} fontSize={11}
+                  fontWeight={tk.major ? 600 : 400}
+                  textAnchor={zoom === "day" ? "middle" : "start"}>{tk.label}</text>
+              </g>
+            ))}
+
+            {/* Month-zoom vertical lines */}
+            {zoom === "month" && headerTicks.top.map((tk, i) => (
+              <line key={`mg-${i}`} x1={tk.x} x2={tk.x} y1={0} y2={chartHeight} stroke="#CBD5E1" strokeWidth={1} />
+            ))}
+
+            {/* Weekend shading (day zoom only) */}
+            {zoom === "day" && headerTicks.bottom.filter(tk => tk.sub === "wknd").map((tk, i) => (
+              <rect key={`wk-${i}`} x={tk.x} y={HEADER_H} width={pxPerDay} height={chartHeight - HEADER_H} fill="#F1F5F9" opacity={0.6} />
             ))}
 
             {/* Today marker */}

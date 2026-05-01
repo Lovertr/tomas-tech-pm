@@ -11,12 +11,17 @@ interface Member {
 }
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
 interface BoardTask {
-  id: string; title: string; status: string; priority: string;
+  id: string; title: string; title_en?: string | null; title_jp?: string | null;
+  status: string; priority: string;
   project_id: string; assignee_id?: string | null; due_date?: string | null;
   estimated_hours?: number | null; actual_hours?: number | null;
   tags?: string[] | null;
   _comments?: number; _checklist_total?: number; _checklist_done?: number; _blocked_by?: number;
 }
+
+const taskTitle = (t: BoardTask, lang: string) =>
+  lang === "jp" ? (t.title_jp || t.title_en || t.title) :
+  lang === "en" ? (t.title_en || t.title) : t.title;
 
 const COLS: { key: string; label: string; color: string }[] = [
   { key: "backlog",     label: "Backlog",     color: "#64748B" },
@@ -50,9 +55,10 @@ interface Props {
   onAddTask?: (status?: string) => void;
   refreshKey?: number;
   canManage?: boolean;
+  lang?: string;
 }
 
-export default function KanbanBoard({ projects, members, filterProjectId = "all", onTaskClick, onAddTask, refreshKey = 0, canManage = true }: Props) {
+export default function KanbanBoard({ projects, members, filterProjectId = "all", onTaskClick, onAddTask, refreshKey = 0, canManage = true, lang = "th" }: Props) {
   const [tasks, setTasks] = useState<BoardTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -172,7 +178,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                       </div>
                     </div>
                     {/* title */}
-                    <h4 className="text-sm font-medium text-slate-900 mb-2 line-clamp-2">{task.title}</h4>
+                    <h4 className="text-sm font-medium text-slate-900 mb-2 line-clamp-2">{taskTitle(task, lang)}</h4>
                     {/* overdue badge */}
                     {task.due_date && task.status !== "done" && (
                       <div className="mb-2"><OverdueBadge date={task.due_date} completed={task.status === "done"} /></div>
@@ -226,7 +232,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
               })}
               {colTasks.length === 0 && !loading && (
                 <div className="text-xs text-gray-500 text-center py-8 border border-dashed border-[#E2E8F0] rounded-lg">
-                  วางการ์ดที่นี่
+                  {lang === "jp" ? "ここにカードをドロップ" : lang === "en" ? "Drop cards here" : "วางการ์ดที่นี่"}
                 </div>
               )}
             </div>
