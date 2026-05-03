@@ -97,6 +97,8 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     chatUploadFailed: "อัปโหลดไม่สำเร็จ",
     downloadFile: "ดาวน์โหลด",
     viewDay: "วัน", viewWeek: "สัปดาห์", viewMonth: "เดือน",
+    clientPortal: "พอร์ทัลลูกค้า",
+    submittedBy: "ส่งโดย:",
   },
   en: {
     loading: "Loading project data...",
@@ -163,6 +165,8 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     chatUploadFailed: "Upload failed",
     downloadFile: "Download",
     viewDay: "Day", viewWeek: "Week", viewMonth: "Month",
+    clientPortal: "Client Portal",
+    submittedBy: "Submitted by:",
   },
   jp: {
     loading: "プロジェクトデータを読み込み中...",
@@ -229,10 +233,12 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     chatUploadFailed: "アップロード失敗",
     downloadFile: "ダウンロード",
     viewDay: "日", viewWeek: "週", viewMonth: "月",
+    clientPortal: "クライアントポータル",
+    submittedBy: "送信者:",
   },
 };
 
-const LANG_FLAGS: Record<PortalLang, string> = { th: "🇹🇭", en: "🇺🇸", jp: "🇯🇵" };
+const LANG_LABELS: Record<PortalLang, string> = { th: "TH", en: "EN", jp: "JP" };
 
 /* ---------- constants ---------- */
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -401,8 +407,8 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                 TT
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">TOMAS TECH — Client Portal</p>
-                <h1 className="text-lg font-bold text-gray-900">{project.name_th}</h1>
+                <p className="text-xs text-gray-500 font-medium">TOMAS TECH — {t.clientPortal}</p>
+                <h1 className="text-lg font-bold text-gray-900">{lang === "en" && project.name_en ? project.name_en : project.name_th}</h1>
               </div>
             </div>
             {/* Language Selector */}
@@ -414,7 +420,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                   className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-gray-500 hover:bg-gray-100"}`}
                   style={lang === l ? { backgroundColor: "#003087" } : {}}
                 >
-                  {LANG_FLAGS[l]} {l.toUpperCase()}
+                  {LANG_LABELS[l]}
                 </button>
               ))}
             </div>
@@ -1420,7 +1426,7 @@ function SubmitRequestForm({
           <button
             onClick={handleSubmit}
             disabled={submitting || !form.title.trim() || !form.client_name.trim()}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex-1 py-2.5 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ backgroundColor: "#003087" }}
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
