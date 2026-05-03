@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-server";
 import { AiNotConfiguredError, langInstruction, detectTranscriptHallucination } from "@/lib/ai";
 
-// Increase body size limit for audio uploads (default is 1MB on Vercel)
-export const config = {
-  api: { bodyParser: { sizeLimit: "6mb" } },
-};
-// Next.js App Router: max request body
-export const maxDuration = 60; // allow longer processing for audio
+// Next.js App Router: allow longer processing for audio
+export const maxDuration = 60;
 
 // POST /api/ai/transcribe-audio
 // Accepts multipart form: audio file + optional lang
