@@ -16,7 +16,7 @@ interface Project {
   start_date?: string; end_date?: string; progress: number; client_name?: string;
 }
 interface Milestone { id: string; title: string; status: string; due_date?: string; completed_date?: string; }
-interface Task { id: string; title: string; status: string; priority: string; due_date?: string; start_date?: string; source?: string; client_request_id?: string; }
+interface Task { id: string; title: string; title_en?: string; title_jp?: string; description?: string; status: string; priority: string; due_date?: string; start_date?: string; source?: string; client_request_id?: string; }
 interface ClientRequest {
   id: string; request_type: string; title: string; description?: string;
   status: string; priority: string; attachments?: Attachment[];
@@ -26,6 +26,13 @@ interface Attachment { url: string; name: string; type: string; size: number; }
 interface Comment { id: string; sender_type: "client" | "team"; sender_name: string; message: string; attachments?: Attachment[]; created_at: string; }
 interface TokenInfo { id: string; client_name?: string; client_email?: string; }
 interface Permissions { view_progress: boolean; submit_requests: boolean; view_tasks: boolean; view_milestones: boolean; }
+
+/* ---------- helpers ---------- */
+const pickTaskTitle = (tk: Task, lang: string) => {
+  if (lang === "en" && tk.title_en) return tk.title_en;
+  if (lang === "jp" && tk.title_jp) return tk.title_jp;
+  return tk.title;
+};
 
 /* ---------- i18n ---------- */
 type PortalLang = "th" | "en" | "jp";
@@ -719,11 +726,14 @@ function TasksList({ tasks, lang }: { tasks: Task[]; lang: PortalLang }) {
                   const pri = PRIORITY_CONFIG[tk.priority] || PRIORITY_CONFIG.medium;
                   const isClient = tk.source === "client_portal";
                   return (
-                    <div key={tk.id} className="px-4 py-3 flex items-center gap-3">
-                      <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: pri.color }} />
+                    <div key={tk.id} className="px-4 py-3 flex items-start gap-3">
+                      <div className="w-1.5 mt-1 rounded-full flex-shrink-0" style={{ backgroundColor: pri.color, minHeight: "1.5rem" }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900">{tk.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-sm font-medium text-gray-900">{pickTaskTitle(tk, lang)}</p>
+                        {tk.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{tk.description}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
                           {tk.due_date && (
                             <span className="text-xs text-gray-500 flex items-center gap-1">
                               <Calendar size={10} />
@@ -1159,10 +1169,10 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
                 const dateLabel = `${t.start_date ? new Date(t.start_date).toLocaleDateString(loc, { day: "numeric", month: "short" }) : "?"} → ${t.due_date ? new Date(t.due_date).toLocaleDateString(loc, { day: "numeric", month: "short" }) : "?"}`;
                 return (
                   <div key={t.id} className={`flex items-center gap-2 h-8 ${idx % 2 === 0 ? "" : "bg-gray-50/50"} rounded`}>
-                    <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right font-medium">{t.title}</div>
+                    <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right font-medium">{pickTaskTitle(t, lang)}</div>
                     <div className="flex-1 relative h-6 rounded">
                       <div className="absolute inset-0 bg-gray-100/60 rounded" />
-                      <div className="absolute h-full rounded transition-all shadow-sm" style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.75 : 0.9 }} title={`${t.title}: ${dateLabel}`} />
+                      <div className="absolute h-full rounded transition-all shadow-sm" style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.75 : 0.9 }} title={`${pickTaskTitle(t, lang)}: ${dateLabel}`} />
                       {width > 12 && (
                         <span className="absolute text-[9px] text-white font-medium pointer-events-none" style={{ left: `${left + 0.5}%`, top: 5, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>{dateLabel}</span>
                       )}

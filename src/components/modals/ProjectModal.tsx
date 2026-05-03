@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Modal, { fieldLabel, fieldInput, btnPrimary, btnGhost } from "../Modal";
 import type { DBProject } from "@/lib/useData";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -13,20 +14,74 @@ interface Props {
 const STATUS = ["planning", "in_progress", "on_hold", "completed", "cancelled"];
 const PRIORITY = ["low", "medium", "high", "urgent"];
 
+type LangKey = "name_th" | "name_en" | "name_jp";
+const LANG_TARGETS: Record<LangKey, { key: LangKey; lang: string }[]> = {
+  name_th: [{ key: "name_en", lang: "en" }, { key: "name_jp", lang: "jp" }],
+  name_en: [{ key: "name_th", lang: "th" }, { key: "name_jp", lang: "jp" }],
+  name_jp: [{ key: "name_th", lang: "th" }, { key: "name_en", lang: "en" }],
+};
+
 export default function ProjectModal({ open, onClose, initial, onSubmit }: Props) {
   const [form, setForm] = useState<Partial<DBProject>>({});
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (open) {
       setForm(initial ?? { status: "planning", priority: "medium", progress: 0 });
       setErr(null);
     }
+    return () => { abortRef.current?.abort(); };
   }, [open, initial]);
 
   const set = <K extends keyof DBProject>(k: K, v: DBProject[K] | string | number | null) =>
     setForm((f) => ({ ...f, [k]: v as DBProject[K] }));
+
+  /* Auto-translate: when user blurs a name field with text, fill empty siblings */
+  const autoTranslate = useCallback(async (srcKey: LangKey) => {
+    const text = (form[srcKey] as string)?.trim();
+    if (!text) return;
+    const targets = LANG_TARGETS[srcKey].filter(t => !(form[t.key] as string)?.trim());
+    if (!targets.length) return;
+
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setTranslating(true);
+
+    try {
+      const results = await Promise.all(
+        targets.map(async t => {
+          try {
+            const res = await fetch("/api/ai/translate", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ text, targetLang: t.lang }),
+              signal: ctrl.signal,
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            return { key: t.key, value: data.translated as string };
+          } catch { return null; }
+        })
+      );
+      if (!ctrl.signal.aborted) {
+        setForm(f => {
+          const next = { ...f };
+          for (const r of results) {
+            if (r?.value && !(next[r.key] as string)?.trim()) {
+              (next as Record<string, unknown>)[r.key] = r.value;
+            }
+          }
+          return next;
+        });
+      }
+    } finally {
+      if (!ctrl.signal.aborted) setTranslating(false);
+    }
+  }, [form]);
 
   const submit = async () => {
     setSaving(true); setErr(null);
@@ -54,17 +109,22 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
         <div className="grid grid-cols-3 gap-4">
           <div>
             <label className={fieldLabel}>ชื่อ (TH)</label>
-            <input className={fieldInput} value={form.name_th ?? ""} onChange={(e) => set("name_th", e.target.value)} />
+            <input className={fieldInput} value={form.name_th ?? ""} onChange={(e) => set("name_th", e.target.value)} onBlur={() => autoTranslate("name_th")} />
           </div>
           <div>
             <label className={fieldLabel}>Name (EN)</label>
-            <input className={fieldInput} value={form.name_en ?? ""} onChange={(e) => set("name_en", e.target.value)} />
+            <input className={fieldInput} value={form.name_en ?? ""} onChange={(e) => set("name_en", e.target.value)} onBlur={() => autoTranslate("name_en")} />
           </div>
           <div>
             <label className={fieldLabel}>名前 (JP)</label>
-            <input className={fieldInput} value={form.name_jp ?? ""} onChange={(e) => set("name_jp", e.target.value)} />
+            <input className={fieldInput} value={form.name_jp ?? ""} onChange={(e) => set("name_jp", e.target.value)} onBlur={() => autoTranslate("name_jp")} />
           </div>
         </div>
+        {translating && (
+          <div className="flex items-center gap-2 text-xs text-blue-600">
+            <Loader2 size={12} className="animate-spin" /> กำลังแปลชื่อโครงการอัตโนมัติ...
+          </div>
+        )}
         <div>
           <label className={fieldLabel}>รายละเอียด</label>
           <textarea className={fieldInput} rows={2} value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} />

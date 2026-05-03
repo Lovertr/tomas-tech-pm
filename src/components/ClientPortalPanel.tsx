@@ -15,9 +15,9 @@ interface TokenRow {
   expires_at?: string | null; active: boolean;
   last_accessed_at?: string | null; access_count?: number | null;
   created_at: string; description?: string | null;
-  projects?: { id: string; project_code: string; name_th?: string; name_en?: string } | null;
+  projects?: { id: string; project_code: string; name_th?: string; name_en?: string; name_jp?: string } | null;
 }
-interface ProjectLite { id: string; project_code: string; name_th?: string; name_en?: string }
+interface ProjectLite { id: string; project_code: string; name_th?: string; name_en?: string; name_jp?: string }
 interface TeamMemberLite { id: string; first_name_th: string; last_name_th: string; }
 interface ClientRequest {
   id: string; project_id: string; token_id?: string;
@@ -33,6 +33,12 @@ interface ClientRequest {
 }
 
 const LOCALE_MAP: Record<string, string> = { th: "th-TH", en: "en-US", jp: "ja-JP" };
+const pickName = (p: { name_th?: string; name_en?: string; name_jp?: string } | null | undefined, lang: string) => {
+  if (!p) return "";
+  if (lang === "en" && p.name_en) return p.name_en;
+  if (lang === "jp" && p.name_jp) return p.name_jp;
+  return p.name_th || p.name_en || "";
+};
 const fmtDate = (d?: string | null, lang = "th") => (d ? new Date(d).toLocaleDateString(LOCALE_MAP[lang] || "th-TH") : "—");
 const fmtDateTime = (d: string, lang = "th") => new Date(d).toLocaleDateString(LOCALE_MAP[lang] || "th-TH", { day: "numeric", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
@@ -446,7 +452,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       {r.projects && <span className="text-xs font-mono text-gray-500">{r.projects.project_code}</span>}
-                      {r.projects && <span className="text-sm text-gray-900 font-medium">{r.projects.name_th || r.projects.name_en}</span>}
+                      {r.projects && <span className="text-sm text-gray-900 font-medium">{pickName(r.projects, lang)}</span>}
                       {r.client_name && <span className="text-sm text-gray-700">→ {r.client_name}</span>}
                       {!r.active && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">{t.inactive}</span>}
                     </div>
@@ -588,7 +594,7 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
                       <span className="text-xs text-gray-400">{REQUEST_TYPE_LABELS[cr.request_type]?.[lang] || REQUEST_TYPE_LABELS[cr.request_type]?.th || cr.request_type}</span>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[cr.priority] || "#94A3B8" }} title={PRIORITY_LABELS[cr.priority]?.[lang] || cr.priority} />
                     </div>
-                    <p className="text-sm font-medium text-gray-900">{cr.title}</p>
+                    <p className="text-sm font-medium text-gray-900">{cr.title} <TranslateButton text={cr.title} compact /></p>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                       <span>{t.submittedBy} {cr.client_name}</span>
                       <span>{fmtDateTime(cr.created_at, lang)}</span>
@@ -1073,7 +1079,7 @@ function CreateModal({ projects, defaultProjectId, onClose, onCreated, lang = "t
             <label className="text-xs text-gray-600 block mb-1">{t.project} *</label>
             <select value={pid} onChange={e => setPid(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm">
               <option value="">{t.selectProject}</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+              {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {pickName(p, lang)}</option>)}
             </select>
           </div>
           <div>

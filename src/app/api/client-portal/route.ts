@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
   if (permissions.view_tasks) {
     const { data } = await supabaseAdmin
       .from("tasks")
-      .select("id, title, status, priority, due_date, start_date, source, client_request_id")
+      .select("id, title, title_en, title_jp, description, status, priority, due_date, start_date, source, client_request_id")
       .eq("project_id", project.id)
       .order("created_at", { ascending: false });
     tasks = data || [];
