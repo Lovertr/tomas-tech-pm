@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronUp, Flag, Target, MessageSquare,
   BarChart3, Calendar, Shield, Plus, X, Eye
 } from "lucide-react";
+import TranslateButton from "@/components/TranslateButton";
 
 /* ---------- types ---------- */
 interface Project {
@@ -95,6 +96,7 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     chatUploading: "กำลังอัปโหลด...",
     chatUploadFailed: "อัปโหลดไม่สำเร็จ",
     downloadFile: "ดาวน์โหลด",
+    viewDay: "วัน", viewWeek: "สัปดาห์", viewMonth: "เดือน",
   },
   en: {
     loading: "Loading project data...",
@@ -160,6 +162,7 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     chatUploading: "Uploading...",
     chatUploadFailed: "Upload failed",
     downloadFile: "Download",
+    viewDay: "Day", viewWeek: "Week", viewMonth: "Month",
   },
   jp: {
     loading: "プロジェクトデータを読み込み中...",
@@ -225,6 +228,7 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     chatUploading: "アップロード中...",
     chatUploadFailed: "アップロード失敗",
     downloadFile: "ダウンロード",
+    viewDay: "日", viewWeek: "週", viewMonth: "月",
   },
 };
 
@@ -841,7 +845,10 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
       {expanded && (
         <div className="px-4 pb-4 border-t pt-3 space-y-3">
           {cr.description && (
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{cr.description}</p>
+            <div>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{cr.description}</p>
+              <TranslateButton text={cr.description} compact />
+            </div>
           )}
 
           {cr.attachments && cr.attachments.length > 0 && (
@@ -865,6 +872,7 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
             <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
               <p className="text-xs font-medium text-blue-700 mb-1">{t.teamReply}</p>
               <p className="text-sm text-blue-900">{cr.response_to_client}</p>
+              <TranslateButton text={cr.response_to_client} compact />
             </div>
           )}
 
@@ -901,6 +909,7 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
                         <p className="text-[10px] font-semibold text-blue-700 mb-0.5">{c.sender_name}</p>
                       )}
                       <p className="text-sm whitespace-pre-wrap">{c.message}</p>
+                      <TranslateButton text={c.message} compact className={c.sender_type === "client" ? "[&_button]:text-blue-200 [&_button]:hover:text-white" : ""} />
                       {/* Attachment previews */}
                       {c.attachments && c.attachments.length > 0 && (
                         <div className="mt-2 space-y-1.5">
@@ -1003,11 +1012,11 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
 function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; milestones: Milestone[]; project: Project; lang: PortalLang }) {
   const gt = portalI18n[lang];
   const loc = getLocale(lang);
-  // Filter tasks that have dates
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("week");
+
   const datedTasks = tasks.filter(t => t.start_date || t.due_date);
   if (datedTasks.length === 0 && milestones.length === 0) return null;
 
-  // Calculate date range from project or tasks
   const allDates: number[] = [];
   if (project.start_date) allDates.push(new Date(project.start_date).getTime());
   if (project.end_date) allDates.push(new Date(project.end_date).getTime());
@@ -1018,98 +1027,126 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
   for (const m of milestones) {
     if (m.due_date) allDates.push(new Date(m.due_date).getTime());
   }
-
   if (allDates.length < 2) return null;
 
-  const minDate = Math.min(...allDates);
-  const maxDate = Math.max(...allDates);
+  let rawMin = Math.min(...allDates);
+  let rawMax = Math.max(...allDates);
+  const DAY_MS = 86400000;
+  const minRangeDays = viewMode === "day" ? 14 : viewMode === "week" ? 42 : 90;
+  if (rawMax - rawMin < minRangeDays * DAY_MS) {
+    const mid = (rawMin + rawMax) / 2;
+    rawMin = mid - (minRangeDays * DAY_MS) / 2;
+    rawMax = mid + (minRangeDays * DAY_MS) / 2;
+  }
+  const pad = (rawMax - rawMin) * 0.05;
+  const minDate = rawMin - pad;
+  const maxDate = rawMax + pad;
   const rangeMs = maxDate - minDate || 1;
   const today = Date.now();
   const todayPct = Math.max(0, Math.min(100, ((today - minDate) / rangeMs) * 100));
 
-  // Generate month labels
-  const months: { label: string; left: number }[] = [];
-  const startMonth = new Date(minDate);
-  startMonth.setDate(1);
-  const endMonth = new Date(maxDate);
-  endMonth.setMonth(endMonth.getMonth() + 1);
-  const cur = new Date(startMonth);
-  while (cur <= endMonth) {
-    const pct = ((cur.getTime() - minDate) / rangeMs) * 100;
-    if (pct >= 0 && pct <= 100) {
-      months.push({ label: cur.toLocaleDateString(loc, { month: "short", year: "2-digit" }), left: pct });
+  type GL = { left: number; label: string; isMajor?: boolean };
+  const headerLabels: { label: string; left: number }[] = [];
+  const gridLines: GL[] = [];
+
+  if (viewMode === "day") {
+    const sm = new Date(minDate); sm.setDate(1); sm.setHours(0,0,0,0);
+    const em = new Date(maxDate); em.setMonth(em.getMonth()+1);
+    const mc = new Date(sm);
+    while (mc <= em) {
+      const pct = ((mc.getTime()-minDate)/rangeMs)*100;
+      if (pct >= -5 && pct <= 105) headerLabels.push({ label: mc.toLocaleDateString(loc, { month: "short", year: "2-digit" }), left: Math.max(0, pct) });
+      mc.setMonth(mc.getMonth()+1);
     }
-    cur.setMonth(cur.getMonth() + 1);
+    const dc = new Date(minDate); dc.setHours(0,0,0,0);
+    while (dc.getTime() <= maxDate) {
+      const pct = ((dc.getTime()-minDate)/rangeMs)*100;
+      if (pct >= 0 && pct <= 100) gridLines.push({ left: pct, label: String(dc.getDate()), isMajor: dc.getDay() === 1 });
+      dc.setDate(dc.getDate()+1);
+    }
+  } else if (viewMode === "week") {
+    const sm = new Date(minDate); sm.setDate(1); sm.setHours(0,0,0,0);
+    const em = new Date(maxDate); em.setMonth(em.getMonth()+1);
+    const mc = new Date(sm);
+    while (mc <= em) {
+      const pct = ((mc.getTime()-minDate)/rangeMs)*100;
+      if (pct >= -5 && pct <= 105) headerLabels.push({ label: mc.toLocaleDateString(loc, { month: "short", year: "2-digit" }), left: Math.max(0, pct) });
+      mc.setMonth(mc.getMonth()+1);
+    }
+    const wc = new Date(minDate); wc.setHours(0,0,0,0);
+    while (wc.getDay() !== 1) wc.setDate(wc.getDate()+1);
+    while (wc.getTime() <= maxDate) {
+      const pct = ((wc.getTime()-minDate)/rangeMs)*100;
+      if (pct >= 0 && pct <= 100) gridLines.push({ left: pct, label: String(wc.getDate()) });
+      wc.setDate(wc.getDate()+7);
+    }
+  } else {
+    const sy = new Date(minDate); sy.setMonth(0,1); sy.setHours(0,0,0,0);
+    const ey = new Date(maxDate);
+    const yc = new Date(sy);
+    while (yc.getFullYear() <= ey.getFullYear()) {
+      const pct = ((yc.getTime()-minDate)/rangeMs)*100;
+      if (pct >= -5 && pct <= 105) headerLabels.push({ label: String(yc.getFullYear()), left: Math.max(0, pct) });
+      yc.setFullYear(yc.getFullYear()+1);
+    }
+    const mc2 = new Date(minDate); mc2.setDate(1); mc2.setHours(0,0,0,0);
+    while (mc2.getTime() <= maxDate) {
+      const pct = ((mc2.getTime()-minDate)/rangeMs)*100;
+      if (pct >= 0 && pct <= 100) gridLines.push({ left: pct, label: mc2.toLocaleDateString(loc, { month: "short" }) });
+      mc2.setMonth(mc2.getMonth()+1);
+    }
   }
 
   const statusColors: Record<string, string> = { done: "#22C55E", in_progress: "#3B82F6", review: "#F59E0B", todo: "#94A3B8", backlog: "#D1D5DB", cancelled: "#FCA5A5" };
-
-  // Generate week grid lines for better readability
-  const weekLines: { left: number; label: string }[] = [];
-  const gridStart = new Date(minDate);
-  // Find first Monday
-  while (gridStart.getDay() !== 1) gridStart.setDate(gridStart.getDate() + 1);
-  const gridCursor = new Date(gridStart);
-  while (gridCursor.getTime() <= maxDate) {
-    const pct = ((gridCursor.getTime() - minDate) / rangeMs) * 100;
-    if (pct >= 0 && pct <= 100) {
-      weekLines.push({ left: pct, label: String(gridCursor.getDate()) });
-    }
-    gridCursor.setDate(gridCursor.getDate() + 7);
-  }
+  const viewBtns: { key: "day"|"week"|"month"; label: string }[] = [
+    { key: "day", label: gt.viewDay || "Day" },
+    { key: "week", label: gt.viewWeek || "Week" },
+    { key: "month", label: gt.viewMonth || "Month" },
+  ];
 
   return (
     <div className="bg-white rounded-xl shadow-sm border">
-      <div className="px-6 py-4 border-b">
+      <div className="px-6 py-4 border-b flex items-center justify-between flex-wrap gap-2">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
           <BarChart3 size={18} style={{ color: "#003087" }} />
           {gt.projectPlan}
         </h3>
+        <div className="flex bg-gray-100 rounded-lg p-0.5">
+          {viewBtns.map(b => (
+            <button key={b.key} onClick={() => setViewMode(b.key)}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === b.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            >{b.label}</button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto px-4 pb-4 pt-2">
         <div style={{ minWidth: 600 }}>
-          {/* Two-row header: top = months, bottom = week numbers */}
           <div className="flex">
             <div className="w-[120px] sm:w-[160px] flex-shrink-0" />
             <div className="flex-1 relative">
-              {/* Month row */}
               <div className="relative h-6 border-b border-gray-200">
-                {months.map((m, i) => (
-                  <span key={i} className="absolute text-[11px] text-gray-600 font-semibold" style={{ left: `${m.left}%`, top: 2 }}>
-                    {m.label}
-                  </span>
+                {headerLabels.map((m, i) => (
+                  <span key={i} className="absolute text-[11px] text-gray-600 font-semibold whitespace-nowrap" style={{ left: `${m.left}%`, top: 2 }}>{m.label}</span>
                 ))}
               </div>
-              {/* Week day row */}
               <div className="relative h-5 border-b border-gray-100">
-                {weekLines.map((w, i) => (
-                  <span key={i} className="absolute text-[9px] text-gray-400" style={{ left: `${w.left}%`, top: 2 }}>
-                    {w.label}
-                  </span>
+                {gridLines.map((w, i) => (
+                  <span key={i} className={`absolute text-[9px] ${w.isMajor ? "text-gray-600 font-semibold" : "text-gray-400"}`} style={{ left: `${w.left}%`, top: 2 }}>{w.label}</span>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Chart area with grid */}
           <div className="relative">
-            {/* Vertical grid lines */}
-            {weekLines.map((w, i) => (
-              <div key={i} className="absolute top-0 bottom-0 border-l border-gray-100" style={{ left: `calc(0px + ${w.left}%)`, height: "100%", marginLeft: "calc(120px + 0.5rem)" }} />
+            {gridLines.map((w, i) => (
+              <div key={i} className={`absolute top-0 bottom-0 ${w.isMajor ? "border-l border-gray-200" : "border-l border-gray-100"}`} style={{ left: `calc(0px + ${w.left}%)`, height: "100%", marginLeft: "calc(120px + 0.5rem)" }} />
             ))}
 
-            {/* Today line */}
-            {todayPct > 0 && todayPct < 100 && (
-              <div className="absolute top-0 bottom-0 z-20 pointer-events-none" style={{ left: `calc(120px + 0.5rem + ${todayPct}% * (100% - 120px - 0.5rem) / 100%)` }}>
-              </div>
-            )}
-
-            {/* Task bars */}
             <div className="space-y-0.5 pt-1">
               {datedTasks.map((t, idx) => {
-                const s = t.start_date ? new Date(t.start_date).getTime() : (t.due_date ? new Date(t.due_date).getTime() - 7 * 86400000 : minDate);
-                const e = t.due_date ? new Date(t.due_date).getTime() : s + 14 * 86400000;
+                const s = t.start_date ? new Date(t.start_date).getTime() : (t.due_date ? new Date(t.due_date).getTime() - 7 * DAY_MS : minDate);
+                const e = t.due_date ? new Date(t.due_date).getTime() : s + 14 * DAY_MS;
                 const left = Math.max(0, ((s - minDate) / rangeMs) * 100);
                 const width = Math.max(3, Math.min(100 - left, ((e - s) / rangeMs) * 100));
                 const color = statusColors[t.status] || "#94A3B8";
@@ -1118,21 +1155,11 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
                   <div key={t.id} className={`flex items-center gap-2 h-8 ${idx % 2 === 0 ? "" : "bg-gray-50/50"} rounded`}>
                     <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-700 pr-2 text-right font-medium">{t.title}</div>
                     <div className="flex-1 relative h-6 rounded">
-                      {/* Background track */}
                       <div className="absolute inset-0 bg-gray-100/60 rounded" />
-                      {/* Bar */}
-                      <div
-                        className="absolute h-full rounded transition-all shadow-sm"
-                        style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.75 : 0.9 }}
-                        title={`${t.title}: ${dateLabel}`}
-                      />
-                      {/* Date label on bar */}
+                      <div className="absolute h-full rounded transition-all shadow-sm" style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color, opacity: t.status === "done" ? 0.75 : 0.9 }} title={`${t.title}: ${dateLabel}`} />
                       {width > 12 && (
-                        <span className="absolute text-[9px] text-white font-medium pointer-events-none" style={{ left: `${left + 0.5}%`, top: 5, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
-                          {dateLabel}
-                        </span>
+                        <span className="absolute text-[9px] text-white font-medium pointer-events-none" style={{ left: `${left + 0.5}%`, top: 5, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>{dateLabel}</span>
                       )}
-                      {/* Today indicator */}
                       {todayPct > 0 && todayPct < 100 && (
                         <div className="absolute top-0 h-full w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
                       )}
@@ -1141,7 +1168,6 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
                 );
               })}
 
-              {/* Milestone diamonds */}
               {milestones.filter(m => m.due_date).map(m => {
                 const mDate = new Date(m.due_date!).getTime();
                 const left = ((mDate - minDate) / rangeMs) * 100;
@@ -1153,12 +1179,7 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
                       {m.title}
                     </div>
                     <div className="flex-1 relative h-6">
-                      <div
-                        className="absolute w-3.5 h-3.5 rotate-45 top-1.5 shadow-sm"
-                        style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }}
-                        title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`}
-                      />
-                      {/* Today indicator */}
+                      <div className="absolute w-3.5 h-3.5 rotate-45 top-1.5 shadow-sm" style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }} title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`} />
                       {todayPct > 0 && todayPct < 100 && (
                         <div className="absolute top-0 h-full w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
                       )}
@@ -1171,7 +1192,6 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3 border-t bg-gray-50/50 rounded-b-xl">
         {[
           { label: gt.in_progress_status, color: "#3B82F6" },

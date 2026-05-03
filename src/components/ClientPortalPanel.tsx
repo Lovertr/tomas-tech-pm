@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, ArrowRightCircle, X, FileText, Image as ImageIcon, Video,
   Loader2, Send, Paperclip
 } from "lucide-react";
+import TranslateButton from "./TranslateButton";
 
 /* ---------- types ---------- */
 interface TokenRow {
@@ -599,7 +600,12 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
 
               {isExpanded && (
                 <div className="px-4 pb-4 border-t pt-3 space-y-3">
-                  {cr.description && <p className="text-sm text-gray-700 whitespace-pre-wrap">{cr.description}</p>}
+                  {cr.description && (
+                    <div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{cr.description}</p>
+                      <TranslateButton text={cr.description} compact />
+                    </div>
+                  )}
 
                   {/* Contact info */}
                   <div className="flex gap-4 text-xs text-gray-500">
@@ -698,6 +704,7 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
                     <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
                       <p className="text-xs font-medium text-blue-700 mb-1">{t.respondToClient}</p>
                       <p className="text-sm text-blue-900">{cr.response_to_client}</p>
+                      <TranslateButton text={cr.response_to_client} compact />
                     </div>
                   )}
 
@@ -817,6 +824,7 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
                   {c.sender_type === "client" ? `🧑 ${c.sender_name}` : c.sender_name}
                 </p>
                 <p className="text-sm whitespace-pre-wrap">{c.message}</p>
+                <TranslateButton text={c.message} compact className={c.sender_type === "team" ? "[&_button]:text-blue-200 [&_button]:hover:text-white" : ""} />
                 {/* Attachment previews */}
                 {c.attachments && c.attachments.length > 0 && (
                   <div className="mt-2 space-y-1.5">
