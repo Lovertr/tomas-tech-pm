@@ -187,6 +187,7 @@ export default function CustomersPanel({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -263,6 +264,8 @@ export default function CustomersPanel({
 
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     try {
       const method = selectedCustomer ? 'PATCH' : 'POST';
       const url = selectedCustomer ? `/api/customers/${selectedCustomer.id}` : '/api/customers';
@@ -280,6 +283,8 @@ export default function CustomersPanel({
       }
     } catch (error) {
       console.error('Failed to save customer:', error);
+    } finally {
+      setSaving(false);
     }
   };
 

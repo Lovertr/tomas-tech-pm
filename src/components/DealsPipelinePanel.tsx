@@ -145,6 +145,7 @@ export default function DealsPipelinePanel({
   const [showForm, setShowForm] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   /* ─── Search / filter state ─── */
   const [searchName, setSearchName] = useState('');
@@ -217,6 +218,8 @@ export default function DealsPipelinePanel({
   /* ─── CRUD ─── */
   const handleSaveDeal = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     try {
       const method = selectedDeal ? 'PATCH' : 'POST';
       const url = selectedDeal ? `/api/deals/${selectedDeal.id}` : '/api/deals';
@@ -232,6 +235,8 @@ export default function DealsPipelinePanel({
       }
     } catch (error) {
       console.error('Failed to save deal:', error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -511,7 +516,7 @@ export default function DealsPipelinePanel({
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button type="submit" className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium">{L('save')}</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{saving ? '...' : L('save')}</button>
                 <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
                   className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
               </div>

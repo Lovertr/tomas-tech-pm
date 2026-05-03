@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/useAuth";
+import { useProjectPermissions } from "@/lib/useProjectPermissions";
 import {
   LayoutDashboard, FolderKanban, ListTodo, Users, Clock, DollarSign,
   BarChart3, Settings, ChevronLeft, ChevronRight, ChevronDown, Plus, Search,
@@ -91,7 +92,8 @@ const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444"
 export default function App() {
   const router = useRouter();
   const { user: currentUser, isAdmin, isManager, logout, hasPermission, canView, canEdit, canCreate, canDelete, moduleLevel } = useAuth();
-  void canCreate; void canDelete; void moduleLevel;
+  void canDelete; void moduleLevel;
+  const projPerms = useProjectPermissions();
   const data = useData();
   // Aliases so existing UI code keeps working (legacy mockData shape)
   const mockPositions = data.adaptedPositions;
@@ -505,7 +507,7 @@ export default function App() {
       <MilestonesPanel
         projects={data.projects}
         filterProjectId={taskFilter}
-        canManage={canCreate("milestones")}
+        canManage={projPerms.canManageInProject(taskFilter, true)}
         refreshKey={boardRefreshKey}
       />
     </div>
@@ -547,7 +549,7 @@ export default function App() {
           projects={data.projects}
           filterProjectId={pid}
           onTaskClick={(id) => setDrawerTaskId(id)}
-          canManage={canCreate("sprint")}
+          canManage={projPerms.canManageInProject(taskFilter, true)}
           refreshKey={boardRefreshKey}
         />
       </div>
@@ -568,7 +570,7 @@ export default function App() {
       <MeetingNotesPanel
         projects={data.projects}
         filterProjectId={taskFilter}
-        canManage={canCreate("meetings")}
+        canManage={projPerms.canManageInProject(taskFilter)}
         refreshKey={boardRefreshKey}
       />
     </div>
@@ -590,21 +592,21 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Risk Register" />
       <RisksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("risks")} refreshKey={boardRefreshKey} />
+        canManage={projPerms.canManageInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
   const IssuesPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title="Issue Log" />
       <IssuesPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("issues")} refreshKey={boardRefreshKey} />
+        canManage={projPerms.canManageInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
   const ChangesPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title="Change Requests" />
       <ChangeRequestsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("change_requests")} canApprove={canDelete("change_requests")}
+        canManage={projPerms.canManageInProject(taskFilter)} canApprove={projPerms.canApproveInProject(taskFilter)}
         refreshKey={boardRefreshKey} />
     </div>
   );
@@ -612,14 +614,14 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Decision Log" />
       <DecisionLogPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("decisions")} refreshKey={boardRefreshKey} />
+        canManage={projPerms.canApproveInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
 
   const TemplatesPage = () => (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Templates</h1>
-      <TemplatesPanel projects={data.projects} canManage={canCreate("templates")}
+      <TemplatesPanel projects={data.projects} canManage={projPerms.isPMOfAnyProject}
         refreshKey={boardRefreshKey} onProjectCreated={() => setBoardRefreshKey(k => k + 1)} />
     </div>
   );
@@ -627,7 +629,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Recurring Tasks" />
       <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("recurring")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={projPerms.canManageInProject(taskFilter, true)} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
@@ -635,7 +637,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="ใบแจ้งหนี้ / Invoices" />
       <InvoicesPanel projects={data.projects} filterProjectId={taskFilter}
-        canManage={canCreate("invoices")} refreshKey={boardRefreshKey} />
+        canManage={projPerms.canManageInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
   const FinancePage = () => (
@@ -656,7 +658,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title={t.projectBudget} />
       <ProjectBudgetPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("project_budget")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={projPerms.canApproveInProject(taskFilter)} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const TransactionsPage = () => (
@@ -728,7 +730,7 @@ export default function App() {
               <option value="all">{t.all} {t.projects}</option>
               {mockProjects.map(p => <option key={p.id} value={p.id}>{getName(p)}</option>)}
             </select>
-            {canCreate("tasks") && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addTask}</button>}
+            {projPerms.canManageInProject(taskFilter) && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addTask}</button>}
           </div>
         </div>
         <KanbanBoard
@@ -738,7 +740,7 @@ export default function App() {
           onTaskClick={(id) => setDrawerTaskId(id)}
           onAddTask={() => openAddTask()}
           refreshKey={boardRefreshKey}
-          canManage={canCreate("tasks")}
+          canManage={projPerms.canManageInProject(taskFilter)}
           lang={lang}
         />
       </div>
@@ -845,7 +847,7 @@ export default function App() {
   const TimeLog = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.timeLog}</h1>
-        {canCreate("timelog") && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
+        {projPerms.isMemberOfAnyProject && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
         {canView("costs") && <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />}
