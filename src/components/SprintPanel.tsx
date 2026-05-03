@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Plus, Play, Square, Trash2, Activity, TrendingDown } from "lucide-react";
+import { Plus, Play, Square, Trash2, Activity, TrendingDown, Pencil } from "lucide-react";
 
 interface Sprint { id: string; project_id: string; name: string; goal?: string | null; start_date: string; end_date: string; status: string; }
 interface Task { id: string; title: string; status: string; estimated_hours?: number | null; actual_hours?: number | null; sprint_id?: string | null; }
@@ -25,6 +25,7 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Sprint | null>(null);
 
   const fetchSprints = useCallback(async () => {
     if (!filterProjectId || filterProjectId === "all") { setSprints([]); return; }
@@ -117,6 +118,7 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
               </div>
               {canManage && (
                 <div className="flex items-center gap-1">
+                  <button onClick={() => setEditing(sprint)} className="p-1.5 text-gray-500 hover:text-gray-700"><Pencil size={14} /></button>
                   {sprint.status === "planned" && <button onClick={() => setStatus(sprint.id, "active")} className="px-3 py-1.5 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded-md flex items-center gap-1"><Play size={12} /> Start</button>}
                   {sprint.status === "active" && <button onClick={() => setStatus(sprint.id, "completed")} className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md flex items-center gap-1"><Square size={12} /> Complete</button>}
                   <button onClick={() => remove(sprint.id)} className="p-1.5 text-red-500 hover:text-red-600"><Trash2 size={14} /></button>
@@ -163,6 +165,9 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
 
       {creating && (
         <SprintModal projectId={filterProjectId} onClose={() => setCreating(false)} onSaved={() => { setCreating(false); fetchSprints(); }} />
+      )}
+      {editing && (
+        <SprintModal projectId={filterProjectId} initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); fetchSprints(); }} />
       )}
     </div>
   );
@@ -236,15 +241,18 @@ function Burndown({ burndown, sprint, tasks }: { burndown: NonNullable<ReturnTyp
   );
 }
 
-function SprintModal({ projectId, onClose, onSaved }: { projectId: string; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState<Partial<Sprint>>({ project_id: projectId, status: "planned" });
+function SprintModal({ projectId, onClose, onSaved, initial }: { projectId: string; onClose: () => void; onSaved: () => void; initial?: Sprint }) {
+  const [form, setForm] = useState<Partial<Sprint>>(initial ?? { project_id: projectId, status: "planned" });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const isEditing = !!initial;
   const submit = async () => {
     if (!form.name || !form.start_date || !form.end_date) { setErr("ต้องระบุชื่อ และวันที่"); return; }
     setSaving(true); setErr(null);
     try {
-      const r = await fetch("/api/sprints", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const url = isEditing ? `/api/sprints/${initial.id}` : "/api/sprints";
+      const method = isEditing ? "PATCH" : "POST";
+      const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || "Save failed"); }
       onSaved();
     } catch (e) { setErr(e instanceof Error ? e.message : "Save failed"); }
@@ -253,7 +261,7 @@ function SprintModal({ projectId, onClose, onSaved }: { projectId: string; onClo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-gray-900">New Sprint</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{isEditing ? "แก้ไข Sprint" : "New Sprint"}</h3>
         <div>
           <label className="block text-xs text-gray-600 mb-1">ชื่อ Sprint *</label>
           <input className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm"
@@ -276,11 +284,11 @@ function SprintModal({ projectId, onClose, onSaved }: { projectId: string; onClo
               value={form.end_date ?? ""} onChange={e => setForm({ ...form, end_date: e.target.value })} />
           </div>
         </div>
-        {err && <div className="text-sm text-red-700 bg-red-100 border border-red-300 rounded-lg px-3 py-2">{err}</div>}
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm">ยกเลิก</button>
+          <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
-            {saving ? "..." : "บันทึก"}
+            {saving ? "กำลังบันทึก..." : (isEditing ? "บันทึก" : "สร้าง Sprint")}
           </button>
         </div>
       </div>

@@ -90,7 +90,7 @@ const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444"
 
 export default function App() {
   const router = useRouter();
-  const { user: currentUser, isAdmin, isManager, logout, hasPermission, canView, canCreate, canDelete, moduleLevel } = useAuth();
+  const { user: currentUser, isAdmin, isManager, logout, hasPermission, canView, canEdit, canCreate, canDelete, moduleLevel } = useAuth();
   void canCreate; void canDelete; void moduleLevel;
   const data = useData();
   // Aliases so existing UI code keeps working (legacy mockData shape)
@@ -296,13 +296,13 @@ export default function App() {
     { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
     { id: "help_center", icon: BookOpen, label: t.helpCenter, module: "dashboard", group: "admin" },
     { id: "notif_prefs", icon: BellIcon, label: t.notifPrefs || "ตั้งค่าแจ้งเตือน", module: "settings", group: "admin" },
-    { id: "skill_matrix", icon: Award, label: lang === "th" ? "ทักษะพนักงาน" : lang === "jp" ? "スキルマトリックス" : "Skill Matrix", module: "can_manage_members", group: "people" },
+    { id: "skill_matrix", icon: Award, label: lang === "th" ? "ทักษะพนักงาน" : lang === "jp" ? "スキルマトリックス" : "Skill Matrix", module: "team", group: "people" },
     { id: "leave_mgmt", icon: CalendarDays, label: lang === "th" ? "จัดการลางาน" : lang === "jp" ? "休暇管理" : "Leave Management", module: "dashboard", group: "people" },
     { id: "recurring_expenses", icon: RefreshCcw, label: lang === "th" ? "ค่าใช้จ่ายประจำ" : lang === "jp" ? "定期経費" : "Recurring Expenses", module: "transactions", group: "finance" },
     { id: "dept_kpi", icon: Target, label: lang === "th" ? "KPI แผนก" : lang === "jp" ? "部門KPI" : "Dept KPIs", module: "dashboard", group: "admin" },
     { id: "win_loss", icon: Trophy, label: lang === "th" ? "วิเคราะห์ Win/Loss" : lang === "jp" ? "Win/Loss分析" : "Win/Loss Analysis", module: "deals_pipeline", group: "crm" },
-    { id: "project_deps", icon: GitBranch, label: lang === "th" ? "การพึ่งพาโครงการ" : lang === "jp" ? "依存関係" : "Dependencies", module: "can_manage_projects", group: "planning" },
-    { id: "perf_review", icon: Trophy, label: lang === "th" ? "ประเมินผลงาน" : lang === "jp" ? "業績評価" : "Performance Review", module: "can_manage_members", group: "people" },
+    { id: "project_deps", icon: GitBranch, label: lang === "th" ? "การพึ่งพาโครงการ" : lang === "jp" ? "依存関係" : "Dependencies", module: "projects", group: "planning" },
+    { id: "perf_review", icon: Trophy, label: lang === "th" ? "ประเมินผลงาน" : lang === "jp" ? "業績評価" : "Performance Review", module: "team", group: "people" },
     { id: "expense_approval", icon: CreditCard, label: lang === "th" ? "อนุมัติค่าใช้จ่าย" : lang === "jp" ? "経費承認" : "Expense Approval", module: "transactions", group: "finance" },
   ];
   const nav = allNav.filter(n => canView(n.module));
@@ -343,7 +343,7 @@ export default function App() {
     })),
     { id: "new-task", label: "สร้างงานใหม่", hint: "เปิด Task Modal", group: "Actions", keywords: "task new add",
       action: () => { setEditingTask(null); setTaskModalOpen(true); } },
-    ...(hasPermission("can_manage_projects") ? [{ id: "new-project", label: "สร้างโครงการใหม่", group: "Actions", keywords: "project new add",
+    ...(canCreate("projects") ? [{ id: "new-project", label: "สร้างโครงการใหม่", group: "Actions", keywords: "project new add",
       action: () => openAddProject() }] : []),
     { id: "show-help", label: "ดู Keyboard Shortcuts", group: "ช่วยเหลือ", keywords: "help shortcut keyboard",
       action: () => setHelpOpen(true) },
@@ -361,7 +361,7 @@ export default function App() {
       <div className="flex items-center justify-between flex-wrap gap-2 md:gap-3">
         <div><h1 className="text-lg md:text-2xl font-bold text-gray-800">{t.welcome}, {currentUser?.display_name ?? "..."}!</h1>
           <p className="text-xs md:text-base text-gray-500">{t.overview} — {new Date().toLocaleDateString(lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
-        {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
+        {canCreate("projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
       </div>
       <DailyStandupCard lang={lang} />
       <OpenProjectsPanel currentUserId={currentUser?.id} lang={lang} userRole={currentUser?.role || "member"} />
@@ -405,7 +405,7 @@ export default function App() {
                 <button key={s} onClick={() => setProjFilter(s)} className={`px-2 md:px-3 py-1.5 text-[10px] md:text-xs font-medium whitespace-nowrap ${projFilter === s ? "text-white" : "text-gray-500"}`} style={projFilter === s ? { background: "#003087" } : { background: "#F1F5F9" }}>{t[s]}</button>
               ))}
             </div>
-            {hasPermission("can_manage_projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
+            {canCreate("projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -421,10 +421,10 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium text-white" style={{ background: statusColor[p.status] }}>{t[p.status]}</span>
                     <ProjectHealthBadge health={healthScores[p.id] || null} lang={lang} compact />
-                    {hasPermission("can_manage_projects") && (
+                    {canEdit("projects") && (
                       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => openEditProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>
-                        {isAdmin && <button onClick={() => handleDeleteProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
+                        {canDelete("projects") && <button onClick={() => handleDeleteProject(p.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
                       </div>
                     )}
                   </div>
@@ -505,7 +505,7 @@ export default function App() {
       <MilestonesPanel
         projects={data.projects}
         filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")}
+        canManage={canCreate("milestones")}
         refreshKey={boardRefreshKey}
       />
     </div>
@@ -547,7 +547,7 @@ export default function App() {
           projects={data.projects}
           filterProjectId={pid}
           onTaskClick={(id) => setDrawerTaskId(id)}
-          canManage={hasPermission("can_manage_projects")}
+          canManage={canCreate("sprint")}
           refreshKey={boardRefreshKey}
         />
       </div>
@@ -568,7 +568,7 @@ export default function App() {
       <MeetingNotesPanel
         projects={data.projects}
         filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")}
+        canManage={canCreate("meetings")}
         refreshKey={boardRefreshKey}
       />
     </div>
@@ -590,21 +590,21 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Risk Register" />
       <RisksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={canCreate("risks")} refreshKey={boardRefreshKey} />
     </div>
   );
   const IssuesPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title="Issue Log" />
       <IssuesPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={canCreate("issues")} refreshKey={boardRefreshKey} />
     </div>
   );
   const ChangesPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title="Change Requests" />
       <ChangeRequestsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} canApprove={hasPermission("can_approve_timelog")}
+        canManage={canCreate("change_requests")} canApprove={canDelete("change_requests")}
         refreshKey={boardRefreshKey} />
     </div>
   );
@@ -612,14 +612,14 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Decision Log" />
       <DecisionLogPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={canCreate("decisions")} refreshKey={boardRefreshKey} />
     </div>
   );
 
   const TemplatesPage = () => (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Templates</h1>
-      <TemplatesPanel projects={data.projects} canManage={hasPermission("can_manage_projects")}
+      <TemplatesPanel projects={data.projects} canManage={canCreate("templates")}
         refreshKey={boardRefreshKey} onProjectCreated={() => setBoardRefreshKey(k => k + 1)} />
     </div>
   );
@@ -627,7 +627,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Recurring Tasks" />
       <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={canCreate("recurring")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
@@ -635,7 +635,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="ใบแจ้งหนี้ / Invoices" />
       <InvoicesPanel projects={data.projects} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} />
+        canManage={canCreate("invoices")} refreshKey={boardRefreshKey} />
     </div>
   );
   const FinancePage = () => (
@@ -656,27 +656,27 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title={t.projectBudget} />
       <ProjectBudgetPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={canCreate("project_budget")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const TransactionsPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title={t.transactions} />
       <TransactionsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={canCreate("transactions")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
   const QuotationsPage = () => (
     <div className="space-y-6">
       <QuotationsPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        canManage={canCreate("quotations")} refreshKey={boardRefreshKey} lang={lang}
         userRole={currentUser?.role || "member"} />
     </div>
   );
   const NewInvoicesPage = () => (
     <div className="space-y-6">
       <NewInvoicesPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={canCreate("new_invoices")} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
@@ -684,7 +684,7 @@ export default function App() {
   const CustomersPage = () => (
     <div className="space-y-6">
       <CustomersPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        canManage={canCreate("customers")} refreshKey={boardRefreshKey} lang={lang}
         currentUserId={currentUser?.id}
         onNavigate={(pageId, filterId) => { if (filterId) setTaskFilter(filterId); setPage(pageId); }} />
     </div>
@@ -692,14 +692,14 @@ export default function App() {
   const DealsPipelinePage = () => (
     <div className="space-y-6">
       <DealsPipelinePanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        canManage={canCreate("deals_pipeline")} refreshKey={boardRefreshKey} lang={lang}
         currentUserId={currentUser?.id} />
     </div>
   );
   const SalesActivitiesPage = () => (
     <div className="space-y-6">
       <SalesActivitiesPanel projects={data.projects} members={data.members}
-        canManage={hasPermission("can_manage_projects")} refreshKey={boardRefreshKey} lang={lang}
+        canManage={canCreate("sales_activities")} refreshKey={boardRefreshKey} lang={lang}
         currentUserId={currentUser?.id} />
     </div>
   );
@@ -728,7 +728,7 @@ export default function App() {
               <option value="all">{t.all} {t.projects}</option>
               {mockProjects.map(p => <option key={p.id} value={p.id}>{getName(p)}</option>)}
             </select>
-            {hasPermission("can_manage_tasks") && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addTask}</button>}
+            {canCreate("tasks") && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addTask}</button>}
           </div>
         </div>
         <KanbanBoard
@@ -738,7 +738,7 @@ export default function App() {
           onTaskClick={(id) => setDrawerTaskId(id)}
           onAddTask={() => openAddTask()}
           refreshKey={boardRefreshKey}
-          canManage={hasPermission("can_manage_tasks")}
+          canManage={canCreate("tasks")}
           lang={lang}
         />
       </div>
@@ -749,7 +749,7 @@ export default function App() {
   const Team = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.team}</h1>
-        {hasPermission("can_manage_members") && (teamTab === "members" || isManager) && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
+        {canCreate("team") && (teamTab === "members" || isManager) && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
       {isManager && <div className="flex gap-2">{["members", "positions"].map(tb => (
         <button key={tb} onClick={() => setTeamTab(tb)} className={`px-4 py-2 rounded-xl text-sm font-medium ${teamTab === tb ? "text-white" : "text-gray-500"}`} style={teamTab === tb ? { background: "#003087" } : {}}>{tb === "members" ? t.teamMembers : t.positionMgmt}</button>
       ))}</div>}
@@ -807,7 +807,7 @@ export default function App() {
                     ? <span className="text-sm font-semibold text-[#003087]">฿{mem.rate}{t.perHour}</span>
                     : <span className="text-xs text-slate-500">{mem.dept}</span>}
                   <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                    {hasPermission("can_manage_members") && <button onClick={() => openEditMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
+                    {canEdit("team") && <button onClick={() => openEditMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
                     {isAdmin && <button onClick={() => handleDeleteMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
                   </div>
                 </div>
@@ -830,7 +830,7 @@ export default function App() {
                 <td className="px-5 py-4 text-gray-800">{pm.length}</td>
                 {isManager && <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>}
                 <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1">
-                  {hasPermission("can_manage_members") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
+                  {canEdit("team") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
                   {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
                 </div></td>
               </tr>);
@@ -845,7 +845,7 @@ export default function App() {
   const TimeLog = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.timeLog}</h1>
-        {hasPermission("can_log_time") && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
+        {canCreate("timelog") && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
         {canView("costs") && <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />}
@@ -969,7 +969,7 @@ export default function App() {
     <AllocationManager
       projects={data.projects}
       members={data.members}
-      canEdit={hasPermission("can_manage_projects") || hasPermission("can_manage_members")}
+      canEdit={canEdit("allocation")}
     />
   );
   const Workload = () => <WorkloadHeatmap weeks={8} />;
@@ -982,13 +982,13 @@ export default function App() {
   );
   const HelpCenterPage = () => <HelpPanel lang={lang} />;
   const NotifPrefsPage = () => <NotificationPreferencesPanel lang={lang} />;
-  const SkillMatrixPage = () => <SkillMatrixPanel lang={lang} canManage={hasPermission("can_manage_members")} />;
+  const SkillMatrixPage = () => <SkillMatrixPanel lang={lang} canManage={canCreate("team")} />;
   const LeaveMgmtPage = () => <LeaveManagementPanel lang={lang} role={currentUser?.role ?? "member"} />;
   const RecurringExpensesPage = () => <RecurringExpensesPanel lang={lang} canManage={["admin","manager"].includes(currentUser?.role ?? "member")} />;
   const DeptKPIPage = () => <DeptKPIPanel lang={lang} />;
   const WinLossPage = () => <WinLossPanel lang={lang} />;
   const ProjectDepsPage = () => <ProjectDependencyPanel lang={lang} />;
-  const PerfReviewPage = () => <PerformanceReviewPanel lang={lang} canManage={hasPermission("can_manage_members")} />;
+  const PerfReviewPage = () => <PerformanceReviewPanel lang={lang} canManage={canCreate("team")} />;
   const ExpenseApprovalPage = () => <ExpenseApprovalPanel lang={lang} canApprove={["admin","manager"].includes(currentUser?.role ?? "member")} />;
   const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage };
   const Page = pages[page] || Dashboard;

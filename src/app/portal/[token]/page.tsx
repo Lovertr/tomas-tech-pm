@@ -1451,4 +1451,11 @@ function SubmitRequestForm({
     </div>
   );
 }
-          
+            {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {t.send}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Trash2, FileText, DollarSign, Send, CheckCircle2, AlertCircle, Printer } from "lucide-react";
+import { Plus, Trash2, FileText, DollarSign, Send, CheckCircle2, AlertCircle, Printer, Pencil } from "lucide-react";
 
 interface Invoice {
   id: string; invoice_number: string; project_id: string; client_name?: string | null;
@@ -24,6 +24,7 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
   const [items, setItems] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Invoice | null>(null);
   const [filter, setFilter] = useState<string>("all");
 
   const fetchAll = useCallback(async () => {
@@ -141,6 +142,7 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
             {canManage && (
               <div className="flex items-center gap-1 ml-3">
                 <button onClick={() => printInvoice(inv)} className="p-1.5 text-slate-600 hover:text-slate-900" title="พิมพ์"><Printer size={14} /></button>
+                <button onClick={() => setEditing(inv)} className="p-1.5 text-slate-600 hover:text-slate-900" title="แก้ไข"><Pencil size={14} /></button>
                 {inv.status === "draft" && (
                   <button onClick={() => updateStatus(inv, "sent")} className="px-2 py-1.5 bg-blue-100 text-blue-600 rounded text-xs flex items-center gap-1"><Send size={11} /> ส่ง</button>
                 )}
@@ -159,6 +161,11 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
           defaultProjectId={filterProjectId !== "all" ? filterProjectId : undefined}
           onClose={() => setCreating(false)}
           onSaved={() => { setCreating(false); fetchAll(); }} />
+      )}
+      {editing && (
+        <EditInvoiceModal invoice={editing} projects={projects}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); fetchAll(); }} />
       )}
     </div>
   );
@@ -235,6 +242,78 @@ function CreateInvoiceModal({ projects, defaultProjectId, onClose, onSaved }: {
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
           <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังสร้าง..." : "สร้าง"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditInvoiceModal({ invoice, projects, onClose, onSaved }: {
+  invoice: Invoice; projects: Project[]; onClose: () => void; onSaved: () => void;
+}) {
+  const [form, setForm] = useState({
+    project_id: invoice.project_id,
+    client_name: invoice.client_name ?? "",
+    invoice_number: invoice.invoice_number,
+    issue_date: invoice.issue_date,
+    due_date: invoice.due_date ?? "",
+    vat_pct: invoice.vat_pct,
+    notes: invoice.notes ?? "",
+    status: invoice.status,
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const inp = "w-full border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]";
+
+  const submit = async () => {
+    if (!form.project_id) { setErr("กรุณาเลือกโปรเจค"); return; }
+    setBusy(true); setErr("");
+    try {
+      const res = await fetch(`/api/invoices/${invoice.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Update failed");
+      onSaved();
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Error"); } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-slate-800">แก้ไข Invoice</h3>
+        <Field label="โปรเจค">
+          <select className={inp} value={form.project_id} onChange={e => setForm({ ...form, project_id: e.target.value })}>
+            <option value="">-- เลือกโปรเจค --</option>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
+          </select>
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="ชื่อลูกค้า"><input className={inp} value={form.client_name} onChange={e => setForm({ ...form, client_name: e.target.value })} /></Field>
+          <Field label="เลขที่ใบแจ้งหนี้"><input className={inp} value={form.invoice_number} onChange={e => setForm({ ...form, invoice_number: e.target.value })} /></Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="วันออก"><input type="date" className={inp} value={form.issue_date} onChange={e => setForm({ ...form, issue_date: e.target.value })} /></Field>
+          <Field label="กำหนดชำระ"><input type="date" className={inp} value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} /></Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="VAT %"><input type="number" className={inp} value={form.vat_pct} onChange={e => setForm({ ...form, vat_pct: Number(e.target.value) })} /></Field>
+          <Field label="สถานะ">
+            <select className={inp} value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <option value="draft">ร่าง</option>
+              <option value="sent">ส่งแล้ว</option>
+              <option value="paid">ชำระแล้ว</option>
+              <option value="overdue">เกินกำหนด</option>
+              <option value="cancelled">ยกเลิก</option>
+            </select>
+          </Field>
+        </div>
+        <Field label="หมายเหตุ"><textarea rows={2} className={inp} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></Field>
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
+          <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
         </div>
       </div>
     </div>

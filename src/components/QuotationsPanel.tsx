@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Trash2, FileText, Send, CheckCircle2, XCircle, X, Eye, Download, FileSpreadsheet, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, FileText, Send, CheckCircle2, XCircle, X, Eye, Download, FileSpreadsheet, ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import type { Lang } from "@/lib/i18n";
 
 /* ────── Types ────── */
@@ -62,6 +62,7 @@ interface Quotation {
   rejected_at?: string | null;
   rejection_reason?: string | null;
   created_at?: string;
+  items?: QuotationItem[];
 }
 
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
@@ -166,6 +167,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
   const [items, setItems] = useState<Quotation[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Quotation | null>(null);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const canApprove = ["admin", "manager"].includes(userRole);
@@ -240,6 +242,7 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
             onToggle={() => setViewingId(viewingId === quo.id ? null : quo.id)}
             onRemove={() => remove(quo.id)}
             onUpdateStatus={(st, extra) => updateStatus(quo.id, st, extra)}
+            onEdit={() => setEditing(quo)}
           />
         ))}
       </div>
@@ -247,6 +250,10 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
       {creating && (
         <CreateQuotationModal customers={customers} lang={lang}
           onClose={() => setCreating(false)} onSaved={() => { setCreating(false); fetchAll(); }} />
+      )}
+      {editing && (
+        <CreateQuotationModal customers={customers} lang={lang} initial={editing}
+          onClose={() => setEditing(null)} onSaved={() => { setEditing(null); fetchAll(); }} />
       )}
     </div>
   );
@@ -263,11 +270,11 @@ function Stat({ label, value, color }: { label: string; value: string; color: st
 }
 
 /* ────── Quotation Card ────── */
-function QuotationCard({ quo, lang, L, canManage, canApprove, isExpanded, onToggle, onRemove, onUpdateStatus }: {
+function QuotationCard({ quo, lang, L, canManage, canApprove, isExpanded, onToggle, onRemove, onUpdateStatus, onEdit }: {
   quo: Quotation; lang: Lang; L: (k: string) => string;
   canManage: boolean; canApprove: boolean; isExpanded: boolean;
   onToggle: () => void; onRemove: () => void;
-  onUpdateStatus: (status: string, extra?: Record<string, string>) => void;
+  onUpdateStatus: (status: string, extra?: Record<string, string>) => void; onEdit: () => void;
 }) {
   const [rejectReason, setRejectReason] = useState("");
   const [showReject, setShowReject] = useState(false);
@@ -338,7 +345,10 @@ function QuotationCard({ quo, lang, L, canManage, canApprove, isExpanded, onTogg
             </>
           )}
           {canManage && quo.status === "draft" && (
-            <button onClick={onRemove} className="p-1.5 text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
+            <>
+              <button onClick={onEdit} className="p-1.5 text-slate-600 hover:text-slate-900" title="แก้ไข"><Pencil size={14} /></button>
+              <button onClick={onRemove} className="p-1.5 text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
+            </>
           )}
         </div>
       </div>
@@ -470,24 +480,40 @@ function QuotationDetailView({ data, lang, L, quo }: { data: { quotation: Quotat
 }
 
 /* CREATE MODAL */
-function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
-  customers: Customer[]; lang?: Lang; onClose: () => void; onSaved: () => void;
+function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initial }: {
+  customers: Customer[]; lang?: Lang; onClose: () => void; onSaved: () => void; initial?: Quotation;
 }) {
   const L = (k: string) => (panelText[k as PanelKey] as Record<string, string>)?.[lang] ?? (panelText[k as PanelKey] as Record<string, string>)?.th ?? k;
 
+  const isEditing = !!initial;
+
   const [form, setForm] = useState({
-    title: "", customer_id: "", attention: "", customer_phone: "", customer_email: "",
-    customer_address: "", project_name: "",
-    issue_date: new Date().toISOString().slice(0, 10),
-    revision: 0, quotation_by: "", currency: "THB", lead_time: "",
-    payment_terms: "50% Advance, 40% upon delivery, 10% upon completion",
-    expire_days: 30, discount_percent: 0, discount_fixed: 0, discount_type: "percent" as "percent" | "fixed", vat_percent: 7, notes: "", remark: "",
+    title: initial?.title ?? "", customer_id: initial?.customer_id ?? "", attention: initial?.attention ?? "", customer_phone: initial?.customer_phone ?? "", customer_email: initial?.customer_email ?? "",
+    customer_address: initial?.customer_address ?? "", project_name: initial?.project_name ?? "",
+    issue_date: initial?.issue_date ?? new Date().toISOString().slice(0, 10),
+    revision: initial?.revision ?? 0, quotation_by: initial?.quotation_by ?? "", currency: initial?.currency ?? "THB", lead_time: initial?.lead_time ?? "",
+    payment_terms: initial?.payment_terms ?? "50% Advance, 40% upon delivery, 10% upon completion",
+    expire_days: initial?.expire_days ?? 30, discount_percent: 0, discount_fixed: 0, discount_type: (initial && Number(initial.discount_percent) > 0 ? "percent" : "fixed") as "percent" | "fixed", vat_percent: initial?.vat_percent ?? 7, notes: initial?.notes ?? "", remark: initial?.remark ?? "",
   });
 
-  const [formItems, setFormItems] = useState<QuotationItemForm[]>([
-    { description: "", qty: 1, unit: "Set", unit_price: 0, sub_items: [], notes: "" },
-  ]);
+  const [formItems, setFormItems] = useState<QuotationItemForm[]>(
+    [{ description: "", qty: 1, unit: "Set", unit_price: 0, sub_items: [], notes: "" }]
+  );
   const [busy, setBusy] = useState(false);
+
+  // Fetch items when editing an existing quotation
+  useEffect(() => {
+    if (!initial) return;
+    fetch(`/api/quotations/${initial.id}`).then(r => r.json()).then(d => {
+      const items: QuotationItem[] = d.items ?? [];
+      if (items.length > 0) {
+        setFormItems(items.map(it => ({
+          description: it.description, qty: it.quantity, unit: it.unit, unit_price: Number(it.unit_price),
+          sub_items: (it.sub_items as string[] || []), notes: it.notes || ""
+        })));
+      }
+    }).catch(() => {});
+  }, [initial]);
   const [err, setErr] = useState<string | null>(null);
 
   const onCustomerChange = (cid: string) => {
@@ -535,7 +561,9 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
           amount: it.qty * it.unit_price, sub_items: it.sub_items.filter(s => s.trim()), notes: it.notes,
         })),
       };
-      const r = await fetch("/api/quotations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const method = isEditing ? "PATCH" : "POST";
+      const url = isEditing ? `/api/quotations/${initial!.id}` : "/api/quotations";
+      const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || "Failed"); }
       onSaved();
     } catch (e) { setErr(e instanceof Error ? e.message : "Failed"); }
@@ -550,7 +578,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[#003087] flex items-center justify-center"><FileText size={16} className="text-white" /></div>
-            {L("createTitle")}
+            {isEditing ? "แก้ไข Quotation" : L("createTitle")}
           </h3>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
@@ -674,7 +702,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-500 hover:text-slate-900 text-sm">{L("cancel")}</button>
           <button onClick={submit} disabled={busy} className="px-6 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center gap-2">
-            <FileText size={14} /> {busy ? L("creating") : L("create")}
+            <FileText size={14} /> {busy ? (isEditing ? "กำลังบันทึก..." : L("creating")) : (isEditing ? "บันทึก" : L("create"))}
           </button>
         </div>
       </div>
@@ -685,7 +713,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved }: {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[11px] text-slate-500 mb-1 font-medium">{label}</label>
+      <label className="block text-xs text-gray-600 mb-1">{label}</label>
       {children}
     </div>
   );

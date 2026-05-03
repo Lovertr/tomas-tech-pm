@@ -32,6 +32,7 @@ import {
   Play,
   Pause,
   Volume2,
+  Pencil,
 } from 'lucide-react';
 import TranslateButton from './TranslateButton';
 import { supabase } from '@/lib/supabase';
@@ -358,6 +359,7 @@ export default function SalesActivitiesPanel({
   const [filterSalespersonId, setFilterSalespersonId] = useState<string>('');
   const [groupByDate, setGroupByDate] = useState(true);
   const [groupBySalesperson, setGroupBySalesperson] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<DealActivity | null>(null);
 
   // Audio states
   const [isRecording, setIsRecording] = useState(false);
@@ -394,6 +396,20 @@ export default function SalesActivitiesPanel({
     fetchCustomers();
     fetchUsers();
   }, [filterProjectId, refreshKey]);
+
+  useEffect(() => {
+    if (editingActivity) {
+      setFormData({
+        deal_id: editingActivity.deal_id ?? '',
+        customer_id: '',
+        type: editingActivity.type,
+        description: editingActivity.description ?? '',
+        date: editingActivity.date ?? new Date().toISOString().split('T')[0],
+        audio_url: '',
+      });
+      setShowForm(true);
+    }
+  }, [editingActivity]);
 
   const fetchActivities = async () => {
     try {
@@ -481,8 +497,12 @@ export default function SalesActivitiesPanel({
   const handleAddActivity = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/deal-activities', {
-        method: 'POST',
+      const isEditing = !!editingActivity;
+      const method = isEditing ? 'PATCH' : 'POST';
+      const url = isEditing ? `/api/deal-activities/${editingActivity!.id}` : '/api/deal-activities';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           deal_id: formData.deal_id || null,
@@ -497,6 +517,7 @@ export default function SalesActivitiesPanel({
       if (res.ok) {
         await fetchActivities();
         setShowForm(false);
+        setEditingActivity(null);
         resetForm();
       }
     } catch (error) {
@@ -930,12 +951,20 @@ export default function SalesActivitiesPanel({
                               <p className="text-sm text-gray-500">{activity.customer_name}</p>
                             </div>
                             {canManage && (
-                              <button
-                                onClick={() => handleDeleteActivity(activity.id)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition ml-2 flex-shrink-0"
-                              >
-                                <Trash2 size={16} className="text-red-600" />
-                              </button>
+                              <div className="flex gap-1 ml-2 flex-shrink-0">
+                                <button
+                                  onClick={() => setEditingActivity(activity)}
+                                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                                >
+                                  <Pencil size={16} className="text-blue-600" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteActivity(activity.id)}
+                                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                                >
+                                  <Trash2 size={16} className="text-red-600" />
+                                </button>
+                              </div>
                             )}
                           </div>
 
@@ -982,10 +1011,13 @@ export default function SalesActivitiesPanel({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900">{L('form.title')}</h3>
+              <h3 className="text-xl font-bold text-gray-900">
+                {editingActivity ? 'แก้ไข Activity' : L('form.title')}
+              </h3>
               <button
                 onClick={() => {
                   setShowForm(false);
+                  setEditingActivity(null);
                   resetForm();
                 }}
                 className="text-gray-500 hover:text-gray-900"
@@ -1251,12 +1283,13 @@ export default function SalesActivitiesPanel({
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                 >
-                  {L('form.save')}
+                  {editingActivity ? 'บันทึก' : L('form.save')}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setShowForm(false);
+                    setEditingActivity(null);
                     resetForm();
                   }}
                   className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
