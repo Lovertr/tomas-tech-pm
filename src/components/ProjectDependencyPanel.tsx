@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 
 interface Dep { id: string; project_id: string; depends_on_project_id: string; dependency_type: string; project_name?: string; depends_on_name?: string; }
-interface Proj { id: string; name: string; status: string; }
+interface Proj { id: string; name?: string; name_th?: string; name_en?: string; name_jp?: string; status: string; }
+
+function pName(p: Proj, lang: string) {
+  if (lang === "th") return p.name_th || p.name_en || p.name || "";
+  if (lang === "jp") return p.name_jp || p.name_en || p.name || "";
+  return p.name_en || p.name_th || p.name || "";
+}
 
 export default function ProjectDependencyPanel({ lang }: { lang: string }) {
   const [deps, setDeps] = useState<Dep[]>([]);
@@ -56,11 +62,11 @@ export default function ProjectDependencyPanel({ lang }: { lang: string }) {
         <div className="bg-white rounded-xl p-4 border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-3">
           <select value={form.project_id} onChange={e => setForm({ ...form, project_id: e.target.value })} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
             <option value="">{t.project}</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.map(p => <option key={p.id} value={p.id}>{pName(p, lang)}</option>)}
           </select>
           <select value={form.depends_on_project_id} onChange={e => setForm({ ...form, depends_on_project_id: e.target.value })} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
             <option value="">{t.dependsOn}</option>
-            {projects.filter(p => p.id !== form.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.filter(p => p.id !== form.project_id).map(p => <option key={p.id} value={p.id}>{pName(p, lang)}</option>)}
           </select>
           <select value={form.dependency_type} onChange={e => setForm({ ...form, dependency_type: e.target.value })} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
             <option value="blocks">{t.blocks}</option>
