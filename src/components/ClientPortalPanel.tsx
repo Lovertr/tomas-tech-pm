@@ -31,18 +31,37 @@ interface ClientRequest {
   linked_task?: { id: string; title: string; status: string } | null;
 }
 
-const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString("th-TH") : "—");
-const fmtDateTime = (d: string) => new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+const LOCALE_MAP: Record<string, string> = { th: "th-TH", en: "en-US", jp: "ja-JP" };
+const fmtDate = (d?: string | null, lang = "th") => (d ? new Date(d).toLocaleDateString(LOCALE_MAP[lang] || "th-TH") : "—");
+const fmtDateTime = (d: string, lang = "th") => new Date(d).toLocaleDateString(LOCALE_MAP[lang] || "th-TH", { day: "numeric", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
-const REQUEST_STATUS: Record<string, { label: string; color: string; bg: string; icon: typeof Clock }> = {
-  pending: { label: "รอพิจารณา", color: "#F59E0B", bg: "#FFFBEB", icon: Clock },
-  accepted: { label: "รับแล้ว", color: "#3B82F6", bg: "#EFF6FF", icon: CheckCircle2 },
-  in_progress: { label: "กำลังดำเนินการ", color: "#8B5CF6", bg: "#F5F3FF", icon: Clock },
-  resolved: { label: "แก้ไขแล้ว", color: "#22C55E", bg: "#F0FDF4", icon: CheckCircle2 },
-  cancelled: { label: "ยกเลิก", color: "#EF4444", bg: "#FEF2F2", icon: XCircle },
+const REQUEST_STATUS_STYLES: Record<string, { color: string; bg: string; icon: typeof Clock }> = {
+  pending: { color: "#F59E0B", bg: "#FFFBEB", icon: Clock },
+  accepted: { color: "#3B82F6", bg: "#EFF6FF", icon: CheckCircle2 },
+  in_progress: { color: "#8B5CF6", bg: "#F5F3FF", icon: Clock },
+  resolved: { color: "#22C55E", bg: "#F0FDF4", icon: CheckCircle2 },
+  cancelled: { color: "#EF4444", bg: "#FEF2F2", icon: XCircle },
 };
-const REQUEST_TYPES: Record<string, string> = { request: "คำร้องขอ", issue: "รายงานปัญหา", feedback: "ข้อเสนอแนะ", change_request: "ขอเปลี่ยนแปลง" };
+const REQUEST_STATUS_LABELS: Record<string, Record<string, string>> = {
+  pending:     { th: "รอพิจารณา",       en: "Pending",       jp: "保留中" },
+  accepted:    { th: "รับแล้ว",         en: "Accepted",      jp: "承認済み" },
+  in_progress: { th: "กำลังดำเนินการ",   en: "In Progress",   jp: "進行中" },
+  resolved:    { th: "แก้ไขแล้ว",       en: "Resolved",      jp: "解決済み" },
+  cancelled:   { th: "ยกเลิก",         en: "Cancelled",     jp: "キャンセル" },
+};
+const REQUEST_TYPE_LABELS: Record<string, Record<string, string>> = {
+  request:        { th: "คำร้องขอ",       en: "Request",         jp: "リクエスト" },
+  issue:          { th: "รายงานปัญหา",    en: "Issue Report",    jp: "問題報告" },
+  feedback:       { th: "ข้อเสนอแนะ",     en: "Feedback",        jp: "フィードバック" },
+  change_request: { th: "ขอเปลี่ยนแปลง",  en: "Change Request",  jp: "変更依頼" },
+};
 const PRIORITY_COLORS: Record<string, string> = { low: "#94A3B8", medium: "#F59E0B", high: "#F97316", critical: "#EF4444" };
+const PRIORITY_LABELS: Record<string, Record<string, string>> = {
+  low:      { th: "ต่ำ",      en: "Low",      jp: "低" },
+  medium:   { th: "ปานกลาง",  en: "Medium",   jp: "中" },
+  high:     { th: "สูง",      en: "High",     jp: "高" },
+  critical: { th: "วิกฤต",    en: "Critical", jp: "重大" },
+};
 
 /* ---------- translations ---------- */
 const cpT: Record<string, Record<string, string>> = {
@@ -442,8 +461,8 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
                     </div>
                     <div className="flex items-center gap-4 text-[11px] text-gray-500 mt-2">
                       <span><Eye size={10} className="inline mr-1" />{t.views} {r.access_count ?? 0} {t.times}</span>
-                      <span>{t.lastOpened} {fmtDate(r.last_accessed_at)}</span>
-                      {r.expires_at && <span className="text-orange-600">{t.expires} {fmtDate(r.expires_at)}</span>}
+                      <span>{t.lastOpened} {fmtDate(r.last_accessed_at, lang)}</span>
+                      {r.expires_at && <span className="text-orange-600">{t.expires} {fmtDate(r.expires_at, lang)}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -550,7 +569,8 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
       {/* Request Cards */}
       <div className="space-y-3">
         {filtered.map(cr => {
-          const st = REQUEST_STATUS[cr.status] || REQUEST_STATUS.pending;
+          const st = REQUEST_STATUS_STYLES[cr.status] || REQUEST_STATUS_STYLES.pending;
+          const stLabel = REQUEST_STATUS_LABELS[cr.status]?.[lang] || REQUEST_STATUS_LABELS[cr.status]?.th || cr.status;
           const isExpanded = expandedId === cr.id;
           const isLoading = actionLoading === cr.id;
 
@@ -563,14 +583,14 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{st.label}</span>
-                      <span className="text-xs text-gray-400">{REQUEST_TYPES[cr.request_type]}</span>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[cr.priority] || "#94A3B8" }} title={cr.priority} />
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{stLabel}</span>
+                      <span className="text-xs text-gray-400">{REQUEST_TYPE_LABELS[cr.request_type]?.[lang] || REQUEST_TYPE_LABELS[cr.request_type]?.th || cr.request_type}</span>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[cr.priority] || "#94A3B8" }} title={PRIORITY_LABELS[cr.priority]?.[lang] || cr.priority} />
                     </div>
                     <p className="text-sm font-medium text-gray-900">{cr.title}</p>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                       <span>{t.submittedBy} {cr.client_name}</span>
-                      <span>{fmtDateTime(cr.created_at)}</span>
+                      <span>{fmtDateTime(cr.created_at, lang)}</span>
                     </div>
                   </div>
                   {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
@@ -819,9 +839,9 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
                   </div>
                 )}
                 <p className={`text-[10px] mt-1 ${c.sender_type === "team" ? "text-blue-200" : "text-gray-400"}`}>
-                  {new Date(c.created_at).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}
+                  {new Date(c.created_at).toLocaleTimeString(LOCALE_MAP[lang] || "th-TH", { hour: "2-digit", minute: "2-digit" })}
                   {" · "}
-                  {new Date(c.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
+                  {new Date(c.created_at).toLocaleDateString(LOCALE_MAP[lang] || "th-TH", { day: "numeric", month: "short" })}
                 </p>
               </div>
             </div>
