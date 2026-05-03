@@ -228,7 +228,11 @@ export default function DealsPipelinePanel({
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          expected_close_date: formData.expected_close_date || null,
+          owner_id: formData.owner_id || null,
+        }),
       });
       if (res.ok) {
         await fetchDeals();
