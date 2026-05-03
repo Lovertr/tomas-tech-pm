@@ -297,11 +297,21 @@ export const HELP_SECTIONS: HelpSection[] = [
         id: "departments",
         title: { th: "แผนก", en: "Departments", jp: "部門" },
         content: {
-          th: `จัดการแผนกในองค์กร:\n\n• ดูรายชื่อแผนกทั้งหมดพร้อมจำนวนพนักงาน\n• คลิกเข้าแผนกเพื่อดูรายชื่อพนักงานในแผนก\n• ย้ายพนักงานระหว่างแผนกได้\n• ตั้งค่าสิทธิ์ระดับแผนก — กำหนดว่าแผนกนี้เข้าถึงฟีเจอร์ไหนได้บ้าง\n\nสิทธิ์จะทำงานแบบ 3 ชั้น: Override ส่วนตัว → สิทธิ์แผนก → ค่าเริ่มต้น Role`,
-          en: `Manage departments in your organization:\n\n• View all departments with employee counts\n• Click a department to see its members\n• Transfer employees between departments\n• Set department-level permissions — control which features the department can access\n\nPermissions cascade in 3 tiers: Personal Override → Department Permission → Role Default`,
-          jp: `組織の部門を管理：\n\n• 従業員数付きの全部門を表示\n• 部門をクリックしてメンバーを確認\n• 部門間で従業員を異動\n• 部門レベルの権限設定 — 部門がアクセスできる機能を制御\n\n権限は3段階：個人オーバーライド → 部門権限 → ロールデフォルト`,
+          th: `จัดการแผนกในองค์กร:\n\n• ดูรายชื่อแผนกทั้งหมดพร้อมจำนวนพนักงาน\n• คลิกเข้าแผนกเพื่อดูรายชื่อพนักงานในแผนก\n• ย้ายพนักงานระหว่างแผนกได้\n• ตั้งค่าสิทธิ์ระดับแผนก — ใช้กับฟีเจอร์ที่ไม่ใช่โปรเจค เช่น CRM, การเงิน, ทีมงาน\n\nหมายเหตุ: ฟีเจอร์เกี่ยวกับโปรเจค (งาน, ความเสี่ยง, ปัญหา ฯลฯ) ใช้สิทธิ์ตามการเป็นสมาชิกโปรเจคแทน — ดูหัวข้อ "สิทธิ์ตามโปรเจค"`,
+          en: `Manage departments in your organization:\n\n• View all departments with employee counts\n• Click a department to see its members\n• Transfer employees between departments\n• Set department-level permissions — applies to non-project features like CRM, Finance, Team\n\nNote: Project-related features (tasks, risks, issues, etc.) use project membership-based permissions instead — see "Project-Based Permissions".`,
+          jp: `組織の部門を管理：\n\n• 従業員数付きの全部門を表示\n• 部門をクリックしてメンバーを確認\n• 部門間で従業員を異動\n• 部門レベルの権限設定 — CRM、財務、チームなどプロジェクト以外の機能に適用\n\n注：プロジェクト関連の機能（タスク、リスク、課題など）はプロジェクトメンバーシップに基づく権限を使用します — 「プロジェクトベースの権限」を参照してください。`,
         },
         tags: ["department", "แผนก", "部門", "permission"],
+      },
+      {
+        id: "project_permissions",
+        title: { th: "สิทธิ์ตามโปรเจค", en: "Project-Based Permissions", jp: "プロジェクトベースの権限" },
+        content: {
+          th: `ฟีเจอร์ที่เกี่ยวกับโปรเจค ใช้ระบบสิทธิ์ตามการเป็นสมาชิกโปรเจค:\n\nสมาชิกโปรเจค (ทุกคนที่ถูกจัดสรรเข้าโปรเจค) สามารถ:\n• สร้าง/แก้ไขงาน (Tasks)\n• สร้าง/แก้ไขความเสี่ยง (Risks) และปัญหา (Issues)\n• สร้าง/แก้ไขบันทึกการประชุม (Meetings)\n\nPM ของโปรเจค + Admin สามารถ:\n• จัดการ Milestones และ Sprints\n• อนุมัติ Change Requests\n• สร้างบันทึกการตัดสินใจ (Decisions)\n• จัดการ Templates, งานประจำ, งบประมาณโครงการ\n\nฟีเจอร์อื่นๆ (CRM, การเงิน, ทีมงาน) ยังคงใช้สิทธิ์ตามแผนกเดิม`,
+          en: `Project-related features use project membership-based permissions:\n\nProject Members (anyone allocated to the project) can:\n• Create/edit Tasks\n• Create/edit Risks and Issues\n• Create/edit Meeting Notes\n\nProject PM + Admin can:\n• Manage Milestones and Sprints\n• Approve Change Requests\n• Create Decision Log entries\n• Manage Templates, Recurring Tasks, Project Budget\n\nOther features (CRM, Finance, Team) still use department-based permissions.`,
+          jp: `プロジェクト関連の機能はプロジェクトメンバーシップに基づく権限を使用します：\n\nプロジェクトメンバー（プロジェクトに割り当てられた全員）は：\n• タスクの作成/編集\n• リスクと課題の作成/編集\n• 議事録の作成/編集\n\nPM + 管理者は：\n• マイルストーンとスプリントの管理\n• 変更リクエストの承認\n• 意思決定ログの作成\n• テンプレート、定期タスク、プロジェクト予算の管理\n\nその他の機能（CRM、財務、チーム）は引き続き部門ベースの権限を使用します。`,
+        },
+        tags: ["permission", "project", "member", "PM", "สิทธิ์", "โปรเจค", "プロジェクト", "権限"],
       },
       {
         id: "keyboard_shortcuts",

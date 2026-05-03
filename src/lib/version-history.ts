@@ -13,6 +13,35 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "1.6.0",
+    date: "2026-05-03",
+    title: {
+      th: "สิทธิ์ตามโปรเจค + แก้บั๊กสำคัญ",
+      en: "Project-Based Permissions + Critical Bug Fixes",
+      jp: "プロジェクトベースの権限 + 重要なバグ修正",
+    },
+    highlights: {
+      th: [
+        "ระบบสิทธิ์ตามโปรเจค — สมาชิกโปรเจคเท่านั้นที่สร้าง/แก้ไขงาน ความเสี่ยง ปัญหา ประชุมได้",
+        "PM ของโปรเจค + Admin จัดการ Milestones, Sprints, Change Requests, Decisions ได้",
+        "แก้บั๊กดีลและลูกค้าสร้างซ้ำ 2 รายการเมื่อกดบันทึก",
+        "แก้ dropdown การพึ่งพาโครงการไม่แสดงชื่อโปรเจค",
+      ],
+      en: [
+        "Project-based permissions — only project members can create/edit tasks, risks, issues, meetings",
+        "Project PM + Admin can manage Milestones, Sprints, Change Requests, Decisions",
+        "Fixed duplicate creation bug when saving deals or customers",
+        "Fixed project dependency dropdown showing empty project names",
+      ],
+      jp: [
+        "プロジェクトベースの権限 — メンバーのみタスク・リスク・課題・会議を作成/編集可能",
+        "PM + 管理者がマイルストーン、スプリント、変更リクエスト、意思決定を管理",
+        "商談・顧客の保存時に重複作成されるバグを修正",
+        "プロジェクト依存関係のドロップダウンでプロジェクト名が表示されない問題を修正",
+      ],
+    },
+  },
+  {
     version: "1.5.0",
     date: "2026-05-03",
     title: {
