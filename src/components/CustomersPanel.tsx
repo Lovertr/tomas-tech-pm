@@ -27,6 +27,7 @@ interface Customer {
   email?: string;
   website?: string;
   notes?: string;
+  google_map_url?: string;
   contact_count?: number;
 }
 
@@ -168,6 +169,10 @@ const L = (key: string, lang: Lang = 'th'): string => {
     commentPlaceholder: { th: 'เขียนคอมเม้นของคุณที่นี่...', en: 'Write your comment here...', jp: 'ここにコメントを書く...' },
     submit: { th: 'ส่ง', en: 'Submit', jp: '送信' },
     translate: { th: 'แปล', en: 'Translate', jp: '翻訳' },
+    googleMap: { th: 'Google Map', en: 'Google Map', jp: 'Google Map' },
+    googleMapPlaceholder: { th: 'วาง Google Maps URL ที่นี่...', en: 'Paste Google Maps URL here...', jp: 'Google Maps URLをここに貼り付け...' },
+    googleMapLabel: { th: 'Google Map:', en: 'Google Map:', jp: 'Google Map:' },
+    openMap: { th: 'เปิดแผนที่', en: 'Open Map', jp: '地図を開く' },
   };
   return panelText[key]?.[lang] || key;
 };
@@ -211,6 +216,7 @@ export default function CustomersPanel({
     email: '',
     website: '',
     notes: '',
+    google_map_url: '',
     status: 'prospect' as 'active' | 'inactive' | 'prospect' | 'churned',
   });
 
@@ -421,6 +427,7 @@ export default function CustomersPanel({
       email: '',
       website: '',
       notes: '',
+      google_map_url: '',
       status: 'prospect',
     });
     setSelectedCustomer(null);
@@ -437,6 +444,7 @@ export default function CustomersPanel({
       email: customer.email || '',
       website: customer.website || '',
       notes: customer.notes || '',
+      google_map_url: customer.google_map_url || '',
       status: customer.status,
     });
     setShowForm(true);
@@ -700,6 +708,26 @@ export default function CustomersPanel({
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {L('googleMap', lang)}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder={L('googleMapPlaceholder', lang)}
+                    value={formData.google_map_url}
+                    onChange={(e) => setFormData({ ...formData, google_map_url: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                  />
+                  {formData.google_map_url && formData.google_map_url.includes('google') && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-gray-200">
+                      <iframe
+                        src={formData.google_map_url.includes('/embed') ? formData.google_map_url : `https://www.google.com/maps?q=${encodeURIComponent(formData.google_map_url)}&output=embed`}
+                        width="100%" height="150" style={{ border: 0 }} allowFullScreen loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade" />
+                    </div>
+                  )}
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('notes', lang)}
                   </label>
                   <textarea
@@ -901,6 +929,23 @@ export default function CustomersPanel({
                             <MapPin size={14} className="text-gray-500 flex-shrink-0 mt-0.5" />
                             {selectedCustomer.address}
                           </p>
+                        </div>
+                      )}
+                      {selectedCustomer.google_map_url && (
+                        <div className="md:col-span-2">
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('googleMapLabel', lang)}</p>
+                          <div className="mt-1">
+                            <a href={selectedCustomer.google_map_url} target="_blank" rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 mb-2">
+                              <MapPin size={14} /> {L('openMap', lang)} <ExternalLink size={12} />
+                            </a>
+                            <div className="rounded-lg overflow-hidden border border-gray-200">
+                              <iframe
+                                src={selectedCustomer.google_map_url.includes('/embed') ? selectedCustomer.google_map_url : `https://www.google.com/maps?q=${encodeURIComponent(selectedCustomer.google_map_url)}&output=embed`}
+                                width="100%" height="200" style={{ border: 0 }} allowFullScreen loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade" />
+                            </div>
+                          </div>
                         </div>
                       )}
                       {selectedCustomer.notes && (
@@ -1256,72 +1301,4 @@ export default function CustomersPanel({
                   <div className="space-y-4 mb-6">
                     {comments.length === 0 ? (
                       <p className="text-gray-500 text-sm">{L('noComments', lang)}</p>
-                    ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <p className="font-medium text-gray-900">{comment.user_name || 'Anonymous'}</p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(comment.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}
-                            </p>
-                          </div>
-                          <p className="text-sm text-gray-700">{comment.content}</p>
-                          <div className="mt-2">
-                            <TranslateButton text={comment.content} />
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Add Comment Form */}
-                  {canManage && (
-                    <form onSubmit={handleAddComment} className="border-t border-[#E2E8F0] pt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {L('addComment', lang)}
-                      </label>
-                      <textarea
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder={L('commentPlaceholder', lang)}
-                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
-                        rows={3}
-                      />
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          type="submit"
-                          disabled={!newComment.trim()}
-                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {L('submit', lang)}
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Footer Actions */}
-            {canManage && (
-              <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
-                <button
-                  onClick={() => handleEditCustomer(selectedCustomer)}
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
-                >
-                  {L('edit', lang)}
-                </button>
-                <button
-                  onClick={() => setShowDetail(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
-                >
-                  {L('close', lang)}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+          

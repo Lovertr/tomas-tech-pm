@@ -13,6 +13,35 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "1.7.0",
+    date: "2026-05-03",
+    title: {
+      th: "Google Map ลูกค้า + แก้ดีลสำหรับพนักงาน",
+      en: "Customer Google Map + Deal Form Fix for Members",
+      jp: "顧客Google Map + メンバー向けディールフォーム修正",
+    },
+    highlights: {
+      th: [
+        "เพิ่มช่อง Google Map ในฟอร์มลูกค้า — ใส่ลิงก์แสดงแผนที่ขนาดเล็กพร้อมลิงก์เปิดแผนที่",
+        "สร้างดีล: พนักงานจะเป็นเจ้าของดีลอัตโนมัติ (ไม่ต้องเลือก)",
+        "แก้บั๊กกดบันทึกดีลไม่ได้ — เพิ่มแจ้งเตือนเมื่อเกิดข้อผิดพลาด",
+        "Admin/Manager เลือกเจ้าของดีลได้ตามปกติ",
+      ],
+      en: [
+        "Added Google Map field in customer form — paste link to show mini map + open map link",
+        "Create deal: members are auto-assigned as deal owner (no selection needed)",
+        "Fixed deal save button not working — added error feedback on failure",
+        "Admin/Manager can select deal owner as before",
+      ],
+      jp: [
+        "顧客フォームにGoogle Mapフィールドを追加 — リンクでミニマップ表示 + 地図を開くリンク",
+        "ディール作成: メンバーは自動的にオーナーに設定（選択不要）",
+        "ディール保存ボタンが動作しない問題を修正 — エラーフィードバック追加",
+        "管理者/マネージャーは従来通りオーナーを選択可能",
+      ],
+    },
+  },
+  {
     version: "1.6.0",
     date: "2026-05-03",
     title: {
@@ -88,47 +117,4 @@ export const VERSION_HISTORY: VersionEntry[] = [
       en: [
         "Client Portal — customers view projects without login",
         "Chat system between customers and team with file attachments",
-        "Customer requests trigger notifications + auto-create tasks",
-        "Meeting notes visible to clients in Portal",
-      ],
-      jp: [
-        "クライアントポータル — ログイン不要でプロジェクト閲覧",
-        "顧客とチーム間のチャットシステム（ファイル添付対応）",
-        "顧客リクエストが通知 + タスク自動作成をトリガー",
-        "ポータルで顧客に公開可能な議事録",
-      ],
-    },
-  },
-  {
-    version: "1.3.0",
-    date: "2026-04-20",
-    title: {
-      th: "ระบบ CRM + การเงินขั้นสูง",
-      en: "Advanced CRM + Finance System",
-      jp: "高度なCRM + 財務システム",
-    },
-    highlights: {
-      th: [
-        "Pipeline ดีลแบบ drag-and-drop พร้อม Lead Scoring",
-        "ใบเสนอราคาแบบมืออาชีพ + ระบบอนุมัติ + PDF",
-        "ระบบรายรับ-รายจ่ายอัตโนมัติ + งบประมาณโครงการ",
-        "รายงานการขายพร้อม AI วิเคราะห์",
-      ],
-      en: [
-        "Drag-and-drop deal pipeline with Lead Scoring",
-        "Professional quotations + approval workflow + PDF export",
-        "Automated income/expense tracking + project budgets",
-        "Sales reports with AI analysis",
-      ],
-      jp: [
-        "ドラッグ&ドロップのディールパイプライン + リードスコアリング",
-        "プロフェッショナルな見積書 + 承認ワークフロー + PDF出力",
-        "自動収支管理 + プロジェクト予算",
-        "AI分析付き営業レポート",
-      ],
-    },
-  },
-];
-
-/** Returns the latest version string */
-export const CURRENT_VERSION = VERSION_HISTORY[0]?.version ?? "1.0.0";
+        "Customer requests trigger 

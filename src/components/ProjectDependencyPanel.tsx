@@ -91,14 +91,4 @@ export default function ProjectDependencyPanel({ lang }: { lang: string }) {
                   <span className={"px-2 py-0.5 rounded-full text-xs font-medium " + (typeColor[d.dependency_type] || "bg-gray-100 text-gray-600")}>{d.dependency_type}</span>
                 </td>
                 <td className="px-4 py-3 text-gray-600">{d.depends_on_name || d.depends_on_project_id}</td>
-                <td className="px-4 py-3 text-right">
-                  <button onClick={() => handleRemove(d.id)} className="text-red-500 hover:text-red-700 text-xs">{t.remove}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+             
