@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Bell, CheckCheck, MessageSquare, Flag, AlertTriangle, ListTodo, Calendar, Info, X, TrendingUp, DollarSign, Briefcase, FileText, XCircle, UserPlus } from "lucide-react";
+import { Bell, CheckCheck, MessageSquare, Flag, AlertTriangle, ListTodo, Calendar, Info, X, TrendingUp, DollarSign, Briefcase, FileText, XCircle, UserPlus, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { VERSION_HISTORY, CURRENT_VERSION } from "@/lib/version-history";
 
 interface Notification {
   id: string;
@@ -48,11 +49,15 @@ const fmtRelative = (iso: string) => {
   return new Date(iso).toLocaleDateString("th-TH", { day: "numeric", month: "short" });
 };
 
+const VER_DISMISSED_KEY = "tt_dismissed_version";
+
 export default function NotificationBell({ onNavigate }: Props) {
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [versionDismissed, setVersionDismissed] = useState(true);
+  const [versionExpanded, setVersionExpanded] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -64,6 +69,14 @@ export default function NotificationBell({ onNavigate }: Props) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Check version dismissal
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(VER_DISMISSED_KEY);
+      if (saved !== CURRENT_VERSION) setVersionDismissed(false);
+    } catch {}
+  }, []);
+
   // Poll every 60s
   useEffect(() => {
     const id = setInterval(fetchAll, 60_000);
@@ -71,6 +84,7 @@ export default function NotificationBell({ onNavigate }: Props) {
   }, [fetchAll]);
 
   const unread = items.filter(n => !n.is_read);
+  const badgeCount = unread.length + (versionDismissed ? 0 : 1);
 
   const markRead = async (ids: string[]) => {
     if (!ids.length) return;
@@ -98,9 +112,9 @@ export default function NotificationBell({ onNavigate }: Props) {
     <div className="relative">
       <button onClick={() => setOpen(!open)} className="p-2 rounded-xl bg-slate-100 relative text-gray-500 hover:text-gray-700">
         <Bell size={18} />
-        {unread.length > 0 && (
+        {badgeCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-gray-900 text-[10px] font-bold flex items-center justify-center bg-[#F7941D]">
-            {unread.length > 99 ? "99+" : unread.length}
+            {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         )}
       </button>
@@ -117,10 +131,55 @@ export default function NotificationBell({ onNavigate }: Props) {
             </div>
 
             <div className="max-h-96 overflow-y-auto">
+              {/* Version update notification — pinned at top */}
+              {!versionDismissed && VERSION_HISTORY[0] && (() => {
+                const v = VERSION_HISTORY[0];
+                return (
+                  <div className="border-b-2 border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="p-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex-shrink-0">
+                          <Sparkles size={16} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 px-1.5 py-0.5 rounded-full">NEW</span>
+                            <span className="text-xs text-gray-500 font-mono">v{v.version}</span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-900 mb-1">{v.title.th}</p>
+                          {!versionExpanded ? (
+                            <p className="text-xs text-gray-600 line-clamp-1">{v.highlights.th[0]}</p>
+                          ) : (
+                            <ul className="space-y-0.5 mt-1">
+                              {v.highlights.th.map((h, i) => (
+                                <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                                  <span className="text-blue-500 mt-0.5">•</span><span>{h}</span>
+                                         </li>
+                              ))}
+                            </ul>
+                          )}
+                          <div className="flex items-center gap-3 mt-1.5">
+                            <button onClick={(e) => { e.stopPropagation(); setVersionExpanded(!versionExpanded); }} className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-0.5">
+                              {versionExpanded ? "ย่อ" : "ดูทั้งหมด"}
+                              {versionExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setVersionDismissed(true); try { localStorage.setItem(VER_DISMISSED_KEY, CURRENT_VERSION); } catch {} }} className="text-xs text-gray-400 hover:text-gray-600">
+                              ปิด
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {loading ? (
                 <div className="p-4 text-center text-gray-500">กำลังโหลด...</div>
-              ) : items.length === 0 ? (
+              ) : items.length === 0 && versionDismissed ? (
                 <div className="p-4 text-center text-gray-500">ไม่มีการแจ้งเตือน</div>
+              ) : items.length === 0 ? (
+                null
               ) : (
                 items.map((n) => {
                   const meta = TYPE_META[n.type || "info"];

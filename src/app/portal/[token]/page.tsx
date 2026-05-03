@@ -587,7 +587,9 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                       <div key={cr.id} className="flex items-center gap-3 p-3 rounded-lg border">
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: st.color }} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{cr.title}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {cr.title} <TranslateButton text={cr.title} compact />
+                          </p>
                           <p className="text-xs text-gray-500">{new Date(cr.created_at).toLocaleDateString(loc)}</p>
                         </div>
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ color: st.color, backgroundColor: st.bg }}>{getRequestStatusLabel(cr.status, t)}</span>
@@ -851,7 +853,9 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
                 </span>
               )}
             </div>
-            <p className="text-sm font-medium text-gray-900">{cr.title}</p>
+            <p className="text-sm font-medium text-gray-900">
+              {cr.title} <TranslateButton text={cr.title} compact />
+            </p>
             <p className="text-xs text-gray-500 mt-1">{new Date(cr.created_at).toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
           </div>
           {expanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
@@ -1447,3 +1451,4 @@ function SubmitRequestForm({
     </div>
   );
 }
+          
