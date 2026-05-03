@@ -22,12 +22,12 @@ interface Customer {
   industry?: string;
   status: 'active' | 'inactive' | 'prospect' | 'churned';
   address?: string;
+  google_map_url?: string;
   tax_id?: string;
   phone?: string;
   email?: string;
   website?: string;
   notes?: string;
-  google_map_url?: string;
   contact_count?: number;
 }
 
@@ -166,13 +166,13 @@ const L = (key: string, lang: Lang = 'th'): string => {
     noProjects: { th: 'ไม่มีโปรเจค', en: 'No projects', jp: 'プロジェクトがありません' },
     addComment: { th: 'เพิ่มคอมเม้น', en: 'Add Comment', jp: 'コメントを追加' },
     noComments: { th: 'ไม่มีคอมเม้น', en: 'No comments', jp: 'コメントがありません' },
+    googleMap: { th: 'Google Map', en: 'Google Map', jp: 'Google Map' },
+    googleMapPlaceholder: { th: 'วาง Google Maps URL ที่นี่...', en: 'Paste Google Maps URL here...', jp: 'Google Maps URLをここに貼り付け...' },
+    googleMapLabel: { th: 'แผนที่', en: 'Map', jp: '地図' },
+    openMap: { th: 'เปิดแผนที่', en: 'Open Map', jp: '地図を開く' },
     commentPlaceholder: { th: 'เขียนคอมเม้นของคุณที่นี่...', en: 'Write your comment here...', jp: 'ここにコメントを書く...' },
     submit: { th: 'ส่ง', en: 'Submit', jp: '送信' },
     translate: { th: 'แปล', en: 'Translate', jp: '翻訳' },
-    googleMap: { th: 'Google Map', en: 'Google Map', jp: 'Google Map' },
-    googleMapPlaceholder: { th: 'วาง Google Maps URL ที่นี่...', en: 'Paste Google Maps URL here...', jp: 'Google Maps URLをここに貼り付け...' },
-    googleMapLabel: { th: 'Google Map:', en: 'Google Map:', jp: 'Google Map:' },
-    openMap: { th: 'เปิดแผนที่', en: 'Open Map', jp: '地図を開く' },
   };
   return panelText[key]?.[lang] || key;
 };
@@ -710,13 +710,10 @@ export default function CustomersPanel({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('googleMap', lang)}
                   </label>
-                  <input
-                    type="url"
-                    placeholder={L('googleMapPlaceholder', lang)}
+                  <input type="url" placeholder={L('googleMapPlaceholder', lang)}
                     value={formData.google_map_url}
                     onChange={(e) => setFormData({ ...formData, google_map_url: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                  />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                   {formData.google_map_url && formData.google_map_url.includes('google') && (
                     <div className="mt-2 rounded-lg overflow-hidden border border-gray-200">
                       <iframe
@@ -1301,4 +1298,72 @@ export default function CustomersPanel({
                   <div className="space-y-4 mb-6">
                     {comments.length === 0 ? (
                       <p className="text-gray-500 text-sm">{L('noComments', lang)}</p>
-          
+                    ) : (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="font-medium text-gray-900">{comment.user_name || 'Anonymous'}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                          <div className="mt-2">
+                            <TranslateButton text={comment.content} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Comment Form */}
+                  {canManage && (
+                    <form onSubmit={handleAddComment} className="border-t border-[#E2E8F0] pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {L('addComment', lang)}
+                      </label>
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder={L('commentPlaceholder', lang)}
+                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                        rows={3}
+                      />
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={!newComment.trim()}
+                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {L('submit', lang)}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            {canManage && (
+              <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
+                <button
+                  onClick={() => handleEditCustomer(selectedCustomer)}
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
+                >
+                  {L('edit', lang)}
+                </button>
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
+                >
+                  {L('close', lang)}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

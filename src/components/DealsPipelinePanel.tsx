@@ -236,8 +236,8 @@ export default function DealsPipelinePanel({
         resetForm();
       } else {
         const errJson = await res.json().catch(() => null);
-        const msg = errJson?.error || `Error ${res.status}`;
-        alert(lang === 'th' ? `บันทึกไม่สำเร็จ: ${msg}` : lang === 'jp' ? `保存に失敗しました: ${msg}` : `Save failed: ${msg}`);
+        const msg = errJson?.error || 'Error ' + res.status;
+        alert(lang === 'th' ? 'บันทึกไม่สำเร็จ: ' + msg : lang === 'jp' ? '保存に失敗しました: ' + msg : 'Save failed: ' + msg);
       }
     } catch (error) {
       console.error('Failed to save deal:', error);
@@ -272,9 +272,8 @@ export default function DealsPipelinePanel({
 
   const resetForm = () => {
     setFormData({
-      title: '', customer_id: '',
-      owner_id: (userRole === 'member' && currentUserId) ? currentUserId : '',
-      value: 0, stage: 'new_lead', expected_close_date: '', probability: 0, notes: '',
+      title: '', customer_id: '', owner_id: (userRole === 'member' && currentUserId) ? currentUserId : '', value: 0,
+      stage: 'new_lead', expected_close_date: '', probability: 0, notes: '',
     });
     setSelectedDeal(null);
   };
@@ -523,4 +522,21 @@ export default function DealsPipelinePanel({
                 </div>
 
                 <div className="md:col-span-2">
-    
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('notes')}</label>
+                  <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{saving ? '...' : L('save')}</button>
+                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
+                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -204,9 +204,9 @@ export const HELP_SECTIONS: HelpSection[] = [
         id: "customers",
         title: { th: "จัดการลูกค้า", en: "Customer Management", jp: "顧客管理" },
         content: {
-          th: `หน้าลูกค้าแสดงรายชื่อบริษัทลูกค้าทั้งหมด คลิกที่ลูกค้าเพื่อดูรายละเอียด:\n\n• ข้อมูลทั่วไป — ชื่อบริษัท, ที่อยู่, เบอร์โทร, อีเมล\n• Google Map — วาง URL จาก Google Maps เพื่อแสดงแผนที่ขนาดเล็กในฟอร์ม และลิงก์เปิดแผนที่เต็ม\n• แท็บโครงการ — โครงการทั้งหมดของลูกค้านี้\n• แท็บดีล — ดีลทั้งหมดในระบบ\n• แท็บใบเสนอราคา — ใบเสนอราคาที่เคยส่ง\n• แท็บความคิดเห็น — บันทึกโน้ตเกี่ยวกับลูกค้า`,
-          en: `The Customers page lists all customer companies. Click a customer for details:\n\n• General info — Company name, address, phone, email\n• Google Map — Paste a Google Maps URL to show a mini map preview and open map link\n• Projects tab — All projects for this customer\n• Deals tab — All deals in the pipeline\n• Quotations tab — Quotations sent\n• Comments tab — Notes about the customer`,
-          jp: `顧客ページはすべての顧客企業を一覧表示します。顧客をクリックして詳細を表示：\n\n• 基本情報 — 会社名、住所、電話、メール\n• Google Map — Google Maps URLを貼り付けてミニマップと地図を開くリンクを表示\n• プロジェクトタブ — この顧客のすべてのプロジェクト\n• 商談タブ — パイプライン内のすべての商談\n• 見積書タブ — 送付済みの見積書\n• コメントタブ — 顧客に関するメモ`,
+          th: `หน้าลูกค้าแสดงรายชื่อบริษัทลูกค้าทั้งหมด คลิกที่ลูกค้าเพื่อดูรายละเอียด:\n\n• ข้อมูลทั่วไป — ชื่อบริษัท, ที่อยู่, เบอร์โทร, อีเมล\n• แท็บโครงการ — โครงการทั้งหมดของลูกค้านี้\n• แท็บดีล — ดีลทั้งหมดในระบบ\n• แท็บใบเสนอราคา — ใบเสนอราคาที่เคยส่ง\n• แท็บความคิดเห็น — บันทึกโน้ตเกี่ยวกับลูกค้า\n• Google Map — วาง URL แผนที่เพื่อแสดงตำแหน่งลูกค้า พร้อมแผนที่ตัวอย่าง`,
+          en: `The Customers page lists all customer companies. Click a customer for details:\n\n• General info — Company name, address, phone, email\n• Projects tab — All projects for this customer\n• Deals tab — All deals in the pipeline\n• Quotations tab — Quotations sent\n• Comments tab — Notes about the customer\n• Google Map — Paste a map URL to show customer location with map preview`,
+          jp: `顧客ページはすべての顧客企業を一覧表示します。顧客をクリックして詳細を表示：\n\n• 基本情報 — 会社名、住所、電話、メール\n• プロジェクトタブ — この顧客のすべてのプロジェクト\n• 商談タブ — パイプライン内のすべての商談\n• 見積書タブ — 送付済みの見積書\n• コメントタブ — 顧客に関するメモ\n• Google Map — 地図URLを貼り付けて顧客の位置をプレビュー表示`,
         },
         tags: ["customer", "ลูกค้า", "顧客"],
       },
@@ -214,9 +214,9 @@ export const HELP_SECTIONS: HelpSection[] = [
         id: "deals_pipeline",
         title: { th: "ดีล Pipeline", en: "Deals Pipeline", jp: "商談パイプライン" },
         content: {
-          th: `ระบบดีลแบ่งเป็นขั้นตอน (Stages):\n• ลีดใหม่ → ติดต่อแล้ว → นำเสนอแล้ว → เจรจาต่อรอง → ส่งใบเสนอราคา → ได้รับ PO → ได้รับยอดชำระแล้ว → ปิดไม่สำเร็จ\n\nเมื่อดีลได้ "ได้รับ PO" ระบบจะ:\n1. สร้างโครงการใหม่อัตโนมัติ\n2. เชื่อมโยงกับลูกค้าในแท็บโครงการ\n\nลากดีลระหว่าง Stage ได้เหมือน Kanban\n\nสำหรับพนักงาน (member): เมื่อสร้างดีลใหม่ ระบบจะตั้งเจ้าของดีลเป็นตัวเองอัตโนมัติ Admin/Manager สามารถเลือกเจ้าของดีลได้ตามปกติ`,
-          en: `The Deals system has pipeline stages:\n• New Lead → Contacted → Presented → Negotiating → Quotation Sent → PO Received → Payment Received → Closed Lost\n\nWhen a deal reaches "PO Received", the system:\n1. Auto-creates a new project\n2. Links it to the customer\n\nDrag deals between stages like a Kanban board.\n\nFor members: when creating a new deal, you are auto-assigned as the deal owner. Admin/Manager can select any owner.`,
-          jp: `商談システムにはパイプラインステージがあります：\n• 新規リード → 連絡済み → 提案済み → 交渉中 → 見積送付 → PO受領 → 入金済み → 失注\n\n商談が「PO受領」に達すると、システムは：\n1. 新しいプロジェクトを自動作成\n2. 顧客にリンク\n\nカンバンボードのようにステージ間でドラッグできます。\n\nメンバーの場合：新しいディールを作成すると、自動的にオーナーに設定されます。管理者/マネージャーはオーナーを選択できます。`,
+          th: `ระบบดีลแบ่งเป็นขั้นตอน (Stages):\n• ลีดใหม่ → ติดต่อแล้ว → นำเสนอแล้ว → เจรจาต่อรอง → ส่งใบเสนอราคา → ได้รับ PO → ได้รับยอดชำระแล้ว → ปิดไม่สำเร็จ\n\nเมื่อดีลได้ "ได้รับ PO" ระบบจะ:\n1. สร้างโครงการใหม่อัตโนมัติ\n2. เชื่อมโยงกับลูกค้าในแท็บโครงการ\n\nลากดีลระหว่าง Stage ได้เหมือน Kanban\n\nสมาชิก (Member) สร้างดีลจะตั้งเจ้าของเป็นตัวเองอัตโนมัติ`,
+          en: `The Deals system has pipeline stages:\n• New Lead → Contacted → Presented → Negotiating → Quotation Sent → PO Received → Payment Received → Closed Lost\n\nWhen a deal reaches "PO Received", the system:\n1. Auto-creates a new project\n2. Links it to the customer\n\nDrag deals between stages like a Kanban board.\n\nMembers creating deals are automatically set as the owner.`,
+          jp: `商談システムにはパイプラインステージがあります：\n• 新規リード → 連絡済み → 提案済み → 交渉中 → 見積送付 → PO受領 → 入金済み → 失注\n\n商談が「PO受領」に達すると、システムは：\n1. 新しいプロジェクトを自動作成\n2. 顧客にリンク\n\nカンバンボードのようにステージ間でドラッグできます。\n\nメンバーがディールを作成すると、自動的にオーナーに設定されます。`,
         },
         tags: ["deal", "pipeline", "ดีล", "商談", "PO"],
       },
@@ -360,4 +360,28 @@ export const HELP_SECTIONS: HelpSection[] = [
         content: {
           th: `บันทึกการประชุมพร้อม AI ถอดเสียง:\n\n1. สร้างบันทึกประชุมใหม่ — กรอกหัวข้อ, วันที่, ผู้เข้าร่วม\n2. อัดเสียง — กดปุ่มไมค์แล้วพูด AI (Gemini) จะถอดเสียงให้อัตโนมัติ\n3. หรือพิมพ์บันทึกเอง\n4. สรุปด้วย AI — กด "AI สรุป" เพื่อให้ AI สรุปหัวข้อสำคัญ, Action Items, ผู้รับผิดชอบ\n\nรองรับภาษาไทย, อังกฤษ, ญี่ปุ่น ในการถอดเสียง`,
           en: `Meeting Notes with AI transcription:\n\n1. Create a new meeting note — Enter topic, date, attendees\n2. Record audio — Click the mic button and speak. AI (Gemini) auto-transcribes.\n3. Or type notes manually.\n4. AI Summary — Click "AI Summary" for key topics, action items, and assignees.\n\nSupports Thai, English, and Japanese transcription.`,
-          jp: `AI文字起こし付きの議事録：\n\n1. 新しい議事録を作成 — トピック、日付、参加者を入力\n2. 録音 — マイクボタンをクリックして話す。AI（Gemini）が自動文字
+          jp: `AI文字起こし付きの議事録：\n\n1. 新しい議事録を作成 — トピック、日付、参加者を入力\n2. 録音 — マイクボタンをクリックして話す。AI（Gemini）が自動文字起こし。\n3. またはメモを手動入力。\n4. AIサマリー — 「AIサマリー」をクリックして重要トピック、アクションアイテム、担当者を取得。\n\nタイ語、英語、日本語の文字起こしに対応。`,
+        },
+        tags: ["meeting", "transcribe", "ประชุม", "ถอดเสียง", "会議", "文字起こし"],
+      },
+    ],
+  },
+];
+
+// ── Flatten all articles for search ──
+export function getAllArticles(): (HelpArticle & { sectionId: string })[] {
+  return HELP_SECTIONS.flatMap(s =>
+    s.articles.map(a => ({ ...a, sectionId: s.id }))
+  );
+}
+
+// ── Build plain-text context for AI Q&A (all content in one string per language) ──
+export function buildHelpContext(lang: "th" | "en" | "jp"): string {
+  return HELP_SECTIONS.map(s => {
+    const sTitle = s.title[lang];
+    const articles = s.articles.map(a =>
+      `### ${a.title[lang]}\n${a.content[lang]}`
+    ).join("\n\n");
+    return `## ${sTitle}\n\n${articles}`;
+  }).join("\n\n---\n\n");
+}
