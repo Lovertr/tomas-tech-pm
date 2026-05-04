@@ -391,5 +391,3 @@ function buildSystemPrompt(
 
   return basePrompt;
 }
-asePrompt;
-}
