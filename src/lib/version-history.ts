@@ -13,6 +13,29 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.4.3",
+    date: "2026-05-04",
+    title: {
+      th: "AI ผู้ช่วยขายรู้จักผลิตภัณฑ์และบริการของบริษัท",
+      en: "AI Sales Assistant Now Knows Company Products & Services",
+      jp: "AI営業アシスタントが自社製品・サービスを把握",
+    },
+    highlights: {
+      th: [
+        "AI ผู้ช่วยขายดึงข้อมูลจากฐานความรู้ (PEGASUS, i-Reporter, Hardware, Infrastructure, จุดแข็งบริษัท) มาช่วยแนะนำ Sales",
+        "สามารถอธิบายผลิตภัณฑ์ แนะนำ solution ตามอุตสาหกรรมลูกค้า ร่างสคริปต์การขาย และตอบข้อโต้แย้งได้",
+      ],
+      en: [
+        "AI Sales Assistant now pulls company knowledge base (PEGASUS, i-Reporter, Hardware, Infrastructure, strengths) to advise sales reps",
+        "Can explain products, recommend solutions by industry, draft sales scripts, and handle objections",
+      ],
+      jp: [
+        "AI営業アシスタントがナレッジベース（PEGASUS、i-Reporter、ハードウェア、インフラ、強み）を参照して営業をサポート",
+        "製品説明、業界別ソリューション提案、営業スクリプト作成、反論対応が可能に",
+      ],
+    },
+  },
+  {
     version: "2.4.2",
     date: "2026-05-04",
     title: {

@@ -80,9 +80,16 @@ type Collaborator = {
   display_name: string;
 };
 
-// POST /api/ai/sales-assistant
-// Body: { message: string, context?: { dealId?: string, customerId?: string }, lang?: string }
-// Returns: { reply: string }
+type KnowledgeArticle = {
+  id: string;
+  title: string;
+  title_en?: string;
+  content: string;
+  content_en?: string;
+  tags?: string[];
+  category?: { id: string; name: string; name_en?: string };
+};
+
 export async function POST(req: NextRequest) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -103,9 +110,7 @@ export async function POST(req: NextRequest) {
     let comments: Comment[] = [];
     let collaborators: Collaborator[] = [];
 
-    // Fetch data based on context
     if (dealId) {
-      // Fetch specific deal with related data
       const { data: dealData } = await supabaseAdmin
         .from("deals")
         .select("*, owner:app_users!owner_id(id, email, display_name)")
@@ -115,7 +120,6 @@ export async function POST(req: NextRequest) {
       if (dealData) {
         deals = [dealData as Deal];
 
-        // Get customer for this deal
         if (dealData.customer_id) {
           const { data: customerData } = await supabaseAdmin
             .from("customers")
@@ -125,7 +129,6 @@ export async function POST(req: NextRequest) {
           if (customerData) customers = [customerData as Customer];
         }
 
-        // Get activities for this deal
         const { data: activitiesData } = await supabaseAdmin
           .from("deal_activities")
           .select("*, performer:app_users!performed_by(id, email, display_name)")
@@ -134,7 +137,6 @@ export async function POST(req: NextRequest) {
           .limit(20);
         activities = (activitiesData as Activity[]) || [];
 
-        // Get comments for this deal
         const { data: commentsData } = await supabaseAdmin
           .from("deal_comments")
           .select("*")
@@ -143,7 +145,6 @@ export async function POST(req: NextRequest) {
           .limit(20);
         comments = (commentsData as Comment[]) || [];
 
-        // Get collaborators (deal participants)
         const { data: collaboratorsData } = await supabaseAdmin
           .from("deal_collaborators")
           .select("collaborator:app_users!collaborator_id(id, email, display_name)")
@@ -155,7 +156,6 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (customerId) {
-      // Fetch all deals and data for a specific customer
       const { data: customerData } = await supabaseAdmin
         .from("customers")
         .select("*")
@@ -186,7 +186,6 @@ export async function POST(req: NextRequest) {
         .limit(30);
       comments = (commentsData as Comment[]) || [];
     } else {
-      // Fetch deals owned by current user
       const { data: ownedDeals } = await supabaseAdmin
         .from("deals")
         .select("*, owner:app_users!owner_id(id, email, display_name), customer:customers!customer_id(id, company_name)")
@@ -194,7 +193,6 @@ export async function POST(req: NextRequest) {
         .order("updated_at", { ascending: false })
         .limit(50);
 
-      // Also fetch deals where user is a collaborator
       const { data: collabRows } = await supabaseAdmin
         .from("deal_collaborators")
         .select("deal_id")
@@ -210,12 +208,10 @@ export async function POST(req: NextRequest) {
         collabDeals = (cd as Deal[]) || [];
       }
 
-      // Merge and deduplicate
       const allDeals = [...(ownedDeals || []), ...collabDeals];
       const seen = new Set<string>();
       deals = allDeals.filter((d) => { if (seen.has(d.id)) return false; seen.add(d.id); return true; }) as Deal[];
 
-      // Get customer info for these deals
       const customerIds = [...new Set(deals.map((d) => d.customer_id).filter(Boolean))];
       if (customerIds.length > 0) {
         const { data: customersData } = await supabaseAdmin
@@ -225,7 +221,6 @@ export async function POST(req: NextRequest) {
         customers = (customersData as Customer[]) || [];
       }
 
-      // Get recent activities for these deals
       const dealIds = deals.map((d) => d.id);
       if (dealIds.length > 0) {
         const { data: activitiesData } = await supabaseAdmin
@@ -238,10 +233,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Build comprehensive system prompt with sales data
-    const systemPrompt = buildSystemPrompt(deals, customers, activities, comments, collaborators, lang);
+    // Fetch company knowledge base for product/service context
+    let knowledgeArticles: KnowledgeArticle[] = [];
+    try {
+      const { data: kbData } = await supabaseAdmin
+        .from("knowledge_articles")
+        .select("id, title, title_en, content, content_en, tags, category:knowledge_categories(id, name, name_en)")
+        .order("is_pinned", { ascending: false })
+        .order("view_count", { ascending: false })
+        .limit(20);
+      knowledgeArticles = (kbData as KnowledgeArticle[]) || [];
+    } catch {
+      // Knowledge base fetch failed - continue without it
+    }
 
-    // Call AI with sonnet tier for balanced quality
+    // Build comprehensive system prompt with sales data + company knowledge
+    const systemPrompt = buildSystemPrompt(deals, customers, activities, comments, collaborators, knowledgeArticles, lang);
+
     const reply = await aiCall(message, {
       model: "sonnet",
       system: systemPrompt,
@@ -269,6 +277,7 @@ function buildSystemPrompt(
   activities: Activity[],
   comments: Comment[],
   collaborators: Collaborator[],
+  knowledgeArticles: KnowledgeArticle[],
   lang: string
 ): string {
   const isThaiLang = (lang || "th").toLowerCase().startsWith("th");
@@ -277,76 +286,107 @@ function buildSystemPrompt(
     .map((deal) => {
       const stageTh = STAGE_LABELS[deal.stage] || deal.stage;
       const stageLabel = isThaiLang ? stageTh : deal.stage;
-      return `- ${deal.title} (ID: ${deal.id}): ${stageLabel}, Value: $${deal.value || 0}, Owner: ${deal.owner?.display_name || "Unknown"}, Updated: ${new Date(deal.updated_at).toLocaleDateString()}`;
+      return "- " + deal.title + " (ID: " + deal.id + "): " + stageLabel + ", Value: $" + (deal.value || 0) + ", Owner: " + (deal.owner?.display_name || "Unknown") + ", Updated: " + new Date(deal.updated_at).toLocaleDateString();
     })
     .join("\n");
 
   const customersSummary = customers
     .map((cust) => {
-      return `- ${cust.company_name} (ID: ${cust.id}): ${cust.contact_person || "N/A"}, Email: ${cust.email || "N/A"}, Phone: ${cust.phone || "N/A"}, Industry: ${cust.industry || "N/A"}`;
+      return "- " + cust.company_name + " (ID: " + cust.id + "): " + (cust.contact_person || "N/A") + ", Email: " + (cust.email || "N/A") + ", Phone: " + (cust.phone || "N/A") + ", Industry: " + (cust.industry || "N/A");
     })
     .join("\n");
 
   const activitiesSummary = activities
     .slice(0, 15)
     .map((act) => {
-      return `[${new Date(act.activity_date).toLocaleDateString()}] ${act.activity_type}: ${act.description} (by ${act.performer?.display_name || "Unknown"})`;
+      return "[" + new Date(act.activity_date).toLocaleDateString() + "] " + act.activity_type + ": " + act.description + " (by " + (act.performer?.display_name || "Unknown") + ")";
     })
     .join("\n");
 
   const commentsSummary = comments
     .slice(0, 10)
     .map((c) => {
-      return `[${new Date(c.created_at).toLocaleDateString()}] ${c.content}`;
+      return "[" + new Date(c.created_at).toLocaleDateString() + "] " + c.content;
     })
     .join("\n");
 
-  const collaboratorsList = collaborators.map((c) => `${c.display_name} (${c.email})`).join(", ");
+  const collaboratorsList = collaborators.map((c) => c.display_name + " (" + c.email + ")").join(", ");
 
-  let basePrompt = `You are a personal sales assistant for TOMAS TECH, an IT solutions company based in Thailand. Your role is to help sales professionals analyze deals, strategize, draft communications, and prepare for customer interactions.
-
-You have access to the following sales data:`;
+  let basePrompt = "You are a personal sales assistant for TOMAS TECH, an IT solutions company based in Thailand. Your role is to help sales professionals analyze deals, strategize, draft communications, and prepare for customer interactions.\n\nYou have access to the following sales data:";
 
   if (dealsSummary) {
-    basePrompt += `\n\nDEALS:\n${dealsSummary}`;
+    basePrompt += "\n\nDEALS:\n" + dealsSummary;
   }
   if (customersSummary) {
-    basePrompt += `\n\nCUSTOMERS:\n${customersSummary}`;
+    basePrompt += "\n\nCUSTOMERS:\n" + customersSummary;
   }
   if (activitiesSummary) {
-    basePrompt += `\n\nRECENT ACTIVITIES:\n${activitiesSummary}`;
+    basePrompt += "\n\nRECENT ACTIVITIES:\n" + activitiesSummary;
   }
   if (commentsSummary) {
-    basePrompt += `\n\nCOMMENTS:\n${commentsSummary}`;
+    basePrompt += "\n\nCOMMENTS:\n" + commentsSummary;
   }
   if (collaboratorsList) {
-    basePrompt += `\n\nCOLLABORATORS:\n${collaboratorsList}`;
+    basePrompt += "\n\nCOLLABORATORS:\n" + collaboratorsList;
   }
 
-  const capabilities = isThaiLang
-    ? `\n\nคุณสามารถช่วยในการ:
-- วิเคราะห์สถานะของการเจรจา (deal analysis)
-- แนะนำกลยุทธ์การขายตามข้อมูลจริง
-- ร่างอีเมล, ข้อความ, หรือเสนอราคา
-- สรุปข้อมูลลูกค้าและประวัติการติดต่อ
-- เตรียมการประชุมกับลูกค้า
-- ระบุความเสี่ยง, โอกาส, และพื้นที่สำหรับการปรับปรุง
-- ตอบคำถามเกี่ยวกับการจัดการสัมพันธ์ลูกค้า`
-    : `\n\nYou can help with:
-- Deal analysis and stage assessment
-- Sales strategy recommendations based on actual data
-- Drafting emails, messages, and proposals
-- Customer summary and interaction history
-- Meeting preparation
-- Risk and opportunity identification
-- Customer relationship management advice`;
+  // Add company knowledge base (products, services, strengths)
+  if (knowledgeArticles.length > 0) {
+    const articleBlocks: string[] = [];
+    for (const article of knowledgeArticles) {
+      const catName = isThaiLang
+        ? (article.category?.name || "")
+        : (article.category?.name_en || article.category?.name || "");
+      const artTitle = isThaiLang
+        ? article.title
+        : (article.title_en || article.title);
+      const artContent = isThaiLang
+        ? (article.content || "")
+        : (article.content_en || article.content || "");
+      let trimmed = artContent;
+      if (artContent.length > 1500) {
+        trimmed = artContent.slice(0, 1500) + "...";
+      }
+      const header = catName ? "[" + catName + "] " + artTitle : artTitle;
+      articleBlocks.push("### " + header + "\n" + trimmed);
+    }
+    const knowledgeSummary = articleBlocks.join("\n\n");
 
-  basePrompt += capabilities;
+    basePrompt += "\n\n=== COMPANY KNOWLEDGE BASE (TOMAS TECH Products, Services & Strengths) ===\n"
+      + "Use this information to answer questions about our company, recommend solutions to customers, draft proposals, and support sales conversations.\n\n"
+      + knowledgeSummary;
+  }
 
   if (isThaiLang) {
-    basePrompt += `\n\nกรุณาตอบเป็นภาษาไทยและให้คำแนะนำที่เป็นประโยชน์และสามารถปฏิบัติได้จริง`;
+    basePrompt += "\n\n" + [
+      "คุณสามารถช่วยในการ:",
+      "- วิเคราะห์สถานะของการเจรจา (deal analysis)",
+      "- แนะนำกลยุทธ์การขายตามข้อมูลจริง",
+      "- ร่างอีเมล, ข้อความ, หรือเสนอราคา",
+      "- สรุปข้อมูลลูกค้าและประวัติการติดต่อ",
+      "- เตรียมการประชุมกับลูกค้า",
+      "- ระบุความเสี่ยง, โอกาส, และพื้นที่สำหรับการปรับปรุง",
+      "- ตอบคำถามเกี่ยวกับการจัดการสัมพันธ์ลูกค้า",
+      "- อธิบายผลิตภัณฑ์และบริการของ TOMAS TECH (PEGASUS, i-Reporter, Hardware, Infrastructure)",
+      "- แนะนำ solution ที่เหมาะกับอุตสาหกรรม/ปัญหาของลูกค้า",
+      "- ร่างสคริปต์การขาย, ตอบข้อโต้แย้ง, เปรียบเทียบกับคู่แข่ง",
+    ].join("\n");
+    basePrompt += "\n\nกรุณาตอบเป็นภาษาไทยและให้คำแนะนำที่เป็นประโยชน์และสามารถปฏิบัติได้จริง";
   } else {
-    basePrompt += `\n\nProvide actionable, practical advice tailored to the sales context.`;
+    basePrompt += "\n\n" + [
+      "You can help with:",
+      "- Deal analysis and stage assessment",
+      "- Sales strategy recommendations based on actual data",
+      "- Drafting emails, messages, and proposals",
+      "- Customer summary and interaction history",
+      "- Meeting preparation",
+      "- Risk and opportunity identification",
+      "- Customer relationship management advice",
+      "- Explaining TOMAS TECH products and services (PEGASUS, i-Reporter, Hardware, Infrastructure, etc.)",
+      "- Recommending solutions based on customer industry and pain points",
+      "- Drafting sales scripts, handling objections, and competitive comparisons",
+    ].join("\n");
+    basePrompt += "\n\nProvide actionable, practical advice tailored to the sales context.";
   }
 
   return basePrompt;
