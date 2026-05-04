@@ -240,6 +240,16 @@ export const HELP_SECTIONS: HelpSection[] = [
         },
         tags: ["filter", "กรอง", "フィルター", "salesperson", "พนักงานขาย"],
       },
+      {
+        id: "sales_report_forecast",
+        title: { th: "พยากรณ์รายได้ตามพนักงาน", en: "Revenue Forecast by Salesperson", jp: "担当者別売上予測" },
+        content: {
+          th: `กราฟพยากรณ์รายได้ (Revenue Forecast Timeline) แสดงข้อมูลตามตัวกรองที่เลือก:\n\n• เมื่อเลือกพนักงานขายรายคน — กราฟจะแสดงเฉพาะรายได้จริงและพยากรณ์ของคนนั้น\n• รายได้จริง (Actual) ของพนักงานรายบุคคล: คำนวณจากดีลสถานะ "ชำระเงินแล้ว" ที่เป็นเจ้าของ\n• รายได้พยากรณ์ (Forecast) ของพนักงานรายบุคคล: คำนวณจากดีลใน Pipeline ที่เป็นเจ้าของ × อัตราการปิดงาน\n\n• เมื่อดูทั้งทีม (ไม่ได้เลือกคน) — กราฟจะแสดงรายได้จริงจากตารางรายรับทั้งหมดของบริษัท\n\nอัปเดต v2.4.1: แก้ไขปัญหาที่กราฟพยากรณ์แสดงข้อมูลรวมทั้งทีมแม้เลือกพนักงานรายบุคคล`,
+          en: `The Revenue Forecast Timeline chart respects the selected filter:\n\n• When a salesperson is selected — chart shows only that person's actual revenue and forecast\n• Individual actual revenue: calculated from "payment received" deals they own\n• Individual forecast: calculated from their pipeline deals × conversion rates\n\n• When viewing all team (no filter) — chart shows total company income from transactions table\n\nUpdate v2.4.1: Fixed issue where forecast chart showed team-wide data even when an individual salesperson was selected.`,
+          jp: `売上予測タイムラインチャートは選択したフィルターに従います：\n\n• 担当者を選択した場合 — チャートはその人の実績と予測のみ表示\n• 個人の実績売上：所有する「入金済み」案件から算出\n• 個人の予測：パイプライン案件 × 成約率から算出\n\n• チーム全体表示（フィルターなし）— 取引テーブルから会社全体の収入を表示\n\nv2.4.1更新：個別の担当者を選択してもチーム全体のデータが表示される問題を修正。`,
+        },
+        tags: ["forecast", "revenue", "timeline", "พยากรณ์", "รายได้", "予測", "売上"],
+      },
     ],
   },
 

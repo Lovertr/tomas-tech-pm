@@ -13,6 +13,29 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.4.1",
+    date: "2026-05-04",
+    title: {
+      th: "แก้พยากรณ์รายได้ให้กรองตามพนักงานขาย",
+      en: "Fix Revenue Forecast Filtering by Salesperson",
+      jp: "担当者別売上予測フィルタリングの修正",
+    },
+    highlights: {
+      th: [
+        "พยากรณ์รายได้ (Timeline) แสดงเฉพาะข้อมูลของพนักงานที่เลือกแล้ว",
+        "แก้ปัญหากราฟพยากรณ์แสดงข้อมูลทั้งทีมแม้เลือกพนักงานรายบุคคล",
+      ],
+      en: [
+        "Revenue forecast (Timeline) now shows data only for the selected salesperson",
+        "Fixed forecast chart showing team-wide data when individual salesperson was selected",
+      ],
+      jp: [
+        "売上予測（タイムライン）が選択した担当者のデータのみ表示されるよう修正",
+        "個別担当者選択時に予測チャートがチーム全体データを表示する問題を修正",
+      ],
+    },
+  },
+  {
     version: "2.4.0",
     date: "2026-05-04",
     title: {

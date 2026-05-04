@@ -187,19 +187,30 @@ export async function GET(req: NextRequest) {
   const nowMonth = new Date().toISOString().slice(0, 7);
   const yr = new Date().getFullYear();
 
-  // Fetch actual income transactions for accurate monthly revenue
-  const { data: incomeTransactions } = await supabaseAdmin.from("transactions")
-    .select("amount, transaction_date")
-    .eq("type", "income")
-    .eq("status", "approved");
-
-  // Build monthly actual income from transactions
+  // Build monthly actual income
   const monthlyActualIncome: Record<string, number> = {};
-  (incomeTransactions ?? []).forEach(t => {
-    const m = t.transaction_date?.slice(0, 7);
-    if (!m) return;
-    monthlyActualIncome[m] = (monthlyActualIncome[m] || 0) + Number(t.amount || 0);
-  });
+
+  if (ownerId) {
+    // When filtering by salesperson: use payment_received deals as actual revenue
+    // (transactions table doesn't have owner_id, so we derive from deals)
+    allDeals.filter(d => d.stage === 'payment_received').forEach(d => {
+      const dateStr = d.actual_close_date || (d as any).updated_at?.slice(0, 10) || d.created_at?.slice(0, 10);
+      if (!dateStr) return;
+      const m = dateStr.slice(0, 7);
+      monthlyActualIncome[m] = (monthlyActualIncome[m] || 0) + Number(d.value || 0);
+    });
+  } else {
+    // No filter: use all income transactions for accurate total
+    const { data: incomeTransactions } = await supabaseAdmin.from("transactions")
+      .select("amount, transaction_date")
+      .eq("type", "income")
+      .eq("status", "approved");
+    (incomeTransactions ?? []).forEach(t => {
+      const m = t.transaction_date?.slice(0, 7);
+      if (!m) return;
+      monthlyActualIncome[m] = (monthlyActualIncome[m] || 0) + Number(t.amount || 0);
+    });
+  }
 
   // Build forecast for future months from pipeline deals
   const monthlyForecastIncome: Record<string, number> = {};
@@ -300,6 +311,44 @@ export async function GET(req: NextRequest) {
     },
     // Extended data for AI analysis
     aiData: {
+      ownerStats: Object.values(ownerStats),
+      activityTypeCount,
+      industryStats,
+      overdueDeals,
+      avgDealAge,
+      weightedPipeline,
+      totalActivities: (activities ?? []).length,
+      activeDealsCount: activeDealAges.length,
+      avgWonDealSize,
+      avgLostDealSize,
+      wonByIndustry,
+      conversionRates: {
+        overall: Number(conversionRate),
+        quotationToWon: Math.round(quotationToWon * 100),
+        proposalToWon: Math.round(proposalToWon * 100),
+      },
+    },
+  });
+}
+      activityTypeCount,
+      industryStats,
+      overdueDeals,
+      avgDealAge,
+      weightedPipeline,
+      totalActivities: (activities ?? []).length,
+      activeDealsCount: activeDealAges.length,
+      avgWonDealSize,
+      avgLostDealSize,
+      wonByIndustry,
+      conversionRates: {
+        overall: Number(conversionRate),
+        quotationToWon: Math.round(quotationToWon * 100),
+        proposalToWon: Math.round(proposalToWon * 100),
+      },
+    },
+  });
+}
+aiData: {
       ownerStats: Object.values(ownerStats),
       activityTypeCount,
       industryStats,
