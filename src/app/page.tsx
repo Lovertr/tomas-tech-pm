@@ -78,6 +78,7 @@ import PerformanceReviewPanel from "@/components/PerformanceReviewPanel";
 import EmailActivityPanel from "@/components/EmailActivityPanel";
 import ExpenseApprovalPanel from "@/components/ExpenseApprovalPanel";
 import MyProfilePanel from "@/components/MyProfilePanel";
+import KnowledgeBasePanel from "@/components/KnowledgeBasePanel";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -298,6 +299,7 @@ export default function App() {
     { id: "user_management", icon: UserCog, label: t.userManagement, module: "departments", group: "admin" },
     { id: "reports", icon: BarChart3, label: t.reports, module: "reports", group: "reports" },
     { id: "settings", icon: Settings, label: t.settings, module: "settings", group: "admin" },
+    { id: "knowledge_base", icon: Layers, label: lang === "th" ? "คลังความรู้" : lang === "jp" ? "ナレッジベース" : "Knowledge Base", module: "dashboard", group: "admin" },
     { id: "help_center", icon: BookOpen, label: t.helpCenter, module: "dashboard", group: "admin" },
     { id: "notif_prefs", icon: BellIcon, label: t.notifPrefs || "ตั้งค่าแจ้งเตือน", module: "settings", group: "admin" },
     { id: "skill_matrix", icon: Award, label: lang === "th" ? "ทักษะพนักงาน" : lang === "jp" ? "スキルマトリックス" : "Skill Matrix", module: "team", group: "people" },
@@ -698,7 +700,7 @@ export default function App() {
     <div className="space-y-6">
       <DealsPipelinePanel projects={data.projects} members={data.members}
         canManage={canCreate("deals_pipeline")} refreshKey={boardRefreshKey} lang={lang}
-        currentUserId={currentUser?.id} />
+        currentUserId={currentUser?.id} userRole={currentUser?.role} />
     </div>
   );
   const SalesActivitiesPage = () => (
@@ -997,7 +999,8 @@ export default function App() {
   const PerfReviewPage = () => <PerformanceReviewPanel lang={lang} canManage={canCreate("team")} />;
   const ExpenseApprovalPage = () => <ExpenseApprovalPanel lang={lang} canApprove={["admin","manager"].includes(currentUser?.role ?? "member")} />;
   const MyProfilePage = () => <MyProfilePanel lang={lang} currentUser={currentUser} onProfileUpdated={() => window.location.reload()} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, sales_ai: SalesAIPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage };
+  const KnowledgeBasePage = () => <KnowledgeBasePanel lang={lang} canManage={["admin","manager"].includes(currentUser?.role ?? "member")} />;
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, sales_ai: SalesAIPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage, knowledge_base: KnowledgeBasePage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)

@@ -120,8 +120,13 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
       const res = await fetch("/api/deals");
       if (!res.ok) return;
       const data = await res.json();
-      const deals = data.deals || data.data || data || [];
-      if (!Array.isArray(deals)) return;
+      const allDeals = data.deals || data.data || data || [];
+      if (!Array.isArray(allDeals)) return;
+
+      // Filter to only show deals owned by current user or where user is collaborator
+      const deals = currentUserId
+        ? allDeals.filter((d: any) => d.owner_id === currentUserId || d.owner?.id === currentUserId)
+        : allDeals;
 
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();

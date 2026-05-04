@@ -13,6 +13,41 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.1.0",
+    date: "2026-05-04",
+    title: {
+      th: "คลังความรู้ — ศูนย์รวมความรู้บริษัท + AI ถาม-ตอบ",
+      en: "Knowledge Base — Company Knowledge Hub + AI Q&A",
+      jp: "ナレッジベース — 社内知識ハブ + AI Q&A",
+    },
+    highlights: {
+      th: [
+        "เพิ่มหน้าคลังความรู้ — รวบรวมความรู้เกี่ยวกับงานและโปรเจค ระบบ IoT, WMS, MES, PLC, AGV/AMR ฯลฯ",
+        "จัดหมวดหมู่ 8 ประเภท: IoT, AGV/AMR, WMS, MES, Production Control, PLC, PEGASUS/ASPROVA, ทั่วไป",
+        "ค้นหาบทความ + กรองตามหมวดหมู่ + ปักหมุดบทความสำคัญ",
+        "Admin/Manager สร้าง แก้ไข ลบบทความได้ — รองรับ 3 ภาษา (TH/EN/JP) + แท็ก",
+        "AI ถาม-ตอบ ความรู้บริษัท — ค้นหาและตอบคำถามจากคลังความรู้โดยอัตโนมัติ",
+        "แก้ bug Pipeline: Admin แก้ไข/ลบดีลของคนอื่นได้แล้ว",
+      ],
+      en: [
+        "Added Knowledge Base page — centralized company knowledge for IoT, WMS, MES, PLC, AGV/AMR etc.",
+        "8 categories: IoT, AGV/AMR, WMS, MES, Production Control, PLC, PEGASUS/ASPROVA, General",
+        "Search articles + filter by category + pin important articles",
+        "Admin/Manager can create, edit, delete articles — supports 3 languages (TH/EN/JP) + tags",
+        "AI Knowledge Q&A — automatically searches and answers questions from the knowledge base",
+        "Fixed Pipeline bug: Admin can now edit/delete other users' deals",
+      ],
+      jp: [
+        "ナレッジベースページを追加 — IoT、WMS、MES、PLC、AGV/AMRなどの社内知識を集約",
+        "8カテゴリ: IoT、AGV/AMR、WMS、MES、生産管理、PLC、PEGASUS/ASPROVA、一般",
+        "記事検索 + カテゴリフィルター + 重要記事のピン留め",
+        "管理者/マネージャーが記事の作成・編集・削除可能 — 3言語対応 + タグ",
+        "AIナレッジQ&A — ナレッジベースから自動的に検索して回答",
+        "パイプラインバグ修正: 管理者が他のユーザーのディールを編集/削除可能に",
+      ],
+    },
+  },
+  {
     version: "2.0.0",
     date: "2026-05-04",
     title: {

@@ -186,14 +186,34 @@ export async function POST(req: NextRequest) {
         .limit(30);
       comments = (commentsData as Comment[]) || [];
     } else {
-      // Fetch all deals owned by current user
-      const { data: dealsData } = await supabaseAdmin
+      // Fetch deals owned by current user
+      const { data: ownedDeals } = await supabaseAdmin
         .from("deals")
         .select("*, owner:app_users!owner_id(id, email, display_name), customer:customers!customer_id(id, company_name)")
         .eq("owner_id", ctx.userId)
         .order("updated_at", { ascending: false })
         .limit(50);
-      deals = (dealsData as Deal[]) || [];
+
+      // Also fetch deals where user is a collaborator
+      const { data: collabRows } = await supabaseAdmin
+        .from("deal_collaborators")
+        .select("deal_id")
+        .eq("collaborator_id", ctx.userId);
+      const collabDealIds = (collabRows || []).map((r: any) => r.deal_id);
+      let collabDeals: Deal[] = [];
+      if (collabDealIds.length > 0) {
+        const { data: cd } = await supabaseAdmin
+          .from("deals")
+          .select("*, owner:app_users!owner_id(id, email, display_name), customer:customers!customer_id(id, company_name)")
+          .in("id", collabDealIds)
+          .order("updated_at", { ascending: false });
+        collabDeals = (cd as Deal[]) || [];
+      }
+
+      // Merge and deduplicate
+      const allDeals = [...(ownedDeals || []), ...collabDeals];
+      const seen = new Set<string>();
+      deals = allDeals.filter((d) => { if (seen.has(d.id)) return false; seen.add(d.id); return true; }) as Deal[];
 
       // Get customer info for these deals
       const customerIds = [...new Set(deals.map((d) => d.customer_id).filter(Boolean))];

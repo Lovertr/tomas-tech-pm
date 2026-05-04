@@ -433,6 +433,36 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
     ],
   },
+  // ═══════════════════════════════════════════════════════
+  // คลังความรู้ (Knowledge Base)
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "knowledge_base",
+    title: { th: "คลังความรู้", en: "Knowledge Base", jp: "ナレッジベース" },
+    icon: "Layers",
+    articles: [
+      {
+        id: "kb_overview",
+        title: { th: "ภาพรวมคลังความรู้", en: "Knowledge Base Overview", jp: "ナレッジベース概要" },
+        content: {
+          th: "คลังความรู้คือศูนย์รวมความรู้เกี่ยวกับงานและโปรเจคของบริษัท ครอบคลุมระบบ IoT, WMS, MES, PLC, AGV/AMR, Production Control, PEGASUS, ASPROVA และอื่นๆ\n\nฟีเจอร์หลัก:\n- จัดหมวดหมู่ 8 ประเภทตามประเภทงาน\n- ค้นหาบทความด้วยคำค้น\n- กรองตามหมวดหมู่และแท็ก\n- ปักหมุดบทความสำคัญ\n- นับจำนวนผู้อ่าน\n- AI ถาม-ตอบ จากคลังความรู้\n\nสิทธิ์การใช้งาน:\n- Admin/Manager: สร้าง แก้ไข ลบ บทความและหมวดหมู่\n- Member: อ่านบทความ + ใช้ AI ถาม-ตอบ",
+          en: "The Knowledge Base is a centralized hub for company technical knowledge covering IoT, WMS, MES, PLC, AGV/AMR, Production Control, PEGASUS, ASPROVA and more.\n\nKey features:\n- 8 categories organized by work type\n- Search articles by keyword\n- Filter by category and tags\n- Pin important articles\n- View count tracking\n- AI Q&A from the knowledge base\n\nPermissions:\n- Admin/Manager: Create, edit, delete articles and categories\n- Member: Read articles + use AI Q&A",
+          jp: "ナレッジベースは、IoT、WMS、MES、PLC、AGV/AMR、生産管理、PEGASUS、ASPROVAなどの社内技術知識を集約したハブです。\n\n主な機能:\n- 業務タイプ別8カテゴリ\n- キーワードで記事検索\n- カテゴリとタグでフィルター\n- 重要記事のピン留め\n- 閲覧数の追跡\n- ナレッジベースからのAI Q&A\n\n権限:\n- 管理者/マネージャー: 記事とカテゴリの作成・編集・削除\n- メンバー: 記事の閲覧 + AI Q&Aの利用",
+        },
+        tags: ["knowledge", "kb", "articles", "categories"],
+      },
+      {
+        id: "kb_ai_qa",
+        title: { th: "AI ถาม-ตอบ ความรู้", en: "AI Knowledge Q&A", jp: "AIナレッジQ&A" },
+        content: {
+          th: "ฟีเจอร์ AI ถาม-ตอบ ช่วยให้คุณสอบถามความรู้เกี่ยวกับงานของบริษัทได้ทันที\n\nวิธีใช้:\n1. เปิดหน้าคลังความรู้\n2. คลิกปุ่ม 'AI ถาม-ตอบ ความรู้' ที่แถบด้านซ้าย\n3. พิมพ์คำถามเกี่ยวกับระบบ IoT, WMS, MES, PLC หรืออื่นๆ\n4. AI จะค้นหาจากบทความในคลังความรู้แล้วตอบให้\n\nตัวอย่างคำถาม:\n- ระบบ MES คืออะไร?\n- AGV กับ AMR ต่างกันอย่างไร?\n- ขั้นตอนการติดตั้ง WMS มีอะไรบ้าง?",
+          en: "The AI Q&A feature lets you instantly ask questions about company technical knowledge.\n\nHow to use:\n1. Open the Knowledge Base page\n2. Click 'AI Knowledge Q&A' button in the left panel\n3. Type a question about IoT, WMS, MES, PLC or other topics\n4. AI will search knowledge base articles and provide an answer\n\nExample questions:\n- What is MES?\n- What's the difference between AGV and AMR?\n- What are the steps to implement WMS?",
+          jp: "AI Q&A機能により、社内技術知識に関する質問に即座に回答を得られます。\n\n使い方:\n1. ナレッジベースページを開く\n2. 左パネルの「AIナレッジQ&A」ボタンをクリック\n3. IoT、WMS、MES、PLCなどに関する質問を入力\n4. AIがナレッジベースの記事を検索して回答します",
+        },
+        tags: ["ai", "qa", "knowledge", "chat"],
+      },
+    ],
+  },
 ];
 
 // ── Flatten all articles for search ──
