@@ -406,6 +406,33 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
     ],
   },
+  {
+    id: "ai_sales",
+    title: { th: "AI ผู้ช่วยขาย", en: "AI Sales Assistant", jp: "AI営業アシスタント" },
+    icon: "bot",
+    articles: [
+      {
+        id: "ai_sales_overview",
+        title: { th: "ภาพรวม AI ผู้ช่วยขาย", en: "AI Sales Assistant Overview", jp: "AI営業アシスタント概要" },
+        content: {
+          th: `หน้า AI ผู้ช่วยขาย เป็นเครื่องมือวิเคราะห์และให้คำแนะนำสำหรับพนักงานขาย\n\n**ส่วนประกอบหลัก:**\n- 6 การ์ดสรุป: ดีลทั้งหมด, มูลค่า Pipeline, ดีลค้าง, ดีลร้อน, ปิดเดือนนี้, มูลค่าปิด\n- AI วิเคราะห์ดีล: จัดลำดับความเสี่ยง สูง/กลาง/ต่ำ พร้อมคำแนะนำ\n- แชทกับ AI: ถามเรื่องดีล ลูกค้า กลยุทธ์การขาย\n- LINE Bot สร้าง Proposal อัตโนมัติ`,
+          en: `The AI Sales Assistant page provides analytics and recommendations for sales staff.\n\n**Main components:**\n- 6 summary cards: total deals, pipeline value, stuck deals, hot deals, closed this month, closed value\n- AI deal analysis: risk levels high/medium/low with recommendations\n- Chat with AI: ask about deals, customers, sales strategy\n- LINE Bot for auto-generating proposals`,
+          jp: `AI営業アシスタントページは営業スタッフ向けの分析と推奨を提供します。\n\n**主要コンポーネント：**\n- 6つのサマリーカード：全ディール、パイプライン値、停滞ディール、ホットディール、今月成約、成約額\n- AIディール分析：リスクレベル高/中/低と推奨事項\n- AIとチャット：ディール、顧客、営業戦略について質問\n- LINE Botで提案書自動生成`,
+        },
+        tags: ["ai", "sales", "assistant", "ผู้ช่วยขาย", "営業アシスタント", "วิเคราะห์", "แชท"],
+      },
+      {
+        id: "ai_sales_chat",
+        title: { th: "แชทกับ AI", en: "Chat with AI", jp: "AIとチャット" },
+        content: {
+          th: `ใช้ช่องแชทถามอะไรก็ได้เกี่ยวกับการขาย:\n\n**คำถามด่วน 6 ปุ่ม:**\n- วิเคราะห์ดีลทั้งหมด\n- ดีลไหนค้างนานที่สุด\n- ควรโฟกัสดีลไหนก่อน\n- ร่างอีเมลติดตามลูกค้า\n- เตรียมข้อมูลก่อนพบลูกค้า\n- พยากรณ์ยอดขายเดือนนี้\n\nAI จะดึงข้อมูลจริงจากระบบ (ดีล, ลูกค้า, กิจกรรม, คอมเมนต์) มาวิเคราะห์`,
+          en: `Use the chat box to ask anything about sales:\n\n**6 quick action buttons:**\n- Analyze all deals\n- Which deals are stuck longest\n- Which deals to prioritize\n- Draft follow-up email\n- Prepare for client meeting\n- Forecast this month's sales\n\nAI pulls real data from the system (deals, customers, activities, comments) for analysis`,
+          jp: `チャットボックスで営業に関する質問が可能：\n\n**6つのクイックアクションボタン：**\n- 全ディール分析\n- 最も停滞しているディール\n- 優先すべきディール\n- フォローアップメール下書き\n- 顧客訪問準備\n- 今月の売上予測\n\nAIがシステムの実データ（ディール、顧客、活動、コメント）を分析`,
+        },
+        tags: ["chat", "แชท", "チャット", "quick", "ด่วน", "คำถาม"],
+      },
+    ],
+  },
 ];
 
 // ── Flatten all articles for search ──

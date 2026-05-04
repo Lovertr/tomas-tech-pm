@@ -1,0 +1,333 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getAuthContext } from "@/lib/auth-server";
+import { aiCall, AiNotConfiguredError } from "@/lib/ai";
+
+const STAGE_LABELS: Record<string, string> = {
+  new_lead: "ลีดใหม่",
+  waiting_present: "รอนำเสนอ",
+  contacted: "ติดต่อแล้ว",
+  proposal_submitted: "เสนอ Proposal",
+  proposal_confirmed: "คอนเฟิร์ม Proposal",
+  quotation: "เสนอราคา",
+  negotiation: "เจรจาต่อรอง",
+  waiting_po: "รอ PO",
+  po_received: "ได้รับ PO",
+  payment_received: "ได้รับยอดชำระแล้ว",
+  cancelled: "ยกเลิก",
+  refused: "ปฏิเสธ",
+};
+
+type RequestBody = {
+  message: string;
+  context?: {
+    dealId?: string;
+    customerId?: string;
+  };
+  lang?: string;
+};
+
+type Deal = {
+  id: string;
+  title: string;
+  customer_id: string;
+  value: number;
+  stage: string;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+  description?: string;
+  expected_close_date?: string;
+  owner?: { id: string; email: string; display_name: string };
+};
+
+type Customer = {
+  id: string;
+  company_name: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  website?: string;
+  industry?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type Activity = {
+  id: string;
+  deal_id?: string;
+  customer_id?: string;
+  activity_type: string;
+  activity_date: string;
+  description: string;
+  performed_by: string;
+  performer?: { id: string; email: string; display_name: string };
+};
+
+type Comment = {
+  id: string;
+  deal_id?: string;
+  customer_id?: string;
+  content: string;
+  created_at: string;
+  created_by: string;
+};
+
+type Collaborator = {
+  id: string;
+  email: string;
+  display_name: string;
+};
+
+// POST /api/ai/sales-assistant
+// Body: { message: string, context?: { dealId?: string, customerId?: string }, lang?: string }
+// Returns: { reply: string }
+export async function POST(req: NextRequest) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const body = (await req.json()) as RequestBody;
+    const message: string = (body.message ?? "").toString().trim();
+    const lang = body.lang || "th";
+    const { dealId, customerId } = body.context || {};
+
+    if (!message) {
+      return NextResponse.json({ error: "message required" }, { status: 400 });
+    }
+
+    let deals: Deal[] = [];
+    let customers: Customer[] = [];
+    let activities: Activity[] = [];
+    let comments: Comment[] = [];
+    let collaborators: Collaborator[] = [];
+
+    // Fetch data based on context
+    if (dealId) {
+      // Fetch specific deal with related data
+      const { data: dealData } = await supabaseAdmin
+        .from("deals")
+        .select("*, owner:app_users!owner_id(id, email, display_name)")
+        .eq("id", dealId)
+        .single();
+
+      if (dealData) {
+        deals = [dealData as Deal];
+
+        // Get customer for this deal
+        if (dealData.customer_id) {
+          const { data: customerData } = await supabaseAdmin
+            .from("customers")
+            .select("*")
+            .eq("id", dealData.customer_id)
+            .single();
+          if (customerData) customers = [customerData as Customer];
+        }
+
+        // Get activities for this deal
+        const { data: activitiesData } = await supabaseAdmin
+          .from("deal_activities")
+          .select("*, performer:app_users!performed_by(id, email, display_name)")
+          .eq("deal_id", dealId)
+          .order("activity_date", { ascending: false })
+          .limit(20);
+        activities = (activitiesData as Activity[]) || [];
+
+        // Get comments for this deal
+        const { data: commentsData } = await supabaseAdmin
+          .from("deal_comments")
+          .select("*")
+          .eq("deal_id", dealId)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        comments = (commentsData as Comment[]) || [];
+
+        // Get collaborators (deal participants)
+        const { data: collaboratorsData } = await supabaseAdmin
+          .from("deal_collaborators")
+          .select("collaborator:app_users!collaborator_id(id, email, display_name)")
+          .eq("deal_id", dealId);
+        if (collaboratorsData) {
+          collaborators = collaboratorsData
+            .map((c: any) => c.collaborator)
+            .filter((c: any) => c) as Collaborator[];
+        }
+      }
+    } else if (customerId) {
+      // Fetch all deals and data for a specific customer
+      const { data: customerData } = await supabaseAdmin
+        .from("customers")
+        .select("*")
+        .eq("id", customerId)
+        .single();
+      if (customerData) customers = [customerData as Customer];
+
+      const { data: dealsData } = await supabaseAdmin
+        .from("deals")
+        .select("*, owner:app_users!owner_id(id, email, display_name)")
+        .eq("customer_id", customerId)
+        .order("updated_at", { ascending: false });
+      deals = (dealsData as Deal[]) || [];
+
+      const { data: activitiesData } = await supabaseAdmin
+        .from("deal_activities")
+        .select("*, performer:app_users!performed_by(id, email, display_name)")
+        .eq("customer_id", customerId)
+        .order("activity_date", { ascending: false })
+        .limit(30);
+      activities = (activitiesData as Activity[]) || [];
+
+      const { data: commentsData } = await supabaseAdmin
+        .from("customer_comments")
+        .select("*")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      comments = (commentsData as Comment[]) || [];
+    } else {
+      // Fetch all deals owned by current user
+      const { data: dealsData } = await supabaseAdmin
+        .from("deals")
+        .select("*, owner:app_users!owner_id(id, email, display_name), customer:customers!customer_id(id, company_name)")
+        .eq("owner_id", ctx.userId)
+        .order("updated_at", { ascending: false })
+        .limit(50);
+      deals = (dealsData as Deal[]) || [];
+
+      // Get customer info for these deals
+      const customerIds = [...new Set(deals.map((d) => d.customer_id).filter(Boolean))];
+      if (customerIds.length > 0) {
+        const { data: customersData } = await supabaseAdmin
+          .from("customers")
+          .select("*")
+          .in("id", customerIds);
+        customers = (customersData as Customer[]) || [];
+      }
+
+      // Get recent activities for these deals
+      const dealIds = deals.map((d) => d.id);
+      if (dealIds.length > 0) {
+        const { data: activitiesData } = await supabaseAdmin
+          .from("deal_activities")
+          .select("*, performer:app_users!performed_by(id, email, display_name)")
+          .in("deal_id", dealIds)
+          .order("activity_date", { ascending: false })
+          .limit(50);
+        activities = (activitiesData as Activity[]) || [];
+      }
+    }
+
+    // Build comprehensive system prompt with sales data
+    const systemPrompt = buildSystemPrompt(deals, customers, activities, comments, collaborators, lang);
+
+    // Call AI with sonnet tier for balanced quality
+    const reply = await aiCall(message, {
+      model: "sonnet",
+      system: systemPrompt,
+      lang,
+      maxTokens: 2048,
+    });
+
+    return NextResponse.json({ reply });
+  } catch (err) {
+    if (err instanceof AiNotConfiguredError) {
+      return NextResponse.json(
+        { error: "AI not configured. Set ANTHROPIC_API_KEY in .env.local" },
+        { status: 503 }
+      );
+    }
+    console.error("sales-assistant error", err);
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
+
+function buildSystemPrompt(
+  deals: Deal[],
+  customers: Customer[],
+  activities: Activity[],
+  comments: Comment[],
+  collaborators: Collaborator[],
+  lang: string
+): string {
+  const isThaiLang = (lang || "th").toLowerCase().startsWith("th");
+
+  const dealsSummary = deals
+    .map((deal) => {
+      const stageTh = STAGE_LABELS[deal.stage] || deal.stage;
+      const stageLabel = isThaiLang ? stageTh : deal.stage;
+      return `- ${deal.title} (ID: ${deal.id}): ${stageLabel}, Value: $${deal.value || 0}, Owner: ${deal.owner?.display_name || "Unknown"}, Updated: ${new Date(deal.updated_at).toLocaleDateString()}`;
+    })
+    .join("\n");
+
+  const customersSummary = customers
+    .map((cust) => {
+      return `- ${cust.company_name} (ID: ${cust.id}): ${cust.contact_person || "N/A"}, Email: ${cust.email || "N/A"}, Phone: ${cust.phone || "N/A"}, Industry: ${cust.industry || "N/A"}`;
+    })
+    .join("\n");
+
+  const activitiesSummary = activities
+    .slice(0, 15)
+    .map((act) => {
+      return `[${new Date(act.activity_date).toLocaleDateString()}] ${act.activity_type}: ${act.description} (by ${act.performer?.display_name || "Unknown"})`;
+    })
+    .join("\n");
+
+  const commentsSummary = comments
+    .slice(0, 10)
+    .map((c) => {
+      return `[${new Date(c.created_at).toLocaleDateString()}] ${c.content}`;
+    })
+    .join("\n");
+
+  const collaboratorsList = collaborators.map((c) => `${c.display_name} (${c.email})`).join(", ");
+
+  let basePrompt = `You are a personal sales assistant for TOMAS TECH, an IT solutions company based in Thailand. Your role is to help sales professionals analyze deals, strategize, draft communications, and prepare for customer interactions.
+
+You have access to the following sales data:`;
+
+  if (dealsSummary) {
+    basePrompt += `\n\nDEALS:\n${dealsSummary}`;
+  }
+  if (customersSummary) {
+    basePrompt += `\n\nCUSTOMERS:\n${customersSummary}`;
+  }
+  if (activitiesSummary) {
+    basePrompt += `\n\nRECENT ACTIVITIES:\n${activitiesSummary}`;
+  }
+  if (commentsSummary) {
+    basePrompt += `\n\nCOMMENTS:\n${commentsSummary}`;
+  }
+  if (collaboratorsList) {
+    basePrompt += `\n\nCOLLABORATORS:\n${collaboratorsList}`;
+  }
+
+  const capabilities = isThaiLang
+    ? `\n\nคุณสามารถช่วยในการ:
+- วิเคราะห์สถานะของการเจรจา (deal analysis)
+- แนะนำกลยุทธ์การขายตามข้อมูลจริง
+- ร่างอีเมล, ข้อความ, หรือเสนอราคา
+- สรุปข้อมูลลูกค้าและประวัติการติดต่อ
+- เตรียมการประชุมกับลูกค้า
+- ระบุความเสี่ยง, โอกาส, และพื้นที่สำหรับการปรับปรุง
+- ตอบคำถามเกี่ยวกับการจัดการสัมพันธ์ลูกค้า`
+    : `\n\nYou can help with:
+- Deal analysis and stage assessment
+- Sales strategy recommendations based on actual data
+- Drafting emails, messages, and proposals
+- Customer summary and interaction history
+- Meeting preparation
+- Risk and opportunity identification
+- Customer relationship management advice`;
+
+  basePrompt += capabilities;
+
+  if (isThaiLang) {
+    basePrompt += `\n\nกรุณาตอบเป็นภาษาไทยและให้คำแนะนำที่เป็นประโยชน์และสามารถปฏิบัติได้จริง`;
+  } else {
+    basePrompt += `\n\nProvide actionable, practical advice tailored to the sales context.`;
+  }
+
+  return basePrompt;
+}

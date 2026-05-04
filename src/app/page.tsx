@@ -72,6 +72,7 @@ import LeaveManagementPanel from "@/components/LeaveManagementPanel";
 import RecurringExpensesPanel from "@/components/RecurringExpensesPanel";
 import DeptKPIPanel from "@/components/DeptKPIPanel";
 import WinLossPanel from "@/components/WinLossPanel";
+import SalesAIPanel from "@/components/SalesAIPanel";
 import ProjectDependencyPanel from "@/components/ProjectDependencyPanel";
 import PerformanceReviewPanel from "@/components/PerformanceReviewPanel";
 import EmailActivityPanel from "@/components/EmailActivityPanel";
@@ -304,6 +305,7 @@ export default function App() {
     { id: "recurring_expenses", icon: RefreshCcw, label: lang === "th" ? "ค่าใช้จ่ายประจำ" : lang === "jp" ? "定期経費" : "Recurring Expenses", module: "transactions", group: "finance" },
     { id: "dept_kpi", icon: Target, label: lang === "th" ? "KPI แผนก" : lang === "jp" ? "部門KPI" : "Dept KPIs", module: "dashboard", group: "admin" },
     { id: "win_loss", icon: Trophy, label: lang === "th" ? "วิเคราะห์ Win/Loss" : lang === "jp" ? "Win/Loss分析" : "Win/Loss Analysis", module: "deals_pipeline", group: "crm" },
+    { id: "sales_ai", icon: Zap, label: lang === "th" ? "AI ผู้ช่วยขาย" : lang === "jp" ? "AI営業アシスタント" : "AI Sales Assistant", module: "deals_pipeline", group: "crm" },
     { id: "project_deps", icon: GitBranch, label: lang === "th" ? "การพึ่งพาโครงการ" : lang === "jp" ? "依存関係" : "Dependencies", module: "projects", group: "planning" },
     { id: "perf_review", icon: Trophy, label: lang === "th" ? "ประเมินผลงาน" : lang === "jp" ? "業績評価" : "Performance Review", module: "team", group: "people" },
     { id: "expense_approval", icon: CreditCard, label: lang === "th" ? "อนุมัติค่าใช้จ่าย" : lang === "jp" ? "経費承認" : "Expense Approval", module: "transactions", group: "finance" },
@@ -990,11 +992,12 @@ export default function App() {
   const RecurringExpensesPage = () => <RecurringExpensesPanel lang={lang} canManage={["admin","manager"].includes(currentUser?.role ?? "member")} />;
   const DeptKPIPage = () => <DeptKPIPanel lang={lang} />;
   const WinLossPage = () => <WinLossPanel lang={lang} />;
+  const SalesAIPage = () => <SalesAIPanel lang={lang} currentUserId={currentUser?.id} />;
   const ProjectDepsPage = () => <ProjectDependencyPanel lang={lang} />;
   const PerfReviewPage = () => <PerformanceReviewPanel lang={lang} canManage={canCreate("team")} />;
   const ExpenseApprovalPage = () => <ExpenseApprovalPanel lang={lang} canApprove={["admin","manager"].includes(currentUser?.role ?? "member")} />;
   const MyProfilePage = () => <MyProfilePanel lang={lang} currentUser={currentUser} onProfileUpdated={() => window.location.reload()} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage };
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, sales_ai: SalesAIPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)

@@ -13,6 +13,44 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.0.0",
+    date: "2026-05-04",
+    title: {
+      th: "AI ผู้ช่วยขาย — ผู้ช่วยส่วนตัวสำหรับพนักงานขาย",
+      en: "AI Sales Assistant — Personal AI for Sales Team",
+      jp: "AI営業アシスタント — 営業チーム向けパーソナルAI",
+    },
+    highlights: {
+      th: [
+        "เพิ่มหน้า AI ผู้ช่วยขาย — Dashboard วิเคราะห์ภาพรวมดีล + แชทกับ AI",
+        "6 การ์ดสรุป: ดีลทั้งหมด, มูลค่า Pipeline, ดีลค้าง, ดีลร้อน, ปิดเดือนนี้, มูลค่าปิด",
+        "AI วิเคราะห์ดีลสำคัญ — จัดลำดับความเสี่ยง สูง/กลาง/ต่ำ พร้อมคำแนะนำ",
+        "แชทกับ AI: ถามเรื่องดีล ลูกค้า กลยุทธ์การขาย ร่างอีเมล เตรียมนัดลูกค้า",
+        "6 คำถามด่วน: วิเคราะห์ดีล, ดีลค้าง, จัดลำดับ, ร่างอีเมล, เตรียมนัด, พยากรณ์ยอด",
+        "ลิงก์ LINE Bot สร้าง Proposal อัตโนมัติสำหรับนำเสนอลูกค้า",
+        "รองรับ 3 ภาษา: ไทย, อังกฤษ, ญี่ปุ่น",
+      ],
+      en: [
+        "Added AI Sales Assistant page — Deal analytics dashboard + AI chat",
+        "6 summary cards: total deals, pipeline value, stuck deals, hot deals, closed this month, closed value",
+        "AI analyzes priority deals — risk levels high/medium/low with recommendations",
+        "Chat with AI: ask about deals, customers, sales strategy, draft emails, prepare meetings",
+        "6 quick actions: analyze deals, stuck deals, prioritize, draft email, prep meeting, forecast",
+        "LINE Bot link for auto-generating customer proposals",
+        "Full i18n support: Thai, English, Japanese",
+      ],
+      jp: [
+        "AI営業アシスタントページ追加 — ディール分析ダッシュボード + AIチャット",
+        "6つのサマリーカード: 全ディール、パイプライン値、停滞ディール、ホットディール、今月成約、成約額",
+        "AIが優先ディールを分析 — リスクレベル高/中/低と推奨事項",
+        "AIとチャット: ディール、顧客、営業戦略、メール下書き、会議準備について質問",
+        "6つのクイックアクション: ディール分析、停滞、優先順位、メール、会議準備、予測",
+        "LINE Botリンクで顧客提案書を自動生成",
+        "3言語対応: タイ語、英語、日本語",
+      ],
+    },
+  },
+  {
     version: "1.9.1",
     date: "2026-05-04",
     title: {
