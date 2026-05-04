@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Fetch member with position
   const { data: member, error } = await supabaseAdmin
     .from("team_members")
-    .select("id, first_name_th, first_name_en, last_name_th, last_name_en, email, phone, department, position_id, hourly_rate, skills, positions(name_th, name_en, color)")
+    .select("id, user_id, first_name_th, first_name_en, last_name_th, last_name_en, email, phone, department, position_id, hourly_rate, skills, positions(name_th, name_en, color)")
     .eq("id", id)
     .single();
 

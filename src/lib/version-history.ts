@@ -13,6 +13,35 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "1.8.1",
+    date: "2026-05-04",
+    title: {
+      th: "จัดการ KPI พนักงาน + แก้ไข bug",
+      en: "Employee KPI Management + Bug Fixes",
+      jp: "従業員KPI管理 + バグ修正",
+    },
+    highlights: {
+      th: [
+        "เพิ่มแท็บ KPI ในหน้าโปรไฟล์พนักงาน — ผู้จัดการ/แอดมินตั้งค่า KPI ให้พนักงานได้",
+        "แสดง Auto KPI (จากระบบ) + Manual KPI + ให้คะแนน + ลบ ได้ในหน้าเดียว",
+        "เลือกงวด (เดือน) เพื่อดู KPI ย้อนหลังได้",
+        "แก้ไข bug เว็บล่มจาก ProjectModal — เพิ่มการป้องกัน Array.isArray",
+      ],
+      en: [
+        "Added KPI tab to employee profile — managers/admins can set KPIs for employees",
+        "Shows Auto KPI (from system) + Manual KPI + scoring + delete in one view",
+        "Select period (month) to view historical KPIs",
+        "Fixed site crash from ProjectModal — added Array.isArray guard",
+      ],
+      jp: [
+        "従業員プロフィールにKPIタブ追加 — マネージャー/管理者が従業員にKPI設定可能",
+        "自動KPI + 手動KPI + 評価 + 削除を一画面で表示",
+        "期間（月）を選択して過去のKPIを確認可能",
+        "ProjectModalからのサイトクラッシュを修正 — Array.isArrayガード追加",
+      ],
+    },
+  },
+  {
     version: "1.8.0",
     date: "2026-05-04",
     title: {

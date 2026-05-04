@@ -1,6 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
-import { X, Mail, Phone, Briefcase, BarChart3, Clock, User, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  X, Mail, Phone, Briefcase, BarChart3, Clock, User, ChevronRight,
+  TrendingUp, Target, Plus, Trash2, Star, CheckCircle2, Loader2,
+} from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -12,6 +15,7 @@ interface Props {
 
 interface MemberProfile {
   id: string;
+  user_id: string | null;
   first_name_th: string | null;
   first_name_en: string | null;
   last_name_th: string | null;
@@ -45,10 +49,14 @@ interface TaskInfo {
   project_name?: string;
 }
 
+const UNITS = ["count", "percent", "hours", "baht", "deals"];
+const CATEGORIES = ["task", "deal", "time", "quality", "general"];
+
 const i18n: Record<string, Record<string, string>> = {
   profile: { th: "โปรไฟล์พนักงาน", en: "Employee Profile", jp: "従業員プロファイル" },
   personalInfo: { th: "ข้อมูลส่วนตัว", en: "Personal Info", jp: "個人情報" },
   myWork: { th: "งานของฉัน", en: "My Assignments", jp: "マイタスク" },
+  kpi: { th: "KPI", en: "KPI", jp: "KPI" },
   position: { th: "ตำแหน่ง", en: "Position", jp: "役職" },
   department: { th: "แผนก", en: "Department", jp: "部署" },
   email: { th: "อีเมล", en: "Email", jp: "メール" },
@@ -61,6 +69,37 @@ const i18n: Record<string, Record<string, string>> = {
   role: { th: "บทบาท", en: "Role", jp: "役割" },
   allocation: { th: "สัดส่วน", en: "Allocation", jp: "配分" },
   active: { th: "กำลังดำเนินการ", en: "Active", jp: "進行中" },
+  // KPI i18n
+  autoKpi: { th: "KPI อัตโนมัติ (จากระบบ)", en: "Auto KPI (from system)", jp: "自動KPI（システム）" },
+  manualKpi: { th: "KPI ที่กำหนด", en: "Assigned KPI", jp: "設定KPI" },
+  addKpi: { th: "เพิ่ม KPI", en: "Add KPI", jp: "KPI追加" },
+  kpiName: { th: "ชื่อ KPI", en: "KPI Name", jp: "KPI名" },
+  target: { th: "เป้าหมาย", en: "Target", jp: "目標" },
+  actual: { th: "ผลจริง", en: "Actual", jp: "実績" },
+  weight: { th: "น้ำหนัก", en: "Weight", jp: "重み" },
+  unit: { th: "หน่วย", en: "Unit", jp: "単位" },
+  category: { th: "หมวด", en: "Category", jp: "カテゴリ" },
+  overallScore: { th: "คะแนนรวม", en: "Overall Score", jp: "総合スコア" },
+  managerScore: { th: "คะแนนจากหัวหน้า", en: "Manager Score", jp: "上司評価" },
+  noKpi: { th: "ยังไม่มี KPI สำหรับเดือนนี้", en: "No KPIs for this period yet", jp: "この期間のKPIはありません" },
+  tasksCompleted: { th: "งานที่เสร็จ", en: "Tasks Completed", jp: "完了タスク" },
+  taskCompletion: { th: "อัตราสำเร็จงาน", en: "Task Completion Rate", jp: "タスク完了率" },
+  hoursLogged: { th: "ชั่วโมงทำงาน", en: "Hours Logged", jp: "作業時間" },
+  dealsClosed: { th: "ดีลที่ปิดได้", en: "Deals Closed", jp: "成約ディール" },
+  dealRevenue: { th: "รายได้จากดีล", en: "Deal Revenue", jp: "ディール収益" },
+  save: { th: "บันทึก", en: "Save", jp: "保存" },
+  cancel: { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
+  deleteConfirm: { th: "ลบ KPI นี้?", en: "Delete this KPI?", jp: "このKPIを削除しますか？" },
+  count: { th: "จำนวน", en: "count", jp: "件" },
+  percent: { th: "เปอร์เซ็นต์", en: "%", jp: "%" },
+  hours: { th: "ชั่วโมง", en: "hrs", jp: "時間" },
+  baht: { th: "บาท", en: "THB", jp: "バーツ" },
+  deals: { th: "ดีล", en: "deals", jp: "件" },
+  task: { th: "งาน", en: "Task", jp: "タスク" },
+  deal: { th: "การขาย", en: "Sales", jp: "営業" },
+  time: { th: "เวลา", en: "Time", jp: "時間" },
+  quality: { th: "คุณภาพ", en: "Quality", jp: "品質" },
+  general: { th: "ทั่วไป", en: "General", jp: "一般" },
 };
 
 export default function MemberProfileModal({ open, onClose, memberId, lang = "th", onNavigateProject }: Props) {
@@ -69,12 +108,22 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"info" | "work">("info");
+  const [tab, setTab] = useState<"info" | "work" | "kpi">("info");
+
+  // KPI state
+  const [kpiPeriod, setKpiPeriod] = useState(new Date().toISOString().slice(0, 7));
+  const [autoKpi, setAutoKpi] = useState<Record<string, number>>({});
+  const [manualKpis, setManualKpis] = useState<Array<Record<string, unknown>>>([]);
+  const [kpiLoading, setKpiLoading] = useState(false);
+  const [addingKpi, setAddingKpi] = useState(false);
+  const [newKpi, setNewKpi] = useState({ kpi_name: "", target_value: 0, unit: "count", category: "general", weight: 1 });
 
   useEffect(() => {
     if (!open || !memberId) return;
     setTab("info");
+    setAddingKpi(false);
     fetchProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, memberId]);
 
   const fetchProfile = async () => {
@@ -93,6 +142,84 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
     } finally {
       setLoading(false);
     }
+  };
+
+  // Load KPIs when tab switches to kpi or period changes
+  const loadKpis = useCallback(async () => {
+    if (!member?.user_id) return;
+    setKpiLoading(true);
+    try {
+      const [autoRes, manualRes] = await Promise.all([
+        fetch(`/api/personal-kpis/auto?user_id=${member.user_id}&period=${kpiPeriod}`),
+        fetch(`/api/personal-kpis?user_id=${member.user_id}&period=${kpiPeriod}`),
+      ]);
+      if (autoRes.ok) {
+        const autoData = await autoRes.json();
+        setAutoKpi(autoData.metrics || {});
+      }
+      if (manualRes.ok) {
+        const manualData = await manualRes.json();
+        setManualKpis(Array.isArray(manualData) ? manualData : []);
+      }
+    } catch (e) {
+      console.error("Failed to load KPIs:", e);
+    } finally {
+      setKpiLoading(false);
+    }
+  }, [member?.user_id, kpiPeriod]);
+
+  useEffect(() => {
+    if (tab === "kpi" && member?.user_id) {
+      loadKpis();
+    }
+  }, [tab, loadKpis, member?.user_id]);
+
+  // Add manual KPI
+  const addManualKpi = async () => {
+    if (!newKpi.kpi_name.trim() || !member?.user_id) return;
+    try {
+      await fetch("/api/personal-kpis", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...newKpi, user_id: member.user_id, period: kpiPeriod, kpi_type: "manual" }),
+      });
+      setAddingKpi(false);
+      setNewKpi({ kpi_name: "", target_value: 0, unit: "count", category: "general", weight: 1 });
+      loadKpis();
+    } catch {}
+  };
+
+  // Update KPI actual value
+  const updateKpiActual = async (id: string, actual_value: number) => {
+    try {
+      await fetch("/api/personal-kpis", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id, actual_value }),
+      });
+      loadKpis();
+    } catch {}
+  };
+
+  // Delete KPI
+  const deleteKpi = async (id: string) => {
+    if (!confirm(L("deleteConfirm"))) return;
+    try {
+      await fetch(`/api/personal-kpis?id=${id}`, { method: "DELETE" });
+      loadKpis();
+    } catch {}
+  };
+
+  // Manager score update
+  const updateManagerScore = async (id: string, manager_score: number) => {
+    try {
+      await fetch("/api/personal-kpis", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id, manager_score }),
+      });
+      loadKpis();
+    } catch {}
   };
 
   if (!open) return null;
@@ -118,6 +245,26 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
     planning: "#94A3B8", active: "#003087", on_hold: "#F59E0B", completed: "#10B981",
   };
 
+  // KPI calculations
+  const totalWeight = manualKpis.reduce((s, k) => s + (Number(k.weight) || 1), 0);
+  const weightedScore = manualKpis.reduce((s, k) => {
+    const target = Number(k.target_value) || 1;
+    const actual = Number(k.actual_value) || 0;
+    const pct = Math.min((actual / target) * 100, 150);
+    return s + pct * ((Number(k.weight) || 1) / (totalWeight || 1));
+  }, 0);
+
+  const autoKpiItems = [
+    { key: "tasks_completed", label: L("tasksCompleted"), icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
+    { key: "task_completion_rate", label: L("taskCompletion"), icon: Target, color: "text-blue-600", bg: "bg-blue-50", unit: "%" },
+    { key: "hours_logged", label: L("hoursLogged"), icon: Clock, color: "text-purple-600", bg: "bg-purple-50", unit: L("hours") },
+    { key: "deals_closed", label: L("dealsClosed"), icon: Briefcase, color: "text-orange-600", bg: "bg-orange-50" },
+    { key: "deal_revenue", label: L("dealRevenue"), icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50", unit: "฿" },
+  ];
+
+  const inputCls = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-[#003087] outline-none transition bg-white text-gray-800";
+  const labelCls = "block text-xs font-medium text-gray-600 mb-1";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -140,10 +287,10 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
 
         {/* Tabs */}
         <div className="flex border-b border-[#E2E8F0]">
-          {(["info", "work"] as const).map(t => (
+          {(["info", "work", "kpi"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-3 text-sm font-medium ${tab === t ? "text-[#003087] border-b-2 border-[#003087]" : "text-gray-500"}`}>
-              {t === "info" ? L("personalInfo") : L("myWork")}
+              {t === "info" ? L("personalInfo") : t === "work" ? L("myWork") : L("kpi")}
             </button>
           ))}
         </div>
@@ -196,7 +343,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                 <div className="text-xs text-gray-500 mt-1">{allocations.filter(a => a.is_active).length} {L("projects")} {L("active")}</div>
               </div>
             </div>
-          ) : (
+          ) : tab === "work" ? (
             <div className="p-6 space-y-4">
               {/* Active Allocations */}
               <div>
@@ -270,6 +417,167 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                   </div>
                 )}
               </div>
+            </div>
+          ) : (
+            /* KPI Tab */
+            <div className="p-6 space-y-5">
+              {/* Period selector */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <BarChart3 size={16} className="text-[#003087]" /> {L("kpi")}
+                  {manualKpis.length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#003087]">
+                      {Math.round(weightedScore)}%
+                    </span>
+                  )}
+                </h3>
+                <input
+                  type="month"
+                  value={kpiPeriod}
+                  onChange={e => setKpiPeriod(e.target.value)}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-600"
+                />
+              </div>
+
+              {kpiLoading ? (
+                <div className="flex items-center justify-center py-8 text-gray-400">
+                  <Loader2 size={20} className="animate-spin mr-2" /> Loading...
+                </div>
+              ) : !member?.user_id ? (
+                <div className="text-center text-sm text-gray-400 py-8">
+                  {lang === "th" ? "พนักงานนี้ยังไม่ได้ผูกบัญชีผู้ใช้" : "This member has no linked user account"}
+                </div>
+              ) : (
+                <>
+                  {/* Auto KPIs */}
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1.5">
+                      <TrendingUp size={13} /> {L("autoKpi")}
+                    </h4>
+                    <div className="grid grid-cols-5 gap-2">
+                      {autoKpiItems.map(item => (
+                        <div key={item.key} className={`${item.bg} rounded-xl p-2.5 text-center`}>
+                          <item.icon size={16} className={`${item.color} mx-auto mb-1`} />
+                          <div className={`text-lg font-bold ${item.color}`}>
+                            {item.unit === "฿" ? (autoKpi[item.key] || 0).toLocaleString() : (autoKpi[item.key] || 0)}
+                            {item.unit && item.unit !== "฿" && <span className="text-[10px] ml-0.5">{item.unit}</span>}
+                          </div>
+                          <div className="text-[10px] text-gray-500 mt-0.5 leading-tight">{item.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Manual KPIs */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                        <Target size={13} /> {L("manualKpi")}
+                      </h4>
+                      <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#003087] hover:text-blue-700 font-medium">
+                        <Plus size={14} /> {L("addKpi")}
+                      </button>
+                    </div>
+
+                    {/* Add KPI form */}
+                    {addingKpi && (
+                      <div className="bg-blue-50 rounded-xl p-4 mb-3 space-y-3">
+                        <div className="grid grid-cols-4 gap-3">
+                          <div className="col-span-2">
+                            <label className={labelCls}>{L("kpiName")}</label>
+                            <input className={inputCls} value={newKpi.kpi_name} onChange={e => setNewKpi(k => ({ ...k, kpi_name: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className={labelCls}>{L("target")}</label>
+                            <input type="number" className={inputCls} value={newKpi.target_value} onChange={e => setNewKpi(k => ({ ...k, target_value: Number(e.target.value) }))} />
+                          </div>
+                          <div>
+                            <label className={labelCls}>{L("weight")}</label>
+                            <input type="number" min={1} max={5} className={inputCls} value={newKpi.weight} onChange={e => setNewKpi(k => ({ ...k, weight: Number(e.target.value) }))} />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className={labelCls}>{L("unit")}</label>
+                            <select className={inputCls} value={newKpi.unit} onChange={e => setNewKpi(k => ({ ...k, unit: e.target.value }))}>
+                              {UNITS.map(u => <option key={u} value={u}>{L(u)}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className={labelCls}>{L("category")}</label>
+                            <select className={inputCls} value={newKpi.category} onChange={e => setNewKpi(k => ({ ...k, category: e.target.value }))}>
+                              {CATEGORIES.map(c => <option key={c} value={c}>{L(c)}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => setAddingKpi(false)} className="px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                            {L("cancel")}
+                          </button>
+                          <button onClick={addManualKpi} className="px-4 py-1.5 text-sm text-white rounded-lg" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+                            {L("save")}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* KPI list */}
+                    {manualKpis.length === 0 ? (
+                      <div className="text-center text-sm text-gray-400 py-6">{L("noKpi")}</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {manualKpis.map((kpi) => {
+                          const target = Number(kpi.target_value) || 1;
+                          const actual = Number(kpi.actual_value) || 0;
+                          const pct = Math.min(Math.round((actual / target) * 100), 150);
+                          const barColor = pct >= 100 ? "#10B981" : pct >= 70 ? "#F59E0B" : "#EF4444";
+                          return (
+                            <div key={kpi.id as string} className="bg-gray-50 rounded-xl p-3.5">
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-800">{kpi.kpi_name as string}</div>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{L(kpi.category as string)}</span>
+                                    <span className="text-xs text-gray-400">{L("weight")}: {kpi.weight as number}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg font-bold" style={{ color: barColor }}>{pct}%</span>
+                                  <button onClick={() => deleteKpi(kpi.id as string)} className="text-gray-300 hover:text-red-500 transition">
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                              {/* Progress bar */}
+                              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                                <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%`, background: barColor }} />
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-gray-500">
+                                <div className="flex items-center gap-3">
+                                  <span>{L("actual")}: <input type="number" className="w-16 px-1 py-0.5 border border-gray-200 rounded text-center text-xs" value={actual} onChange={e => updateKpiActual(kpi.id as string, Number(e.target.value))} /></span>
+                                  <span>/ {L("target")}: {target} {L(kpi.unit as string)}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Star size={12} className="text-yellow-500" />
+                                  <select className="text-xs border border-gray-200 rounded px-1 py-0.5" value={kpi.manager_score as number || ""} onChange={e => updateManagerScore(kpi.id as string, Number(e.target.value))}>
+                                    <option value="">{L("managerScore")}</option>
+                                    {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}</option>)}
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {/* Overall score */}
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
+                          <span className="text-sm font-medium text-gray-600">{L("overallScore")}:</span>
+                          <span className="text-xl font-bold text-[#003087]">{Math.round(weightedScore)}%</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
