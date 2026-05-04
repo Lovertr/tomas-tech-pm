@@ -458,31 +458,6 @@ export default function CustomersPanel({
   };
 
 
-  // Convert Google Maps URL to embeddable format
-  const getMapEmbedUrl = (url: string): string | null => {
-    if (!url) return null;
-    // Already an embed URL — use as-is
-    if (url.includes('/maps/embed') || url.includes('output=embed')) return url;
-    // Extract coordinates from @lat,lng pattern
-    const coordMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (coordMatch) {
-      return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&z=15&output=embed`;
-    }
-    // Extract place name from /place/NAME/ pattern  
-    const placeMatch = url.match(/\/place\/([^/@]+)/);
-    if (placeMatch) {
-      const placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
-      return `https://maps.google.com/maps?q=${encodeURIComponent(placeName)}&z=15&output=embed`;
-    }
-    // Extract query from ?q= parameter
-    const qMatch = url.match(/[?&]q=([^&]+)/);
-    if (qMatch) {
-      return `https://maps.google.com/maps?q=${qMatch[1]}&z=15&output=embed`;
-    }
-    // Fallback: not a recognized Google Maps URL
-    return null;
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -740,13 +715,11 @@ export default function CustomersPanel({
                     value={formData.google_map_url}
                     onChange={(e) => setFormData({ ...formData, google_map_url: e.target.value })}
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
-                  {formData.google_map_url && getMapEmbedUrl(formData.google_map_url) && (
-                    <div className="mt-2 rounded-lg overflow-hidden border border-gray-200">
-                      <iframe
-                        src={getMapEmbedUrl(formData.google_map_url) || ''}
-                        width="100%" height="150" style={{ border: 0 }} allowFullScreen loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade" />
-                    </div>
+                  {formData.google_map_url && (
+                    <a href={formData.google_map_url} target="_blank" rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 text-sm text-[#003087] hover:underline">
+                      <MapPin className="w-4 h-4" /> {L('openMap', lang)}
+                    </a>
                   )}
                 </div>
                 <div className="md:col-span-2">
@@ -957,18 +930,17 @@ export default function CustomersPanel({
                       {selectedCustomer.google_map_url && (
                         <div className="md:col-span-2">
                           <p className="text-xs font-medium text-gray-500 uppercase">{L('googleMapLabel', lang)}</p>
-                          <div className="mt-1">
-                            <a href={selectedCustomer.google_map_url} target="_blank" rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 mb-2">
-                              <MapPin size={14} /> {L('openMap', lang)} <ExternalLink size={12} />
-                            </a>
-                            <div className="rounded-lg overflow-hidden border border-gray-200">
-                              <iframe
-                                src={getMapEmbedUrl(selectedCustomer.google_map_url || '') || ''}
-                                width="100%" height="200" style={{ border: 0 }} allowFullScreen loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade" />
+                          <a href={selectedCustomer.google_map_url} target="_blank" rel="noopener noreferrer"
+                            className="mt-1 flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors">
+                            <div className="flex-shrink-0 w-10 h-10 bg-[#003087] rounded-full flex items-center justify-center">
+                              <MapPin className="w-5 h-5 text-white" />
                             </div>
-                          </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-[#003087]">{L('openMap', lang)}</p>
+                              <p className="text-xs text-gray-500 truncate">{selectedCustomer.google_map_url}</p>
+                            </div>
+                            <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          </a>
                         </div>
                       )}
                       {selectedCustomer.notes && (
