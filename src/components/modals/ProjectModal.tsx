@@ -40,7 +40,7 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
       return r.json();
     }).then(d => {
       if (!d) return;
-      const list = d.data || d;
+      const list = d.customers || d.data || d;
       setCustomers(Array.isArray(list) ? list : []);
     }).catch(() => {});
   }, []);

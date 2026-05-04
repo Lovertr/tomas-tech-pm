@@ -21,6 +21,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data: oldDeal } = await supabaseAdmin.from("deals").select("*, customers(id, company_name)").eq("id", id).single();
 
+  // Ownership check: member can only edit own deals or deals they collaborate on
+  if (ctx.role === "member" && oldDeal) {
+    const isOwner = oldDeal.owner_id === ctx.userId;
+    const { data: collab } = await supabaseAdmin.from("deal_collaborators").select("id").eq("deal_id", id).eq("user_id", ctx.userId).maybeSingle();
+    if (!isOwner && !collab) return NextResponse.json({ error: "Forbidden: you can only edit your own deals" }, { status: 403 });
+  }
+
   const { data, error } = await supabaseAdmin.from("deals").update(body).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -76,6 +83,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
+
+  // Ownership check: member can only delete own deals
+  if (ctx.role === "member") {
+    const { data: deal } = await supabaseAdmin.from("deals").select("owner_id").eq("id", id).single();
+    if (!deal || deal.owner_id !== ctx.userId) return NextResponse.json({ error: "Forbidden: you can only delete your own deals" }, { status: 403 });
+  }
+
   const { error } = await supabaseAdmin.from("deals").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

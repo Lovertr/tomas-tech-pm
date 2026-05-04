@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, X, User, Search } from 'lucide-react';
-import TranslateButton from './TranslateButton';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, Edit2, X, User, Search, Users, MessageSquare, Send, Loader2, UserPlus, UserMinus } from 'lucide-react';
+import TranslateButton, { InlineTranslateButton } from './TranslateButton';
 import type { Lang } from '@/lib/i18n';
 
 interface Props {
@@ -44,7 +44,23 @@ interface Member {
   last_name_en?: string | null;
 }
 
-/* ─── Stage config ─── */
+interface Collaborator {
+  id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+  user?: { id: string; display_name?: string; email?: string };
+}
+
+interface DealComment {
+  id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user?: { id: string; display_name?: string; email?: string };
+}
+
+/* --- Stage config --- */
 const stageLabels: Record<string, Record<string, string>> = {
   new_lead:           { th: 'ลีดใหม่',            en: 'New Lead',              jp: '新規リード' },
   waiting_present:    { th: 'รอนำเสนอ',          en: 'Waiting to Present',    jp: 'プレゼン待ち' },
@@ -61,26 +77,15 @@ const stageLabels: Record<string, Record<string, string>> = {
 };
 
 const stageColors: Record<string, string> = {
-  new_lead: '#0EA5E9',
-  waiting_present: '#6B7280',
-  contacted: '#3B82F6',
-  proposal_submitted: '#F59E0B',
-  proposal_confirmed: '#8B5CF6',
-  quotation: '#F7941D',
-  negotiation: '#EC4899',
-  waiting_po: '#14B8A6',
-  po_received: '#22C55E',
-  payment_received: '#059669',
-  cancelled: '#EF4444',
-  refused: '#9CA3AF',
+  new_lead: '#0EA5E9', waiting_present: '#6B7280', contacted: '#3B82F6',
+  proposal_submitted: '#F59E0B', proposal_confirmed: '#8B5CF6', quotation: '#F7941D',
+  negotiation: '#EC4899', waiting_po: '#14B8A6', po_received: '#22C55E',
+  payment_received: '#059669', cancelled: '#EF4444', refused: '#9CA3AF',
 };
 
 const getTextColorForBackground = (bgColor: string): string => {
-  const lightColors = ['#F7941D', '#F59E0B', '#6B7280', '#9CA3AF', '#14B8A6', '#22C55E', '#EC4899'];
   const darkColors = ['#0EA5E9', '#3B82F6', '#8B5CF6', '#EF4444', '#059669'];
-  if (lightColors.includes(bgColor)) return '#1F2937';
-  if (darkColors.includes(bgColor)) return '#FFFFFF';
-  return '#FFFFFF';
+  return darkColors.includes(bgColor) ? '#FFFFFF' : '#1F2937';
 };
 
 /* --- i18n text --- */
@@ -91,6 +96,7 @@ const panelText: Record<string, Record<string, string>> = {
   searchCustomer:  { th: 'ลูกค้า...',                              en: 'Customer...',                     jp: '顧客...' },
   searchOwner:     { th: 'ผู้รับผิดชอบ...',                         en: 'Owner...',                        jp: '担当者...' },
   myDeal:          { th: 'MY DEAL',                                en: 'MY DEAL',                         jp: 'MY DEAL' },
+  collaborator:    { th: 'ผู้ร่วมงาน',                             en: 'Collaborator',                    jp: 'コラボレーター' },
   clickToEdit:     { th: 'Click to edit',                          en: 'Click to edit',                   jp: 'クリックして編集' },
   noDeals:         { th: 'ไม่มีดีล',                               en: 'No deals',                        jp: 'ディールなし' },
   editDeal:        { th: 'แก้ไขดีล',                               en: 'Edit Deal',                       jp: 'ディール編集' },
@@ -108,35 +114,33 @@ const panelText: Record<string, Record<string, string>> = {
   save:            { th: 'บันทึก',                                  en: 'Save',                            jp: '保存' },
   cancel:          { th: 'ยกเลิก',                                 en: 'Cancel',                          jp: 'キャンセル' },
   confirmDelete:   { th: 'ยืนยันการลบดีลนี้?',                      en: 'Delete this deal?',               jp: 'このディールを削除しますか？' },
+  edit:            { th: 'แก้ไข',                                   en: 'Edit',                            jp: '編集' },
+  del:             { th: 'ลบ',                                      en: 'Del',                             jp: '削除' },
+  collaborators:   { th: 'ผู้ร่วมงาน',                             en: 'Collaborators',                   jp: 'コラボレーター' },
+  inviteFriend:    { th: 'ชวนเพื่อน',                              en: 'Invite Friend',                   jp: '友達を招待' },
+  addCollaborator: { th: 'เพิ่มผู้ร่วมงาน',                        en: 'Add Collaborator',                jp: 'コラボレーター追加' },
+  selectMember:    { th: 'เลือกสมาชิก',                            en: 'Select member',                   jp: 'メンバーを選択' },
+  removeCollab:    { th: 'ลบผู้ร่วมงาน?',                          en: 'Remove collaborator?',            jp: 'コラボレーターを削除？' },
+  alreadyCollab:   { th: 'เป็นผู้ร่วมงานอยู่แล้ว',                  en: 'Already a collaborator',           jp: '既にコラボレーター' },
+  comments:        { th: 'ความคิดเห็น',                             en: 'Comments',                        jp: 'コメント' },
+  writeComment:    { th: 'เขียนความคิดเห็น...',                    en: 'Write a comment...',              jp: 'コメントを書く...' },
+  noComments:      { th: 'ยังไม่มีความคิดเห็น',                     en: 'No comments yet',                 jp: 'コメントなし' },
+  deleteComment:   { th: 'ลบความคิดเห็นนี้?',                      en: 'Delete this comment?',            jp: 'このコメントを削除？' },
+  forbidden:       { th: 'คุณไม่มีสิทธิ์แก้ไขดีลนี้',                en: "You don't have permission to edit this deal", jp: 'このディールを編集する権限がありません' },
+  viewDetail:      { th: 'ดูรายละเอียด',                            en: 'View Detail',                     jp: '詳細を見る' },
+  dealDetail:      { th: 'รายละเอียดดีล',                           en: 'Deal Detail',                     jp: 'ディール詳細' },
+  loading:         { th: 'กำลังโหลด...',                            en: 'Loading...',                      jp: '読み込み中...' },
 };
 
 const stageKeys: Array<Deal['stage']> = [
-  'new_lead',
-  'waiting_present',
-  'contacted',
-  'proposal_submitted',
-  'proposal_confirmed',
-  'quotation',
-  'negotiation',
-  'waiting_po',
-  'po_received',
-  'payment_received',
-  'cancelled',
-  'refused',
+  'new_lead', 'waiting_present', 'contacted', 'proposal_submitted', 'proposal_confirmed',
+  'quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received', 'cancelled', 'refused',
 ];
 
-/** Format number with commas: 3800000 → "3,800,000" */
 const fmt = (n: number) => n.toLocaleString('en-US');
 
 export default function DealsPipelinePanel({
-  projects,
-  members,
-  filterProjectId,
-  canManage = true,
-  refreshKey = 0,
-  lang = 'th',
-  currentUserId,
-  userRole,
+  projects, members, filterProjectId, canManage = true, refreshKey = 0, lang = 'th', currentUserId, userRole,
 }: Props) {
   const L = (key: string) => panelText[key]?.[lang] ?? panelText[key]?.en ?? key;
   const stageName = (s: string) => stageLabels[s]?.[lang] ?? stageLabels[s]?.en ?? s;
@@ -149,29 +153,29 @@ export default function DealsPipelinePanel({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  /* ─── Search / filter state ─── */
+  /* --- Detail modal state --- */
+  const [detailDeal, setDetailDeal] = useState<Deal | null>(null);
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [comments, setComments] = useState<DealComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [collabLoading, setCollabLoading] = useState(false);
+  const [inviteUserId, setInviteUserId] = useState('');
+  const commentsEndRef = useRef<HTMLDivElement>(null);
+
+  /* --- Search / filter state --- */
   const [searchName, setSearchName] = useState('');
   const [searchCustomer, setSearchCustomer] = useState('');
   const [searchOwner, setSearchOwner] = useState('');
 
   const [formData, setFormData] = useState({
-    title: '',
-    customer_id: '',
-    owner_id: '',
-    value: 0,
-    stage: 'new_lead' as Deal['stage'],
-    expected_close_date: '',
-    probability: 0,
-    notes: '',
+    title: '', customer_id: '', owner_id: '', value: 0,
+    stage: 'new_lead' as Deal['stage'], expected_close_date: '', probability: 0, notes: '',
   });
 
-  useEffect(() => {
-    fetchDeals();
-    fetchCustomers();
-    fetchMembers();
-  }, [filterProjectId, refreshKey]);
+  useEffect(() => { fetchDeals(); fetchCustomers(); fetchMembers(); }, [filterProjectId, refreshKey]);
 
-  /* ─── Data fetching ─── */
+  /* --- Data fetching --- */
   const fetchDeals = async () => {
     try {
       setLoading(true);
@@ -186,38 +190,89 @@ export default function DealsPipelinePanel({
         }));
         setDeals(mapped);
       }
-    } catch (error) {
-      console.error('Failed to fetch deals:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error('Failed to fetch deals:', error); }
+    finally { setLoading(false); }
   };
 
   const fetchCustomers = async () => {
     try {
       const res = await fetch('/api/customers');
-      if (res.ok) {
-        const json = await res.json();
-        setCustomers(json.customers ?? []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch customers:', error);
-    }
+      if (res.ok) { const json = await res.json(); setCustomers(json.customers ?? []); }
+    } catch (error) { console.error('Failed to fetch customers:', error); }
   };
 
   const fetchMembers = async () => {
     try {
       const res = await fetch('/api/users');
-      if (res.ok) {
-        const json = await res.json();
-        setAllMembers(json.users ?? []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch members:', error);
-    }
+      if (res.ok) { const json = await res.json(); setAllMembers(json.users ?? []); }
+    } catch (error) { console.error('Failed to fetch members:', error); }
   };
 
-  /* ─── CRUD ─── */
+  /* --- Collaborators & Comments --- */
+  const fetchCollaborators = async (dealId: string) => {
+    try {
+      setCollabLoading(true);
+      const res = await fetch(`/api/deals/${dealId}/collaborators`);
+      if (res.ok) { const json = await res.json(); setCollaborators(json.collaborators ?? []); }
+    } catch (e) { console.error(e); }
+    finally { setCollabLoading(false); }
+  };
+
+  const fetchComments = async (dealId: string) => {
+    try {
+      setCommentLoading(true);
+      const res = await fetch(`/api/deals/${dealId}/comments`);
+      if (res.ok) { const json = await res.json(); setComments(json.comments ?? []); }
+    } catch (e) { console.error(e); }
+    finally { setCommentLoading(false); }
+  };
+
+  const addCollaborator = async () => {
+    if (!detailDeal || !inviteUserId) return;
+    try {
+      const res = await fetch(`/api/deals/${detailDeal.id}/collaborators`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: inviteUserId }),
+      });
+      if (res.ok) { await fetchCollaborators(detailDeal.id); setInviteUserId(''); }
+      else if (res.status === 409) { alert(L('alreadyCollab')); }
+    } catch (e) { console.error(e); }
+  };
+
+  const removeCollaborator = async (userId: string) => {
+    if (!detailDeal || !confirm(L('removeCollab'))) return;
+    try {
+      const res = await fetch(`/api/deals/${detailDeal.id}/collaborators?user_id=${userId}`, { method: 'DELETE' });
+      if (res.ok) await fetchCollaborators(detailDeal.id);
+    } catch (e) { console.error(e); }
+  };
+
+  const addComment = async () => {
+    if (!detailDeal || !newComment.trim()) return;
+    try {
+      const res = await fetch(`/api/deals/${detailDeal.id}/comments`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newComment.trim() }),
+      });
+      if (res.ok) { setNewComment(''); await fetchComments(detailDeal.id); setTimeout(() => commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100); }
+    } catch (e) { console.error(e); }
+  };
+
+  const deleteComment = async (commentId: string) => {
+    if (!detailDeal || !confirm(L('deleteComment'))) return;
+    try {
+      const res = await fetch(`/api/deals/${detailDeal.id}/comments?comment_id=${commentId}`, { method: 'DELETE' });
+      if (res.ok) await fetchComments(detailDeal.id);
+    } catch (e) { console.error(e); }
+  };
+
+  const openDetail = (deal: Deal) => {
+    setDetailDeal(deal);
+    fetchCollaborators(deal.id);
+    fetchComments(deal.id);
+  };
+
+  /* --- CRUD --- */
   const handleSaveDeal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (saving) return;
@@ -226,29 +281,20 @@ export default function DealsPipelinePanel({
       const method = selectedDeal ? 'PATCH' : 'POST';
       const url = selectedDeal ? `/api/deals/${selectedDeal.id}` : '/api/deals';
       const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          expected_close_date: formData.expected_close_date || null,
-          owner_id: formData.owner_id || null,
-        }),
+        method, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, expected_close_date: formData.expected_close_date || null, owner_id: formData.owner_id || null }),
       });
-      if (res.ok) {
-        await fetchDeals();
-        setShowForm(false);
-        resetForm();
-      } else {
+      if (res.ok) { await fetchDeals(); setShowForm(false); resetForm(); }
+      else {
         const errJson = await res.json().catch(() => null);
         const msg = errJson?.error || 'Error ' + res.status;
-        alert(lang === 'th' ? 'บันทึกไม่สำเร็จ: ' + msg : lang === 'jp' ? '保存に失敗しました: ' + msg : 'Save failed: ' + msg);
+        if (res.status === 403) alert(L('forbidden'));
+        else alert(lang === 'th' ? 'บันทึกไม่สำเร็จ: ' + msg : lang === 'jp' ? '保存に失敗しました: ' + msg : 'Save failed: ' + msg);
       }
     } catch (error) {
       console.error('Failed to save deal:', error);
       alert(lang === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : lang === 'jp' ? '保存中にエラーが発生しました' : 'An error occurred while saving');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   const handleDeleteDeal = async (id: string) => {
@@ -256,22 +302,18 @@ export default function DealsPipelinePanel({
     try {
       const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' });
       if (res.ok) await fetchDeals();
-    } catch (error) {
-      console.error('Failed to delete deal:', error);
-    }
+      else if (res.status === 403) alert(L('forbidden'));
+    } catch (error) { console.error('Failed to delete deal:', error); }
   };
 
   const handleChangeStage = async (dealId: string, newStage: string) => {
     try {
       const res = await fetch(`/api/deals/${dealId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: newStage }),
       });
       if (res.ok) await fetchDeals();
-    } catch (error) {
-      console.error('Failed to update deal stage:', error);
-    }
+    } catch (error) { console.error('Failed to update deal stage:', error); }
   };
 
   const resetForm = () => {
@@ -285,19 +327,14 @@ export default function DealsPipelinePanel({
   const handleEditDeal = (deal: Deal) => {
     setSelectedDeal(deal);
     setFormData({
-      title: deal.title,
-      customer_id: deal.customer_id,
-      owner_id: deal.owner_id || '',
-      value: deal.value,
-      stage: deal.stage,
-      expected_close_date: deal.expected_close_date || '',
-      probability: deal.probability || 50,
-      notes: deal.notes || '',
+      title: deal.title, customer_id: deal.customer_id, owner_id: deal.owner_id || '',
+      value: deal.value, stage: deal.stage, expected_close_date: deal.expected_close_date || '',
+      probability: deal.probability || 50, notes: deal.notes || '',
     });
     setShowForm(true);
   };
 
-  /* ─── Filtering ─── */
+  /* --- Filtering --- */
   const filteredDeals = deals.filter((d) => {
     if (searchName && !d.title.toLowerCase().includes(searchName.toLowerCase())) return false;
     if (searchCustomer && !d.customer_name.toLowerCase().includes(searchCustomer.toLowerCase())) return false;
@@ -311,8 +348,10 @@ export default function DealsPipelinePanel({
   }, {} as Record<string, Deal[]>);
 
   const isMyDeal = (deal: Deal) => currentUserId ? deal.owner_id === currentUserId : false;
+  const isAdminManager = userRole === 'admin' || userRole === 'manager';
+  const canEditDeal = (deal: Deal) => isAdminManager || isMyDeal(deal);
 
-  /* ─── Render ─── */
+  /* --- Render --- */
   return (
     <div className="space-y-4">
       {/* Header row */}
@@ -321,10 +360,8 @@ export default function DealsPipelinePanel({
         <div className="flex gap-2">
           <TranslateButton text={L('title')} />
           {canManage && (
-            <button
-              onClick={() => { resetForm(); setShowForm(true); }}
-              className="px-4 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-gray-900 rounded-lg text-sm font-semibold flex items-center gap-2"
-            >
+            <button onClick={() => { resetForm(); setShowForm(true); }}
+              className="px-4 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-gray-900 rounded-lg text-sm font-semibold flex items-center gap-2">
               {L('addDeal')}
             </button>
           )}
@@ -333,33 +370,13 @@ export default function DealsPipelinePanel({
 
       {/* Search / filter bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          placeholder={L('searchName')}
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500"
-        />
-        <input
-          type="text"
-          placeholder={L('searchCustomer')}
-          value={searchCustomer}
-          onChange={(e) => setSearchCustomer(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500"
-        />
-        <input
-          type="text"
-          placeholder={L('searchOwner')}
-          value={searchOwner}
-          onChange={(e) => setSearchOwner(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500"
-        />
-        <button
-          onClick={() => { /* filters are live */ }}
-          className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"
-        >
-          <Search size={16} />
-        </button>
+        <input type="text" placeholder={L('searchName')} value={searchName} onChange={(e) => setSearchName(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
+        <input type="text" placeholder={L('searchCustomer')} value={searchCustomer} onChange={(e) => setSearchCustomer(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
+        <input type="text" placeholder={L('searchOwner')} value={searchOwner} onChange={(e) => setSearchOwner(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
+        <button onClick={() => {}} className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"><Search size={16} /></button>
         <span className="text-sm text-gray-500 ml-1">{filteredDeals.length}/{deals.length}</span>
       </div>
 
@@ -369,31 +386,24 @@ export default function DealsPipelinePanel({
           const col = dealsByStage[stage];
           return (
             <div key={stage} className="flex-shrink-0" style={{ minWidth: 220, width: 220 }}>
-              {/* Column header */}
-              <div
-                className="rounded-t-lg px-3 py-2 font-bold flex items-center justify-between"
-                style={{ backgroundColor: stageColors[stage], color: getTextColorForBackground(stageColors[stage]) }}
-              >
+              <div className="rounded-t-lg px-3 py-2 font-bold flex items-center justify-between"
+                style={{ backgroundColor: stageColors[stage], color: getTextColorForBackground(stageColors[stage]) }}>
                 <span>{stageName(stage)} ({col.length})</span>
               </div>
-
-              {/* Cards */}
               <div className="bg-[#F1F5F9] border border-t-0 rounded-b-lg p-2 space-y-2 min-h-[420px]" style={{ borderColor: stageColors[stage] + '40' }}>
                 {col.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 text-sm">{L('noDeals')}</div>
                 ) : (
                   col.map((deal) => {
                     const mine = isMyDeal(deal);
+                    const editable = canEditDeal(deal);
                     return (
-                      <div
-                        key={deal.id}
+                      <div key={deal.id}
                         className={`rounded-lg p-3 border transition cursor-pointer ${
-                          mine
-                            ? 'bg-[#FFF7ED] border-[#F7941D] hover:shadow-md'
-                            : 'bg-white border-gray-200 hover:border-[#003087] hover:shadow-md'
+                          mine ? 'bg-[#FFF7ED] border-[#F7941D] hover:shadow-md'
+                          : 'bg-white border-gray-200 hover:border-[#003087] hover:shadow-md'
                         }`}
-                        onClick={() => mine && canManage ? handleEditDeal(deal) : undefined}
-                      >
+                        onClick={() => openDetail(deal)}>
                         {/* MY DEAL badge */}
                         {mine && (
                           <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F7941D] rounded px-1.5 py-0.5 mb-1.5">
@@ -406,41 +416,31 @@ export default function DealsPipelinePanel({
                         </h4>
                         <p className="text-xs text-gray-500 mt-0.5">{deal.customer_name}</p>
 
-                        {/* Value */}
                         <p className={`text-sm font-bold mt-2 ${
                           stage === 'po_received' || stage === 'payment_received' ? 'text-green-600'
-                            : stage === 'cancelled' || stage === 'refused' ? 'text-red-500'
-                            : 'text-gray-800'
-                        }`}>
-                          {fmt(deal.value)} THB
-                        </p>
+                            : stage === 'cancelled' || stage === 'refused' ? 'text-red-500' : 'text-gray-800'
+                        }`}>{fmt(deal.value)} THB</p>
 
-                        {/* Probability + Owner */}
                         <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
                           <span>{deal.probability ?? 0}%</span>
                           {deal.owner_name && (
-                            <span className="flex items-center gap-1">
-                              <User size={10} />
-                              {deal.owner_name}
-                            </span>
+                            <span className="flex items-center gap-1"><User size={10} />{deal.owner_name}</span>
                           )}
                         </div>
 
-                        {/* Click to edit hint for my deals */}
-                        {mine && canManage && (
-                          <p className="text-[10px] text-[#F7941D] mt-1 font-medium">{L('clickToEdit')}</p>
-                        )}
+                        {/* Click hint */}
+                        <p className="text-[10px] text-gray-400 mt-1 font-medium">{L('viewDetail')}</p>
 
-                        {/* Action buttons (admin/manager — hover) */}
-                        {canManage && !mine && (
+                        {/* Action buttons for editable deals */}
+                        {canManage && editable && (
                           <div className="flex gap-1 pt-2 mt-2 border-t border-gray-100 opacity-0 hover:opacity-100 transition">
                             <button onClick={(e) => { e.stopPropagation(); handleEditDeal(deal); }}
                               className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
-                              <Edit2 size={10} /> {lang === 'th' ? 'แก้ไข' : lang === 'jp' ? '編集' : 'Edit'}
+                              <Edit2 size={10} /> {L('edit')}
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }}
                               className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs flex items-center justify-center gap-1">
-                              <Trash2 size={10} /> {lang === 'th' ? 'ลบ' : lang === 'jp' ? '削除' : 'Del'}
+                              <Trash2 size={10} /> {L('del')}
                             </button>
                           </div>
                         )}
@@ -454,17 +454,158 @@ export default function DealsPipelinePanel({
         })}
       </div>
 
+      {/* Deal Detail Modal (View + Collaborators + Comments) */}
+      {detailDeal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl border border-gray-200 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center p-5 border-b border-gray-200 sticky top-0 bg-white rounded-t-xl z-10">
+              <h3 className="text-xl font-bold text-gray-900">{L('dealDetail')}</h3>
+              <button onClick={() => setDetailDeal(null)} className="text-gray-500 hover:text-gray-900"><X size={24} /></button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {/* Deal Info */}
+              <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold text-gray-900">{detailDeal.title}</h4>
+                  <InlineTranslateButton text={detailDeal.title} />
+                </div>
+                <p className="text-sm text-gray-600">{detailDeal.customer_name}</p>
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <span className="font-bold text-gray-800">{fmt(detailDeal.value)} THB</span>
+                  <span className="px-2 py-0.5 rounded text-xs font-bold text-white" style={{ backgroundColor: stageColors[detailDeal.stage] }}>
+                    {stageName(detailDeal.stage)}
+                  </span>
+                  <span className="text-gray-500">{detailDeal.probability ?? 0}%</span>
+                  {detailDeal.owner_name && <span className="text-gray-600 flex items-center gap-1"><User size={12} />{detailDeal.owner_name}</span>}
+                </div>
+                {detailDeal.notes && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-700">{detailDeal.notes}</p>
+                    <InlineTranslateButton text={detailDeal.notes} />
+                  </div>
+                )}
+                {/* Edit / Delete buttons for authorized users */}
+                {canManage && canEditDeal(detailDeal) && (
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => { handleEditDeal(detailDeal); setDetailDeal(null); }}
+                      className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                      <Edit2 size={12} /> {L('edit')}
+                    </button>
+                    <button onClick={() => { handleDeleteDeal(detailDeal.id); setDetailDeal(null); }}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                      <Trash2 size={12} /> {L('del')}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Collaborators Section */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <Users size={16} className="text-blue-600" /> {L('collaborators')} ({collaborators.length})
+                  </h5>
+                </div>
+
+                {collabLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500"><Loader2 size={14} className="animate-spin" /> {L('loading')}</div>
+                ) : (
+                  <>
+                    {/* Collaborator list */}
+                    <div className="space-y-2 mb-3">
+                      {collaborators.length === 0 ? (
+                        <p className="text-xs text-gray-500">{lang === 'th' ? 'ยังไม่มีผู้ร่วมงาน' : lang === 'jp' ? 'コラボレーターなし' : 'No collaborators yet'}</p>
+                      ) : collaborators.map((c) => (
+                        <div key={c.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-blue-100">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+                              <User size={14} className="text-blue-600" />
+                            </div>
+                            <span className="text-sm text-gray-800 font-medium">{c.user?.display_name || c.user?.email || c.user_id}</span>
+                          </div>
+                          {(isAdminManager || isMyDeal(detailDeal)) && (
+                            <button onClick={() => removeCollaborator(c.user_id)}
+                              className="text-red-400 hover:text-red-600"><UserMinus size={14} /></button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Invite form */}
+                    {(isAdminManager || isMyDeal(detailDeal)) && (
+                      <div className="flex gap-2">
+                        <select value={inviteUserId} onChange={(e) => setInviteUserId(e.target.value)}
+                          className="flex-1 bg-white border border-blue-200 rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:ring-2 focus:ring-blue-400">
+                          <option value="">{L('selectMember')}</option>
+                          {allMembers
+                            .filter(m => m.id !== detailDeal.owner_id && !collaborators.some(c => c.user_id === m.id))
+                            .map(m => <option key={m.id} value={m.id}>{m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`}</option>)}
+                        </select>
+                        <button onClick={addCollaborator} disabled={!inviteUserId}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50">
+                          <UserPlus size={12} /> {L('inviteFriend')}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Comments Section */}
+              <div className="bg-amber-50 rounded-lg p-4">
+                <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                  <MessageSquare size={16} className="text-amber-600" /> {L('comments')} ({comments.length})
+                </h5>
+
+                {commentLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500"><Loader2 size={14} className="animate-spin" /> {L('loading')}</div>
+                ) : (
+                  <div className="space-y-3 max-h-60 overflow-y-auto mb-3">
+                    {comments.length === 0 ? (
+                      <p className="text-xs text-gray-500">{L('noComments')}</p>
+                    ) : comments.map((c) => (
+                      <div key={c.id} className="bg-white rounded-lg px-3 py-2 border border-amber-100">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-gray-700">{c.user?.display_name || c.user?.email || '??'}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400">{new Date(c.created_at).toLocaleString()}</span>
+                            {(isAdminManager || c.user?.id === currentUserId) && (
+                              <button onClick={() => deleteComment(c.id)} className="text-red-400 hover:text-red-600"><Trash2 size={12} /></button>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{c.content}</p>
+                        <InlineTranslateButton text={c.content} />
+                      </div>
+                    ))}
+                    <div ref={commentsEndRef} />
+                  </div>
+                )}
+
+                {/* Add comment */}
+                <div className="flex gap-2">
+                  <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder={L('writeComment')}
+                    className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 text-sm text-gray-800 resize-none focus:ring-2 focus:ring-amber-400" rows={2} />
+                  <button onClick={addComment} disabled={!newComment.trim()}
+                    className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg self-end disabled:opacity-50">
+                    <Send size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900">
-                {selectedDeal ? L('editDeal') : L('newDeal')}
-              </h3>
-              <button onClick={() => { setShowForm(false); resetForm(); }} className="text-gray-500 hover:text-gray-900">
-                <X size={24} />
-              </button>
+              <h3 className="text-xl font-bold text-gray-900">{selectedDeal ? L('editDeal') : L('newDeal')}</h3>
+              <button onClick={() => { setShowForm(false); resetForm(); }} className="text-gray-500 hover:text-gray-900"><X size={24} /></button>
             </div>
 
             <form onSubmit={handleSaveDeal} className="space-y-4">

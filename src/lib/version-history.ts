@@ -13,6 +13,38 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "1.9.0",
+    date: "2026-05-04",
+    title: {
+      th: "ปรับปรุง Pipeline การขาย: สิทธิ์ + ชวนเพื่อน + Comment",
+      en: "Sales Pipeline: Permissions + Collaborators + Comments",
+      jp: "営業パイプライン: 権限 + コラボレーター + コメント",
+    },
+    highlights: {
+      th: [
+        "สิทธิ์แก้ไข/ลบดีล — พนักงานแก้ไขได้เฉพาะดีลของตัวเอง + ดีลที่ร่วมงาน",
+        "ระบบชวนเพื่อน (Collaborators) — เชิญเพื่อนร่วมงานดีลเดียวกัน 2+ คน",
+        "ระบบ Comment — ผู้จัดการ/แอดมินแนะนำและติดตามดีลผ่านความคิดเห็น",
+        "หน้ารายละเอียดดีล — ดูข้อมูลดีล ผู้ร่วมงาน ความคิดเห็น ในหน้าเดียว",
+        "ปุ่มแปลภาษาในความคิดเห็นและชื่อดีล",
+      ],
+      en: [
+        "Deal edit/delete permissions — members can only modify their own deals or collaborated deals",
+        "Collaborator system — invite teammates to work on deals together",
+        "Comment system — managers/admins advise and track deals through comments with history",
+        "Deal detail view — see deal info, collaborators, and comments in one view",
+        "Translate button on comments and deal titles",
+      ],
+      jp: [
+        "ディール編集/削除権限 — メンバーは自分のディールまたはコラボディールのみ編集可能",
+        "コラボレーターシステム — チームメイトをディールに招待して共同作業",
+        "コメントシステム — マネージャー/管理者がコメントでディールをアドバイス・追跡",
+        "ディール詳細ビュー — ディール情報、コラボレーター、コメントを一画面で確認",
+        "コメントとディール名に翻訳ボタン",
+      ],
+    },
+  },
+  {
     version: "1.8.1",
     date: "2026-05-04",
     title: {
