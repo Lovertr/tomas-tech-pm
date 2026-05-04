@@ -8,19 +8,8 @@ import {
 
 interface Props {
   lang: "th" | "en" | "jp";
-  currentUser: {
-    id: string;
-    username: string;
-    display_name: string;
-    display_name_th?: string;
-    display_name_jp?: string;
-    email: string;
-    phone?: string | null;
-    role: string;
-    department?: string | null;
-    avatar_url?: string | null;
-    language?: string;
-  } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  currentUser: Record<string, any> | null;
   onProfileUpdated?: () => void;
 }
 
