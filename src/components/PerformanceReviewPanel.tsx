@@ -8,7 +8,7 @@ interface Review {
   member_name?: string; reviewer_name?: string;
   created_at: string;
 }
-interface Member { id: string; display_name: string; }
+interface Member { id: string; display_name?: string; first_name_th?: string; last_name_th?: string; first_name_en?: string; last_name_en?: string; first_name_jp?: string; last_name_jp?: string; }
 
 const CRITERIA = ["quality", "productivity", "teamwork", "communication", "initiative"];
 
@@ -40,6 +40,14 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
     teamwork: lang === "th" ? "การทำงานเป็นทีม" : "Teamwork",
     communication: lang === "th" ? "การสื่อสาร" : "Communication",
     initiative: lang === "th" ? "ความคิดริเริ่ม" : "Initiative",
+  };
+
+  const getMemberName = (m: Member) => {
+    if (lang === "jp" && m.first_name_jp) return (m.first_name_jp + " " + (m.last_name_jp || "")).trim();
+    if (lang === "th" && m.first_name_th) return (m.first_name_th + " " + (m.last_name_th || "")).trim();
+    if (m.first_name_en) return (m.first_name_en + " " + (m.last_name_en || "")).trim();
+    if (m.first_name_th) return (m.first_name_th + " " + (m.last_name_th || "")).trim();
+    return m.display_name || m.id;
   };
 
   const load = () => {
@@ -83,7 +91,7 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <select value={form.member_id} onChange={e => setForm({ ...form, member_id: e.target.value })} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
               <option value="">{t.member}</option>
-              {members.map(m => <option key={m.id} value={m.id}>{m.display_name}</option>)}
+              {members.map(m => <option key={m.id} value={m.id}>{getMemberName(m)}</option>)}
             </select>
             <input value={form.period} onChange={e => setForm({ ...form, period: e.target.value })} placeholder={t.period} className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
           </div>
