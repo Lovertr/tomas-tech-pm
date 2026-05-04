@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
         .order("is_pinned", { ascending: false })
         .order("view_count", { ascending: false })
         .limit(20);
-      knowledgeArticles = (kbData as KnowledgeArticle[]) || [];
+      knowledgeArticles = ((kbData as unknown) as KnowledgeArticle[]) || [];
     } catch {
       // Knowledge base fetch failed - continue without it
     }
@@ -389,5 +389,4 @@ function buildSystemPrompt(
     basePrompt += "\n\nProvide actionable, practical advice tailored to the sales context.";
   }
 
-  return basePrompt;
-}
+  return b
