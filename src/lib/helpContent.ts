@@ -230,6 +230,16 @@ export const HELP_SECTIONS: HelpSection[] = [
         },
         tags: ["quotation", "ใบเสนอราคา", "見積書", "PDF"],
       },
+      {
+        id: "sales_report_filter",
+        title: { th: "กรองรายงานขายตามพนักงาน", en: "Sales Report Filtering", jp: "担当者別レポートフィルター" },
+        content: {
+          th: `Admin/Manager และหัวหน้าฝ่ายขาย:\n\n• ดูรายงานภาพรวมทั้งทีมได้ (ค่าเริ่มต้น)\n• เลือกพนักงานขายรายคนผ่าน dropdown เพื่อดูเฉพาะข้อมูลของคนนั้น\n• ข้อมูลที่กรอง: ดีล, กิจกรรม, ลูกค้ายอดนิยม, กราฟทั้งหมด\n\nพนักงาน (Member):\n\n• ดูรายงานภาพรวมทั้งทีมได้ (ค่าเริ่มต้น)\n• กดปุ่ม "ของฉัน" เพื่อดูเฉพาะข้อมูลของตัวเอง\n• สลับกลับมาดู "ทั้งทีม" ได้ตลอดเวลา`,
+          en: `Admin/Manager and Sales Leaders:\n\n• View full team report by default\n• Select individual salesperson via dropdown to see their data only\n• Filtered data includes: deals, activities, top customers, all charts\n\nMembers:\n\n• View team overview by default\n• Click "My Data" to see only your own data\n• Switch back to "All Team" anytime`,
+          jp: `管理者/マネージャーと営業リーダー：\n\n• デフォルトでチーム全体のレポートを表示\n• ドロップダウンで個別の担当者を選択してそのデータのみ表示\n• フィルター対象：案件、活動、トップ顧客、全チャート\n\nメンバー：\n\n• デフォルトでチーム概要を表示\n• 「自分のデータ」をクリックして自分のデータのみ表示\n• いつでも「チーム全体」に切り替え可能`,
+        },
+        tags: ["filter", "กรอง", "フィルター", "salesperson", "พนักงานขาย"],
+      },
     ],
   },
 

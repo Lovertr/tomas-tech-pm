@@ -13,6 +13,32 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.4.0",
+    date: "2026-05-04",
+    title: {
+      th: "กรองรายงานการขายตามพนักงาน — Admin/Manager + Member View",
+      en: "Sales Report Filtering by Salesperson — Admin/Manager + Member View",
+      jp: "担当者別営業レポートフィルター — 管理者/マネージャー + メンバービュー",
+    },
+    highlights: {
+      th: [
+        "Admin/Manager: เลือกดูรายงานแยกตามพนักงานขายแต่ละคนผ่าน dropdown",
+        "Member: สลับมุมมองระหว่าง \"ทั้งทีม\" กับ \"ของฉัน\" ได้",
+        "API รองรับ owner_id parameter กรองข้อมูลดีล กิจกรรม และลูกค้ายอดนิยม",
+      ],
+      en: [
+        "Admin/Manager: Filter sales report by individual salesperson via dropdown",
+        "Member: Toggle between \"All Team\" and \"My Data\" views",
+        "API supports owner_id parameter to filter deals, activities, and top customers",
+      ],
+      jp: [
+        "管理者/マネージャー: ドロップダウンで担当者別に営業レポートをフィルター",
+        "メンバー: \"チーム全体\" と \"自分のデータ\" を切り替え可能",
+        "APIがowner_idパラメータに対応 — 案件・活動・トップ顧客をフィルター",
+      ],
+    },
+  },
+  {
     version: "2.3.0",
     date: "2026-05-04",
     title: {

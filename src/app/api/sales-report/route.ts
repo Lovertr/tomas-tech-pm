@@ -6,9 +6,13 @@ export async function GET(req: NextRequest) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const ownerId = req.nextUrl.searchParams.get("owner_id"); // optional filter
+
   // Deals with owner info
-  const { data: deals } = await supabaseAdmin.from("deals")
+  let dealsQuery = supabaseAdmin.from("deals")
     .select("id, title, stage, value, probability, created_at, actual_close_date, expected_close_date, customer_id, owner_id, customers(id, company_name, industry), owner:app_users!deals_owner_id_fkey(id, display_name)");
+  if (ownerId) dealsQuery = dealsQuery.eq("owner_id", ownerId);
+  const { data: deals } = await dealsQuery;
   const stageCount: Record<string, number> = {};
   const stageValue: Record<string, number> = {};
   let totalPipeline = 0, wonValue = 0, lostCount = 0, wonCount = 0;
@@ -33,14 +37,18 @@ export async function GET(req: NextRequest) {
   const monthlyData = Object.entries(monthly).sort().map(([month, value]) => ({ month, value }));
 
   // All activities with types for analysis
-  const { data: activities } = await supabaseAdmin.from("deal_activities")
+  let actQuery = supabaseAdmin.from("deal_activities")
     .select("*, performer:app_users!performed_by(id, display_name, email), deals(id, title)")
     .order("activity_date", { ascending: false }).limit(100);
+  if (ownerId) actQuery = actQuery.eq("performed_by", ownerId);
+  const { data: activities } = await actQuery;
 
   // Top customers by deal value
-  const { data: topCustomers } = await supabaseAdmin.from("deals")
+  let custQuery = supabaseAdmin.from("deals")
     .select("customer_id, value, customers(id, company_name)")
     .in("stage", ["po_received", "payment_received"]);
+  if (ownerId) custQuery = custQuery.eq("owner_id", ownerId);
+  const { data: topCustomers } = await custQuery;
   const custMap: Record<string, { name: string; total: number; count: number }> = {};
   (topCustomers ?? []).forEach(d => {
     const cid = d.customer_id;
@@ -266,7 +274,13 @@ export async function GET(req: NextRequest) {
     if (forecastTimelineOld[m]) forecastTimelineOld[m].po += Number(d.value || 0);
   });
 
+  // Salespeople list (always return all — for admin/manager dropdown)
+  const { data: salespeople } = await supabaseAdmin.from("app_users")
+    .select("id, display_name")
+    .order("display_name");
+
   return NextResponse.json({
+    salespeople: (salespeople ?? []).map(u => ({ id: u.id, name: u.display_name })),
     summary: { totalDeals, totalPipeline, wonValue, wonCount, lostCount, conversionRate },
     stageCount, stageValue, monthlyData, topCustomers: topCust,
     recentActivities: (activities ?? []).slice(0, 10),

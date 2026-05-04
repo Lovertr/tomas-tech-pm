@@ -634,7 +634,9 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Recurring Tasks" />
       <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={projPerms.canManageInProject(taskFilter, true)} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={projPerms.canManageInProject(taskFilter, true)} refreshKey={boardRefreshKey} lang={lang}
+            userRole={currentUser?.role || "member"}
+            currentUserId={currentUser?.id || ""} />
     </div>
   );
 
@@ -654,7 +656,9 @@ export default function App() {
   const ClientPortalPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title={lang === "jp" ? "クライアントポータル — 顧客リンク" : lang === "en" ? "Client Portal — Customer Links" : "Client Portal — ลิงก์สำหรับลูกค้า"} />
-      <ClientPortalPanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} lang={lang} />
+      <ClientPortalPanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} lang={lang}
+            userRole={currentUser?.role || "member"}
+            currentUserId={currentUser?.id || ""} />
     </div>
   );
 
@@ -663,14 +667,18 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title={t.projectBudget} />
       <ProjectBudgetPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={projPerms.canApproveInProject(taskFilter)} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={projPerms.canApproveInProject(taskFilter)} refreshKey={boardRefreshKey} lang={lang}
+            userRole={currentUser?.role || "member"}
+            currentUserId={currentUser?.id || ""} />
     </div>
   );
   const TransactionsPage = () => (
     <div className="space-y-6">
       <ProjectFilterHeader title={t.transactions} />
       <TransactionsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={canCreate("transactions")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={canCreate("transactions")} refreshKey={boardRefreshKey} lang={lang}
+            userRole={currentUser?.role || "member"}
+            currentUserId={currentUser?.id || ""} />
     </div>
   );
   const QuotationsPage = () => (
@@ -683,7 +691,9 @@ export default function App() {
   const NewInvoicesPage = () => (
     <div className="space-y-6">
       <NewInvoicesPanel projects={data.projects} members={data.members}
-        canManage={canCreate("new_invoices")} refreshKey={boardRefreshKey} lang={lang} />
+        canManage={canCreate("new_invoices")} refreshKey={boardRefreshKey} lang={lang}
+            userRole={currentUser?.role || "member"}
+            currentUserId={currentUser?.id || ""} />
     </div>
   );
 
@@ -713,7 +723,9 @@ export default function App() {
   const SalesReportPage = () => (
     <div className="space-y-6">
       <SalesReportPanel
-        refreshKey={boardRefreshKey} lang={lang} />
+        refreshKey={boardRefreshKey} lang={lang}
+            userRole={currentUser?.role || "member"}
+            currentUserId={currentUser?.id || ""} />
     </div>
   );
 

@@ -5,6 +5,7 @@ import {
   Building2, CheckCircle2, XCircle, Activity, Download, Lightbulb,
   Clock, Target, DollarSign, FileText, Briefcase, Shield, Star,
   ArrowUpRight, ArrowDownRight, Megaphone, Award, PieChart as PieIcon,
+  Filter, UserCheck,
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis,
@@ -77,6 +78,7 @@ const i18n: Record<string, Record<string, string>> = {
     trend: "แนวโน้ม (คาดการณ์)",
     forecastTimelineTitle: "พยากรณ์รายได้ — Timeline",
     past: "อดีต (จริง)", future: "อนาคต (คาดการณ์)",
+    allTeam: "ทั้งทีม", myData: "ของฉัน", filterBySalesperson: "กรองตามพนักงาน", allSalespeople: "พนักงานทั้งหมด",
   },
   en: {
     sales: "Sales", revenue: "Revenue", insights: "AI Insights",
@@ -132,6 +134,7 @@ const i18n: Record<string, Record<string, string>> = {
     trend: "Trend (Projected)",
     forecastTimelineTitle: "Revenue Forecast — Timeline",
     past: "Past (Actual)", future: "Future (Forecast)",
+    allTeam: "All Team", myData: "My Data", filterBySalesperson: "Filter by Salesperson", allSalespeople: "All Salespeople",
   },
   jp: {
     sales: "営業", revenue: "売上", insights: "AI分析",
@@ -187,6 +190,7 @@ const i18n: Record<string, Record<string, string>> = {
     trend: "トレンド（予測）",
     forecastTimelineTitle: "売上予測 — タイムライン",
     past: "過去（実績）", future: "将来（予測）",
+    allTeam: "チーム全体", myData: "自分のデータ", filterBySalesperson: "担当者で絞り込み", allSalespeople: "全担当者",
   },
 };
 
@@ -212,6 +216,7 @@ const STAGE_LABELS_I18N: Record<string, Record<string, string>> = {
 const PIE_COLORS = ["#003087", "#00AEEF", "#F7941D", "#22C55E", "#8B5CF6", "#EF4444", "#EC4899", "#6366F1"];
 
 interface SalesData {
+  salespeople: { id: string; name: string }[];
   summary: { totalDeals: number; totalPipeline: number; wonValue: number; wonCount: number; lostCount: number; conversionRate: string };
   stageCount: Record<string, number>;
   stageValue: Record<string, number>;
@@ -242,8 +247,8 @@ interface SalesData {
   };
 }
 
-export default function SalesReportPanel({ lang = "th", filterProjectId = "all", refreshKey = 0 }:
-  { lang?: "th" | "en" | "jp"; filterProjectId?: string; refreshKey?: number }) {
+export default function SalesReportPanel({ lang = "th", filterProjectId = "all", refreshKey = 0, userRole = "member", currentUserId = "" }:
+  { lang?: "th" | "en" | "jp"; filterProjectId?: string; refreshKey?: number; userRole?: string; currentUserId?: string }) {
   const t = i18n[lang] || i18n.th;
   const monthNames = lang === "jp" ? months_jp : lang === "en" ? months_en : months_th;
   const getStageName = (stage: string) => STAGE_LABELS_I18N[stage]?.[lang] || STAGE_LABELS_I18N[stage]?.en || stage;
@@ -252,16 +257,23 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
   const [data, setData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isAdminManager = userRole === "admin" || userRole === "manager";
+  const [selectedOwner, setSelectedOwner] = useState<string>("");
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/sales-report");
+      const params = new URLSearchParams();
+      const effectiveOwner = selectedOwner === "me" ? currentUserId : selectedOwner;
+      if (effectiveOwner) params.set("owner_id", effectiveOwner);
+      const url = `/api/sales-report${params.toString() ? `?${params}` : ""}`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("fetch failed");
       const json = await res.json();
       setData(json);
     } catch { setData(null); }
     finally { setLoading(false); }
-  }, []);
+  }, [selectedOwner, currentUserId]);
 
   useEffect(() => { fetchData(); }, [fetchData, refreshKey]);
 
@@ -414,7 +426,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
 
   return (
     <div className="space-y-6">
-      {/* Tab bar + Download */}
+      {/* Tab bar + Filter + Download */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex rounded-xl overflow-hidden border border-[#E2E8F0]">
           {(["summary", "revenue", "analysis"] as const).map(tb => (
@@ -428,9 +440,42 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
             </button>
           ))}
         </div>
-        <button onClick={downloadCSV} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-[#E2E8F0] text-gray-600 hover:bg-gray-50">
-          <Download size={14} /> {t.downloadCsv}
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Salesperson filter */}
+          {isAdminManager ? (
+            <div className="flex items-center gap-1.5">
+              <Filter size={14} className="text-gray-400" />
+              <select
+                value={selectedOwner}
+                onChange={e => setSelectedOwner(e.target.value)}
+                className="text-xs border border-[#E2E8F0] rounded-lg px-2.5 py-2 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#003087] min-w-[160px]"
+              >
+                <option value="">{t.allSalespeople}</option>
+                {(data?.salespeople ?? []).map(sp => (
+                  <option key={sp.id} value={sp.id}>{sp.name}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex rounded-lg overflow-hidden border border-[#E2E8F0]">
+              <button
+                onClick={() => setSelectedOwner("")}
+                className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${selectedOwner === "" ? "bg-[#003087] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+              >
+                <Users size={12} /> {t.allTeam}
+              </button>
+              <button
+                onClick={() => setSelectedOwner("me")}
+                className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${selectedOwner === "me" ? "bg-[#003087] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+              >
+                <UserCheck size={12} /> {t.myData}
+              </button>
+            </div>
+          )}
+          <button onClick={downloadCSV} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-[#E2E8F0] text-gray-600 hover:bg-gray-50">
+            <Download size={14} /> {t.downloadCsv}
+          </button>
+        </div>
       </div>
 
       {/* TAB: SUMMARY */}
