@@ -35,7 +35,14 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
   const customerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/customers").then(r => r.json()).then(d => setCustomers(d.data || d || [])).catch(() => {});
+    fetch("/api/customers").then(r => {
+      if (!r.ok) return;
+      return r.json();
+    }).then(d => {
+      if (!d) return;
+      const list = d.data || d;
+      setCustomers(Array.isArray(list) ? list : []);
+    }).catch(() => {});
   }, []);
 
   // Close dropdown on outside click
@@ -49,7 +56,8 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const filteredCustomers = customers.filter(c =>
+  const safeCustomers = Array.isArray(customers) ? customers : [];
+  const filteredCustomers = safeCustomers.filter(c =>
     c.company_name.toLowerCase().includes(customerSearch.toLowerCase())
   );
 
