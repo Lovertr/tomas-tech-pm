@@ -76,6 +76,7 @@ import ProjectDependencyPanel from "@/components/ProjectDependencyPanel";
 import PerformanceReviewPanel from "@/components/PerformanceReviewPanel";
 import EmailActivityPanel from "@/components/EmailActivityPanel";
 import ExpenseApprovalPanel from "@/components/ExpenseApprovalPanel";
+import MyProfilePanel from "@/components/MyProfilePanel";
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -992,7 +993,8 @@ export default function App() {
   const ProjectDepsPage = () => <ProjectDependencyPanel lang={lang} />;
   const PerfReviewPage = () => <PerformanceReviewPanel lang={lang} canManage={canCreate("team")} />;
   const ExpenseApprovalPage = () => <ExpenseApprovalPanel lang={lang} canApprove={["admin","manager"].includes(currentUser?.role ?? "member")} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage };
+  const MyProfilePage = () => <MyProfilePanel lang={lang} currentUser={currentUser} onProfileUpdated={() => window.location.reload()} />;
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)
@@ -1049,6 +1051,9 @@ export default function App() {
                   <div className="text-xs text-gray-500">{t[currentUser?.role as keyof typeof t] ?? currentUser?.role}</div>
                 </div>
               </div>
+              <button onClick={() => { setMobileMenuOpen(false); setPage("my_profile"); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-slate-100 rounded-lg transition">
+                <Users size={16} /> {t.myProfile}
+              </button>
               {isAdmin && (
                 <button onClick={() => { setMobileMenuOpen(false); router.push("/admin/users"); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-slate-100 rounded-lg transition">
                   <UserCog size={16} /> {t.userManagement}
@@ -1151,6 +1156,9 @@ export default function App() {
                         {t[currentUser?.role as keyof typeof t] ?? currentUser?.role}
                       </div>
                     </div>
+                    <button onClick={() => { setUserMenuOpen(false); setPage("my_profile"); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-slate-50 transition">
+                      <Users size={16} /> {t.myProfile}
+                    </button>
                     {isAdmin && (
                       <button onClick={() => { setUserMenuOpen(false); router.push("/admin/users"); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-slate-50 transition">
                         <UserCog size={16} /> {t.userManagement}

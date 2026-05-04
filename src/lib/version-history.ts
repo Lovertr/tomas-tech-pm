@@ -13,6 +13,38 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "1.8.0",
+    date: "2026-05-04",
+    title: {
+      th: "โปรไฟล์ส่วนตัว + KPI รายบุคคล",
+      en: "Personal Profile + Individual KPIs",
+      jp: "個人プロフィール + 個人KPI",
+    },
+    highlights: {
+      th: [
+        "หน้าโปรไฟล์ส่วนตัว — แก้ไขข้อมูลชื่อ อีเมล เบอร์โทร ได้เอง",
+        "เปลี่ยนรหัสผ่านด้วยตัวเอง (ยืนยันรหัสเดิม + ตั้งรหัสใหม่)",
+        "สรุปภาระงาน: งานที่กำลังทำ งานที่เสร็จแล้ว ชั่วโมงเดือนนี้ โปรเจคที่ร่วม",
+        "KPI อัตโนมัติจาก DB: งานเสร็จ อัตราสำเร็จ ชั่วโมงทำงาน ดีลปิด รายได้",
+        "KPI กำหนดเอง: ผู้จัดการกำหนด KPI + น้ำหนัก สมาชิกอัปเดตค่าจริง ผู้จัดการให้คะแนน",
+      ],
+      en: [
+        "Personal profile page — edit name, email, phone yourself",
+        "Self-service password change (verify old + set new password)",
+        "Work summary: tasks in progress, completed, hours this month, active projects",
+        "Auto KPIs from DB: tasks completed, completion rate, hours logged, deals closed, revenue",
+        "Manual KPIs: managers assign KPIs + weights, members update actuals, managers score",
+      ],
+      jp: [
+        "個人プロフィールページ — 氏名・メール・電話番号を自分で編集",
+        "セルフサービスパスワード変更（旧パスワード確認 + 新パスワード設定）",
+        "作業サマリー：進行中タスク、完了タスク、今月の時間、参加プロジェクト",
+        "自動KPI：タスク完了数、完了率、作業時間、成約数、売上",
+        "手動KPI：マネージャーがKPI + 重みを設定、メンバーが実績更新、マネージャーが評価",
+      ],
+    },
+  },
+  {
     version: "1.7.0",
     date: "2026-05-03",
     title: {

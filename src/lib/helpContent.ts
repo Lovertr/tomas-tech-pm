@@ -366,6 +366,46 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
     ],
   },
+  // ═══════════════════════════════════════════════════════
+  // PERSONAL PROFILE & KPIs / โปรไฟล์ส่วนตัว & KPI
+  // ═══════════════════════════════════════════════════════
+  {
+    id: "my_profile",
+    title: { th: "โปรไฟล์ส่วนตัว & KPI", en: "Personal Profile & KPIs", jp: "個人プロフィール & KPI" },
+    icon: "UserCircle",
+    articles: [
+      {
+        id: "profile_overview",
+        title: { th: "ภาพรวมหน้าโปรไฟล์", en: "Profile Page Overview", jp: "プロフィールページ概要" },
+        content: {
+          th: `เข้าหน้าโปรไฟล์ได้โดยคลิกชื่อของคุณที่มุมขวาบน แล้วเลือก "โปรไฟล์ของฉัน"\n\nหน้าโปรไฟล์แสดง:\n- ข้อมูลส่วนตัว: ชื่อ (3 ภาษา), อีเมล, เบอร์โทร\n- สรุปภาระงาน: งานที่กำลังทำ, งานที่เสร็จ, ชั่วโมงเดือนนี้, โปรเจคที่ร่วม\n- เปลี่ยนรหัสผ่าน\n- KPI ส่วนบุคคล`,
+          en: `Access your profile by clicking your name in the top-right corner and selecting "My Profile".\n\nThe profile page shows:\n- Personal info: Name (3 languages), email, phone\n- Work summary: Tasks in progress, completed, hours this month, active projects\n- Password change\n- Personal KPIs`,
+          jp: `右上の名前をクリックし「マイプロフィール」を選択してプロフィールにアクセス。\n\nプロフィールページの表示内容：\n- 個人情報：氏名（3言語）、メール、電話番号\n- 作業サマリー：進行中タスク、完了、今月の時間、参加プロジェクト\n- パスワード変更\n- 個人KPI`,
+        },
+        tags: ["profile", "โปรไฟล์", "プロフィール", "personal", "ส่วนตัว"],
+      },
+      {
+        id: "change_password",
+        title: { th: "เปลี่ยนรหัสผ่าน", en: "Change Password", jp: "パスワード変更" },
+        content: {
+          th: `เปลี่ยนรหัสผ่านในหน้าโปรไฟล์:\n\n1. คลิก "เปลี่ยนรหัสผ่าน" เพื่อเปิดฟอร์ม\n2. กรอกรหัสผ่านเดิม\n3. กรอกรหัสผ่านใหม่ (ขั้นต่ำ 6 ตัวอักษร)\n4. ยืนยันรหัสผ่านใหม่\n5. กดบันทึก\n\nหากลืมรหัสผ่าน ให้ติดต่อผู้ดูแลระบบเพื่อรีเซ็ต`,
+          en: `Change your password on the profile page:\n\n1. Click "Change Password" to expand the form\n2. Enter your current password\n3. Enter a new password (min 6 characters)\n4. Confirm the new password\n5. Click Save\n\nIf you forget your password, contact an admin to reset it.`,
+          jp: `プロフィールページでパスワードを変更：\n\n1.「パスワード変更」をクリックしてフォームを展開\n2. 現在のパスワードを入力\n3. 新しいパスワードを入力（最低6文字）\n4. 新しいパスワードを確認\n5. 保存をクリック\n\nパスワードを忘れた場合は管理者にリセットを依頼してください。`,
+        },
+        tags: ["password", "รหัสผ่าน", "パスワード", "change", "เปลี่ยน"],
+      },
+      {
+        id: "personal_kpi",
+        title: { th: "KPI ส่วนบุคคล", en: "Personal KPIs", jp: "個人KPI" },
+        content: {
+          th: `ระบบ KPI มี 2 ประเภท:\n\n**KPI อัตโนมัติ** — คำนวณจากข้อมูลในระบบ:\n- งานที่เสร็จ, อัตราสำเร็จ, ชั่วโมงทำงาน, ดีลที่ปิด, รายได้จากดีล\n\n**KPI กำหนดเอง** — ผู้จัดการ/แอดมินกำหนด:\n- ตั้ง KPI + น้ำหนัก (%) ให้แต่ละคน\n- สมาชิกอัปเดตค่าจริงได้เอง\n- ผู้จัดการให้คะแนน (1-5)\n- ลบ/แก้ไข KPI ได้\n\nเลือกรอบเวลาได้ (เดือน) เพื่อดู KPI ของแต่ละช่วง`,
+          en: `The KPI system has 2 types:\n\n**Auto KPIs** — Calculated from system data:\n- Tasks completed, completion rate, hours logged, deals closed, deal revenue\n\n**Manual KPIs** — Set by managers/admins:\n- Assign KPIs + weights (%) per person\n- Members update actual values themselves\n- Managers score (1-5)\n- Delete/edit KPIs\n\nSelect a period (month) to view KPIs for each timeframe.`,
+          jp: `KPIシステムには2種類あります：\n\n**自動KPI** — システムデータから計算：\n- 完了タスク数、完了率、作業時間、成約数、売上\n\n**手動KPI** — マネージャー/管理者が設定：\n- KPI + 重み（%）を各人に割り当て\n- メンバーが実績値を自分で更新\n- マネージャーが評価（1-5）\n- KPIの削除/編集\n\n期間（月）を選択して各期間のKPIを表示。`,
+        },
+        tags: ["kpi", "performance", "ผลงาน", "คะแนน", "評価", "パフォーマンス"],
+      },
+    ],
+  },
 ];
 
 // ── Flatten all articles for search ──
