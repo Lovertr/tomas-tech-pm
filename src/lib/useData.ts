@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 // ===== Types (matching DB schema) =====
 
@@ -112,11 +112,11 @@ export function useData() {
     setError(null);
     try {
       const [pRes, tRes, mRes, posRes, tlRes] = await Promise.all([
-        fetch('/api/projects'),
-        fetch('/api/tasks'),
-        fetch('/api/members'),
-        fetch('/api/positions'),
-        fetch('/api/timelogs'),
+        fetch("/api/projects"),
+        fetch("/api/tasks"),
+        fetch("/api/members"),
+        fetch("/api/positions"),
+        fetch("/api/timelogs"),
       ]);
 
       if (pRes.ok) setProjects((await pRes.json()).projects ?? []);
@@ -125,7 +125,7 @@ export function useData() {
       if (posRes.ok) setPositions((await posRes.json()).positions ?? []);
       if (tlRes.ok) setTimelogs((await tlRes.json()).timelogs ?? []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load data');
+      setError(e instanceof Error ? e.message : "Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -137,211 +137,225 @@ export function useData() {
 
   // ===== Granular refetch =====
   const refetchProjects = useCallback(async () => {
-    const r = await fetch('/api/projects');
+    const r = await fetch("/api/projects");
     if (r.ok) setProjects((await r.json()).projects ?? []);
   }, []);
   const refetchTasks = useCallback(async () => {
-    const r = await fetch('/api/tasks');
+    const r = await fetch("/api/tasks");
     if (r.ok) setTasks((await r.json()).tasks ?? []);
   }, []);
   const refetchMembers = useCallback(async () => {
-    const r = await fetch('/api/members');
+    const r = await fetch("/api/members");
     if (r.ok) setMembers((await r.json()).members ?? []);
   }, []);
   const refetchPositions = useCallback(async () => {
-    const r = await fetch('/api/positions');
+    const r = await fetch("/api/positions");
     if (r.ok) setPositions((await r.json()).positions ?? []);
   }, []);
   const refetchTimelogs = useCallback(async () => {
-    const r = await fetch('/api/timelogs');
+    const r = await fetch("/api/timelogs");
     if (r.ok) setTimelogs((await r.json()).timelogs ?? []);
   }, []);
 
   // ===== Mutation helpers (optimistic + refetch) =====
   const createProject = async (payload: Partial<DBProject>) => {
-    const r = await fetch('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const r = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Create failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Create failed");
     await refetchProjects();
   };
   const updateProject = async (id: string, payload: Partial<DBProject>) => {
     const r = await fetch(`/api/projects/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Update failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Update failed");
     await refetchProjects();
   };
   const deleteProject = async (id: string) => {
-    const r = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Delete failed');
+    const r = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+    if (!r.ok) throw new Error((await r.json()).error ?? "Delete failed");
     await refetchProjects();
   };
 
   const createTask = async (payload: Partial<DBTask>) => {
-    const r = await fetch('/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const r = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Create failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Create failed");
     await refetchTasks();
   };
   const updateTask = async (id: string, payload: Partial<DBTask>) => {
     const r = await fetch(`/api/tasks/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Update failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Update failed");
     await refetchTasks();
   };
   const deleteTask = async (id: string) => {
-    const r = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Delete failed');
+    const r = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+    if (!r.ok) throw new Error((await r.json()).error ?? "Delete failed");
     await refetchTasks();
   };
 
   const createMember = async (payload: Partial<DBMember>) => {
-    const r = await fetch('/api/members', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const r = await fetch("/api/members", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Create failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Create failed");
     await refetchMembers();
   };
   const updateMember = async (id: string, payload: Partial<DBMember>) => {
     const r = await fetch(`/api/members/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Update failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Update failed");
     await refetchMembers();
   };
   const deleteMember = async (id: string) => {
-    const r = await fetch(`/api/members/${id}`, { method: 'DELETE' });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Delete failed');
+    const r = await fetch(`/api/members/${id}`, { method: "DELETE" });
+    if (!r.ok) throw new Error((await r.json()).error ?? "Delete failed");
     await refetchMembers();
   };
 
   const createPosition = async (payload: Partial<DBPosition>) => {
-    const r = await fetch('/api/positions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const r = await fetch("/api/positions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Create failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Create failed");
     await refetchPositions();
   };
   const updatePosition = async (id: string, payload: Partial<DBPosition>) => {
     const r = await fetch(`/api/positions/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Update failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Update failed");
     await refetchPositions();
   };
   const deletePosition = async (id: string) => {
-    const r = await fetch(`/api/positions/${id}`, { method: 'DELETE' });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Delete failed');
+    const r = await fetch(`/api/positions/${id}`, { method: "DELETE" });
+    if (!r.ok) throw new Error((await r.json()).error ?? "Delete failed");
     await refetchPositions();
   };
 
   const createTimelog = async (payload: Partial<DBTimeLog>) => {
-    const r = await fetch('/api/timelogs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const r = await fetch("/api/timelogs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error((await r.json()).error ?? 'Create failed');
+    if (!r.ok) throw new Error((await r.json()).error ?? "Create failed");
     await refetchTimelogs();
   };
 
   // ===== Adapters: DB shape -> legacy mockData shape =====
   // These let existing UI code keep working with minimal churn.
 
-  const adaptedPositions = positions.map(p => ({
+  const safePositions = Array.isArray(positions) ? positions : [];
+  const safeMembers = Array.isArray(members) ? members : [];
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const safeTimelogs = Array.isArray(timelogs) ? timelogs : [];
+
+  const adaptedPositions = safePositions.map((p) => ({
     id: p.id,
-    name_th: p.name_th ?? '',
-    name_en: p.name_en ?? '',
-    name_jp: p.name_jp ?? '',
+    name_th: p.name_th ?? "",
+    name_en: p.name_en ?? "",
+    name_jp: p.name_jp ?? "",
     rate: Number(p.default_hourly_rate) || 0,
-    color: p.color ?? '#003087',
+    color: p.color ?? "#003087",
   }));
 
   const initials = (en: string | null, th: string | null) => {
-    const src = (en || th || '').trim();
-    if (!src) return '??';
+    const src = (en || th || "").trim();
+    if (!src) return "??";
     const parts = src.split(/\s+/);
-    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '??';
+    return (
+      ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "??"
+    );
   };
   const fullName = (first: string | null, last: string | null) =>
-    [first, last].filter(Boolean).join(' ').trim();
+    [first, last].filter(Boolean).join(" ").trim();
 
-  const adaptedMembers = members.map(m => ({
+  const adaptedMembers = safeMembers.map((m) => ({
     id: m.id,
-    name_th: fullName(m.first_name_th, m.last_name_th) || fullName(m.first_name_en, m.last_name_en),
-    name_en: fullName(m.first_name_en, m.last_name_en) || fullName(m.first_name_th, m.last_name_th),
+    name_th:
+      fullName(m.first_name_th, m.last_name_th) ||
+      fullName(m.first_name_en, m.last_name_en),
+    name_en:
+      fullName(m.first_name_en, m.last_name_en) ||
+      fullName(m.first_name_th, m.last_name_th),
     name_jp: fullName(m.first_name_jp, m.last_name_jp),
-    position_id: m.position_id ?? '',
+    position_id: m.position_id ?? "",
     rate: Number(m.hourly_rate) || 0,
     avatar: initials(
       fullName(m.first_name_en, m.last_name_en),
-      fullName(m.first_name_th, m.last_name_th),
+      fullName(m.first_name_th, m.last_name_th)
     ),
-    dept: m.department ?? '',
+    dept: m.department ?? "",
   }));
 
   // Project.members: derive from tasks' assignees + timelogs
   const memberIdsByProject = new Map<string, Set<string>>();
-  tasks.forEach(t => {
+  safeTasks.forEach((t) => {
     if (!t.assignee_id) return;
-    if (!memberIdsByProject.has(t.project_id)) memberIdsByProject.set(t.project_id, new Set());
+    if (!memberIdsByProject.has(t.project_id))
+      memberIdsByProject.set(t.project_id, new Set());
     memberIdsByProject.get(t.project_id)!.add(t.assignee_id);
   });
-  timelogs.forEach(l => {
-    if (!memberIdsByProject.has(l.project_id)) memberIdsByProject.set(l.project_id, new Set());
+  safeTimelogs.forEach((l) => {
+    if (!memberIdsByProject.has(l.project_id))
+      memberIdsByProject.set(l.project_id, new Set());
     memberIdsByProject.get(l.project_id)!.add(l.team_member_id);
   });
 
-  const adaptedProjects = projects.map(p => ({
+  const adaptedProjects = safeProjects.map((p) => ({
     id: p.id,
-    code: p.project_code ?? '',
-    name_th: p.name_th ?? '',
-    name_en: p.name_en ?? '',
-    name_jp: p.name_jp ?? '',
+    code: p.project_code ?? "",
+    name_th: p.name_th ?? "",
+    name_en: p.name_en ?? "",
+    name_jp: p.name_jp ?? "",
     status: p.status,
     priority: p.priority,
-    client: p.client_name ?? '',
-    startDate: p.start_date ?? '',
-    endDate: p.end_date ?? '',
+    client: p.client_name ?? "",
+    startDate: p.start_date ?? "",
+    endDate: p.end_date ?? "",
     budget: Number(p.budget_limit) || 0,
     progress: p.progress ?? 0,
     members: Array.from(memberIdsByProject.get(p.id) ?? []),
   }));
 
-  const adaptedTasks = tasks.map(t => ({
+  const adaptedTasks = safeTasks.map((t) => ({
     id: t.id,
     project_id: t.project_id,
     title: t.title,
     status: t.status,
     priority: t.priority,
-    assignee: t.assignee_id ?? '',
-    dueDate: t.due_date ?? '',
+    assignee: t.assignee_id ?? "",
+    dueDate: t.due_date ?? "",
     hours: Number(t.estimated_hours) || 0,
   }));
 
-  const adaptedTimelogs = timelogs.map(l => ({
+  const adaptedTimelogs = safeTimelogs.map((l) => ({
     id: l.id,
     project_id: l.project_id,
-    task_id: l.task_id ?? '',
+    task_id: l.task_id ?? "",
     member_id: l.team_member_id,
     date: l.log_date,
     hours: Number(l.hours) || 0,
@@ -351,18 +365,39 @@ export function useData() {
 
   return {
     // raw DB state
-    projects, tasks, members, positions, timelogs,
+    projects,
+    tasks,
+    members,
+    positions,
+    timelogs,
     // legacy-shaped (for existing page.tsx compatibility)
-    adaptedProjects, adaptedTasks, adaptedMembers, adaptedPositions, adaptedTimelogs,
-    loading, error,
+    adaptedProjects,
+    adaptedTasks,
+    adaptedMembers,
+    adaptedPositions,
+    adaptedTimelogs,
+    loading,
+    error,
     // refetch
     refetchAll: fetchAll,
-    refetchProjects, refetchTasks, refetchMembers, refetchPositions, refetchTimelogs,
+    refetchProjects,
+    refetchTasks,
+    refetchMembers,
+    refetchPositions,
+    refetchTimelogs,
     // mutations
-    createProject, updateProject, deleteProject,
-    createTask, updateTask, deleteTask,
-    createMember, updateMember, deleteMember,
-    createPosition, updatePosition, deletePosition,
+    createProject,
+    updateProject,
+    deleteProject,
+    createTask,
+    updateTask,
+    deleteTask,
+    createMember,
+    updateMember,
+    deleteMember,
+    createPosition,
+    updatePosition,
+    deletePosition,
     createTimelog,
   };
 }

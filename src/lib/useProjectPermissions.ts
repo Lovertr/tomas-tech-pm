@@ -28,7 +28,12 @@ export function useProjectPermissions() {
       const res = await fetch('/api/project-membership');
       if (res.ok) {
         const json = await res.json();
-        setData(json);
+        setData({
+          memberships: Array.isArray(json.memberships) ? json.memberships : [],
+          pm_projects: Array.isArray(json.pm_projects) ? json.pm_projects : [],
+          team_member_id: json.team_member_id ?? null,
+          role: json.role ?? 'member',
+        });
       }
     } catch {
       /* ignore */
