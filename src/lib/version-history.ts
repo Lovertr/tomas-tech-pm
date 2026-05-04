@@ -13,6 +13,26 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.4.2",
+    date: "2026-05-04",
+    title: {
+      th: "แก้ AI ผู้ช่วยขายตอบไม่จบ",
+      en: "Fix AI Sales Assistant Truncated Responses",
+      jp: "AI営業アシスタントの回答切れを修正",
+    },
+    highlights: {
+      th: [
+        "เพิ่ม token limit ของ AI ผู้ช่วยขาย เป็น 8192 ให้ตอบได้ยาวขึ้นมาก (สคริปต์, วิเคราะห์เชิงลึก ฯลฯ)",
+      ],
+      en: [
+        "Increased AI Sales Assistant token limit for longer responses (scripts, analysis, etc.)",
+      ],
+      jp: [
+        "AI営業アシスタントのトークン制限を増加し、より長い回答に対応（スクリプト、分析など）",
+      ],
+    },
+  },
+  {
     version: "2.4.1",
     date: "2026-05-04",
     title: {

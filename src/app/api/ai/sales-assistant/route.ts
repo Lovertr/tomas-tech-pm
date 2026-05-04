@@ -246,7 +246,7 @@ export async function POST(req: NextRequest) {
       model: "sonnet",
       system: systemPrompt,
       lang,
-      maxTokens: 2048,
+      maxTokens: 8192,
     });
 
     return NextResponse.json({ reply });
