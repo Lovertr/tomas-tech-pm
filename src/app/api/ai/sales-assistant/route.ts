@@ -389,4 +389,7 @@ function buildSystemPrompt(
     basePrompt += "\n\nProvide actionable, practical advice tailored to the sales context.";
   }
 
-  return b
+  return basePrompt;
+}
+asePrompt;
+}
