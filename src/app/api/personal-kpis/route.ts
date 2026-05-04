@@ -8,7 +8,10 @@ async function getUser(request: NextRequest) {
   const { data: session } = await supabaseAdmin.from("sessions").select("user_id").eq("token", token).single();
   if (!session) return null;
   const { data: user } = await supabaseAdmin.from("app_users").select("id, role_id, roles(name)").eq("id", session.user_id).single();
-  return user ? { id: user.id, role: (user.roles as { name: string } | null)?.name || "member" } : null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const roleData = user.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+  return user ? { id: user.id, role: (roleName as string) || "member" } : null;
 }
 
 export async function GET(request: NextRequest) {
