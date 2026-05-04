@@ -8,13 +8,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
 
-  // Increment view count
-  await supabaseAdmin.rpc("", {}).catch(() => {});
-  await supabaseAdmin
-    .from("knowledge_articles")
-    .update({ view_count: supabaseAdmin.rpc ? undefined : 0 })
-    .eq("id", id);
-
   const { data, error } = await supabaseAdmin
     .from("knowledge_articles")
     .select("*, category:knowledge_categories(id, name, name_en, name_jp, icon)")
@@ -23,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (error || !data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Simple view count increment
+  // Increment view count
   await supabaseAdmin
     .from("knowledge_articles")
     .update({ view_count: (data.view_count || 0) + 1 })
