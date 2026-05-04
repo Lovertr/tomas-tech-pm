@@ -1,5 +1,5 @@
-const CACHE_NAME = "tomas-pm-v1";
-const STATIC_ASSETS = ["/", "/logo.png", "/logo.svg"];
+const CACHE_NAME = "tomas-pm-v2";
+const STATIC_ASSETS = ["/logo.png", "/logo.svg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
@@ -15,6 +15,18 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
-  if (e.request.url.includes("/api/")) return; // Don't cache API calls
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.
+  if (e.request.url.includes("/api/")) return;
+  // Network-first strategy: always try network, fallback to cache for static assets only
+  if (STATIC_ASSETS.some((a) => e.request.url.endsWith(a))) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+  }
+  // For HTML pages and JS chunks, always use network (no caching)
+});
