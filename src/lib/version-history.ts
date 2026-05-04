@@ -13,6 +13,41 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.3.0",
+    date: "2026-05-04",
+    title: {
+      th: "ระบบเชิญผู้ร่วมงานดีล + แจ้งเตือน + ยอมรับ/ปฏิเสธ",
+      en: "Deal Collaborator Invitations + Notifications + Accept/Reject",
+      jp: "ディールコラボレーター招待 + 通知 + 承認/拒否",
+    },
+    highlights: {
+      th: [
+        "เชิญเพื่อนร่วมงานเข้าร่วมดีล — ส่งแจ้งเตือนอัตโนมัติ",
+        "ผู้ถูกเชิญสามารถกดยอมรับหรือปฏิเสธคำเชิญได้",
+        "ผู้ร่วมงานที่ยอมรับแล้ว สามารถแก้ไข/จัดการดีลได้เหมือนเจ้าของ",
+        "Detail Modal แสดงข้อมูลผู้ติดต่อ, งานที่ทำไปแล้ว, สิ่งที่ต้องทำต่อ เสมอ (แม้ยังไม่กรอกข้อมูล)",
+        "แบนเนอร์คำเชิญรอตอบรับ แสดงที่ด้านบนหน้า Pipeline",
+        "การ์ดดีลแสดง badge 'ผู้ร่วมงาน' สำหรับดีลที่คุณเป็นผู้ร่วมงาน",
+      ],
+      en: [
+        "Invite collaborators to deals — automatic notification sent",
+        "Invited users can accept or reject the invitation",
+        "Accepted collaborators can edit/manage deals like the owner",
+        "Detail Modal always shows contact info, work done, next steps (even when empty)",
+        "Pending invitations banner at the top of the Pipeline page",
+        "Deal cards show 'Collaborator' badge for your collaborated deals",
+      ],
+      jp: [
+        "ディールにコラボレーターを招待 — 自動通知送信",
+        "招待されたユーザーは承認または拒否が可能",
+        "承認済みコラボレーターはオーナーと同様にディールを編集・管理可能",
+        "詳細モーダルで連絡先情報、完了作業、次のステップを常に表示",
+        "パイプラインページ上部に承認待ち招待バナーを表示",
+        "コラボレーションディールにバッジを表示",
+      ],
+    },
+  },
+  {
     version: "2.2.0",
     date: "2026-05-04",
     title: {

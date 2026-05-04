@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit2, X, User, Search, Users, MessageSquare, Send, Loader2, UserPlus, UserMinus } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, User, Search, Users, MessageSquare, Send, Loader2, UserPlus, UserMinus, CheckCircle, XCircle, Bell, Clock } from 'lucide-react';
 import TranslateButton, { InlineTranslateButton } from './TranslateButton';
 import type { Lang } from '@/lib/i18n';
 
@@ -52,8 +52,20 @@ interface Collaborator {
   id: string;
   user_id: string;
   role: string;
+  status: 'pending' | 'accepted' | 'rejected';
   created_at: string;
+  inviter?: { id: string; display_name?: string };
   user?: { id: string; display_name?: string; email?: string };
+}
+
+interface DealInvitation {
+  id: string;
+  deal_id: string;
+  role: string;
+  status: string;
+  created_at: string;
+  inviter?: { id: string; display_name?: string };
+  deal?: { id: string; title: string; value: number; stage: string };
 }
 
 interface DealComment {
@@ -134,6 +146,15 @@ const panelText: Record<string, Record<string, string>> = {
   writeComment:    { th: 'เขียนความคิดเห็น...',                    en: 'Write a comment...',              jp: 'コメントを書く...' },
   noComments:      { th: 'ยังไม่มีความคิดเห็น',                     en: 'No comments yet',                 jp: 'コメントなし' },
   deleteComment:   { th: 'ลบความคิดเห็นนี้?',                      en: 'Delete this comment?',            jp: 'このコメントを削除？' },
+  notSpecified:    { th: 'ยังไม่ระบุ',                               en: 'Not specified',                    jp: '未指定' },
+  contactInfo:     { th: 'ข้อมูลผู้ติดต่อ',                          en: 'Contact Info',                     jp: '連絡先情報' },
+  pendingInvite:   { th: 'รอตอบรับ',                                en: 'Pending',                          jp: '承認待ち' },
+  accepted:        { th: 'ตอบรับแล้ว',                               en: 'Accepted',                         jp: '承認済み' },
+  rejected:        { th: 'ปฏิเสธแล้ว',                               en: 'Rejected',                         jp: '拒否済み' },
+  acceptInvite:    { th: 'ยอมรับ',                                   en: 'Accept',                           jp: '承認' },
+  rejectInvite:    { th: 'ปฏิเสธ',                                   en: 'Reject',                           jp: '拒否' },
+  pendingDeals:    { th: 'คำเชิญเข้าร่วมดีล',                        en: 'Deal Invitations',                 jp: 'ディール招待' },
+  invitedBy:       { th: 'เชิญโดย',                                  en: 'Invited by',                       jp: '招待者' },
   forbidden:       { th: 'คุณไม่มีสิทธิ์แก้ไขดีลนี้',                en: "You don't have permission to edit this deal", jp: 'このディールを編集する権限がありません' },
   viewDetail:      { th: 'ดูรายละเอียด',                            en: 'View Detail',                     jp: '詳細を見る' },
   dealDetail:      { th: 'รายละเอียดดีล',                           en: 'Deal Detail',                     jp: 'ディール詳細' },
@@ -275,6 +296,37 @@ export default function DealsPipelinePanel({
     } catch (e) { console.error(e); }
   };
 
+  /* --- Pending Invitations --- */
+  const [pendingInvitations, setPendingInvitations] = useState<DealInvitation[]>([]);
+
+  const fetchMyInvitations = async () => {
+    try {
+      const res = await fetch('/api/deals/my-invitations');
+      if (res.ok) { const json = await res.json(); setPendingInvitations(json.invitations ?? []); }
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => { fetchMyInvitations(); }, [refreshKey]);
+
+  const respondInvitation = async (dealId: string, status: 'accepted' | 'rejected') => {
+    try {
+      const res = await fetch(`/api/deals/${dealId}/collaborators`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        await fetchMyInvitations();
+        await fetchDeals();
+        // Refresh accepted deal IDs
+        if (status === 'accepted') {
+          setMyAcceptedDealIds(prev => new Set([...prev, dealId]));
+        }
+        // Refresh collaborators if detail modal is open for this deal
+        if (detailDeal?.id === dealId) await fetchCollaborators(dealId);
+      }
+    } catch (e) { console.error(e); }
+  };
+
   const openDetail = (deal: Deal) => {
     setDetailDeal(deal);
     fetchCollaborators(deal.id);
@@ -365,7 +417,21 @@ export default function DealsPipelinePanel({
 
   const isMyDeal = (deal: Deal) => currentUserId ? deal.owner_id === currentUserId : false;
   const isAdminManager = userRole === 'admin' || userRole === 'manager';
-  const canEditDeal = (deal: Deal) => isAdminManager || isMyDeal(deal);
+
+  // Track accepted collaborator deal IDs
+  const [myAcceptedDealIds, setMyAcceptedDealIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const fetchMyCollabs = async () => {
+      try {
+        const res = await fetch('/api/deals/my-collaborations');
+        if (res.ok) { const json = await res.json(); setMyAcceptedDealIds(new Set((json.deal_ids ?? []) as string[])); }
+      } catch (e) { console.error(e); }
+    };
+    fetchMyCollabs();
+  }, [refreshKey]);
+
+  const isMyCollab = (deal: Deal) => myAcceptedDealIds.has(deal.id);
+  const canEditDeal = (deal: Deal) => isAdminManager || isMyDeal(deal) || isMyCollab(deal);
 
   /* --- Render --- */
   return (
@@ -396,6 +462,44 @@ export default function DealsPipelinePanel({
         <span className="text-sm text-gray-500 ml-1">{filteredDeals.length}/{deals.length}</span>
       </div>
 
+      {/* Pending Invitations Banner */}
+      {pendingInvitations.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 className="text-sm font-bold text-yellow-800 flex items-center gap-2 mb-3">
+            <Bell size={16} className="text-yellow-600" /> {L('pendingDeals')} ({pendingInvitations.length})
+          </h4>
+          <div className="space-y-2">
+            {pendingInvitations.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-yellow-100">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">{inv.deal?.title || inv.deal_id}</p>
+                  <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-1">
+                    {inv.deal?.value != null && <span>{fmt(inv.deal.value)} THB</span>}
+                    {inv.deal?.stage && (
+                      <span className="px-1.5 py-0.5 rounded text-white text-[10px]" style={{ backgroundColor: stageColors[inv.deal.stage] }}>
+                        {stageName(inv.deal.stage)}
+                      </span>
+                    )}
+                    {inv.inviter?.display_name && <span>{L('invitedBy')}: {inv.inviter.display_name}</span>}
+                    <span className="flex items-center gap-1"><Clock size={10} /> {new Date(inv.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <button onClick={() => respondInvitation(inv.deal_id, 'accepted')}
+                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                    <CheckCircle size={12} /> {L('acceptInvite')}
+                  </button>
+                  <button onClick={() => respondInvitation(inv.deal_id, 'rejected')}
+                    className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                    <XCircle size={12} /> {L('rejectInvite')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Kanban columns */}
       <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 500 }}>
         {stageKeys.map((stage) => {
@@ -417,15 +521,23 @@ export default function DealsPipelinePanel({
                       <div key={deal.id}
                         className={`rounded-lg p-3 border transition cursor-pointer ${
                           mine ? 'bg-[#FFF7ED] border-[#F7941D] hover:shadow-md'
+                          : isMyCollab(deal) ? 'bg-blue-50 border-blue-300 hover:shadow-md'
                           : 'bg-white border-gray-200 hover:border-[#003087] hover:shadow-md'
                         }`}
                         onClick={() => openDetail(deal)}>
-                        {/* MY DEAL badge */}
-                        {mine && (
-                          <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F7941D] rounded px-1.5 py-0.5 mb-1.5">
-                            {L('myDeal')}
-                          </span>
-                        )}
+                        {/* MY DEAL / COLLABORATOR badge */}
+                        <div className="flex gap-1 mb-1.5">
+                          {mine && (
+                            <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F7941D] rounded px-1.5 py-0.5">
+                              {L('myDeal')}
+                            </span>
+                          )}
+                          {!mine && isMyCollab(deal) && (
+                            <span className="inline-block text-[10px] font-bold text-blue-800 bg-blue-200 rounded px-1.5 py-0.5">
+                              {L('collaborator')}
+                            </span>
+                          )}
+                        </div>
 
                         <h4 className={`font-semibold text-sm leading-tight ${mine ? 'text-[#003087]' : 'text-gray-900'}`}>
                           {deal.title}
@@ -496,17 +608,14 @@ export default function DealsPipelinePanel({
                   <span className="text-gray-500">{detailDeal.probability ?? 0}%</span>
                   {detailDeal.owner_name && <span className="text-gray-600 flex items-center gap-1"><User size={12} />{detailDeal.owner_name}</span>}
                 </div>
-                {/* Contact info */}
-                {(detailDeal.contact_person || detailDeal.contact_channel) && (
-                  <div className="mt-2 flex flex-wrap gap-4 text-sm">
-                    {detailDeal.contact_person && (
-                      <span className="text-gray-700"><span className="font-medium text-gray-500">{L('contactPerson')}:</span> {detailDeal.contact_person}</span>
-                    )}
-                    {detailDeal.contact_channel && (
-                      <span className="text-gray-700"><span className="font-medium text-gray-500">{L('contactChannel')}:</span> {detailDeal.contact_channel}</span>
-                    )}
+                {/* Contact info — always show */}
+                <div className="mt-2 bg-blue-50/50 rounded-lg p-3">
+                  <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1"><User size={12} className="text-blue-500" /> {L('contactInfo')}</p>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <span className="text-gray-700"><span className="font-medium text-gray-500">{L('contactPerson')}:</span> {detailDeal.contact_person || <span className="italic text-gray-400">{L('notSpecified')}</span>}</span>
+                    <span className="text-gray-700"><span className="font-medium text-gray-500">{L('contactChannel')}:</span> {detailDeal.contact_channel || <span className="italic text-gray-400">{L('notSpecified')}</span>}</span>
                   </div>
-                )}
+                </div>
                 {detailDeal.notes && (
                   <div className="mt-2">
                     <p className="text-xs font-medium text-gray-500 mb-1">{L('notes')}</p>
@@ -529,29 +638,35 @@ export default function DealsPipelinePanel({
                 )}
               </div>
 
-              {/* Work Done & Next Steps */}
-              {(detailDeal.work_done || detailDeal.next_steps) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {detailDeal.work_done && (
-                    <div className="bg-green-50 rounded-lg p-4">
-                      <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500" /> {L('workDone')}
-                      </h5>
+              {/* Work Done & Next Steps — always show */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500" /> {L('workDone')}
+                  </h5>
+                  {detailDeal.work_done ? (
+                    <>
                       <p className="text-sm text-gray-700 whitespace-pre-wrap">{detailDeal.work_done}</p>
                       <InlineTranslateButton text={detailDeal.work_done} />
-                    </div>
-                  )}
-                  {detailDeal.next_steps && (
-                    <div className="bg-orange-50 rounded-lg p-4">
-                      <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 rounded-full bg-orange-500" /> {L('nextSteps')}
-                      </h5>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{detailDeal.next_steps}</p>
-                      <InlineTranslateButton text={detailDeal.next_steps} />
-                    </div>
+                    </>
+                  ) : (
+                    <p className="text-sm italic text-gray-400">{L('notSpecified')}</p>
                   )}
                 </div>
-              )}
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-orange-500" /> {L('nextSteps')}
+                  </h5>
+                  {detailDeal.next_steps ? (
+                    <>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{detailDeal.next_steps}</p>
+                      <InlineTranslateButton text={detailDeal.next_steps} />
+                    </>
+                  ) : (
+                    <p className="text-sm italic text-gray-400">{L('notSpecified')}</p>
+                  )}
+                </div>
+              </div>
 
               {/* Collaborators Section */}
               <div className="bg-blue-50 rounded-lg p-4">
@@ -570,17 +685,31 @@ export default function DealsPipelinePanel({
                       {collaborators.length === 0 ? (
                         <p className="text-xs text-gray-500">{lang === 'th' ? 'ยังไม่มีผู้ร่วมงาน' : lang === 'jp' ? 'コラボレーターなし' : 'No collaborators yet'}</p>
                       ) : collaborators.map((c) => (
-                        <div key={c.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-blue-100">
+                        <div key={c.id} className={`flex items-center justify-between rounded-lg px-3 py-2 border ${c.status === 'pending' ? 'bg-yellow-50 border-yellow-200' : c.status === 'rejected' ? 'bg-red-50 border-red-100' : 'bg-white border-blue-100'}`}>
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-                              <User size={14} className="text-blue-600" />
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${c.status === 'pending' ? 'bg-yellow-100' : c.status === 'rejected' ? 'bg-red-100' : 'bg-blue-100'}`}>
+                              <User size={14} className={c.status === 'pending' ? 'text-yellow-600' : c.status === 'rejected' ? 'text-red-600' : 'text-blue-600'} />
                             </div>
                             <span className="text-sm text-gray-800 font-medium">{c.user?.display_name || c.user?.email || c.user_id}</span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${c.status === 'pending' ? 'bg-yellow-200 text-yellow-800' : c.status === 'rejected' ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>
+                              {c.status === 'pending' ? L('pendingInvite') : c.status === 'rejected' ? L('rejected') : L('accepted')}
+                            </span>
                           </div>
-                          {(isAdminManager || isMyDeal(detailDeal)) && (
-                            <button onClick={() => removeCollaborator(c.user_id)}
-                              className="text-red-400 hover:text-red-600"><UserMinus size={14} /></button>
-                          )}
+                          <div className="flex items-center gap-1">
+                            {/* Accept/reject buttons for the invited user themselves */}
+                            {c.status === 'pending' && c.user_id === currentUserId && (
+                              <>
+                                <button onClick={() => respondInvitation(detailDeal.id, 'accepted')}
+                                  className="text-green-600 hover:text-green-800 p-1" title={L('acceptInvite')}><CheckCircle size={16} /></button>
+                                <button onClick={() => respondInvitation(detailDeal.id, 'rejected')}
+                                  className="text-red-400 hover:text-red-600 p-1" title={L('rejectInvite')}><XCircle size={16} /></button>
+                              </>
+                            )}
+                            {(isAdminManager || isMyDeal(detailDeal)) && (
+                              <button onClick={() => removeCollaborator(c.user_id)}
+                                className="text-red-400 hover:text-red-600"><UserMinus size={14} /></button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
