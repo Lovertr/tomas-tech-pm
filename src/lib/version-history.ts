@@ -13,6 +13,35 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "2.2.0",
+    date: "2026-05-04",
+    title: {
+      th: "ปรับปรุง Deal + กิจกรรมการขาย — เพิ่มรายละเอียดดีล + สิทธิ์กิจกรรม",
+      en: "Deal & Sales Activity Improvements — Enhanced Deal Details + Activity Permissions",
+      jp: "ディール＆営業活動改善 — ディール詳細強化 + 活動権限",
+    },
+    highlights: {
+      th: [
+        "เพิ่มฟิลด์ในดีล: ชื่อผู้ติดต่อ, ช่องทางติดต่อ, รายละเอียดที่ทำไปแล้ว, สิ่งที่จะต้องทำต่อ",
+        "ปรับปรุง Detail Modal — แสดงข้อมูลผู้ติดต่อ, งานที่ทำไปแล้ว, Next Steps",
+        "กิจกรรมการขาย: พนักงาน (member) เห็นเฉพาะกิจกรรมของตัวเองเท่านั้น",
+        "Admin/Manager ยังเห็นกิจกรรมของทุกคนตามปกติ",
+      ],
+      en: [
+        "Added deal fields: contact person, contact channel, work done, next steps",
+        "Enhanced Deal Detail Modal — shows contact info, completed work, next steps",
+        "Sales Activities: members can only see their own activities",
+        "Admin/Manager still see all activities as before",
+      ],
+      jp: [
+        "ディールにフィールド追加: 担当者名, 連絡手段, 完了済み作業, 次のステップ",
+        "ディール詳細モーダル改善 — 連絡先情報, 完了作業, 次のステップを表示",
+        "営業活動: メンバーは自分の活動のみ表示",
+        "管理者/マネージャーは引き続き全員の活動を閲覧可能",
+      ],
+    },
+  },
+  {
     version: "2.1.0",
     date: "2026-05-04",
     title: {

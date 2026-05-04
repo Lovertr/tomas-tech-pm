@@ -45,6 +45,7 @@ interface Props {
   refreshKey?: number;
   lang?: Lang;
   currentUserId?: string;
+  userRole?: string;
 }
 
 interface DealActivity {
@@ -326,6 +327,7 @@ export default function SalesActivitiesPanel({
   refreshKey = 0,
   lang = 'th',
   currentUserId,
+  userRole,
 }: Props) {
   const L = (key: string) => {
     const keys = key.split('.');
@@ -727,10 +729,12 @@ export default function SalesActivitiesPanel({
     }
   };
 
+  const isAdminManager = userRole === 'admin' || userRole === 'manager';
   const filteredActivities = activities.filter((a) => {
     if (filterDealId && a.deal_id !== filterDealId) return false;
     if (filterSalespersonId && a.performer_id !== filterSalespersonId) return false;
-    if (!canManage && a.performer_id !== currentUserId) return false;
+    // Member only sees their own activities
+    if (!isAdminManager && a.performer_id !== currentUserId) return false;
     return true;
   });
 

@@ -28,6 +28,10 @@ interface Deal {
   owner_id?: string;
   owner_name?: string;
   notes?: string;
+  contact_person?: string;
+  contact_channel?: string;
+  work_done?: string;
+  next_steps?: string;
 }
 
 interface Customer {
@@ -111,6 +115,10 @@ const panelText: Record<string, Record<string, string>> = {
   closeDate:       { th: 'วันปิดการขายที่คาดหวัง',                   en: 'Expected Close Date',             jp: '予定クローズ日' },
   probability:     { th: 'ความน่าจะเป็น (%)',                       en: 'Probability (%)',                 jp: '確率 (%)' },
   notes:           { th: 'หมายเหตุ',                                en: 'Notes',                           jp: '備考' },
+  contactPerson:   { th: 'ชื่อผู้ติดต่อ',                            en: 'Contact Person',                  jp: '担当者名' },
+  contactChannel:  { th: 'ช่องทางติดต่อ',                            en: 'Contact Channel',                 jp: '連絡手段' },
+  workDone:        { th: 'รายละเอียดที่ทำไปแล้ว',                     en: 'Work Done',                       jp: '完了済みの作業' },
+  nextSteps:       { th: 'สิ่งที่จะต้องทำต่อ',                       en: 'Next Steps',                      jp: '次のステップ' },
   save:            { th: 'บันทึก',                                  en: 'Save',                            jp: '保存' },
   cancel:          { th: 'ยกเลิก',                                 en: 'Cancel',                          jp: 'キャンセル' },
   confirmDelete:   { th: 'ยืนยันการลบดีลนี้?',                      en: 'Delete this deal?',               jp: 'このディールを削除しますか？' },
@@ -171,6 +179,7 @@ export default function DealsPipelinePanel({
   const [formData, setFormData] = useState({
     title: '', customer_id: '', owner_id: '', value: 0,
     stage: 'new_lead' as Deal['stage'], expected_close_date: '', probability: 0, notes: '',
+    contact_person: '', contact_channel: '', work_done: '', next_steps: '',
   });
 
   useEffect(() => { fetchDeals(); fetchCustomers(); fetchMembers(); }, [filterProjectId, refreshKey]);
@@ -282,7 +291,11 @@ export default function DealsPipelinePanel({
       const url = selectedDeal ? `/api/deals/${selectedDeal.id}` : '/api/deals';
       const res = await fetch(url, {
         method, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, expected_close_date: formData.expected_close_date || null, owner_id: formData.owner_id || null }),
+        body: JSON.stringify({
+          ...formData, expected_close_date: formData.expected_close_date || null, owner_id: formData.owner_id || null,
+          contact_person: formData.contact_person || null, contact_channel: formData.contact_channel || null,
+          work_done: formData.work_done || null, next_steps: formData.next_steps || null,
+        }),
       });
       if (res.ok) { await fetchDeals(); setShowForm(false); resetForm(); }
       else {
@@ -320,6 +333,7 @@ export default function DealsPipelinePanel({
     setFormData({
       title: '', customer_id: '', owner_id: (userRole === 'member' && currentUserId) ? currentUserId : '', value: 0,
       stage: 'new_lead', expected_close_date: '', probability: 0, notes: '',
+      contact_person: '', contact_channel: '', work_done: '', next_steps: '',
     });
     setSelectedDeal(null);
   };
@@ -330,6 +344,8 @@ export default function DealsPipelinePanel({
       title: deal.title, customer_id: deal.customer_id, owner_id: deal.owner_id || '',
       value: deal.value, stage: deal.stage, expected_close_date: deal.expected_close_date || '',
       probability: deal.probability || 50, notes: deal.notes || '',
+      contact_person: deal.contact_person || '', contact_channel: deal.contact_channel || '',
+      work_done: deal.work_done || '', next_steps: deal.next_steps || '',
     });
     setShowForm(true);
   };
@@ -480,9 +496,21 @@ export default function DealsPipelinePanel({
                   <span className="text-gray-500">{detailDeal.probability ?? 0}%</span>
                   {detailDeal.owner_name && <span className="text-gray-600 flex items-center gap-1"><User size={12} />{detailDeal.owner_name}</span>}
                 </div>
+                {/* Contact info */}
+                {(detailDeal.contact_person || detailDeal.contact_channel) && (
+                  <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                    {detailDeal.contact_person && (
+                      <span className="text-gray-700"><span className="font-medium text-gray-500">{L('contactPerson')}:</span> {detailDeal.contact_person}</span>
+                    )}
+                    {detailDeal.contact_channel && (
+                      <span className="text-gray-700"><span className="font-medium text-gray-500">{L('contactChannel')}:</span> {detailDeal.contact_channel}</span>
+                    )}
+                  </div>
+                )}
                 {detailDeal.notes && (
                   <div className="mt-2">
-                    <p className="text-sm text-gray-700">{detailDeal.notes}</p>
+                    <p className="text-xs font-medium text-gray-500 mb-1">{L('notes')}</p>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{detailDeal.notes}</p>
                     <InlineTranslateButton text={detailDeal.notes} />
                   </div>
                 )}
@@ -500,6 +528,30 @@ export default function DealsPipelinePanel({
                   </div>
                 )}
               </div>
+
+              {/* Work Done & Next Steps */}
+              {(detailDeal.work_done || detailDeal.next_steps) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {detailDeal.work_done && (
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500" /> {L('workDone')}
+                      </h5>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{detailDeal.work_done}</p>
+                      <InlineTranslateButton text={detailDeal.work_done} />
+                    </div>
+                  )}
+                  {detailDeal.next_steps && (
+                    <div className="bg-orange-50 rounded-lg p-4">
+                      <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-orange-500" /> {L('nextSteps')}
+                      </h5>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{detailDeal.next_steps}</p>
+                      <InlineTranslateButton text={detailDeal.next_steps} />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Collaborators Section */}
               <div className="bg-blue-50 rounded-lg p-4">
@@ -666,9 +718,36 @@ export default function DealsPipelinePanel({
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('contactPerson')}</label>
+                  <input type="text" value={formData.contact_person} onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('contactChannel')}</label>
+                  <input type="text" value={formData.contact_channel} onChange={(e) => setFormData({ ...formData, contact_channel: e.target.value })}
+                    placeholder={lang === 'th' ? 'เช่น LINE, โทรศัพท์, อีเมล' : lang === 'jp' ? '例: LINE, 電話, メール' : 'e.g. LINE, Phone, Email'}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                </div>
+
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('notes')}</label>
                   <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={2} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('workDone')}</label>
+                  <textarea value={formData.work_done} onChange={(e) => setFormData({ ...formData, work_done: e.target.value })}
+                    placeholder={lang === 'th' ? 'รายละเอียดที่ทำไปแล้ว...' : lang === 'jp' ? '完了済みの作業...' : 'Details of completed work...'}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('nextSteps')}</label>
+                  <textarea value={formData.next_steps} onChange={(e) => setFormData({ ...formData, next_steps: e.target.value })}
+                    placeholder={lang === 'th' ? 'สิ่งที่จะต้องทำต่อ...' : lang === 'jp' ? '次のステップ...' : 'Next steps to take...'}
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
                 </div>
               </div>

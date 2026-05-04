@@ -707,7 +707,7 @@ export default function App() {
     <div className="space-y-6">
       <SalesActivitiesPanel projects={data.projects} members={data.members}
         canManage={canCreate("sales_activities")} refreshKey={boardRefreshKey} lang={lang}
-        currentUserId={currentUser?.id} />
+        currentUserId={currentUser?.id} userRole={currentUser?.role} />
     </div>
   );
   const SalesReportPage = () => (
