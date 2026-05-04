@@ -11,6 +11,8 @@ interface Props {
   onClose: () => void;
   memberId: string | null;
   lang?: string;
+  currentUserId?: string;
+  currentUserRole?: string;
   onNavigateProject?: (projectId: string) => void;
 }
 
@@ -114,13 +116,18 @@ const i18n: Record<string, Record<string, string>> = {
   general: { th: "ทั่วไป", en: "General", jp: "一般" },
 };
 
-export default function MemberProfileModal({ open, onClose, memberId, lang = "th", onNavigateProject }: Props) {
+export default function MemberProfileModal({ open, onClose, memberId, lang = "th", currentUserId, currentUserRole, onNavigateProject }: Props) {
   const L = (k: string) => i18n[k]?.[lang] ?? i18n[k]?.en ?? k;
   const [member, setMember] = useState<MemberProfile | null>(null);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"info" | "work" | "kpi">("info");
+
+  // Privacy: only admin/manager or the person themselves can see KPI & phone
+  const isAdminManager = currentUserRole === "admin" || currentUserRole === "manager";
+  const isSelf = !!(currentUserId && member?.user_id && currentUserId === member.user_id);
+  const canViewPrivate = isAdminManager || isSelf;
 
   // KPI state
   const [kpiPeriod, setKpiPeriod] = useState(new Date().toISOString().slice(0, 7));
@@ -299,7 +306,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
 
         {/* Tabs */}
         <div className="flex border-b border-[#E2E8F0]">
-          {(["info", "work", "kpi"] as const).map(t => (
+          {(["info", "work", ...(canViewPrivate ? ["kpi" as const] : [])] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-3 text-sm font-medium ${tab === t ? "text-[#003087] border-b-2 border-[#003087]" : "text-gray-500"}`}>
               {t === "info" ? L("personalInfo") : t === "work" ? L("myWork") : L("kpi")}
@@ -318,7 +325,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                 { icon: Briefcase, label: L("position"), value: posName },
                 { icon: User, label: L("department"), value: member?.department || "-" },
                 { icon: Mail, label: L("email"), value: member?.email || "-" },
-                { icon: Phone, label: L("phone"), value: member?.phone || "-" },
+                ...(canViewPrivate ? [{ icon: Phone, label: L("phone"), value: member?.phone || "-" }] : []),
               ].map((row, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
                   <div className="w-9 h-9 rounded-lg bg-[#003087]/10 flex items-center justify-center">
@@ -486,9 +493,11 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                       <h4 className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
                         <Target size={13} /> {L("manualKpi")}
                       </h4>
-                      <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#003087] hover:text-blue-700 font-medium">
-                        <Plus size={14} /> {L("addKpi")}
-                      </button>
+                      {isAdminManager && (
+                        <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#003087] hover:text-blue-700 font-medium">
+                          <Plus size={14} /> {L("addKpi")}
+                        </button>
+                      )}
                     </div>
 
                     {/* Add KPI form */}
@@ -558,9 +567,11 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg font-bold" style={{ color: barColor }}>{pct}%</span>
-                                  <button onClick={() => deleteKpi(kpi.id as string)} className="text-gray-300 hover:text-red-500 transition">
-                                    <Trash2 size={14} />
-                                  </button>
+                                  {isAdminManager && (
+                                    <button onClick={() => deleteKpi(kpi.id as string)} className="text-gray-300 hover:text-red-500 transition">
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                               {/* Progress bar */}
@@ -569,16 +580,22 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                               </div>
                               <div className="flex items-center justify-between text-xs text-gray-500">
                                 <div className="flex items-center gap-3">
-                                  <span>{L("actual")}: <input type="number" className="w-16 px-1 py-0.5 border border-gray-200 rounded text-center text-xs" value={actual} onChange={e => updateKpiActual(kpi.id as string, Number(e.target.value))} /></span>
+                                  <span>{L("actual")}: {(isSelf || isAdminManager) ? (
+                                    <input type="number" className="w-16 px-1 py-0.5 border border-gray-200 rounded text-center text-xs" value={actual} onChange={e => updateKpiActual(kpi.id as string, Number(e.target.value))} />
+                                  ) : (
+                                    <span className="font-medium">{actual}</span>
+                                  )}</span>
                                   <span>/ {L("target")}: {target} {L(kpi.unit as string)}</span>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <Star size={12} className="text-yellow-500" />
-                                  <select className="text-xs border border-gray-200 rounded px-1 py-0.5" value={kpi.manager_score as number || ""} onChange={e => updateManagerScore(kpi.id as string, Number(e.target.value))}>
-                                    <option value="">{L("managerScore")}</option>
-                                    {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}</option>)}
-                                  </select>
-                                </div>
+                                {isAdminManager && (
+                                  <div className="flex items-center gap-1">
+                                    <Star size={12} className="text-yellow-500" />
+                                    <select className="text-xs border border-gray-200 rounded px-1 py-0.5" value={kpi.manager_score as number || ""} onChange={e => updateManagerScore(kpi.id as string, Number(e.target.value))}>
+                                      <option value="">{L("managerScore")}</option>
+                                      {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           );

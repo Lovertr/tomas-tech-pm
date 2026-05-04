@@ -13,6 +13,38 @@ export interface VersionEntry {
 
 export const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "1.9.1",
+    date: "2026-05-04",
+    title: {
+      th: "ปกป้องข้อมูลส่วนตัว: KPI + เบอร์โทร",
+      en: "Privacy Protection: KPI + Phone Number",
+      jp: "プライバシー保護: KPI + 電話番号",
+    },
+    highlights: {
+      th: [
+        "ซ่อนแท็บ KPI จากพนักงานทั่วไปที่ดูโปรไฟล์คนอื่น — เห็นได้เฉพาะตัวเอง/หัวหน้า/แอดมิน",
+        "ซ่อนเบอร์โทรศัพท์จากพนักงานทั่วไปที่ดูคนอื่น",
+        "จำกัดสิทธิ์: เพิ่ม/ลบ KPI + ให้คะแนนได้เฉพาะหัวหน้า/แอดมิน",
+        "พนักงานอัปเดตค่าจริง (Actual) ได้เฉพาะ KPI ของตัวเอง",
+        "แก้บั๊ก dropdown ลูกค้าในฟอร์มโปรเจค (ProjectModal)",
+      ],
+      en: [
+        "Hide KPI tab from regular members viewing other profiles — visible only to self/manager/admin",
+        "Hide phone number from regular members viewing others",
+        "Restricted: add/delete KPI + manager scoring only for manager/admin",
+        "Members can only update Actual values for their own KPIs",
+        "Fixed customer dropdown bug in ProjectModal",
+      ],
+      jp: [
+        "一般メンバーが他人のプロフィールを閲覧時にKPIタブを非表示 — 本人/マネージャー/管理者のみ表示",
+        "一般メンバーが他人の電話番号を非表示",
+        "制限: KPIの追加/削除 + マネージャー評価はマネージャー/管理者のみ",
+        "メンバーは自分のKPIの実績値のみ更新可能",
+        "ProjectModalの顧客ドロップダウンバグを修正",
+      ],
+    },
+  },
+  {
     version: "1.9.0",
     date: "2026-05-04",
     title: {

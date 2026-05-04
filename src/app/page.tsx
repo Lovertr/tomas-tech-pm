@@ -1265,6 +1265,9 @@ export default function App() {
         open={memberProfileOpen}
         memberId={memberProfileId}
         onClose={() => setMemberProfileOpen(false)}
+        lang={lang}
+        currentUserId={currentUser?.id}
+        currentUserRole={currentUser?.role || "member"}
         onNavigateProject={(projectId) => { setPage("projects"); setMemberProfileOpen(false); }}
       />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} items={paletteItems} />
