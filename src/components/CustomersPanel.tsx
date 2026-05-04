@@ -457,6 +457,32 @@ export default function CustomersPanel({
     prospect: customers.filter(c => c.status === 'prospect').length,
   };
 
+
+  // Convert Google Maps URL to embeddable format
+  const getMapEmbedUrl = (url: string): string | null => {
+    if (!url) return null;
+    // Already an embed URL — use as-is
+    if (url.includes('/maps/embed') || url.includes('output=embed')) return url;
+    // Extract coordinates from @lat,lng pattern
+    const coordMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (coordMatch) {
+      return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&z=15&output=embed`;
+    }
+    // Extract place name from /place/NAME/ pattern  
+    const placeMatch = url.match(/\/place\/([^/@]+)/);
+    if (placeMatch) {
+      const placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+      return `https://maps.google.com/maps?q=${encodeURIComponent(placeName)}&z=15&output=embed`;
+    }
+    // Extract query from ?q= parameter
+    const qMatch = url.match(/[?&]q=([^&]+)/);
+    if (qMatch) {
+      return `https://maps.google.com/maps?q=${qMatch[1]}&z=15&output=embed`;
+    }
+    // Fallback: not a recognized Google Maps URL
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -714,10 +740,10 @@ export default function CustomersPanel({
                     value={formData.google_map_url}
                     onChange={(e) => setFormData({ ...formData, google_map_url: e.target.value })}
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
-                  {formData.google_map_url && formData.google_map_url.includes('google') && (
+                  {formData.google_map_url && getMapEmbedUrl(formData.google_map_url) && (
                     <div className="mt-2 rounded-lg overflow-hidden border border-gray-200">
                       <iframe
-                        src={formData.google_map_url.includes('/embed') ? formData.google_map_url : `https://www.google.com/maps?q=${encodeURIComponent(formData.google_map_url)}&output=embed`}
+                        src={getMapEmbedUrl(formData.google_map_url) || ''}
                         width="100%" height="150" style={{ border: 0 }} allowFullScreen loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade" />
                     </div>
@@ -938,7 +964,7 @@ export default function CustomersPanel({
                             </a>
                             <div className="rounded-lg overflow-hidden border border-gray-200">
                               <iframe
-                                src={selectedCustomer.google_map_url.includes('/embed') ? selectedCustomer.google_map_url : `https://www.google.com/maps?q=${encodeURIComponent(selectedCustomer.google_map_url)}&output=embed`}
+                                src={getMapEmbedUrl(selectedCustomer.google_map_url || '') || ''}
                                 width="100%" height="200" style={{ border: 0 }} allowFullScreen loading="lazy"
                                 referrerPolicy="no-referrer-when-downgrade" />
                             </div>
