@@ -634,9 +634,7 @@ export default function App() {
     <div className="space-y-6">
       <ProjectFilterHeader title="Recurring Tasks" />
       <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
-        canManage={projPerms.canManageInProject(taskFilter, true)} refreshKey={boardRefreshKey} lang={lang}
-            userRole={currentUser?.role || "member"}
-            currentUserId={currentUser?.id || ""} />
+        canManage={projPerms.canManageInProject(taskFilter, true)} refreshKey={boardRefreshKey} lang={lang} />
     </div>
   );
 
