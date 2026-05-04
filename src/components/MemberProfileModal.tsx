@@ -4,6 +4,7 @@ import {
   X, Mail, Phone, Briefcase, BarChart3, Clock, User, ChevronRight,
   TrendingUp, Target, Plus, Trash2, Star, CheckCircle2, Loader2,
 } from "lucide-react";
+import { InlineTranslateButton } from "./TranslateButton";
 
 interface Props {
   open: boolean;
@@ -89,7 +90,18 @@ const i18n: Record<string, Record<string, string>> = {
   dealRevenue: { th: "รายได้จากดีล", en: "Deal Revenue", jp: "ディール収益" },
   save: { th: "บันทึก", en: "Save", jp: "保存" },
   cancel: { th: "ยกเลิก", en: "Cancel", jp: "キャンセル" },
+  loading: { th: "กำลังโหลด...", en: "Loading...", jp: "読み込み中..." },
+  noLinkedUser: { th: "พนักงานนี้ยังไม่ได้ผูกบัญชีผู้ใช้", en: "This member has no linked user account", jp: "このメンバーにはリンクされたユーザーアカウントがありません" },
   deleteConfirm: { th: "ลบ KPI นี้?", en: "Delete this KPI?", jp: "このKPIを削除しますか？" },
+  // Status translations
+  todo: { th: "รอดำเนินการ", en: "Todo", jp: "未着手" },
+  in_progress: { th: "กำลังดำเนินการ", en: "In Progress", jp: "進行中" },
+  review: { th: "รอตรวจสอบ", en: "Review", jp: "レビュー" },
+  done: { th: "เสร็จแล้ว", en: "Done", jp: "完了" },
+  planning: { th: "วางแผน", en: "Planning", jp: "計画中" },
+  on_hold: { th: "ระงับชั่วคราว", en: "On Hold", jp: "保留" },
+  completed: { th: "เสร็จสมบูรณ์", en: "Completed", jp: "完了" },
+  cancelled: { th: "ยกเลิก", en: "Cancelled", jp: "キャンセル" },
   count: { th: "จำนวน", en: "count", jp: "件" },
   percent: { th: "เปอร์เซ็นต์", en: "%", jp: "%" },
   hours: { th: "ชั่วโมง", en: "hrs", jp: "時間" },
@@ -298,7 +310,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
         {/* Content */}
         <div className="overflow-y-auto" style={{ maxHeight: "calc(90vh - 200px)" }}>
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-gray-400">Loading...</div>
+            <div className="flex items-center justify-center py-12 text-gray-400">{L("loading")}</div>
           ) : tab === "info" ? (
             <div className="p-6 space-y-4">
               {/* Info rows */}
@@ -373,7 +385,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                                 <span className="text-xs px-2 py-0.5 rounded-full" style={{
                                   background: `${statusColors[alloc.projects?.status || "active"] || "#94A3B8"}20`,
                                   color: statusColors[alloc.projects?.status || "active"] || "#94A3B8",
-                                }}>{alloc.projects?.status || "active"}</span>
+                                }}>{L(alloc.projects?.status || "active") || alloc.projects?.status || "active"}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -411,7 +423,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                         <span className="text-xs px-2 py-0.5 rounded-full" style={{
                           background: `${statusColors[task.status] || "#94A3B8"}20`,
                           color: statusColors[task.status] || "#94A3B8",
-                        }}>{task.status}</span>
+                        }}>{L(task.status) || task.status}</span>
                       </div>
                     ))}
                   </div>
@@ -441,11 +453,11 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
 
               {kpiLoading ? (
                 <div className="flex items-center justify-center py-8 text-gray-400">
-                  <Loader2 size={20} className="animate-spin mr-2" /> Loading...
+                  <Loader2 size={20} className="animate-spin mr-2" /> {L("loading")}
                 </div>
               ) : !member?.user_id ? (
                 <div className="text-center text-sm text-gray-400 py-8">
-                  {lang === "th" ? "พนักงานนี้ยังไม่ได้ผูกบัญชีผู้ใช้" : "This member has no linked user account"}
+                  {L("noLinkedUser")}
                 </div>
               ) : (
                 <>
@@ -535,7 +547,10 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                             <div key={kpi.id as string} className="bg-gray-50 rounded-xl p-3.5">
                               <div className="flex items-start justify-between mb-2">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-800">{kpi.kpi_name as string}</div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-sm font-medium text-gray-800">{kpi.kpi_name as string}</span>
+                                    <InlineTranslateButton text={kpi.kpi_name as string} />
+                                  </div>
                                   <div className="flex items-center gap-2 mt-0.5">
                                     <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">{L(kpi.category as string)}</span>
                                     <span className="text-xs text-gray-400">{L("weight")}: {kpi.weight as number}</span>
