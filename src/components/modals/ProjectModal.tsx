@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Modal, { fieldLabel, fieldInput, btnPrimary, btnGhost } from "../Modal";
 import type { DBProject } from "@/lib/useData";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, X } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -28,10 +28,37 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
   const [translating, setTranslating] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
+  // Customer dropdown state
+  const [customers, setCustomers] = useState<{ id: string; company_name: string }[]>([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/api/customers").then(r => r.json()).then(d => setCustomers(d.data || d || [])).catch(() => {});
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (customerRef.current && !customerRef.current.contains(e.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filteredCustomers = customers.filter(c =>
+    c.company_name.toLowerCase().includes(customerSearch.toLowerCase())
+  );
+
   useEffect(() => {
     if (open) {
       setForm(initial ?? { status: "planning", priority: "medium", progress: 0 });
       setErr(null);
+      setCustomerSearch(initial?.client_name ?? "");
+      setShowCustomerDropdown(false);
     }
     return () => { abortRef.current?.abort(); };
   }, [open, initial]);
@@ -101,9 +128,48 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
             <label className={fieldLabel}>รหัสโครงการ</label>
             <input className={fieldInput} value={form.project_code ?? ""} onChange={(e) => set("project_code", e.target.value)} placeholder="TT-2026-001" />
           </div>
-          <div>
+          <div ref={customerRef} className="relative">
             <label className={fieldLabel}>ลูกค้า</label>
-            <input className={fieldInput} value={form.client_name ?? ""} onChange={(e) => set("client_name", e.target.value)} />
+            <div className="relative">
+              <input
+                className={fieldInput}
+                value={customerSearch}
+                onChange={(e) => {
+                  setCustomerSearch(e.target.value);
+                  setShowCustomerDropdown(true);
+                  if (!e.target.value) set("client_name", "");
+                }}
+                onFocus={() => setShowCustomerDropdown(true)}
+                placeholder="พิมพ์เพื่อค้นหาลูกค้า..."
+              />
+              {form.client_name ? (
+                <button type="button" onClick={() => { set("client_name", ""); setCustomerSearch(""); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <X size={14} />
+                </button>
+              ) : (
+                <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              )}
+            </div>
+            {showCustomerDropdown && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                {filteredCustomers.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-gray-400">ไม่พบลูกค้า</div>
+                ) : (
+                  filteredCustomers.map(c => (
+                    <button key={c.id} type="button"
+                      onClick={() => {
+                        set("client_name", c.company_name);
+                        setCustomerSearch(c.company_name);
+                        setShowCustomerDropdown(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 ${form.client_name === c.company_name ? "bg-blue-50 text-[#003087] font-medium" : "text-gray-700"}`}>
+                      {c.company_name}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4">
