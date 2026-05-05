@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "./supabase-admin";
+import { sendPushToUser, sendPushToUsers } from "./push";
 
 // Map notification type strings to preference column names
 const TYPE_TO_PREF: Record<string, string> = {
@@ -31,7 +32,7 @@ async function shouldNotify(userId: string, type: string): Promise<boolean> {
   }
 }
 
-// Insert one notification (respects preferences)
+// Insert one notification (respects preferences) + send push
 export async function notify(
   userId: string,
   title: string,
@@ -50,6 +51,13 @@ export async function notify(
       link: link || null,
       is_read: false,
     });
+    // Send push notification (fire-and-forget)
+    sendPushToUser(userId, {
+      title,
+      body: message,
+      url: link || "/",
+      tag: type,
+    }).catch(() => {});
   } catch (err) {
     console.error("notify() error:", err);
   }
@@ -91,6 +99,13 @@ export async function notifyMany(
       is_read: false,
     }));
     await supabaseAdmin.from("notifications").insert(notifications);
+    // Send push notifications (fire-and-forget)
+    sendPushToUsers(allowedIds, {
+      title,
+      body: message,
+      url: link || "/",
+      tag: type,
+    }).catch(() => {});
   } catch (err) {
     console.error("notifyMany() error:", err);
   }

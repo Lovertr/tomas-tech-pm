@@ -1,4 +1,4 @@
-const CACHE_NAME = "tomas-pm-v2";
+const CACHE_NAME = "tomas-pm-v3";
 const STATIC_ASSETS = ["/logo.png", "/logo.svg"];
 
 self.addEventListener("install", (e) => {
@@ -29,4 +29,62 @@ self.addEventListener("fetch", (e) => {
     );
   }
   // For HTML pages and JS chunks, always use network (no caching)
+});
+
+// ─── Push Notification Events ───
+self.addEventListener("push", (e) => {
+  if (!e.data) return;
+  try {
+    const data = e.data.json();
+    const options = {
+      body: data.body || "",
+      icon: data.icon || "/icon-192x192.png",
+      badge: data.badge || "/icon-72x72.png",
+      tag: data.tag || "tomas-pm",
+      data: data.data || { url: "/" },
+      vibrate: [100, 50, 100],
+      actions: [
+        { action: "open", title: "เปิดดู" },
+        { action: "dismiss", title: "ปิด" },
+      ],
+      requireInteraction: false,
+    };
+    e.waitUntil(self.registration.showNotification(data.title || "TOMAS PM", options));
+  } catch (err) {
+    console.error("Push event error:", err);
+  }
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  if (e.action === "dismiss") return;
+  const url = e.notification.data?.url || "/";
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Focus existing window if open
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      // Otherwise open new window
+      return clients.openWindow(url);
+    })
+  );
+});
+
+self.addEventListener("pushsubscriptionchange", (e) => {
+  // Re-subscribe if subscription changes
+  e.waitUntil(
+    self.registration.pushManager
+      .subscribe(e.oldSubscription?.options || { userVisibleOnly: true })
+      .then((sub) => {
+        return fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subscription: sub.toJSON() }),
+        });
+      })
+  );
 });

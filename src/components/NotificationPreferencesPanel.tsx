@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import { Bell, BellOff, CheckCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Bell, BellOff, CheckCircle, Loader2, Smartphone, Monitor } from "lucide-react";
 
 type Lang = "th" | "en" | "jp";
 
@@ -27,6 +27,16 @@ const T: Record<string, Record<Lang, string>> = {
   client_request: { th: "คำร้องจากลูกค้า (Client Portal)", en: "Client portal request", jp: "クライアントポータルリクエスト" },
   enable_all: { th: "เปิดทั้งหมด", en: "Enable all", jp: "すべてオン" },
   disable_all: { th: "ปิดทั้งหมด", en: "Disable all", jp: "すべてオフ" },
+  push_title: { th: "แจ้งเตือนบนอุปกรณ์", en: "Device Notifications", jp: "デバイス通知" },
+  push_desc: { th: "รับแจ้งเตือนแบบ Push บนมือถือและคอมพิวเตอร์", en: "Receive push notifications on your phone and computer", jp: "スマホやPCでプッシュ通知を受け取る" },
+  push_enable: { th: "เปิดแจ้งเตือนอุปกรณ์นี้", en: "Enable on this device", jp: "このデバイスで有効化" },
+  push_disable: { th: "ปิดแจ้งเตือนอุปกรณ์นี้", en: "Disable on this device", jp: "このデバイスで無効化" },
+  push_enabled: { th: "เปิดอยู่", en: "Enabled", jp: "有効" },
+  push_devices: { th: "อุปกรณ์ที่ลงทะเบียน", en: "Registered devices", jp: "登録デバイス" },
+  push_not_supported: { th: "เบราว์เซอร์ไม่รองรับ Push Notification", en: "Push notifications not supported in this browser", jp: "このブラウザはプッシュ通知に対応していません" },
+  push_denied: { th: "การแจ้งเตือนถูกบล็อก — กรุณาเปิดในการตั้งค่าเบราว์เซอร์", en: "Notifications blocked — please enable in browser settings", jp: "通知がブロックされています — ブラウザ設定で有効にしてください" },
+  push_test: { th: "ทดสอบส่ง", en: "Send test", jp: "テスト送信" },
+  push_test_sent: { th: "ส่งแจ้งเตือนทดสอบแล้ว!", en: "Test notification sent!", jp: "テスト通知を送信しました！" },
 };
 
 interface Prefs {
@@ -89,6 +99,111 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Push notification state
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushDeviceCount, setPushDeviceCount] = useState(0);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushTestSent, setPushTestSent] = useState(false);
+  const swRegRef = useRef<ServiceWorkerRegistration | null>(null);
+
+  // Check push support on mount
+  useEffect(() => {
+    const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+    setPushSupported(supported);
+    if (supported) {
+      setPushPermission(Notification.permission);
+      // Check if already subscribed
+      navigator.serviceWorker.ready.then(reg => {
+        swRegRef.current = reg;
+        return reg.pushManager.getSubscription();
+      }).then(sub => {
+        setPushSubscribed(!!sub);
+      }).catch(() => {});
+      // Get device count
+      fetch("/api/push/subscribe").then(r => r.json()).then(d => {
+        setPushDeviceCount(d.count || 0);
+      }).catch(() => {});
+    }
+  }, []);
+
+  const handlePushToggle = useCallback(async () => {
+    if (!pushSupported) return;
+    setPushLoading(true);
+    try {
+      if (pushSubscribed) {
+        // Unsubscribe
+        const reg = swRegRef.current || await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await fetch("/api/push/subscribe", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: sub.endpoint }),
+          });
+          await sub.unsubscribe();
+        }
+        setPushSubscribed(false);
+        setPushDeviceCount(c => Math.max(0, c - 1));
+      } else {
+        // Subscribe
+        const permission = await Notification.requestPermission();
+        setPushPermission(permission);
+        if (permission !== "granted") {
+          setPushLoading(false);
+          return;
+        }
+        const reg = swRegRef.current || await navigator.serviceWorker.ready;
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidKey) {
+          console.error("VAPID public key not configured");
+          setPushLoading(false);
+          return;
+        }
+        // Convert base64url to Uint8Array
+        const padding = "=".repeat((4 - (vapidKey.length % 4)) % 4);
+        const base64 = (vapidKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+        const raw = atob(base64);
+        const arr = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: arr,
+        });
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subscription: sub.toJSON() }),
+        });
+        setPushSubscribed(true);
+        setPushDeviceCount(c => c + 1);
+      }
+    } catch (err) {
+      console.error("Push toggle error:", err);
+    } finally {
+      setPushLoading(false);
+    }
+  }, [pushSupported, pushSubscribed]);
+
+  const handlePushTest = useCallback(async () => {
+    try {
+      await fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          self_test: true,
+          title: "TOMAS PM",
+          body: lang === "th" ? "ทดสอบแจ้งเตือน — ระบบทำงานปกติ!" : "Test notification — system working!",
+          url: "/",
+        }),
+      });
+      setPushTestSent(true);
+      setTimeout(() => setPushTestSent(false), 3000);
+    } catch { /* ignore */ }
+  }, [lang]);
 
   useEffect(() => {
     fetch("/api/notification-preferences")
@@ -166,6 +281,64 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
           className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition">
           {L("disable_all")}
         </button>
+      </div>
+
+      {/* Push Notifications */}
+      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden mb-5">
+        <div className="px-4 py-2.5 bg-gradient-to-r from-[#003087] to-[#0050d0] flex items-center gap-2">
+          <Smartphone className="w-4 h-4 text-white" />
+          <span className="text-sm font-semibold text-white">{L("push_title")}</span>
+        </div>
+        <div className="px-4 py-4 space-y-3">
+          <p className="text-sm text-gray-500">{L("push_desc")}</p>
+
+          {!pushSupported ? (
+            <p className="text-sm text-red-500">{L("push_not_supported")}</p>
+          ) : pushPermission === "denied" ? (
+            <p className="text-sm text-red-500">{L("push_denied")}</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Monitor className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-700">
+                    {pushSubscribed ? L("push_disable") : L("push_enable")}
+                  </span>
+                  {pushSubscribed && (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">{L("push_enabled")}</span>
+                  )}
+                </div>
+                <button
+                  onClick={handlePushToggle}
+                  disabled={pushLoading}
+                  className="relative"
+                >
+                  {pushLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-[#003087]" />
+                  ) : (
+                    <div className={`w-10 rounded-full transition-colors ${pushSubscribed ? "bg-[#003087]" : "bg-gray-200"}`}
+                      style={{ width: 40, height: 22 }}>
+                      <div className="absolute bg-white rounded-full shadow transition-transform"
+                        style={{ width: 18, height: 18, top: 2, transform: pushSubscribed ? "translateX(20px)" : "translateX(2px)" }} />
+                    </div>
+                  )}
+                </button>
+              </div>
+
+              {pushDeviceCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">{L("push_devices")}: {pushDeviceCount}</span>
+                  {pushSubscribed && (
+                    <button onClick={handlePushTest} disabled={pushTestSent}
+                      className="text-xs px-3 py-1 rounded-lg border border-[#003087] text-[#003087] hover:bg-[#003087] hover:text-white transition disabled:opacity-50">
+                      {pushTestSent ? L("push_test_sent") : L("push_test")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Categories */}
