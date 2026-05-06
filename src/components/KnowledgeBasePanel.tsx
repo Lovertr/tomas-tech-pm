@@ -222,7 +222,11 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
 
   // Helpers
   const getTitle = (a: Article) => langKey === "en" ? (a.title_en || a.title) : langKey === "jp" ? (a.title_jp || a.title) : a.title;
-  const getContent = (a: Article) => langKey === "en" ? (a.content_en || a.content) : langKey === "jp" ? (a.content_jp || a.content) : a.content;
+  const getContent = (a: Article) => {
+    const raw = langKey === "en" ? (a.content_en || a.content) : langKey === "jp" ? (a.content_jp || a.content) : a.content;
+    // Fix literal \n and \t that were stored as escaped strings
+    return raw.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+  };
   const getCatName = (c: Category | Article["category"]) => {
     if (!c) return "";
     return langKey === "en" ? (c.name_en || c.name) : langKey === "jp" ? (c.name_jp || c.name) : c.name;

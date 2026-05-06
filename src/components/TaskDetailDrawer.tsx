@@ -412,7 +412,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                       <button onClick={() => deleteComment(c.id)} className="text-red-700 hover:text-red-800"><Trash2 size={12} /></button>
                     </div>
                   </div>
-                  <div className="text-sm text-slate-100 whitespace-pre-wrap">{c.content}</div>
+                  <div className="text-sm text-gray-800 whitespace-pre-wrap">{c.content}</div>
                   <TranslateButton text={c.content} compact />
                 </div>
               ))}
