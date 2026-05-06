@@ -22,6 +22,7 @@ interface TeamMemberLite { id: string; first_name_th: string; last_name_th: stri
 interface ClientRequest {
   id: string; project_id: string; token_id?: string;
   client_name: string; client_email?: string; client_phone?: string;
+  received_by?: string; client_department?: string;
   request_type: string; title: string; description?: string;
   priority: string; status: string;
   attachments?: { url: string; name: string; type: string; size: number }[];
@@ -614,9 +615,11 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
                   )}
 
                   {/* Contact info */}
-                  <div className="flex gap-4 text-xs text-gray-500">
+                  <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                     {cr.client_email && <span className="flex items-center gap-1"><Mail size={10} />{cr.client_email}</span>}
                     {cr.client_phone && <span>{cr.client_phone}</span>}
+                    {cr.received_by && <span className="flex items-center gap-1">📥 รับเรื่องจาก: {cr.received_by}</span>}
+                    {cr.client_department && <span className="flex items-center gap-1">🏢 แผนก: {cr.client_department}</span>}
                   </div>
 
                   {/* Attachments */}

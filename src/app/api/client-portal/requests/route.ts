@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, title, description, request_type, priority, client_name, client_email, client_phone, attachments } = body;
+    const { token, title, description, request_type, priority, client_name, client_email, client_phone, received_by, client_department, attachments } = body;
 
     if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 });
     if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
         client_name: client_name || tokenData.client_name || "ลูกค้า",
         client_email: client_email || tokenData.client_email,
         client_phone: client_phone || null,
+        received_by: received_by || null,
+        client_department: client_department || null,
         request_type: request_type || "request",
         title,
         description: description || null,

@@ -83,6 +83,10 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     attachLabel: "แนบไฟล์ (รูปภาพ / วีดีโอ / เอกสาร)",
     fileTooLarge: "ไฟล์ขนาดใหญ่เกินไป (สูงสุด 50MB)",
     uploadFailed: "อัปโหลดไม่สำเร็จ",
+    receivedBy: "รับเรื่องจาก",
+    receivedByPlaceholder: "ชื่อผู้รับเรื่อง",
+    clientDepartment: "แผนกของลูกค้า",
+    clientDepartmentPlaceholder: "เช่น ฝ่ายผลิต, IT, คลังสินค้า",
     submitFailed: "ไม่สามารถส่งข้อมูลได้",
     connectionError: "ไม่สามารถเชื่อมต่อได้",
     invalidLink: "ลิงก์ไม่ถูกต้องหรือหมดอายุ",
@@ -151,6 +155,10 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     attachLabel: "Attach Files (Images / Videos / Documents)",
     fileTooLarge: "File too large (max 50MB)",
     uploadFailed: "Upload failed",
+    receivedBy: "Received By",
+    receivedByPlaceholder: "Name of person who received",
+    clientDepartment: "Customer Department",
+    clientDepartmentPlaceholder: "e.g. Production, IT, Warehouse",
     submitFailed: "Unable to submit",
     connectionError: "Unable to connect",
     invalidLink: "Invalid or expired link",
@@ -219,6 +227,10 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     attachLabel: "ファイル添付（画像・動画・ドキュメント）",
     fileTooLarge: "ファイルが大きすぎます（最大50MB）",
     uploadFailed: "アップロードに失敗しました",
+    receivedBy: "受付担当者",
+    receivedByPlaceholder: "受付担当者名",
+    clientDepartment: "お客様の部署",
+    clientDepartmentPlaceholder: "例：製造部、IT、倉庫",
     submitFailed: "送信できませんでした",
     connectionError: "接続できません",
     invalidLink: "リンクが無効または期限切れです",
@@ -1248,6 +1260,8 @@ function SubmitRequestForm({
     client_name: clientName,
     client_email: clientEmail,
     client_phone: "",
+    received_by: "",
+    client_department: "",
     request_type: "request",
     title: "",
     description: "",
@@ -1349,6 +1363,28 @@ function SubmitRequestForm({
                 type="tel" value={form.client_phone}
                 onChange={e => setForm({ ...form, client_phone: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Received By + Client Department */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.receivedBy}</label>
+              <input
+                type="text" value={form.received_by}
+                onChange={e => setForm({ ...form, received_by: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                placeholder={t.receivedByPlaceholder}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.clientDepartment}</label>
+              <input
+                type="text" value={form.client_department}
+                onChange={e => setForm({ ...form, client_department: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                placeholder={t.clientDepartmentPlaceholder}
               />
             </div>
           </div>
