@@ -6,11 +6,17 @@ export async function GET(req: NextRequest) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const status = req.nextUrl.searchParams.get("status");
-  let q = supabaseAdmin.from("customers").select("*").order("created_at", { ascending: false });
+  let q = supabaseAdmin.from("customers").select("*, customer_contacts(id)").order("created_at", { ascending: false });
   if (status && status !== "all") q = q.eq("status", status);
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ customers: data ?? [] });
+  // Map contact_count from the joined customer_contacts
+  const customers = (data ?? []).map((c: any) => ({
+    ...c,
+    contact_count: Array.isArray(c.customer_contacts) ? c.customer_contacts.length : 0,
+    customer_contacts: undefined, // remove raw join data
+  }));
+  return NextResponse.json({ customers });
 }
 
 export async function POST(req: NextRequest) {

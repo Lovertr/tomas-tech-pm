@@ -29,6 +29,8 @@ interface Customer {
   website?: string;
   notes?: string;
   contact_count?: number;
+  referral_company?: string;
+  referral_person?: string;
 }
 
 interface Contact {
@@ -170,6 +172,11 @@ const L = (key: string, lang: Lang = 'th'): string => {
     googleMapPlaceholder: { th: 'วาง Google Maps URL ที่นี่...', en: 'Paste Google Maps URL here...', jp: 'Google Maps URLをここに貼り付け...' },
     googleMapLabel: { th: 'แผนที่', en: 'Map', jp: '地図' },
     openMap: { th: 'เปิดแผนที่', en: 'Open Map', jp: '地図を開く' },
+    referralCompany: { th: 'บริษัทผู้แนะนำ', en: 'Referral Company', jp: '紹介会社' },
+    referralPerson: { th: 'ผู้แนะนำ', en: 'Referral Person', jp: '紹介者' },
+    referralCompanyPlaceholder: { th: 'ชื่อบริษัทที่แนะนำ...', en: 'Referral company name...', jp: '紹介会社名...' },
+    referralPersonPlaceholder: { th: 'ชื่อผู้แนะนำ...', en: 'Referral person name...', jp: '紹介者名...' },
+    referralInfo: { th: 'ข้อมูลผู้แนะนำ', en: 'Referral Information', jp: '紹介情報' },
     commentPlaceholder: { th: 'เขียนคอมเม้นของคุณที่นี่...', en: 'Write your comment here...', jp: 'ここにコメントを書く...' },
     submit: { th: 'ส่ง', en: 'Submit', jp: '送信' },
     translate: { th: 'แปล', en: 'Translate', jp: '翻訳' },
@@ -217,6 +224,8 @@ export default function CustomersPanel({
     website: '',
     notes: '',
     google_map_url: '',
+    referral_company: '',
+    referral_person: '',
     status: 'prospect' as 'active' | 'inactive' | 'prospect' | 'churned',
   });
 
@@ -428,6 +437,8 @@ export default function CustomersPanel({
       website: '',
       notes: '',
       google_map_url: '',
+      referral_company: '',
+      referral_person: '',
       status: 'prospect',
     });
     setSelectedCustomer(null);
@@ -445,6 +456,8 @@ export default function CustomersPanel({
       website: customer.website || '',
       notes: customer.notes || '',
       google_map_url: customer.google_map_url || '',
+      referral_company: customer.referral_company || '',
+      referral_person: customer.referral_person || '',
       status: customer.status,
     });
     setShowForm(true);
@@ -559,6 +572,7 @@ export default function CustomersPanel({
                     <p>{L('contacts', lang)} {customer.contact_count ?? 0}</p>
                     {customer.phone && <p>{L('phone', lang)} {customer.phone}</p>}
                     {customer.email && <p>{L('email', lang)} {customer.email}</p>}
+                    {customer.referral_company && <p>{L('referralCompany', lang)}: {customer.referral_company}</p>}
                   </div>
                 </div>
                 {canManage && (
@@ -721,6 +735,24 @@ export default function CustomersPanel({
                       <MapPin className="w-4 h-4" /> {L('openMap', lang)}
                     </a>
                   )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {L('referralCompany', lang)}
+                  </label>
+                  <input type="text" placeholder={L('referralCompanyPlaceholder', lang)}
+                    value={formData.referral_company}
+                    onChange={(e) => setFormData({ ...formData, referral_company: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {L('referralPerson', lang)}
+                  </label>
+                  <input type="text" placeholder={L('referralPersonPlaceholder', lang)}
+                    value={formData.referral_person}
+                    onChange={(e) => setFormData({ ...formData, referral_person: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -941,6 +973,24 @@ export default function CustomersPanel({
                             </div>
                             <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
                           </a>
+                        </div>
+                      )}
+                      {(selectedCustomer.referral_company || selectedCustomer.referral_person) && (
+                        <div className="md:col-span-2">
+                          <p className="text-xs font-medium text-gray-500 uppercase">{L('referralInfo', lang)}</p>
+                          <div className="mt-1 flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div className="flex-shrink-0 w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
+                              <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              {selectedCustomer.referral_company && (
+                                <p className="text-sm font-medium text-gray-900">{selectedCustomer.referral_company}</p>
+                              )}
+                              {selectedCustomer.referral_person && (
+                                <p className="text-sm text-gray-600">{selectedCustomer.referral_person}</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       )}
                       {selectedCustomer.notes && (
