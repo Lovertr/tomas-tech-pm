@@ -166,7 +166,7 @@ const stageKeys: Array<Deal['stage']> = [
   'quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received', 'cancelled', 'refused',
 ];
 
-const fmt = (n: number) => n.toLocaleString('en-US');
+const fmt = (n: number | null | undefined) => n != null ? n.toLocaleString('en-US') : '-';
 
 export default function DealsPipelinePanel({
   projects, members, filterProjectId, canManage = true, refreshKey = 0, lang = 'th', currentUserId, userRole,

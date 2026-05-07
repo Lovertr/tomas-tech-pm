@@ -50,7 +50,7 @@ export default function WinLossPanel({ lang }: { lang: string }) {
 
   const displayed = filter === "won" ? wonDeals : filter === "lost" ? lostDeals : closedDeals;
 
-  const fmt = (n: number) => "฿" + n.toLocaleString();
+  const fmt = (n: number | null | undefined) => "฿" + (n != null ? n.toLocaleString() : '0');
 
   return (
     <div className="space-y-6">

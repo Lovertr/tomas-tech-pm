@@ -326,7 +326,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
                 <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
                   <span className="px-2 py-0.5 bg-white/80 rounded">{stageLabel(deal.stage)}</span>
                   <span className="flex items-center gap-1"><Clock size={11} /> {deal.daysInStage} {L("days")}</span>
-                  <span className="font-medium">{"฿"}{deal.value.toLocaleString()}</span>
+                  <span className="font-medium">{"฿"}{deal.value != null ? deal.value.toLocaleString() : '-'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-600 italic flex-1">{deal.suggestion}</p>
