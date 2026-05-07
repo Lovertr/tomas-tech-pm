@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X, Briefcase, TrendingUp, MessageSquare, FileCheck, Clock, Eye, Heart, Users, DollarSign, ExternalLink } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, User, Mail, Phone, Globe, MapPin, FileText, X, Briefcase, TrendingUp, MessageSquare, FileCheck, Clock, Eye, Heart, Users, DollarSign, ExternalLink, Camera, CreditCard, Loader2, Image } from 'lucide-react';
 import type { Lang } from '@/lib/i18n';
 import TranslateButton from './TranslateButton';
 
@@ -41,6 +41,7 @@ interface Contact {
   phone?: string;
   position?: string;
   is_primary: boolean;
+  business_card_url?: string;
 }
 
 interface Deal {
@@ -249,6 +250,9 @@ export default function CustomersPanel({
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [customerProjects, setCustomerProjects] = useState<{ id: string; project_code?: string; name_th?: string; name_en?: string; status?: string; budget_limit?: number }[]>([]);
   const [customerQuotations, setCustomerQuotations] = useState<{ id: string; quotation_number?: string; title?: string; total_amount?: number; status?: string; created_at?: string }[]>([]);
+  const [scanningCard, setScanningCard] = useState(false);
+  const [uploadingCard, setUploadingCard] = useState<string | null>(null);
+  const [viewingCard, setViewingCard] = useState<{ url: string; name: string } | null>(null);
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -429,6 +433,71 @@ export default function CustomersPanel({
       }
     } catch (error) {
       console.error('Failed to add contact:', error);
+    }
+  };
+
+  const handleScanBusinessCard = async (file: File) => {
+    setScanningCard(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch('/api/ai/scan-business-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataUrl }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Failed to scan business card');
+        return;
+      }
+
+      const { contact } = await res.json();
+      if (contact) {
+        setContactFormData({
+          first_name: contact.first_name || '',
+          last_name: contact.last_name || '',
+          email: contact.email || '',
+          phone: contact.phone || '',
+          position: contact.position || '',
+          is_primary: false,
+        });
+      }
+    } catch (err) {
+      console.error('Scan business card error:', err);
+      alert('Failed to scan business card');
+    } finally {
+      setScanningCard(false);
+    }
+  };
+
+  const handleUploadBusinessCard = async (contactId: string, file: File) => {
+    if (!selectedCustomer) return;
+    setUploadingCard(contactId);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`/api/customers/${selectedCustomer.id}/contacts/${contactId}/business-card`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        setContacts(contacts.map(c => c.id === contactId ? { ...c, business_card_url: url } : c));
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Failed to upload business card');
+      }
+    } catch (err) {
+      console.error('Upload business card error:', err);
+    } finally {
+      setUploadingCard(null);
     }
   };
 
@@ -1105,6 +1174,37 @@ export default function CustomersPanel({
                                   )}
                                 </div>
                               </div>
+                              {/* Business card actions */}
+                              <div className="flex gap-1 mt-2">
+                                {contact.business_card_url && (
+                                  <button
+                                    onClick={() => setViewingCard({ url: contact.business_card_url!, name: `${contact.first_name} ${contact.last_name || ''}` })}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                                  >
+                                    <Image size={12} /> {lang === 'th' ? 'ดูนามบัตร' : 'View Card'}
+                                  </button>
+                                )}
+                                <label className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer">
+                                  {uploadingCard === contact.id ? (
+                                    <Loader2 size={12} className="animate-spin" />
+                                  ) : (
+                                    <CreditCard size={12} />
+                                  )}
+                                  {contact.business_card_url
+                                    ? (lang === 'th' ? 'เปลี่ยนนามบัตร' : 'Replace')
+                                    : (lang === 'th' ? 'แนบนามบัตร' : 'Attach Card')}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleUploadBusinessCard(contact.id, f);
+                                      e.target.value = '';
+                                    }}
+                                  />
+                                </label>
+                              </div>
                             </div>
                           </div>
                         ))
@@ -1113,6 +1213,36 @@ export default function CustomersPanel({
 
                     {showAddContact && (
                       <form onSubmit={handleAddContact} className="mt-4 p-4 bg-gray-50 rounded-lg border border-[#E2E8F0] space-y-3">
+                        {/* Scan Business Card OCR */}
+                        <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            {scanningCard ? (
+                              <Loader2 size={16} className="animate-spin text-blue-600" />
+                            ) : (
+                              <Camera size={16} className="text-blue-600" />
+                            )}
+                            <span className="text-sm font-medium text-blue-800">
+                              {scanningCard
+                                ? (lang === 'th' ? 'กำลังสแกนนามบัตร...' : 'Scanning business card...')
+                                : (lang === 'th' ? 'สแกนนามบัตร (AI OCR)' : 'Scan Business Card (AI OCR)')}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={scanningCard}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleScanBusinessCard(f);
+                                e.target.value = '';
+                              }}
+                            />
+                          </label>
+                          <p className="text-xs text-blue-600 mt-1 ml-6">
+                            {lang === 'th' ? 'ถ่ายรูปหรือเลือกรูปนามบัตร → AI จะกรอกข้อมูลให้อัตโนมัติ' : 'Take a photo or select a business card image → AI will auto-fill fields'}
+                          </p>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -1454,6 +1584,164 @@ export default function CustomersPanel({
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Business Card Viewer Modal */}
+      {viewingCard && (
+        <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4" onClick={() => setViewingCard(null)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">
+                {lang === 'th' ? 'นามบัตร' : 'Business Card'} — {viewingCard.name}
+              </h3>
+              <button onClick={() => setViewingCard(null)} className="p-1 hover:bg-gray-100 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <img
+              src={viewingCard.url}
+              alt={`Business card of ${viewingCard.name}`}
+              className="w-full rounded-lg border border-gray-200"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}                  {/* Quotations Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <FileCheck size={20} className="text-[#F7941D]" />
+                      {lang === 'th' ? 'ใบเสนอราคา' : lang === 'jp' ? '見積書' : 'Quotations'}
+                    </h3>
+                    {customerQuotations.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{lang === 'th' ? 'ไม่มีใบเสนอราคา' : 'No quotations'}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {customerQuotations.map((q: any) => (
+                          <div key={q.id} className="bg-white border border-[#E2E8F0] rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => {
+                              setShowDetail(false);
+                              if (onNavigate) onNavigate('quotations');
+                            }}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  {q.quotation_number && <span className="text-xs font-mono bg-orange-50 text-orange-700 px-2 py-0.5 rounded">{q.quotation_number}</span>}
+                                  <span className={`text-xs px-2 py-0.5 rounded ${q.status === 'accepted' ? 'bg-green-50 text-green-700' : q.status === 'rejected' ? 'bg-red-50 text-red-700' : q.status === 'sent' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    {q.status || 'draft'}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-900">{q.title || q.quotation_number || 'Untitled'}</p>
+                                {q.created_at && <p className="text-xs text-gray-500 mt-1">{new Date(q.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>}
+                              </div>
+                              {q.total_amount > 0 && (
+                                <span className="text-sm font-bold text-[#F7941D]">
+                                  {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(q.total_amount)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <MessageSquare size={20} className="text-[#003087]" />
+                    {L('comments', lang)}
+                  </h3>
+
+                  {/* Comments List */}
+                  <div className="space-y-4 mb-6">
+                    {comments.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{L('noComments', lang)}</p>
+                    ) : (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="font-medium text-gray-900">{comment.user_name || 'Anonymous'}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                          <div className="mt-2">
+                            <TranslateButton text={comment.content} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Comment Form */}
+                  {canManage && (
+                    <form onSubmit={handleAddComment} className="border-t border-[#E2E8F0] pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {L('addComment', lang)}
+                      </label>
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder={L('commentPlaceholder', lang)}
+                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                        rows={3}
+                      />
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={!newComment.trim()}
+                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {L('submit', lang)}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            {canManage && (
+              <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
+                <button
+                  onClick={() => handleEditCustomer(selectedCustomer)}
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
+                >
+                  {L('edit', lang)}
+                </button>
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
+                >
+                  {L('close', lang)}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {/* Business Card Viewer Modal */}
+      {viewingCard && (
+        <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4" onClick={() => setViewingCard(null)}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">
+                {lang === 'th' ? 'นามบัตร' : 'Business Card'} — {viewingCard.name}
+              </h3>
+              <button onClick={() => setViewingCard(null)} className="p-1 hover:bg-gray-100 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <img
+              src={viewingCard.url}
+              alt={`Business card of ${viewingCard.name}`}
+              className="w-full rounded-lg border border-gray-200"
+            />
           </div>
         </div>
       )}
