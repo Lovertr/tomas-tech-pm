@@ -110,7 +110,7 @@ const panelText: Record<string, Record<string, string>> = {
   addDeal:         { th: 'เพิ่ม Deal',                             en: 'Add Deal',                        jp: 'ディール追加' },
   searchName:      { th: 'Deal name...',                           en: 'Deal name...',                    jp: 'ディール名...' },
   searchCustomer:  { th: 'ลูกค้า...',                              en: 'Customer...',                     jp: '顧客...' },
-  searchOwner:     { th: 'ผู้รับผิดชอบ...',                         en: 'Owner...',                        jp: '担当者...' },
+  searchOwner:     { th: 'ผู้รับผิดชอบทั้งหมด',                      en: 'All Owners',                      jp: '全担当者' },
   myDeal:          { th: 'MY DEAL',                                en: 'MY DEAL',                         jp: 'MY DEAL' },
   collaborator:    { th: 'ผู้ร่วมงาน',                             en: 'Collaborator',                    jp: 'コラボレーター' },
   clickToEdit:     { th: 'Click to edit',                          en: 'Click to edit',                   jp: 'クリックして編集' },
@@ -195,7 +195,7 @@ export default function DealsPipelinePanel({
   /* --- Search / filter state --- */
   const [searchName, setSearchName] = useState('');
   const [searchCustomer, setSearchCustomer] = useState('');
-  const [searchOwner, setSearchOwner] = useState('');
+  const [searchOwnerId, setSearchOwnerId] = useState('');
 
   const [formData, setFormData] = useState({
     title: '', customer_id: '', owner_id: '', value: 0,
@@ -406,7 +406,11 @@ export default function DealsPipelinePanel({
   const filteredDeals = deals.filter((d) => {
     if (searchName && !d.title.toLowerCase().includes(searchName.toLowerCase())) return false;
     if (searchCustomer && !d.customer_name.toLowerCase().includes(searchCustomer.toLowerCase())) return false;
-    if (searchOwner && !d.owner_name?.toLowerCase().includes(searchOwner.toLowerCase())) return false;
+    if (searchOwnerId) {
+      const isOwner = d.owner_id === searchOwnerId;
+      const isCollab = searchOwnerId === currentUserId && myAcceptedDealIds.has(d.id);
+      if (!isOwner && !isCollab) return false;
+    }
     return true;
   });
 
@@ -456,8 +460,13 @@ export default function DealsPipelinePanel({
           className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
         <input type="text" placeholder={L('searchCustomer')} value={searchCustomer} onChange={(e) => setSearchCustomer(e.target.value)}
           className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
-        <input type="text" placeholder={L('searchOwner')} value={searchOwner} onChange={(e) => setSearchOwner(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
+        <select value={searchOwnerId} onChange={(e) => setSearchOwnerId(e.target.value)}
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-44 focus:ring-2 focus:ring-[#003087]">
+          <option value="">{L('searchOwner')}</option>
+          {allMembers.map((m) => (
+            <option key={m.id} value={m.id}>{m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`}</option>
+          ))}
+        </select>
         <button onClick={() => {}} className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"><Search size={16} /></button>
         <span className="text-sm text-gray-500 ml-1">{filteredDeals.length}/{deals.length}</span>
       </div>
