@@ -29,6 +29,7 @@ interface Customer {
   website?: string;
   notes?: string;
   contact_count?: number;
+  contact_names?: string[];
   referral_company?: string;
   referral_person?: string;
 }
@@ -142,7 +143,7 @@ const L = (key: string, lang: Lang = 'th'): string => {
     total: { th: 'ทั้งหมด', en: 'Total', jp: '合計' },
     activeCustomers: { th: 'ลูกค้าใช้งาน', en: 'Active Customers', jp: 'アクティブな顧客' },
     prospects: { th: 'ผู้สนใจ', en: 'Prospects', jp: '見込み客' },
-    searchPlaceholder: { th: 'ค้นหาชื่อบริษัท...', en: 'Search company name...', jp: '会社名を検索...' },
+    searchPlaceholder: { th: 'ค้นหาชื่อบริษัท / ผู้ติดต่อ...', en: 'Search company / contact name...', jp: '会社名・連絡先を検索...' },
     all: { th: 'ทั้งหมด', en: 'All', jp: 'すべて' },
     loading: { th: 'กำลังโหลด...', en: 'Loading...', jp: '読み込み中...' },
     noCustomers: { th: 'ไม่พบลูกค้า', en: 'No customers found', jp: '顧客が見つかりません' },
@@ -253,6 +254,7 @@ export default function CustomersPanel({
   const [scanningCard, setScanningCard] = useState(false);
   const [uploadingCard, setUploadingCard] = useState<string | null>(null);
   const [viewingCard, setViewingCard] = useState<{ url: string; name: string } | null>(null);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -309,10 +311,15 @@ export default function CustomersPanel({
     }
 
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(c =>
-        c.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+        c.company_name.toLowerCase().includes(term) ||
+        (c.contact_names ?? []).some(name => name.toLowerCase().includes(term))
       );
     }
+
+    // Sort alphabetically A-Z
+    filtered = [...filtered].sort((a, b) => a.company_name.localeCompare(b.company_name));
 
     setFilteredCustomers(filtered);
   };
@@ -434,6 +441,64 @@ export default function CustomersPanel({
     } catch (error) {
       console.error('Failed to add contact:', error);
     }
+  };
+
+  const handleEditContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomer || !editingContact) return;
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomer.id}/contacts`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: editingContact.id,
+          first_name: contactFormData.first_name,
+          last_name: contactFormData.last_name,
+          email: contactFormData.email,
+          phone: contactFormData.phone,
+          position: contactFormData.position,
+          is_primary: contactFormData.is_primary,
+        }),
+      });
+      if (res.ok) {
+        const { contact } = await res.json();
+        setContacts(contacts.map(c => c.id === contact.id ? contact : c));
+        setEditingContact(null);
+        setContactFormData({ first_name: '', last_name: '', email: '', phone: '', position: '', is_primary: false });
+      }
+    } catch (error) {
+      console.error('Failed to update contact:', error);
+    }
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    if (!selectedCustomer) return;
+    if (!confirm(lang === 'th' ? 'ยืนยันการลบผู้ติดต่อ?' : 'Confirm delete contact?')) return;
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomer.id}/contacts`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contactId }),
+      });
+      if (res.ok) {
+        setContacts(contacts.filter(c => c.id !== contactId));
+      }
+    } catch (error) {
+      console.error('Failed to delete contact:', error);
+    }
+  };
+
+  const startEditContact = (contact: Contact) => {
+    setEditingContact(contact);
+    setContactFormData({
+      first_name: contact.first_name,
+      last_name: contact.last_name || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+      position: contact.position || '',
+      is_primary: contact.is_primary,
+    });
+    setShowAddContact(false);
   };
 
   const handleScanBusinessCard = async (file: File) => {
@@ -1174,8 +1239,24 @@ export default function CustomersPanel({
                                   )}
                                 </div>
                               </div>
-                              {/* Business card actions */}
-                              <div className="flex gap-1 mt-2">
+                              {/* Edit / Delete / Business card actions */}
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {canManage && (
+                                  <>
+                                    <button
+                                      onClick={() => startEditContact(contact)}
+                                      className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                                    >
+                                      <Edit2 size={12} /> {lang === 'th' ? 'แก้ไข' : 'Edit'}
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteContact(contact.id)}
+                                      className="flex items-center gap-1 px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100"
+                                    >
+                                      <Trash2 size={12} /> {lang === 'th' ? 'ลบ' : 'Del'}
+                                    </button>
+                                  </>
+                                )}
                                 {contact.business_card_url && (
                                   <button
                                     onClick={() => setViewingCard({ url: contact.business_card_url!, name: `${contact.first_name} ${contact.last_name || ''}` })}
@@ -1211,7 +1292,57 @@ export default function CustomersPanel({
                       )}
                     </div>
 
-                    {showAddContact && (
+                    {/* Edit Contact Form */}
+                    {editingContact && (
+                      <form onSubmit={handleEditContact} className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-300 space-y-3">
+                        <p className="text-sm font-semibold text-yellow-800">{lang === 'th' ? 'แก้ไขผู้ติดต่อ' : 'Edit Contact'}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">{L('name', lang)}</label>
+                            <input type="text" required value={contactFormData.first_name}
+                              onChange={(e) => setContactFormData({ ...contactFormData, first_name: e.target.value })}
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">{lang === 'th' ? 'นามสกุล' : 'Last Name'}</label>
+                            <input type="text" value={contactFormData.last_name}
+                              onChange={(e) => setContactFormData({ ...contactFormData, last_name: e.target.value })}
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">{L('emailRequired', lang)}</label>
+                          <input type="email" value={contactFormData.email}
+                            onChange={(e) => setContactFormData({ ...contactFormData, email: e.target.value })}
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">{L('phoneOptional', lang)}</label>
+                          <input type="tel" value={contactFormData.phone}
+                            onChange={(e) => setContactFormData({ ...contactFormData, phone: e.target.value })}
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">{L('position', lang)}</label>
+                          <input type="text" value={contactFormData.position}
+                            onChange={(e) => setContactFormData({ ...contactFormData, position: e.target.value })}
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                        </div>
+                        <label className="flex items-center gap-2 text-sm text-gray-700">
+                          <input type="checkbox" checked={contactFormData.is_primary}
+                            onChange={(e) => setContactFormData({ ...contactFormData, is_primary: e.target.checked })}
+                            className="rounded" />
+                          {L('isPrimary', lang)}
+                        </label>
+                        <div className="flex gap-2">
+                          <button type="submit" className="flex-1 px-3 py-2 bg-[#F7941D] hover:bg-[#E8850A] text-white rounded text-sm font-medium">{L('save', lang)}</button>
+                          <button type="button" onClick={() => { setEditingContact(null); setContactFormData({ first_name: '', last_name: '', email: '', phone: '', position: '', is_primary: false }); }}
+                            className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded text-sm font-medium">{L('cancel', lang)}</button>
+                        </div>
+                      </form>
+                    )}
+
+                    {showAddContact && !editingContact && (
                       <form onSubmit={handleAddContact} className="mt-4 p-4 bg-gray-50 rounded-lg border border-[#E2E8F0] space-y-3">
                         {/* Scan Business Card OCR */}
                         <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">

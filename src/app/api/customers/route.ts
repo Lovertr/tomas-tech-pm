@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const ctx = await getAuthContext(req);
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const status = req.nextUrl.searchParams.get("status");
-  let q = supabaseAdmin.from("customers").select("*, customer_contacts(id)").order("created_at", { ascending: false });
+  let q = supabaseAdmin.from("customers").select("*, customer_contacts(id, first_name, last_name)").order("company_name", { ascending: true });
   if (status && status !== "all") q = q.eq("status", status);
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -14,6 +14,9 @@ export async function GET(req: NextRequest) {
   const customers = (data ?? []).map((c: any) => ({
     ...c,
     contact_count: Array.isArray(c.customer_contacts) ? c.customer_contacts.length : 0,
+    contact_names: Array.isArray(c.customer_contacts)
+      ? c.customer_contacts.map((ct: any) => `${ct.first_name || ''} ${ct.last_name || ''}`.trim()).filter(Boolean)
+      : [],
     customer_contacts: undefined, // remove raw join data
   }));
   return NextResponse.json({ customers });

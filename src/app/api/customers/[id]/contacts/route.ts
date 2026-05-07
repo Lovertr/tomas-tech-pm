@@ -22,3 +22,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ contact: data }, { status: 201 });
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  await params; // consume params
+  const body = await req.json();
+  const { contactId, ...updates } = body;
+  if (!contactId) return NextResponse.json({ error: "contactId required" }, { status: 400 });
+  const { data, error } = await supabaseAdmin.from("customer_contacts")
+    .update(updates).eq("id", contactId).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ contact: data });
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ctx = await getAuthContext(req);
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  await params;
+  const { contactId } = await req.json();
+  if (!contactId) return NextResponse.json({ error: "contactId required" }, { status: 400 });
+  const { error } = await supabaseAdmin.from("customer_contacts").delete().eq("id", contactId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
