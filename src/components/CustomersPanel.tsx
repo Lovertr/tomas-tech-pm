@@ -97,6 +97,42 @@ const getTextColorForBackground = (bgColor: string): string => {
   return '#FFFFFF';
 };
 
+// Thai standard industry categories
+type IndustryOption = { value: string; th: string; en: string; jp: string };
+const INDUSTRY_OPTIONS: IndustryOption[] = [
+  { value: '', th: '-- เลือกสาขาอุตสาหกรรม --', en: '-- Select Industry --', jp: '-- 業界を選択 --' },
+  { value: 'ยานยนต์', th: 'ยานยนต์', en: 'Automotive', jp: '自動車' },
+  { value: 'อะไหล่รถยนต์', th: 'อะไหล่รถยนต์', en: 'Auto Parts', jp: '自動車部品' },
+  { value: 'อิเล็กทรอนิกส์', th: 'อิเล็กทรอนิกส์', en: 'Electronics', jp: '電子機器' },
+  { value: 'เครื่องใช้ไฟฟ้า', th: 'เครื่องใช้ไฟฟ้า', en: 'Electrical Appliances', jp: '電気機器' },
+  { value: 'อาหารและเครื่องดื่ม', th: 'อาหารและเครื่องดื่ม', en: 'Food & Beverage', jp: '食品・飲料' },
+  { value: 'เคมีภัณฑ์', th: 'เคมีภัณฑ์', en: 'Chemicals', jp: '化学製品' },
+  { value: 'ปิโตรเคมี', th: 'ปิโตรเคมี', en: 'Petrochemical', jp: '石油化学' },
+  { value: 'พลาสติก', th: 'พลาสติก', en: 'Plastics', jp: 'プラスチック' },
+  { value: 'ยางพารา', th: 'ยางพารา', en: 'Rubber', jp: 'ゴム' },
+  { value: 'โลหะและเหล็ก', th: 'โลหะและเหล็ก', en: 'Metal & Steel', jp: '金属・鉄鋼' },
+  { value: 'เครื่องจักรกล', th: 'เครื่องจักรกล', en: 'Machinery', jp: '機械' },
+  { value: 'แม่พิมพ์', th: 'แม่พิมพ์', en: 'Mold & Die', jp: '金型' },
+  { value: 'บรรจุภัณฑ์', th: 'บรรจุภัณฑ์', en: 'Packaging', jp: '包装' },
+  { value: 'สิ่งทอและเครื่องนุ่งห่ม', th: 'สิ่งทอและเครื่องนุ่งห่ม', en: 'Textile & Garment', jp: '繊維・衣料' },
+  { value: 'เฟอร์นิเจอร์และไม้', th: 'เฟอร์นิเจอร์และไม้', en: 'Furniture & Wood', jp: '家具・木材' },
+  { value: 'วัสดุก่อสร้าง', th: 'วัสดุก่อสร้าง', en: 'Construction Materials', jp: '建設資材' },
+  { value: 'เซรามิกและแก้ว', th: 'เซรามิกและแก้ว', en: 'Ceramics & Glass', jp: 'セラミック・ガラス' },
+  { value: 'กระดาษและการพิมพ์', th: 'กระดาษและการพิมพ์', en: 'Paper & Printing', jp: '紙・印刷' },
+  { value: 'เวชภัณฑ์และการแพทย์', th: 'เวชภัณฑ์และการแพทย์', en: 'Pharmaceutical & Medical', jp: '医薬品・医療' },
+  { value: 'พลังงาน', th: 'พลังงาน', en: 'Energy', jp: 'エネルギー' },
+  { value: 'โลจิสติกส์และขนส่ง', th: 'โลจิสติกส์และขนส่ง', en: 'Logistics & Transportation', jp: '物流・輸送' },
+  { value: 'เกษตรและอาหารสัตว์', th: 'เกษตรและอาหารสัตว์', en: 'Agriculture & Animal Feed', jp: '農業・飼料' },
+  { value: 'เทคโนโลยีสารสนเทศ', th: 'เทคโนโลยีสารสนเทศ', en: 'Information Technology', jp: '情報技術' },
+  { value: 'อื่นๆ', th: 'อื่นๆ', en: 'Others', jp: 'その他' },
+];
+
+const getIndustryLabel = (opt: IndustryOption, lang: Lang): string => opt[lang] || opt.th;
+const getIndustryByValue = (value: string, lang: Lang): string => {
+  const found = INDUSTRY_OPTIONS.find(o => o.value === value);
+  return found ? found[lang] || found.th : value;
+};
+
 const L = (key: string, lang: Lang = 'th'): string => {
   const panelText: Record<string, Record<Lang, string>> = {
     title: { th: 'ลูกค้า', en: 'Customers', jp: '顧客' },
@@ -568,7 +604,7 @@ export default function CustomersPanel({
                     </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-500 mb-2">
-                    {customer.industry && <p>{L('industry', lang)} {customer.industry}</p>}
+                    {customer.industry && <p>{L('industry', lang)} {getIndustryByValue(customer.industry, lang)}</p>}
                     <p>{L('contacts', lang)} {customer.contact_count ?? 0}</p>
                     {customer.phone && <p>{L('phone', lang)} {customer.phone}</p>}
                     {customer.email && <p>{L('email', lang)} {customer.email}</p>}
@@ -642,12 +678,21 @@ export default function CustomersPanel({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {L('industryField', lang)}
                   </label>
-                  <input
-                    type="text"
-                    value={formData.industry}
-                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                  <select
+                    value={INDUSTRY_OPTIONS.some(o => o.value === formData.industry) ? formData.industry : '__custom__'}
+                    onChange={(e) => {
+                      if (e.target.value === '__custom__') return;
+                      setFormData({ ...formData, industry: e.target.value });
+                    }}
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
-                  />
+                  >
+                    {INDUSTRY_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{getIndustryLabel(opt, lang)}</option>
+                    ))}
+                    {formData.industry && !INDUSTRY_OPTIONS.some(o => o.value === formData.industry) && (
+                      <option value="__custom__">{formData.industry}</option>
+                    )}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -817,7 +862,7 @@ export default function CustomersPanel({
                       {L(selectedCustomer.status, lang)}
                     </span>
                     {selectedCustomer.industry && (
-                      <span className="text-sm text-gray-600">{selectedCustomer.industry}</span>
+                      <span className="text-sm text-gray-600">{getIndustryByValue(selectedCustomer.industry!, lang)}</span>
                     )}
                   </div>
                 </div>
@@ -914,7 +959,7 @@ export default function CustomersPanel({
                       {selectedCustomer.industry && (
                         <div>
                           <p className="text-xs font-medium text-gray-500 uppercase">{L('industryField', lang)}</p>
-                          <p className="mt-1 text-gray-900">{selectedCustomer.industry}</p>
+                          <p className="mt-1 text-gray-900">{getIndustryByValue(selectedCustomer.industry!, lang)}</p>
                         </div>
                       )}
                       {selectedCustomer.tax_id && (
@@ -1317,6 +1362,203 @@ export default function CustomersPanel({
                                 <div className="flex items-center gap-2 mb-1">
                                   {q.quotation_number && <span className="text-xs font-mono bg-orange-50 text-orange-700 px-2 py-0.5 rounded">{q.quotation_number}</span>}
                                   <span className={`text-xs px-2 py-0.5 rounded ${q.status === 'accepted' ? 'bg-green-50 text-green-700' : q.status === 'rejected' ? 'bg-red-50 text-red-700' : q.status === 'sent' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    {q.status || 'draft'}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-900">{q.title || q.quotation_number || 'Untitled'}</p>
+                                {q.created_at && <p className="text-xs text-gray-500 mt-1">{new Date(q.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>}
+                              </div>
+                              {q.total_amount > 0 && (
+                                <span className="text-sm font-bold text-[#F7941D]">
+                                  {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(q.total_amount)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <MessageSquare size={20} className="text-[#003087]" />
+                    {L('comments', lang)}
+                  </h3>
+
+                  {/* Comments List */}
+                  <div className="space-y-4 mb-6">
+                    {comments.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{L('noComments', lang)}</p>
+                    ) : (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="font-medium text-gray-900">{comment.user_name || 'Anonymous'}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                          <div className="mt-2">
+                            <TranslateButton text={comment.content} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Comment Form */}
+                  {canManage && (
+                    <form onSubmit={handleAddComment} className="border-t border-[#E2E8F0] pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {L('addComment', lang)}
+                      </label>
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder={L('commentPlaceholder', lang)}
+                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                        rows={3}
+                      />
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={!newComment.trim()}
+                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {L('submit', lang)}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            {canManage && (
+              <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
+                <button
+                  onClick={() => handleEditCustomer(selectedCustomer)}
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
+                >
+                  {L('edit', lang)}
+                </button>
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
+                >
+                  {L('close', lang)}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}}>
+                                    {q.status || 'draft'}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-gray-900">{q.title || q.quotation_number || 'Untitled'}</p>
+                                {q.created_at && <p className="text-xs text-gray-500 mt-1">{new Date(q.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>}
+                              </div>
+                              {q.total_amount > 0 && (
+                                <span className="text-sm font-bold text-[#F7941D]">
+                                  {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(q.total_amount)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <MessageSquare size={20} className="text-[#003087]" />
+                    {L('comments', lang)}
+                  </h3>
+
+                  {/* Comments List */}
+                  <div className="space-y-4 mb-6">
+                    {comments.length === 0 ? (
+                      <p className="text-gray-500 text-sm">{L('noComments', lang)}</p>
+                    ) : (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="bg-gray-50 rounded-lg border border-[#E2E8F0] p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="font-medium text-gray-900">{comment.user_name || 'Anonymous'}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}
+                            </p>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                          <div className="mt-2">
+                            <TranslateButton text={comment.content} />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Comment Form */}
+                  {canManage && (
+                    <form onSubmit={handleAddComment} className="border-t border-[#E2E8F0] pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {L('addComment', lang)}
+                      </label>
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder={L('commentPlaceholder', lang)}
+                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                        rows={3}
+                      />
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={!newComment.trim()}
+                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {L('submit', lang)}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            {canManage && (
+              <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
+                <button
+                  onClick={() => handleEditCustomer(selectedCustomer)}
+                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
+                >
+                  {L('edit', lang)}
+                </button>
+                <button
+                  onClick={() => setShowDetail(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
+                >
+                  {L('close', lang)}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+>
                                     {q.status || 'draft'}
                                   </span>
                                 </div>
