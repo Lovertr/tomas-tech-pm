@@ -8,10 +8,26 @@ export async function GET(req: NextRequest) {
 
   const ownerId = req.nextUrl.searchParams.get("owner_id"); // optional filter
 
+  // If filtering by owner, also get their accepted collaborator deal IDs
+  let collabDealIds: string[] = [];
+  if (ownerId) {
+    const { data: collabs } = await supabaseAdmin.from("deal_collaborators")
+      .select("deal_id")
+      .eq("user_id", ownerId)
+      .eq("status", "accepted");
+    collabDealIds = (collabs ?? []).map(c => c.deal_id);
+  }
+
   // Deals with owner info
   let dealsQuery = supabaseAdmin.from("deals")
     .select("id, title, stage, value, probability, created_at, actual_close_date, expected_close_date, customer_id, owner_id, customers(id, company_name, industry), owner:app_users!deals_owner_id_fkey(id, display_name)");
-  if (ownerId) dealsQuery = dealsQuery.eq("owner_id", ownerId);
+  if (ownerId) {
+    if (collabDealIds.length > 0) {
+      dealsQuery = dealsQuery.or(`owner_id.eq.${ownerId},id.in.(${collabDealIds.join(',')})`);
+    } else {
+      dealsQuery = dealsQuery.eq("owner_id", ownerId);
+    }
+  }
   const { data: deals } = await dealsQuery;
   const stageCount: Record<string, number> = {};
   const stageValue: Record<string, number> = {};
@@ -40,14 +56,26 @@ export async function GET(req: NextRequest) {
   let actQuery = supabaseAdmin.from("deal_activities")
     .select("*, performer:app_users!performed_by(id, display_name, email), deals(id, title)")
     .order("activity_date", { ascending: false }).limit(100);
-  if (ownerId) actQuery = actQuery.eq("performed_by", ownerId);
+  if (ownerId) {
+    if (collabDealIds.length > 0) {
+      actQuery = actQuery.or(`performed_by.eq.${ownerId},deal_id.in.(${collabDealIds.join(',')})`);
+    } else {
+      actQuery = actQuery.eq("performed_by", ownerId);
+    }
+  }
   const { data: activities } = await actQuery;
 
   // Top customers by deal value
   let custQuery = supabaseAdmin.from("deals")
     .select("customer_id, value, customers(id, company_name)")
     .in("stage", ["po_received", "payment_received"]);
-  if (ownerId) custQuery = custQuery.eq("owner_id", ownerId);
+  if (ownerId) {
+    if (collabDealIds.length > 0) {
+      custQuery = custQuery.or(`owner_id.eq.${ownerId},id.in.(${collabDealIds.join(',')})`);
+    } else {
+      custQuery = custQuery.eq("owner_id", ownerId);
+    }
+  }
   const { data: topCustomers } = await custQuery;
   const custMap: Record<string, { name: string; total: number; count: number }> = {};
   (topCustomers ?? []).forEach(d => {
