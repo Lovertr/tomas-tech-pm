@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Lang } from '@/lib/i18n';
 import {
   Plus,
@@ -391,6 +391,17 @@ export default function SalesActivitiesPanel({
     date: new Date().toISOString().split('T')[0],
     audio_url: '',
   });
+  const [dealSearchText, setDealSearchText] = useState('');
+  const [dealDropdownOpen, setDealDropdownOpen] = useState(false);
+  const dealDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dealDropdownRef.current && !dealDropdownRef.current.contains(e.target as Node)) setDealDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchActivities();
@@ -1036,18 +1047,42 @@ export default function SalesActivitiesPanel({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.dealLabel')}
                 </label>
-                <select
-                  value={formData.deal_id}
-                  onChange={(e) => setFormData({ ...formData, deal_id: e.target.value })}
-                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
-                >
-                  <option value="">{L('form.noDeal')}</option>
-                  {deals.map((deal) => (
-                    <option key={deal.id} value={deal.id}>
-                      {deal.title} - {deal.customer_name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative" ref={dealDropdownRef}>
+                  <input
+                    type="text"
+                    placeholder={formData.deal_id ? (deals.find(d => d.id === formData.deal_id)?.title + ' - ' + deals.find(d => d.id === formData.deal_id)?.customer_name) : L('form.noDeal')}
+                    value={dealDropdownOpen ? dealSearchText : (formData.deal_id ? (deals.find(d => d.id === formData.deal_id)?.title + ' - ' + deals.find(d => d.id === formData.deal_id)?.customer_name) || '' : '')}
+                    onChange={(e) => { setDealSearchText(e.target.value); setDealDropdownOpen(true); }}
+                    onFocus={() => { setDealDropdownOpen(true); setDealSearchText(''); }}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600 pr-8"
+                  />
+                  {formData.deal_id && (
+                    <button type="button" onClick={() => { setFormData({ ...formData, deal_id: '' }); setDealSearchText(''); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+                  )}
+                  {dealDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div
+                        className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => { setFormData({ ...formData, deal_id: '' }); setDealDropdownOpen(false); setDealSearchText(''); }}
+                      >{L('form.noDeal')}</div>
+                      {deals
+                        .filter(d => {
+                          if (!dealSearchText) return true;
+                          const q = dealSearchText.toLowerCase();
+                          return d.title.toLowerCase().includes(q) || d.customer_name.toLowerCase().includes(q);
+                        })
+                        .slice(0, 50)
+                        .map(deal => (
+                          <div key={deal.id}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 ${formData.deal_id === deal.id ? 'bg-blue-100 font-medium text-blue-800' : 'text-gray-800'}`}
+                            onClick={() => { setFormData({ ...formData, deal_id: deal.id }); setDealDropdownOpen(false); setDealSearchText(''); }}
+                          >{deal.title} - {deal.customer_name}</div>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Customer Dropdown - Optional */}
