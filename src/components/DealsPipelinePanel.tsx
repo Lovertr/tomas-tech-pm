@@ -402,6 +402,18 @@ export default function DealsPipelinePanel({
     setShowForm(true);
   };
 
+  // Track accepted collaborator deal IDs (must be before filteredDeals)
+  const [myAcceptedDealIds, setMyAcceptedDealIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const fetchMyCollabs = async () => {
+      try {
+        const res = await fetch('/api/deals/my-collaborations');
+        if (res.ok) { const json = await res.json(); setMyAcceptedDealIds(new Set((json.deal_ids ?? []) as string[])); }
+      } catch (e) { console.error(e); }
+    };
+    fetchMyCollabs();
+  }, [refreshKey]);
+
   /* --- Filtering --- */
   const filteredDeals = deals.filter((d) => {
     if (searchName && !d.title.toLowerCase().includes(searchName.toLowerCase())) return false;
@@ -421,19 +433,6 @@ export default function DealsPipelinePanel({
 
   const isMyDeal = (deal: Deal) => currentUserId ? deal.owner_id === currentUserId : false;
   const isAdminManager = userRole === 'admin' || userRole === 'manager';
-
-  // Track accepted collaborator deal IDs
-  const [myAcceptedDealIds, setMyAcceptedDealIds] = useState<Set<string>>(new Set());
-  useEffect(() => {
-    const fetchMyCollabs = async () => {
-      try {
-        const res = await fetch('/api/deals/my-collaborations');
-        if (res.ok) { const json = await res.json(); setMyAcceptedDealIds(new Set((json.deal_ids ?? []) as string[])); }
-      } catch (e) { console.error(e); }
-    };
-    fetchMyCollabs();
-  }, [refreshKey]);
-
   const isMyCollab = (deal: Deal) => myAcceptedDealIds.has(deal.id);
   const canEditDeal = (deal: Deal) => isAdminManager || isMyDeal(deal) || isMyCollab(deal);
 
