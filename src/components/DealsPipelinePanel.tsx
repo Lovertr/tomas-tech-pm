@@ -463,9 +463,14 @@ export default function DealsPipelinePanel({
         <select value={searchOwnerId} onChange={(e) => setSearchOwnerId(e.target.value)}
           className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-44 focus:ring-2 focus:ring-[#003087]">
           <option value="">{L('searchOwner')}</option>
-          {allMembers.map((m) => (
-            <option key={m.id} value={m.id}>{m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`}</option>
-          ))}
+          {(() => {
+            const ownerMap = new Map<string, string>();
+            deals.forEach(d => { if (d.owner_id && d.owner_name) ownerMap.set(d.owner_id, d.owner_name); });
+            allMembers.forEach(m => { if (!ownerMap.has(m.id)) ownerMap.set(m.id, m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`); });
+            return Array.from(ownerMap.entries()).sort((a, b) => a[1].localeCompare(b[1])).map(([id, name]) => (
+              <option key={id} value={id}>{name}</option>
+            ));
+          })()}
         </select>
         <button onClick={() => {}} className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"><Search size={16} /></button>
         <span className="text-sm text-gray-500 ml-1">{filteredDeals.length}/{deals.length}</span>
