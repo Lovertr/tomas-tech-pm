@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthContext } from "@/lib/auth-server";
 
-const ALLOWED = ["deal_id", "customer_id", "activity_type", "subject", "activity_date", "audio_url", "description", "notes", "participants", "next_action", "next_action_date"];
+const ALLOWED = ["deal_id", "customer_id", "activity_type", "subject", "activity_date", "audio_url", "description", "notes", "participants", "next_action", "next_action_date", "action_items", "attachments"];
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await getAuthContext(req);
@@ -24,3 +24,4 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
 }
+

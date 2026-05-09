@@ -33,17 +33,35 @@ Meeting notes:
 ${raw}
 """`;
 
-    const text = await aiCall(prompt, { model: "sonnet", system: sys, lang, maxTokens: 1500, json: true });
-    const parsed = safeParseJson<{
+    type ExtractResult = {
       summary?: string;
       action_items?: Array<{ text: string; owner?: string | null; due_date?: string | null }>;
       decisions?: string[];
       risks?: string[];
       change_requests?: string[];
-    }>(text);
+    };
+
+    // Try up to 2 times with different models
+    let parsed: ExtractResult | null = null;
+    let lastRaw = "";
+    for (const model of ["sonnet", "haiku"] as const) {
+      try {
+        const text = await aiCall(prompt, { model, system: sys, lang, maxTokens: 1500, json: true });
+        lastRaw = text;
+        parsed = safeParseJson<ExtractResult>(text);
+        if (parsed) break;
+      } catch { /* try next model */ }
+    }
 
     if (!parsed) {
-      return NextResponse.json({ error: "AI returned non-JSON", raw: text }, { status: 502 });
+      // Fallback: return the raw text as summary with empty arrays
+      return NextResponse.json({
+        summary: lastRaw || "ไม่สามารถวิเคราะห์ได้ — ข้อมูลอาจสั้นเกินไป",
+        action_items: [],
+        decisions: [],
+        risks: [],
+        change_requests: [],
+      });
     }
     return NextResponse.json({
       summary: parsed.summary ?? "",
@@ -60,3 +78,4 @@ ${raw}
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }
+

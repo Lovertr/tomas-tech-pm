@@ -398,10 +398,14 @@ export default function SalesActivitiesPanel({
     date: new Date().toISOString().split('T')[0],
     audio_url: '',
     participants: [] as string[],
+    action_items: [] as Array<{text: string; done: boolean}>,
+    attachments: [] as Array<{name: string; url: string; type: string; size: number}>,
   });
   const [isPlayingSegments, setIsPlayingSegments] = useState(false);
   const segmentAudioRef = useRef<HTMLAudioElement | null>(null);
   const [participantInput, setParticipantInput] = useState('');
+  const [actionItemInput, setActionItemInput] = useState('');
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [participantDropdownOpen, setParticipantDropdownOpen] = useState(false);
   const participantDropdownRef = useRef<HTMLDivElement>(null);
   const [dealSearchText, setDealSearchText] = useState('');
@@ -441,6 +445,8 @@ export default function SalesActivitiesPanel({
         date: editingActivity.date ? editingActivity.date.split('T')[0] : new Date().toISOString().split('T')[0],
         audio_url: '',
         participants: editingActivity.participants ?? [],
+        action_items: (editingActivity as any).action_items ?? [],
+        attachments: (editingActivity as any).attachments ?? [],
       });
       // Set customer search text for display
       if (editingActivity.customer_id) {
@@ -556,6 +562,8 @@ export default function SalesActivitiesPanel({
           activity_date: formData.date,
           audio_url: formData.audio_url || null,
           participants: formData.participants.length > 0 ? formData.participants : null,
+          action_items: formData.action_items.length > 0 ? formData.action_items : null,
+          attachments: formData.attachments.length > 0 ? formData.attachments : null,
         }),
       });
 
@@ -594,8 +602,11 @@ export default function SalesActivitiesPanel({
       date: new Date().toISOString().split('T')[0],
       audio_url: '',
       participants: [],
+      action_items: [],
+      attachments: [],
     });
     setParticipantInput('');
+    setActionItemInput('');
     setCustomerSearchText('');
     setCustomerDropdownOpen(false);
     setAudioBlob(null);
@@ -662,58 +673,77 @@ export default function SalesActivitiesPanel({
   const handleUploadAudio = async (file: File) => {
     try {
       setUploading(true);
+      // Always show preview immediately
+      const previewUrl = URL.createObjectURL(file);
+      setAudioPreviewUrl(previewUrl);
+      setUploadedFile({ name: file.name, url: '' });
+
       const size = file.size;
 
       if (size <= DIRECT_UPLOAD_LIMIT) {
-        // Direct upload
-        const formData = new FormData();
-        formData.append('audio', file);
-        const res = await fetch('/api/ai/transcribe-audio', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const json = await safeFetchJson(res);
-        if (json?.transcript) {
-          setFormData((prev) => ({
-            ...prev,
-            transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript,
-          }));
-          setAudioPreviewUrl(URL.createObjectURL(file));
-          setUploadedFile({ name: file.name, url: '' });
-        }
-      } else {
-        // Upload to Supabase first
-        const { data, error } = await supabase.storage
-          .from('deal-activity-audio')
-          .upload(`${Date.now()}-${file.name}`, file);
-
-        if (error) throw error;
-        if (data) {
-          const { data: publicUrl } = supabase.storage
-            .from('deal-activity-audio')
-            .getPublicUrl(data.path);
-
-          const res = await fetch('/api/ai/transcribe-audio-url', {
+        // Direct transcribe (small file)
+        const fd = new FormData();
+        fd.append('audio', file);
+        try {
+          const res = await fetch('/api/ai/transcribe-audio', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ audio_url: publicUrl.publicUrl }),
+            body: fd,
           });
-
           const json = await safeFetchJson(res);
           if (json?.transcript) {
             setFormData((prev) => ({
               ...prev,
               transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript,
-              audio_url: publicUrl.publicUrl,
             }));
-            setAudioPreviewUrl(URL.createObjectURL(file));
-            setUploadedFile({ name: file.name, url: publicUrl.publicUrl });
+          } else if (json?.error) {
+            alert(lang === 'th' ? `แปลงเสียงไม่สำเร็จ: ${json.error}` : `Transcribe failed: ${json.error}`);
           }
+        } catch (err) {
+          console.error('Transcribe failed:', err);
+          alert(lang === 'th' ? 'แปลงเสียงไม่สำเร็จ กรุณาลองใหม่' : 'Transcription failed. Please try again.');
+        }
+      } else {
+        // Upload to Supabase first
+        try {
+          const { data, error } = await supabase.storage
+            .from('deal-activity-audio')
+            .upload(`${Date.now()}-${file.name}`, file);
+
+          if (error) throw error;
+          if (data) {
+            const { data: publicUrl } = supabase.storage
+              .from('deal-activity-audio')
+              .getPublicUrl(data.path);
+
+            setFormData((prev) => ({ ...prev, audio_url: publicUrl.publicUrl }));
+            setUploadedFile({ name: file.name, url: publicUrl.publicUrl });
+
+            // Try to transcribe
+            try {
+              const res = await fetch('/api/ai/transcribe-audio-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audio_url: publicUrl.publicUrl }),
+              });
+              const json = await safeFetchJson(res);
+              if (json?.transcript) {
+                setFormData((prev) => ({
+                  ...prev,
+                  transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript,
+                }));
+              }
+            } catch (err) {
+              console.error('Transcribe failed:', err);
+            }
+          }
+        } catch (err) {
+          console.error('Upload failed:', err);
+          alert(lang === 'th' ? 'อัพโหลดไม่สำเร็จ กรุณาลองใหม่' : 'Upload failed. Please try again.');
         }
       }
     } catch (error) {
       console.error('Failed to upload audio:', error);
+      alert(lang === 'th' ? 'เกิดข้อผิดพลาด กรุณาลองใหม่' : 'An error occurred. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -758,8 +788,8 @@ export default function SalesActivitiesPanel({
   };
 
   const handleExtractData = async () => {
-    // Extract from notes, transcript, or description
-    const sourceText = formData.notes || formData.transcript || formData.description;
+    // Extract from ai_summary (raw input), notes, transcript, or description
+    const sourceText = formData.ai_summary || formData.notes || formData.transcript || formData.description;
     if (!sourceText) {
       alert(lang === 'th' ? 'ไม่มีข้อมูลให้สกัด กรุณากรอกบันทึกเพิ่มเติมหรือแปลงเสียงก่อน' : 'No text to extract from. Please add notes or transcribe audio first.');
       return;
@@ -782,23 +812,19 @@ export default function SalesActivitiesPanel({
       const json = await safeFetchJson(res);
       if (json && !json.error) {
         setExtractedData(json);
-        // Build AI summary text for separate field
-        let summaryText = '';
-        if (json.summary) {
-          summaryText += `[Summary]\n${json.summary}`;
+        // Clear the raw input field after successful extraction
+        setFormData(prev => ({ ...prev, ai_summary: '' }));
+        // Add extracted action_items to formData.action_items
+        if (json.action_items?.length) {
+          const newItems = json.action_items.map((a: any) => ({
+            text: `${a.text}${a.owner ? ` (${a.owner})` : ''}${a.due_date ? ` - ${a.due_date}` : ''}`,
+            done: false,
+          }));
+          setFormData(prev => ({
+            ...prev,
+            action_items: [...prev.action_items, ...newItems],
+          }));
         }
-        if (json.action_items && json.action_items.length > 0) {
-          summaryText += (summaryText ? '\n\n' : '') + '[Action Items]\n' + json.action_items.map((item: { text?: string; owner?: string; due_date?: string }) =>
-            `- ${item.text || ''}${item.owner ? ` (${item.owner})` : ''}${item.due_date ? ` Due: ${item.due_date}` : ''}`
-          ).join('\n');
-        }
-        if (json.decisions && json.decisions.length > 0) {
-          summaryText += (summaryText ? '\n\n' : '') + '[Decisions]\n' + json.decisions.map((d: string) => `- ${d}`).join('\n');
-        }
-        if (json.risks && json.risks.length > 0) {
-          summaryText += (summaryText ? '\n\n' : '') + '[Risks]\n' + json.risks.map((r: string) => `- ${r}`).join('\n');
-        }
-        setFormData(prev => ({ ...prev, ai_summary: summaryText.trim() }));
       } else {
         alert(lang === 'th' ? `สกัดข้อมูลไม่สำเร็จ: ${json?.error || 'ไม่มีข้อมูล'}` : `Extract failed: ${json?.error || 'No data'}`);
       }
@@ -808,6 +834,62 @@ export default function SalesActivitiesPanel({
     } finally {
       setExtracting(false);
     }
+  };
+
+  const addActionItem = () => {
+    const v = actionItemInput.trim();
+    if (!v) return;
+    setFormData(prev => ({ ...prev, action_items: [...prev.action_items, { text: v, done: false }] }));
+    setActionItemInput('');
+  };
+  const toggleActionItem = (i: number) => {
+    setFormData(prev => ({
+      ...prev,
+      action_items: prev.action_items.map((a, idx) => idx === i ? { ...a, done: !a.done } : a),
+    }));
+  };
+  const removeActionItem = (i: number) => {
+    setFormData(prev => ({
+      ...prev,
+      action_items: prev.action_items.filter((_, idx) => idx !== i),
+    }));
+  };
+
+  const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAttachment(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from('deal-activity-audio')
+        .upload(`attachments/${Date.now()}-${file.name}`, file);
+      if (error) throw error;
+      const { data: publicUrl } = supabase.storage
+        .from('deal-activity-audio')
+        .getPublicUrl(data.path);
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, {
+          name: file.name,
+          url: publicUrl.publicUrl,
+          type: file.type,
+          size: file.size,
+        }],
+      }));
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert(lang === 'th' ? 'อัพโหลดไฟล์ไม่สำเร็จ' : 'File upload failed');
+    } finally {
+      setUploadingAttachment(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeAttachment = (i: number) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, idx) => idx !== i),
+    }));
   };
 
   const isAdminManager = userRole === 'admin' || userRole === 'manager';
@@ -1079,6 +1161,19 @@ export default function SalesActivitiesPanel({
                           <p className="text-sm text-gray-700 line-clamp-3">
                             {activity.description}
                           </p>
+                          {/* Badges for action items & attachments */}
+                          <div className="flex items-center gap-2 mt-1">
+                            {(activity as any).action_items?.length > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5">
+                                <CheckCircle size={10} /> {(activity as any).action_items.length} items
+                              </span>
+                            )}
+                            {(activity as any).attachments?.length > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
+                                <FileText size={10} /> {(activity as any).attachments.length} files
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1362,109 +1457,52 @@ export default function SalesActivitiesPanel({
                 />
               </div>
 
-              {/* Audio Recording Section */}
-              <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Mic size={16} className="text-blue-600" />
-                  {L('form.audioSection')}
-                </h4>
-
-                <div className="space-y-3">
-                  {/* Recording Controls */}
-                  <div className="flex gap-2">
-                    {!isRecording ? (
-                      <button
-                        type="button"
-                        onClick={handleStartRecording}
-                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
-                      >
-                        <Mic size={14} />
-                        {L('form.recordButton')}
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleStopRecording}
-                          className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
-                        >
-                          <Square size={14} />
-                          {L('form.stopButton')}
-                        </button>
-                        <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg text-sm text-gray-700">
-                          {Math.floor(recordingTime / 60)}:{String(recordingTime % 60).padStart(2, '0')}
-                        </div>
-                      </>
+              {/* Audio Recording Section - Meeting Style */}
+              <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 space-y-3">
+                <label className="block text-xs font-semibold text-blue-700">🎙 บันทึกเสียง — อัดเสียงหรืออัปโหลดไฟล์เสียง แล้วให้ AI ถอดข้อความ</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {!isRecording ? (
+                    <button type="button" onClick={handleStartRecording}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 border border-red-200 text-red-600 hover:bg-red-200 text-xs font-medium">
+                      <Mic size={14} /> {lang === 'th' ? 'เริ่มอัดเสียง' : lang === 'jp' ? '録音開始' : 'Start Recording'}
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleStopRecording}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium animate-pulse">
+                      <Square size={14} /> {lang === 'th' ? 'หยุด' : 'Stop'} ({Math.floor(recordingTime / 60)}:{String(recordingTime % 60).padStart(2, '0')})
+                    </button>
+                  )}
+                  <span className="text-gray-600 text-xs">{lang === 'th' ? 'หรือ' : 'or'}</span>
+                  <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${uploading ? 'bg-gray-200 text-gray-500 cursor-wait' : 'bg-slate-200/50 border border-gray-300 text-gray-700 hover:bg-slate-200 cursor-pointer'} text-xs font-medium`}>
+                    {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    {uploading ? (lang === 'th' ? 'กำลังอัพโหลด...' : 'Uploading...') : (lang === 'th' ? 'อัปโหลดไฟล์เสียง' : lang === 'jp' ? 'ファイルアップロード' : 'Upload Audio')}
+                    <input type="file" accept="audio/*" className="hidden" disabled={uploading} onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadAudio(file);
+                    }} />
+                  </label>
+                </div>
+                {/* Audio Player */}
+                {(audioPreviewUrl || audioSegments.length > 0) && (
+                  <div className="space-y-2">
+                    {audioPreviewUrl && (
+                      <audio controls className="w-full h-8" src={audioPreviewUrl} />
                     )}
-                  </div>
-
-                  {/* File Upload */}
-                  <div>
-                    <label className="block w-full px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium text-center cursor-pointer transition">
-                      <Upload size={14} className="inline mr-2" />
-                      {L('form.uploadButton')}
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleUploadAudio(file);
-                        }}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-
-                  {/* Transcribe + Play + Download Buttons */}
-                  {audioSegments.length > 0 && (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handleTranscribeSegments}
-                        disabled={transcribing}
-                        className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
-                      >
-                        {transcribing ? (
-                          <>
-                            <Loader2 size={14} className="animate-spin" />
-                            {L('form.transcribing')} {transcribeProgress}
-                          </>
-                        ) : (
-                          <>
-                            <Volume2 size={14} />
-                            {L('form.transcribeButton')}
-                          </>
-                        )}
+                    {!audioPreviewUrl && audioSegments.length > 0 && (
+                      <div className="text-xs text-blue-600">{lang === 'th' ? `บันทึก ${audioSegments.length} ส่วน` : `${audioSegments.length} segments recorded`}</div>
+                    )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button type="button" onClick={handleTranscribeSegments} disabled={transcribing}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium disabled:opacity-40">
+                        {transcribing ? <><Loader2 size={14} className="animate-spin" /> {transcribeProgress || (lang === 'th' ? 'กำลังถอดเสียง...' : 'Transcribing...')}</> : <>{lang === 'th' ? '✨ AI ถอดเสียง' : '✨ Transcribe'}</>}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isPlayingSegments && segmentAudioRef.current) {
-                            segmentAudioRef.current.pause();
-                            segmentAudioRef.current = null;
-                            setIsPlayingSegments(false);
-                          } else {
-                            const combined = new Blob(audioSegments, { type: 'audio/webm' });
-                            const url = URL.createObjectURL(combined);
-                            const audio = new Audio(url);
-                            segmentAudioRef.current = audio;
-                            audio.onended = () => {
-                              setIsPlayingSegments(false);
-                              URL.revokeObjectURL(url);
-                              segmentAudioRef.current = null;
-                            };
-                            audio.play();
-                            setIsPlayingSegments(true);
-                          }
-                        }}
-                        className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
-                      >
-                        {isPlayingSegments ? <Pause size={14} /> : <Play size={14} />}
-                        {lang === 'th' ? (isPlayingSegments ? 'หยุด' : 'ฟัง') : (isPlayingSegments ? 'Pause' : 'Play')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
+                      <button type="button" onClick={() => {
+                        if (audioPreviewUrl) {
+                          const a = document.createElement('a');
+                          a.href = audioPreviewUrl;
+                          a.download = uploadedFile?.name || `recording-${new Date().toISOString().slice(0, 10)}.webm`;
+                          a.click();
+                        } else if (audioSegments.length > 0) {
                           const combined = new Blob(audioSegments, { type: 'audio/webm' });
                           const url = URL.createObjectURL(combined);
                           const a = document.createElement('a');
@@ -1472,37 +1510,22 @@ export default function SalesActivitiesPanel({
                           a.download = `recording-${new Date().toISOString().slice(0, 10)}.webm`;
                           a.click();
                           URL.revokeObjectURL(url);
-                        }}
-                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
-                      >
-                        <Download size={14} />
+                        }
+                      }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 border border-blue-200 text-blue-700 hover:bg-blue-200 text-xs font-medium">
+                        <Download size={14} /> {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
                       </button>
+                      <button type="button" onClick={() => {
+                        setAudioPreviewUrl('');
+                        setUploadedFile(null);
+                        setAudioSegments([]);
+                        if (segmentAudioRef.current) { segmentAudioRef.current.pause(); segmentAudioRef.current = null; }
+                        setIsPlayingSegments(false);
+                      }}
+                        className="text-xs text-gray-600 hover:text-red-600">{lang === 'th' ? 'ลบเสียง' : 'Remove'}</button>
                     </div>
-                  )}
-
-                  {/* Audio Preview */}
-                  {audioPreviewUrl && (
-                    <div className="bg-white rounded-lg p-3">
-                      <audio
-                        src={audioPreviewUrl}
-                        controls
-                        className="w-full h-8"
-                      />
-                      <div className="flex items-center justify-between mt-2">
-                        {uploadedFile && (
-                          <p className="text-xs text-gray-600">{uploadedFile.name}</p>
-                        )}
-                        <a
-                          href={audioPreviewUrl}
-                          download={uploadedFile?.name || `recording-${new Date().toISOString().slice(0, 10)}.webm`}
-                          className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          <Download size={12} /> {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Transcript Field (separate from description) */}
@@ -1521,107 +1544,77 @@ export default function SalesActivitiesPanel({
                 </div>
               )}
 
-              {/* AI Extract Section */}
-              <div className="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Zap size={16} className="text-purple-600" />
-                  {L('form.extractSection')}
-                </h4>
+              {/* AI Extract Section - Meeting Style */}
+              <div className="border border-purple-200 bg-purple-50 rounded-lg p-3 space-y-2">
+                <label className="block text-xs font-semibold text-purple-700">✨ AI Extract — วาง raw notes แล้วให้ AI แยก action items / decisions / risks</label>
+                <textarea rows={3} className="w-full bg-[#F1F5F9] border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-xs"
+                  placeholder={lang === 'th' ? 'วางบันทึกดิบที่นี่...' : 'Paste raw notes here...'}
+                  value={formData.ai_summary}
+                  onChange={e => setFormData({ ...formData, ai_summary: e.target.value })} />
+                <div className="flex items-center justify-between">
+                  {extractedData?.summary && <span className="text-xs text-purple-700 flex-1 mr-2">📋 {extractedData.summary}</span>}
+                  <button type="button" disabled={extracting || (!formData.notes && !formData.transcript && !formData.description && !formData.ai_summary)}
+                    onClick={handleExtractData}
+                    className="ml-auto px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium disabled:opacity-40">
+                    {extracting ? (lang === 'th' ? 'กำลังวิเคราะห์...' : 'Analyzing...') : '✨ Extract'}
+                  </button>
+                </div>
+              </div>
 
-                <button
-                  type="button"
-                  onClick={handleExtractData}
-                  disabled={extracting || (!formData.notes && !formData.transcript && !formData.description)}
-                  className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-3"
-                >
-                  {extracting ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      {L('form.extracting')}
-                    </>
-                  ) : (
-                    <>
-                      <Zap size={14} />
-                      {L('form.extractButton')}
-                    </>
-                  )}
-                </button>
-
-                {extractedData && (
-                  <div className="bg-white rounded-lg p-3 space-y-2 text-xs">
-                    {extractedData.action_items && extractedData.action_items.length > 0 && (
-                      <div>
-                        <p className="font-semibold text-gray-700">Action Items:</p>
-                        <ul className="list-disc list-inside text-gray-600">
-                          {extractedData.action_items.map((item, i) => (
-                            <li key={i}>
-                              {item.text}
-                              {item.owner && ` (${item.owner})`}
-                              {item.due_date && ` - Due: ${item.due_date}`}
-                            </li>
-                          ))}
-                        </ul>
+              {/* Action Items */}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Action Items</label>
+                <div className="flex gap-2">
+                  <input className="flex-1 bg-[#F1F5F9] border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm"
+                    placeholder={lang === 'th' ? 'งานที่ต้องทำ' : 'Task to do'}
+                    value={actionItemInput}
+                    onChange={e => setActionItemInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addActionItem(); } }} />
+                  <button type="button" onClick={addActionItem} className="px-3 py-2 bg-[#003087] text-white rounded-lg text-sm font-medium">
+                    {lang === 'th' ? 'เพิ่ม' : 'Add'}
+                  </button>
+                </div>
+                {formData.action_items && formData.action_items.length > 0 && (
+                  <div className="space-y-1 mt-2">
+                    {formData.action_items.map((it: {text: string; done: boolean}, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-sm bg-[#F1F5F9] border border-gray-300 rounded-lg px-2 py-1.5">
+                        <button type="button" onClick={() => toggleActionItem(i)}
+                          className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${it.done ? 'bg-[#22C55E] border-[#22C55E]' : 'border-slate-500'}`}>
+                          {it.done && <CheckCircle size={10} className="text-white" />}
+                        </button>
+                        <span className={`flex-1 ${it.done ? 'line-through text-gray-600' : 'text-gray-700'}`}>{it.text}</span>
+                        <button type="button" onClick={() => removeActionItem(i)} className="text-red-600"><Trash2 size={12} /></button>
                       </div>
-                    )}
-                    {extractedData.decisions && extractedData.decisions.length > 0 && (
-                      <div>
-                        <p className="font-semibold text-gray-700">Decisions:</p>
-                        <ul className="list-disc list-inside text-gray-600">
-                          {extractedData.decisions.map((d, i) => (
-                            <li key={i}>{d}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {extractedData.risks && extractedData.risks.length > 0 && (
-                      <div>
-                        <p className="font-semibold text-gray-700">Risks:</p>
-                        <ul className="list-disc list-inside text-gray-600">
-                          {extractedData.risks.map((r, i) => (
-                            <li key={i}>{r}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {extractedData.summary && (
-                      <div>
-                        <p className="font-semibold text-gray-700">Summary:</p>
-                        <p className="text-gray-600">{extractedData.summary}</p>
-                      </div>
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* AI Summary Field (separate from notes) */}
-              {formData.ai_summary && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {lang === 'th' ? 'ข้อมูลจาก AI' : lang === 'jp' ? 'AI抽出データ' : 'AI Extracted Data'}
-                  </label>
-                  <textarea
-                    value={formData.ai_summary}
-                    onChange={(e) => setFormData({ ...formData, ai_summary: e.target.value })}
-                    className="w-full bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-purple-600 resize-none"
-                    rows={5}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Append AI summary to notes for saving
-                      const newNotes = formData.notes
-                        ? `${formData.notes}\n\n--- AI Summary ---\n${formData.ai_summary}`
-                        : `--- AI Summary ---\n${formData.ai_summary}`;
-                      setFormData(prev => ({ ...prev, notes: newNotes }));
-                      alert(lang === 'th' ? 'บันทึกข้อมูล AI ลงบันทึกเพิ่มเติมแล้ว' : 'AI data saved to notes');
-                    }}
-                    className="mt-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2"
-                  >
-                    <FileText size={14} />
-                    {lang === 'th' ? 'บันทึกข้อมูล AI ลง Notes' : lang === 'jp' ? 'AIデータをメモに保存' : 'Save AI data to Notes'}
-                  </button>
-                </div>
-              )}
+              {/* File Attachments */}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  {lang === 'th' ? 'ไฟล์แนบ' : lang === 'jp' ? '添付ファイル' : 'Attachments'}
+                </label>
+                <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 border border-gray-300 text-gray-700 hover:bg-slate-200 text-xs font-medium cursor-pointer w-fit">
+                  {uploadingAttachment ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  {uploadingAttachment ? (lang === 'th' ? 'กำลังอัพโหลด...' : 'Uploading...') : (lang === 'th' ? 'เลือกไฟล์' : 'Choose File')}
+                  <input type="file" className="hidden" disabled={uploadingAttachment} onChange={handleAttachmentUpload} />
+                </label>
+                {formData.attachments && formData.attachments.length > 0 && (
+                  <div className="space-y-1 mt-2">
+                    {formData.attachments.map((att: {name: string; url: string; type: string; size: number}, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-xs bg-[#F1F5F9] border border-gray-300 rounded-lg px-2 py-1.5">
+                        <FileText size={14} className="text-blue-600 flex-shrink-0" />
+                        <span className="flex-1 truncate text-gray-700">{att.name}</span>
+                        <span className="text-gray-400">{(att.size / 1024).toFixed(0)}KB</span>
+                        <a href={att.url} download={att.name} target="_blank" rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800"><Download size={12} /></a>
+                        <button type="button" onClick={() => removeAttachment(i)} className="text-red-600"><Trash2 size={12} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Form Buttons */}
               <div className="flex gap-2 pt-4">
@@ -1650,3 +1643,4 @@ export default function SalesActivitiesPanel({
     </div>
   );
 }
+
