@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useAuth } from "@/lib/useAuth";
 import { useProjectPermissions } from "@/lib/useProjectPermissions";
@@ -18,67 +19,85 @@ import {
 import { translations, type Lang } from "@/lib/i18n";
 import { monthlyCostData } from "@/lib/mockData";
 import { useData, type DBProject, type DBTask, type DBMember, type DBPosition } from "@/lib/useData";
-import ProjectModal from "@/components/modals/ProjectModal";
-import TaskModal from "@/components/modals/TaskModal";
-import TaskDetailDrawer from "@/components/TaskDetailDrawer";
-import KanbanBoard from "@/components/KanbanBoard";
-import MyTasks from "@/components/MyTasks";
-import FloatingTimer from "@/components/FloatingTimer";
-import GanttChart from "@/components/GanttChart";
 import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen, Bell as BellIcon, Award, ClipboardList, UserCheck, Globe, RefreshCcw, Layers, Smartphone, Trophy, Mail, CreditCard } from "lucide-react";
-import MilestonesPanel from "@/components/MilestonesPanel";
-import CalendarView from "@/components/CalendarView";
-import SprintPanel from "@/components/SprintPanel";
-import MeetingNotesPanel from "@/components/MeetingNotesPanel";
-import DailyStandupCard from "@/components/DailyStandupCard";
-import OpenProjectsPanel from "@/components/OpenProjectsPanel";
-import NotificationBell from "@/components/NotificationBell";
-import RisksPanel from "@/components/RisksPanel";
-import IssuesPanel from "@/components/IssuesPanel";
-import ChangeRequestsPanel from "@/components/ChangeRequestsPanel";
-import DecisionLogPanel from "@/components/DecisionLogPanel";
-import TemplatesPanel from "@/components/TemplatesPanel";
-import RecurringTasksPanel from "@/components/RecurringTasksPanel";
-import InvoicesPanel from "@/components/InvoicesPanel";
-import FinancePanel from "@/components/FinancePanel";
-import ClientPortalPanel from "@/components/ClientPortalPanel";
-import ProjectBudgetPanel from "@/components/ProjectBudgetPanel";
-import TransactionsPanel from "@/components/TransactionsPanel";
-import QuotationsPanel from "@/components/QuotationsPanel";
-import NewInvoicesPanel from "@/components/NewInvoicesPanel";
-import CustomersPanel from "@/components/CustomersPanel";
-import DealsPipelinePanel from "@/components/DealsPipelinePanel";
-import SalesActivitiesPanel from "@/components/SalesActivitiesPanel";
-import SalesReportPanel from "@/components/SalesReportPanel";
-import DepartmentsPanel from "@/components/DepartmentsPanel";
-import HelpPanel from "@/components/HelpPanel";
-import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
-import ProjectHealthBadge from "@/components/ProjectHealthBadge";
-import CommandPalette, { type CommandItem } from "@/components/CommandPalette";
-import ShortcutsHelp from "@/components/ShortcutsHelp";
-import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
-import MemberModal from "@/components/modals/MemberModal";
-import PositionModal from "@/components/modals/PositionModal";
-import TimeLogModal from "@/components/modals/TimeLogModal";
-import AllocationManager from "@/components/AllocationManager";
-import WorkloadHeatmap from "@/components/WorkloadHeatmap";
-import TimeLogApproval from "@/components/TimeLogApproval";
-import ManpowerReport from "@/components/ManpowerReport";
-import MemberProfileModal from "@/components/MemberProfileModal";
-import ManpowerAIAnalysis from "@/components/ManpowerAIAnalysis";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import SkillMatrixPanel from "@/components/SkillMatrixPanel";
-import LeaveManagementPanel from "@/components/LeaveManagementPanel";
-import RecurringExpensesPanel from "@/components/RecurringExpensesPanel";
-import DeptKPIPanel from "@/components/DeptKPIPanel";
-import WinLossPanel from "@/components/WinLossPanel";
-import SalesAIPanel from "@/components/SalesAIPanel";
-import ProjectDependencyPanel from "@/components/ProjectDependencyPanel";
-import PerformanceReviewPanel from "@/components/PerformanceReviewPanel";
-import EmailActivityPanel from "@/components/EmailActivityPanel";
-import ExpenseApprovalPanel from "@/components/ExpenseApprovalPanel";
-import MyProfilePanel from "@/components/MyProfilePanel";
-import KnowledgeBasePanel from "@/components/KnowledgeBasePanel";
+import { type CommandItem } from "@/components/CommandPalette";
+import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
+
+// ── Lazy-loaded components (only loaded when needed) ──
+const Loading = () => <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003087]" /></div>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const dyn = <T extends React.ComponentType<any>>(imp: () => Promise<{ default: T }>) => dynamic(imp, { loading: Loading, ssr: false }) as unknown as T;
+
+// Core (used on dashboard / frequently)
+const ProjectModal = dyn(() => import("@/components/modals/ProjectModal"));
+const TaskModal = dyn(() => import("@/components/modals/TaskModal"));
+const TaskDetailDrawer = dyn(() => import("@/components/TaskDetailDrawer"));
+const KanbanBoard = dyn(() => import("@/components/KanbanBoard"));
+const MyTasks = dyn(() => import("@/components/MyTasks"));
+const FloatingTimer = dyn(() => import("@/components/FloatingTimer"));
+const GanttChart = dyn(() => import("@/components/GanttChart"));
+const DailyStandupCard = dyn(() => import("@/components/DailyStandupCard"));
+const OpenProjectsPanel = dyn(() => import("@/components/OpenProjectsPanel"));
+const NotificationBell = dyn(() => import("@/components/NotificationBell"));
+const ProjectHealthBadge = dyn(() => import("@/components/ProjectHealthBadge"));
+const CommandPalette = dyn(() => import("@/components/CommandPalette"));
+const ShortcutsHelp = dyn(() => import("@/components/ShortcutsHelp"));
+
+// Project management panels
+const MilestonesPanel = dyn(() => import("@/components/MilestonesPanel"));
+const CalendarView = dyn(() => import("@/components/CalendarView"));
+const SprintPanel = dyn(() => import("@/components/SprintPanel"));
+const MeetingNotesPanel = dyn(() => import("@/components/MeetingNotesPanel"));
+const RisksPanel = dyn(() => import("@/components/RisksPanel"));
+const IssuesPanel = dyn(() => import("@/components/IssuesPanel"));
+const ChangeRequestsPanel = dyn(() => import("@/components/ChangeRequestsPanel"));
+const DecisionLogPanel = dyn(() => import("@/components/DecisionLogPanel"));
+const TemplatesPanel = dyn(() => import("@/components/TemplatesPanel"));
+const RecurringTasksPanel = dyn(() => import("@/components/RecurringTasksPanel"));
+const ClientPortalPanel = dyn(() => import("@/components/ClientPortalPanel"));
+
+// Finance panels
+const InvoicesPanel = dyn(() => import("@/components/InvoicesPanel"));
+const FinancePanel = dyn(() => import("@/components/FinancePanel"));
+const ProjectBudgetPanel = dyn(() => import("@/components/ProjectBudgetPanel"));
+const TransactionsPanel = dyn(() => import("@/components/TransactionsPanel"));
+const QuotationsPanel = dyn(() => import("@/components/QuotationsPanel"));
+const NewInvoicesPanel = dyn(() => import("@/components/NewInvoicesPanel"));
+const RecurringExpensesPanel = dyn(() => import("@/components/RecurringExpensesPanel"));
+const ExpenseApprovalPanel = dyn(() => import("@/components/ExpenseApprovalPanel"));
+
+// CRM / Sales panels
+const CustomersPanel = dyn(() => import("@/components/CustomersPanel"));
+const DealsPipelinePanel = dyn(() => import("@/components/DealsPipelinePanel"));
+const SalesActivitiesPanel = dyn(() => import("@/components/SalesActivitiesPanel"));
+const SalesReportPanel = dyn(() => import("@/components/SalesReportPanel"));
+const WinLossPanel = dyn(() => import("@/components/WinLossPanel"));
+const SalesAIPanel = dyn(() => import("@/components/SalesAIPanel"));
+
+// HR / Team panels
+const MemberModal = dyn(() => import("@/components/modals/MemberModal"));
+const PositionModal = dyn(() => import("@/components/modals/PositionModal"));
+const TimeLogModal = dyn(() => import("@/components/modals/TimeLogModal"));
+const AllocationManager = dyn(() => import("@/components/AllocationManager"));
+const WorkloadHeatmap = dyn(() => import("@/components/WorkloadHeatmap"));
+const TimeLogApproval = dyn(() => import("@/components/TimeLogApproval"));
+const ManpowerReport = dyn(() => import("@/components/ManpowerReport"));
+const MemberProfileModal = dyn(() => import("@/components/MemberProfileModal"));
+const ManpowerAIAnalysis = dyn(() => import("@/components/ManpowerAIAnalysis"));
+const SkillMatrixPanel = dyn(() => import("@/components/SkillMatrixPanel"));
+const LeaveManagementPanel = dyn(() => import("@/components/LeaveManagementPanel"));
+const PerformanceReviewPanel = dyn(() => import("@/components/PerformanceReviewPanel"));
+
+// Admin / Settings panels
+const DepartmentsPanel = dyn(() => import("@/components/DepartmentsPanel"));
+const HelpPanel = dyn(() => import("@/components/HelpPanel"));
+const NotificationPreferencesPanel = dyn(() => import("@/components/NotificationPreferencesPanel"));
+const DeptKPIPanel = dyn(() => import("@/components/DeptKPIPanel"));
+const ProjectDependencyPanel = dyn(() => import("@/components/ProjectDependencyPanel"));
+const EmailActivityPanel = dyn(() => import("@/components/EmailActivityPanel"));
+const MyProfilePanel = dyn(() => import("@/components/MyProfilePanel"));
+const KnowledgeBasePanel = dyn(() => import("@/components/KnowledgeBasePanel"));
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
