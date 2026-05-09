@@ -33,6 +33,7 @@ import {
   Pause,
   Volume2,
   Pencil,
+  Download,
 } from 'lucide-react';
 import TranslateButton from './TranslateButton';
 import { supabase } from '@/lib/supabase';
@@ -397,6 +398,8 @@ export default function SalesActivitiesPanel({
     participants: [] as string[],
   });
   const [participantInput, setParticipantInput] = useState('');
+  const [participantDropdownOpen, setParticipantDropdownOpen] = useState(false);
+  const participantDropdownRef = useRef<HTMLDivElement>(null);
   const [dealSearchText, setDealSearchText] = useState('');
   const [dealDropdownOpen, setDealDropdownOpen] = useState(false);
   const dealDropdownRef = useRef<HTMLDivElement>(null);
@@ -408,6 +411,7 @@ export default function SalesActivitiesPanel({
     const handleClickOutside = (e: MouseEvent) => {
       if (dealDropdownRef.current && !dealDropdownRef.current.contains(e.target as Node)) setDealDropdownOpen(false);
       if (customerDropdownRef.current && !customerDropdownRef.current.contains(e.target as Node)) setCustomerDropdownOpen(false);
+      if (participantDropdownRef.current && !participantDropdownRef.current.contains(e.target as Node)) setParticipantDropdownOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -746,14 +750,16 @@ export default function SalesActivitiesPanel({
   };
 
   const handleExtractData = async () => {
-    if (!formData.description) return;
+    // Extract from notes field (where transcription + manual notes go)
+    const sourceText = formData.notes || formData.description;
+    if (!sourceText) return;
 
     try {
       setExtracting(true);
       const res = await fetch('/api/ai/extract-meeting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raw_text: formData.description }),
+        body: JSON.stringify({ raw_text: sourceText }),
       });
 
       const json = await safeFetchJson(res);
@@ -1224,38 +1230,92 @@ export default function SalesActivitiesPanel({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {lang === 'th' ? 'ผู้เข้าร่วม' : lang === 'jp' ? '参加者' : 'Participants'}
                 </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={participantInput}
-                    onChange={(e) => setParticipantInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
+                <div className="relative" ref={participantDropdownRef}>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={participantInput}
+                      onChange={(e) => { setParticipantInput(e.target.value); setParticipantDropdownOpen(true); }}
+                      onFocus={() => setParticipantDropdownOpen(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = participantInput.trim();
+                          if (val && !formData.participants.includes(val)) {
+                            setFormData({ ...formData, participants: [...formData.participants, val] });
+                          }
+                          setParticipantInput('');
+                          setParticipantDropdownOpen(false);
+                        }
+                      }}
+                      placeholder={lang === 'th' ? 'ค้นหาพนักงาน หรือพิมพ์ชื่อคนนอก...' : lang === 'jp' ? '社員を検索、または外部名を入力...' : 'Search employee or type external name...'}
+                      className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
                         const val = participantInput.trim();
                         if (val && !formData.participants.includes(val)) {
                           setFormData({ ...formData, participants: [...formData.participants, val] });
                         }
                         setParticipantInput('');
+                        setParticipantDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+                    >+</button>
+                  </div>
+                  {/* Employee dropdown */}
+                  {participantDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-0 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {users
+                        .filter(u => {
+                          const name = getUserName(u, lang);
+                          const alreadyAdded = formData.participants.includes(name);
+                          if (alreadyAdded) return false;
+                          if (!participantInput) return true;
+                          const q = participantInput.toLowerCase();
+                          return name.toLowerCase().includes(q) || (u.email?.toLowerCase().includes(q));
+                        })
+                        .slice(0, 20)
+                        .map(u => {
+                          const name = getUserName(u, lang);
+                          return (
+                            <div key={u.id}
+                              className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 text-gray-800 flex items-center justify-between"
+                              onClick={() => {
+                                if (!formData.participants.includes(name)) {
+                                  setFormData({ ...formData, participants: [...formData.participants, name] });
+                                }
+                                setParticipantInput('');
+                                setParticipantDropdownOpen(false);
+                              }}
+                            >
+                              <span>{name}</span>
+                              {u.department && <span className="text-xs text-gray-400">{u.department}</span>}
+                            </div>
+                          );
+                        })
                       }
-                    }}
-                    placeholder={lang === 'th' ? 'พิมพ์ชื่อแล้วกด Enter หรือ +' : lang === 'jp' ? '名前を入力してEnterまたは+' : 'Type name and press Enter or +'}
-                    className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const val = participantInput.trim();
-                      if (val && !formData.participants.includes(val)) {
-                        setFormData({ ...formData, participants: [...formData.participants, val] });
-                      }
-                      setParticipantInput('');
-                    }}
-                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
-                  >+</button>
+                      {participantInput.trim() && !users.some(u => getUserName(u, lang).toLowerCase() === participantInput.trim().toLowerCase()) && (
+                        <div
+                          className="px-3 py-2 text-sm cursor-pointer hover:bg-green-50 text-green-700 border-t border-gray-100"
+                          onClick={() => {
+                            const val = participantInput.trim();
+                            if (val && !formData.participants.includes(val)) {
+                              setFormData({ ...formData, participants: [...formData.participants, val] });
+                            }
+                            setParticipantInput('');
+                            setParticipantDropdownOpen(false);
+                          }}
+                        >
+                          + {lang === 'th' ? 'เพิ่มคนนอก' : lang === 'jp' ? '外部追加' : 'Add external'}: &quot;{participantInput.trim()}&quot;
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {formData.participants.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mt-1">
                     {formData.participants.map((p, i) => (
                       <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                         {p}
@@ -1335,26 +1395,44 @@ export default function SalesActivitiesPanel({
                     </label>
                   </div>
 
-                  {/* Transcribe Button */}
+                  {/* Transcribe + Download Buttons */}
                   {audioSegments.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleTranscribeSegments}
-                      disabled={transcribing}
-                      className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
-                    >
-                      {transcribing ? (
-                        <>
-                          <Loader2 size={14} className="animate-spin" />
-                          {L('form.transcribing')} {transcribeProgress}
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 size={14} />
-                          {L('form.transcribeButton')}
-                        </>
-                      )}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleTranscribeSegments}
+                        disabled={transcribing}
+                        className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                      >
+                        {transcribing ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            {L('form.transcribing')} {transcribeProgress}
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 size={14} />
+                            {L('form.transcribeButton')}
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const combined = new Blob(audioSegments, { type: 'audio/webm' });
+                          const url = URL.createObjectURL(combined);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `recording-${new Date().toISOString().slice(0, 10)}.webm`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                      >
+                        <Download size={14} />
+                        {lang === 'th' ? 'ดาวน์โหลด' : lang === 'jp' ? 'DL' : 'Download'}
+                      </button>
+                    </div>
                   )}
 
                   {/* Audio Preview */}
@@ -1365,9 +1443,18 @@ export default function SalesActivitiesPanel({
                         controls
                         className="w-full h-8"
                       />
-                      {uploadedFile && (
-                        <p className="text-xs text-gray-600 mt-2">{uploadedFile.name}</p>
-                      )}
+                      <div className="flex items-center justify-between mt-2">
+                        {uploadedFile && (
+                          <p className="text-xs text-gray-600">{uploadedFile.name}</p>
+                        )}
+                        <a
+                          href={audioPreviewUrl}
+                          download={uploadedFile?.name || `recording-${new Date().toISOString().slice(0, 10)}.webm`}
+                          className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          <Download size={12} /> {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1383,7 +1470,7 @@ export default function SalesActivitiesPanel({
                 <button
                   type="button"
                   onClick={handleExtractData}
-                  disabled={extracting || !formData.description}
+                  disabled={extracting || (!formData.notes && !formData.description)}
                   className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-3"
                 >
                   {extracting ? (
