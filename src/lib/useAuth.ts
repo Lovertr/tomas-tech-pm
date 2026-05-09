@@ -25,27 +25,29 @@ export type ModulePerms = Record<string, number>;
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [perms, setPerms] = useState<ModulePerms>({});
+  const [permsLoaded, setPermsLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      // Fetch auth + permissions in PARALLEL for faster load
+      const [res, pr] = await Promise.all([
+        fetch('/api/auth/me'),
+        fetch('/api/permissions/me'),
+      ]);
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
-        // load granular per-module permissions
-        try {
-          const pr = await fetch('/api/permissions/me');
-          if (pr.ok) {
-            const pd = await pr.json();
-            setPerms(pd.permissions ?? {});
-          }
-        } catch {/* ignore */}
+        if (pr.ok) {
+          const pd = await pr.json();
+          setPerms(pd.permissions ?? {});
+        }
+        setPermsLoaded(true);
       } else {
-        setUser(null); setPerms({});
+        setUser(null); setPerms({}); setPermsLoaded(true);
       }
     } catch {
-      setUser(null); setPerms({});
+      setUser(null); setPerms({}); setPermsLoaded(true);
     } finally {
       setLoading(false);
     }
@@ -57,7 +59,8 @@ export function useAuth() {
 
   // Granular permission checks per module
   // Levels: 0=none 1=view 2=comment 3=edit 4=create 5=full
-  const moduleLevel = (key: string): number => perms[key] ?? 0;
+  // While perms are loading, default to showing all menus (level 5) so sidebar isn't empty
+  const moduleLevel = (key: string): number => permsLoaded ? (perms[key] ?? 0) : 5;
   const canView = (key: string) => moduleLevel(key) >= 1;
   const canComment = (key: string) => moduleLevel(key) >= 2;
   const canEdit = (key: string) => moduleLevel(key) >= 3;
