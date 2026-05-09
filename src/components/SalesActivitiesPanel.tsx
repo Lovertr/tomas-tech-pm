@@ -703,43 +703,83 @@ export default function SalesActivitiesPanel({
           alert(lang === 'th' ? 'แปลงเสียงไม่สำเร็จ กรุณาลองใหม่' : 'Transcription failed. Please try again.');
         }
       } else {
-        // Upload via server-side API (handles large files better)
+        // Upload directly to Supabase Storage (bypasses Vercel 4.5MB body limit)
         try {
-          const fd = new FormData();
-          fd.append('audio', file, file.name);
-          const uploadRes = await fetch('/api/upload-audio', { method: 'POST', body: fd });
-          const uploadJson = await uploadRes.json();
-          if (uploadRes.ok && uploadJson.url) {
-            setFormData((prev) => ({ ...prev, audio_url: uploadJson.url }));
-            setUploadedFile({ name: file.name, url: uploadJson.url });
-            // Try to transcribe via URL
-            try {
-              const res = await fetch('/api/ai/transcribe-audio-url', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ audio_url: uploadJson.url }),
+          const ext = file.name?.split('.').pop() || 'webm';
+          const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const storagePath = `activities/${filename}`;
+          const mime = file.type || 'audio/webm';
+
+          // Try single upload first (works for files < ~50MB)
+          const { error: upErr } = await supabase.storage
+            .from('deal-activity-audio')
+            .upload(storagePath, file, { contentType: mime, upsert: false });
+
+          if (upErr) {
+            const errMsg = upErr.message || '';
+            // If file exceeds Supabase size limit, try chunked upload
+            if (errMsg.includes('exceeded') || errMsg.includes('size') || errMsg.includes('too large')) {
+              console.log('Single upload exceeded size limit, using chunked upload...');
+              const CHUNK_SZ = 20 * 1024 * 1024; // 20MB chunks
+              const totalChunks = Math.ceil(file.size / CHUNK_SZ);
+              const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+              const chunkUrls: string[] = [];
+
+              for (let i = 0; i < totalChunks; i++) {
+                const start = i * CHUNK_SZ;
+                const end = Math.min(start + CHUNK_SZ, file.size);
+                const chunk = file.slice(start, end);
+                const chunkPath = `chunks/${sessionId}/${i}.${ext}`;
+                const { error: chunkErr } = await supabase.storage
+                  .from('deal-activity-audio')
+                  .upload(chunkPath, chunk, { contentType: mime, upsert: false });
+                if (chunkErr) throw new Error(`อัพโหลด chunk ${i + 1} ไม่สำเร็จ: ${chunkErr.message}`);
+                const { data: urlData } = supabase.storage.from('deal-activity-audio').getPublicUrl(chunkPath);
+                chunkUrls.push(urlData.publicUrl);
+              }
+
+              // Transcribe via chunks API
+              const chunkRaw = await fetch('/api/ai/transcribe-audio-chunks', {
+                method: 'POST', headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ chunkUrls, mimeType: mime, lang: 'th' }),
               });
-              const json = await safeFetchJson(res);
-              if (json?.transcript) {
-                setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+              const chunkRes = await safeFetchJson(chunkRaw);
+              if (chunkRes?.transcript) {
+                setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${chunkRes.transcript}` : chunkRes.transcript }));
+              }
+              // Clean up chunks (best effort)
+              for (let i = 0; i < totalChunks; i++) {
+                supabase.storage.from('deal-activity-audio').remove([`chunks/${sessionId}/${i}.${ext}`]).catch(() => {});
+              }
+              // No storage URL for very large files — transcript is the main goal
+              setUploadedFile({ name: file.name, url: '' });
+            } else {
+              throw new Error('อัพโหลดไม่สำเร็จ: ' + errMsg);
+            }
+          } else {
+            // Upload succeeded — get public URL
+            const { data: urlData } = supabase.storage.from('deal-activity-audio').getPublicUrl(storagePath);
+            const publicUrl = urlData.publicUrl;
+            setFormData((prev) => ({ ...prev, audio_url: publicUrl }));
+            setUploadedFile({ name: file.name, url: publicUrl });
+
+            // Transcribe via URL
+            try {
+              const txRes = await fetch('/api/ai/transcribe-audio-url', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: publicUrl }),
+              });
+              const res = await safeFetchJson(txRes);
+              if (res?.transcript) {
+                setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${res.transcript}` : res.transcript }));
               }
             } catch (err) { console.error('Transcribe failed:', err); }
-          } else {
-            // Upload failed (e.g. file too large) — keep preview, user can transcribe manually
-            const errMsg = uploadJson.error || 'Upload failed';
-            console.warn('Audio upload failed:', errMsg);
-            setUploadedFile({ name: file.name, url: '' });
-            if (errMsg.includes('exceeded') || errMsg.includes('too large') || errMsg.includes('size')) {
-              alert(lang === 'th'
-                ? 'ไฟล์เสียงใหญ่เกินไปสำหรับจัดเก็บ — คุณยังสามารถกดปุ่ม "AI ถอดเสียง" เพื่อถอดข้อความได้'
-                : 'Audio file too large for storage — you can still use "AI Transcribe" to get the transcript');
-            } else {
-              alert(lang === 'th' ? `อัพโหลดไม่สำเร็จ: ${errMsg}` : `Upload failed: ${errMsg}`);
-            }
           }
         } catch (err) {
           console.error('Upload failed:', err);
           setUploadedFile({ name: file.name, url: '' });
-          alert(lang === 'th' ? 'อัพโหลดไม่สำเร็จ กรุณาลองใหม่' : 'Upload failed. Please try again.');
+          const errMsg = err instanceof Error ? err.message : '';
+          alert(lang === 'th' ? `อัพโหลดไม่สำเร็จ: ${errMsg || 'กรุณาลองใหม่'}` : `Upload failed: ${errMsg || 'Please try again.'}`);
         }
       }
     } catch (error) {
@@ -1714,6 +1754,7 @@ export default function SalesActivitiesPanel({
                   {uploadingAttachment ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                   {uploadingAttachment ? (lang === 'th' ? 'กำลังอัพโหลด...' : 'Uploading...') : (lang === 'th' ? 'เลือกไฟล์' : 'Choose File')}
                   <input type="file" className="hidden" disabled={uploadingAttachment} onChange={handleAttachmentUpload} />
+                  <input type="file" className="hidden" disabled={uploadingAttachment} onChange={handleAttachmentUpload} />
                 </label>
                 {formData.attachments && formData.attachments.length > 0 && (
                   <div className="space-y-1 mt-2">
@@ -1748,6 +1789,7 @@ export default function SalesActivitiesPanel({
                   }}
                   className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg text-sm font-medium"
                 >
+                  {L('form.cancel')}
                   {L('form.cancel')}
                 </button>
               </div>

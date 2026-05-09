@@ -545,20 +545,48 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
     if (!source) return audioUrl;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("audio", source, uploadedFile?.name || "recording.webm");
-      const r = await fetch("/api/upload-audio", { method: "POST", body: fd });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Upload failed");
-      setAudioUrl(j.url);
-      return j.url;
+      // Upload directly to Supabase Storage (bypasses Vercel 4.5MB body limit)
+      const ext = source instanceof File ? (source.name.split(".").pop() || "webm") : "webm";
+      const filename = `meetings/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const mime = source.type || "audio/webm";
+
+      const { error: upErr } = await supabase.storage
+        .from("meeting-audio")
+        .upload(filename, source, { contentType: mime, upsert: false });
+
+      if (upErr) {
+        const errMsg = upErr.message || "";
+        if (errMsg.includes("exceeded") || errMsg.includes("size") || errMsg.includes("too large")) {
+          // File too large for single upload — try chunked
+          const CHUNK_SZ = 20 * 1024 * 1024;
+          const totalChunks = Math.ceil(source.size / CHUNK_SZ);
+          const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+          for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SZ;
+            const end = Math.min(start + CHUNK_SZ, source.size);
+            const chunk = source.slice(start, end);
+            const chunkPath = `chunks/${sessionId}/${i}.${ext}`;
+            const { error: chunkErr } = await supabase.storage
+              .from("meeting-audio")
+              .upload(chunkPath, chunk, { contentType: mime, upsert: false });
+            if (chunkErr) throw new Error(`อัพโหลด chunk ${i + 1} ไม่สำเร็จ: ${chunkErr.message}`);
+          }
+          // For chunked uploads, we can't easily get a single URL
+          // Save as "chunked" and note it in the UI
+          setErr("ไฟล์เสียงใหญ่เกินไปสำหรับจัดเก็บเป็นไฟล์เดียว — บันทึกประชุมจะถูกบันทึกโดยไม่มีลิงก์เสียงแนบ");
+          return audioUrl;
+        }
+        throw new Error("อัพโหลดไฟล์เสียงไม่สำเร็จ: " + errMsg);
+      }
+
+      const { data: urlData } = supabase.storage.from("meeting-audio").getPublicUrl(filename);
+      const url = urlData.publicUrl;
+      setAudioUrl(url);
+      return url;
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Upload failed";
-      if (msg.includes('exceeded') || msg.includes('too large') || msg.includes('size')) {
-        setErr("ไฟล์เสียงใหญ่เกินไปสำหรับจัดเก็บ — บันทึกประชุมจะถูกบันทึกโดยไม่มีไฟล์เสียงแนบ คุณยังสามารถกดปุ่ม AI ถอดเสียง ก่อนบันทึกได้");
-      } else {
-        setErr(`อัพโหลดไฟล์เสียงไม่สำเร็จ: ${msg}`);
-      }
+      setErr(`อัพโหลดไฟล์เสียงไม่สำเร็จ: ${msg}`);
       return audioUrl;
     } finally { setUploading(false); }
   };

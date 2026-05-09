@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-server";
 import { AiNotConfiguredError, langInstruction, detectTranscriptHallucination } from "@/lib/ai";
 
-export const maxDuration = 180; // 3 minutes for large file assembly + transcription
+export const maxDuration = 300; // 5 minutes for large file assembly + transcription
 
 // POST /api/ai/transcribe-audio-chunks
 // Accepts JSON: { chunkUrls: string[], mimeType: string, lang?: string }
