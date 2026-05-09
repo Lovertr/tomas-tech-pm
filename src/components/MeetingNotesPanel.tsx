@@ -503,7 +503,14 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
       if (!r.ok) throw new Error(j.error || "Upload failed");
       setAudioUrl(j.url);
       return j.url;
-    } catch (e) { setErr(e instanceof Error ? e.message : "Upload failed"); return audioUrl;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      if (msg.includes('exceeded') || msg.includes('too large') || msg.includes('size')) {
+        setErr("ไฟล์เสียงใหญ่เกินไปสำหรับจัดเก็บ — บันทึกประชุมจะถูกบันทึกโดยไม่มีไฟล์เสียงแนบ คุณยังสามารถกดปุ่ม AI ถอดเสียง ก่อนบันทึกได้");
+      } else {
+        setErr(`อัพโหลดไฟล์เสียงไม่สำเร็จ: ${msg}`);
+      }
+      return audioUrl;
     } finally { setUploading(false); }
   };
 
@@ -798,6 +805,18 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
             </div>
           )}
         </div>
+
+        {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
+        <div className="flex justify-end gap-2 pt-2">
+          <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">ยกเลิก</button>
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+            {saving ? "กำลังบันทึก..." : "บันทึก"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
