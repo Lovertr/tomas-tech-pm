@@ -800,18 +800,50 @@ export default function SalesActivitiesPanel({
         setTranscribing(true); setTranscribeProgress('1/1');
         const blobRes = await fetch(audioPreviewUrl);
         const blob = await blobRes.blob();
-        const fd = new FormData();
-        fd.append('audio', blob, uploadedFile?.name || 'audio.webm');
-        const res = await fetch('/api/ai/transcribe-audio', { method: 'POST', body: fd });
-        const json = await safeFetchJson(res);
-        if (json?.transcript) {
-          setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+
+        if (blob.size <= DIRECT_UPLOAD_LIMIT) {
+          // Small file — send directly
+          const fd = new FormData();
+          fd.append('audio', blob, uploadedFile?.name || 'audio.webm');
+          const res = await fetch('/api/ai/transcribe-audio', { method: 'POST', body: fd });
+          const json = await safeFetchJson(res);
+          if (json?.transcript) {
+            setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+          } else {
+            alert(lang === 'th' ? 'ถอดเสียงไม่สำเร็จ กรุณาลองใหม่' : 'Transcription failed. Please try again.');
+          }
         } else {
-          alert(lang === 'th' ? 'ถอดเสียงไม่สำเร็จ กรุณาลองใหม่' : 'Transcription failed. Please try again.');
+          // Large file — upload to Supabase storage first, then transcribe via URL
+          setTranscribeProgress(lang === 'th' ? 'กำลังอัพโหลดไฟล์เสียง...' : 'Uploading audio...');
+          const ext = uploadedFile?.name?.split('.').pop() || 'webm';
+          const filename = `activities/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from('deal-activity-audio')
+            .upload(filename, blob, { contentType: blob.type || 'audio/webm', upsert: false });
+          if (upErr) throw new Error('อัพโหลดไม่สำเร็จ: ' + upErr.message);
+          const { data: urlData } = supabase.storage.from('deal-activity-audio').getPublicUrl(filename);
+          const storageUrl = urlData.publicUrl;
+          // Save the storage URL
+          setFormData((prev) => ({ ...prev, audio_url: storageUrl }));
+          setUploadedFile((prev) => prev ? { ...prev, url: storageUrl } : { name: 'audio.' + ext, url: storageUrl });
+          // Transcribe via URL
+          setTranscribeProgress(lang === 'th' ? 'กำลังถอดเสียง (อาจใช้เวลา 1-2 นาที)...' : 'Transcribing (may take 1-2 min)...');
+          const res = await fetch('/api/ai/transcribe-audio-url', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: storageUrl, lang: 'th' }),
+          });
+          const json = await safeFetchJson(res);
+          if (json?.transcript) {
+            setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+          } else {
+            const errMsg = json?.error || '';
+            alert(lang === 'th' ? `ถอดเสียงไม่สำเร็จ${errMsg ? ': ' + errMsg : ''} กรุณาลองใหม่` : `Transcription failed${errMsg ? ': ' + errMsg : ''}. Please try again.`);
+          }
         }
       } catch (error) {
         console.error('Failed to transcribe uploaded file:', error);
-        alert(lang === 'th' ? 'ถอดเสียงไม่สำเร็จ กรุณาลองใหม่' : 'Transcription failed. Please try again.');
+        const errMsg = error instanceof Error ? error.message : '';
+        alert(lang === 'th' ? `ถอดเสียงไม่สำเร็จ${errMsg ? ': ' + errMsg : ''} กรุณาลองใหม่` : `Transcription failed${errMsg ? ': ' + errMsg : ''}. Please try again.`);
       } finally { setTranscribing(false); setTranscribeProgress(''); }
       return;
     }
