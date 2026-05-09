@@ -816,28 +816,79 @@ export default function SalesActivitiesPanel({
           // Large file — upload to Supabase storage first, then transcribe via URL
           setTranscribeProgress(lang === 'th' ? 'กำลังอัพโหลดไฟล์เสียง...' : 'Uploading audio...');
           const ext = uploadedFile?.name?.split('.').pop() || 'webm';
+          const mime = blob.type || 'audio/webm';
           const filename = `activities/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
           const { error: upErr } = await supabase.storage
             .from('deal-activity-audio')
-            .upload(filename, blob, { contentType: blob.type || 'audio/webm', upsert: false });
-          if (upErr) throw new Error('อัพโหลดไม่สำเร็จ: ' + upErr.message);
-          const { data: urlData } = supabase.storage.from('deal-activity-audio').getPublicUrl(filename);
-          const storageUrl = urlData.publicUrl;
-          // Save the storage URL
-          setFormData((prev) => ({ ...prev, audio_url: storageUrl }));
-          setUploadedFile((prev) => prev ? { ...prev, url: storageUrl } : { name: 'audio.' + ext, url: storageUrl });
-          // Transcribe via URL
-          setTranscribeProgress(lang === 'th' ? 'กำลังถอดเสียง (อาจใช้เวลา 1-2 นาที)...' : 'Transcribing (may take 1-2 min)...');
-          const res = await fetch('/api/ai/transcribe-audio-url', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: storageUrl, lang: 'th' }),
-          });
-          const json = await safeFetchJson(res);
-          if (json?.transcript) {
-            setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+            .upload(filename, blob, { contentType: mime, upsert: false });
+
+          let storageUrl = '';
+          let useChunked = false;
+
+          if (upErr) {
+            const errMsg = upErr.message || '';
+            if (errMsg.includes('exceeded') || errMsg.includes('size') || errMsg.includes('too large')) {
+              // File too large for single upload — use chunked approach
+              useChunked = true;
+            } else {
+              throw new Error('อัพโหลดไม่สำเร็จ: ' + errMsg);
+            }
           } else {
-            const errMsg = json?.error || '';
-            alert(lang === 'th' ? `ถอดเสียงไม่สำเร็จ${errMsg ? ': ' + errMsg : ''} กรุณาลองใหม่` : `Transcription failed${errMsg ? ': ' + errMsg : ''}. Please try again.`);
+            const { data: urlData } = supabase.storage.from('deal-activity-audio').getPublicUrl(filename);
+            storageUrl = urlData.publicUrl;
+            setFormData((prev) => ({ ...prev, audio_url: storageUrl }));
+            setUploadedFile((prev) => prev ? { ...prev, url: storageUrl } : { name: 'audio.' + ext, url: storageUrl });
+          }
+
+          if (useChunked) {
+            // Chunked upload: split file into 20MB chunks, upload each, then transcribe assembled
+            const CHUNK_SIZE = 20 * 1024 * 1024;
+            const totalChunks = Math.ceil(blob.size / CHUNK_SIZE);
+            const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            const chunkUrls: string[] = [];
+            for (let i = 0; i < totalChunks; i++) {
+              setTranscribeProgress(lang === 'th' ? `กำลังอัพโหลดส่วนที่ ${i + 1}/${totalChunks}...` : `Uploading part ${i + 1}/${totalChunks}...`);
+              const start = i * CHUNK_SIZE;
+              const end = Math.min(start + CHUNK_SIZE, blob.size);
+              const chunk = blob.slice(start, end);
+              const chunkPath = `chunks/${sessionId}/${i}.${ext}`;
+              const { error: chunkErr } = await supabase.storage
+                .from('deal-activity-audio')
+                .upload(chunkPath, chunk, { contentType: mime, upsert: false });
+              if (chunkErr) throw new Error(`อัพโหลด chunk ${i + 1} ไม่สำเร็จ: ${chunkErr.message}`);
+              const { data: cUrlData } = supabase.storage.from('deal-activity-audio').getPublicUrl(chunkPath);
+              chunkUrls.push(cUrlData.publicUrl);
+            }
+            setTranscribeProgress(lang === 'th' ? 'กำลังถอดเสียง (อาจใช้เวลา 2-3 นาที)...' : 'Transcribing (may take 2-3 min)...');
+            const res = await fetch('/api/ai/transcribe-audio-chunks', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chunkUrls, mimeType: mime, lang: 'th' }),
+            });
+            const json = await safeFetchJson(res);
+            // Clean up chunks (best effort)
+            for (let i = 0; i < totalChunks; i++) {
+              supabase.storage.from('deal-activity-audio').remove([`chunks/${sessionId}/${i}.${ext}`]).catch(() => {});
+            }
+            if (json?.transcript) {
+              setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+            } else {
+              const eMsg = json?.error || '';
+              alert(lang === 'th' ? `ถอดเสียงไม่สำเร็จ${eMsg ? ': ' + eMsg : ''} กรุณาลองใหม่` : `Transcription failed${eMsg ? ': ' + eMsg : ''}. Please try again.`);
+            }
+          } else {
+            // Normal path — transcribe via URL
+            setTranscribeProgress(lang === 'th' ? 'กำลังถอดเสียง (อาจใช้เวลา 1-2 นาที)...' : 'Transcribing (may take 1-2 min)...');
+            const res = await fetch('/api/ai/transcribe-audio-url', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: storageUrl, lang: 'th' }),
+            });
+            const json = await safeFetchJson(res);
+            if (json?.transcript) {
+              setFormData((prev) => ({ ...prev, transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript }));
+            } else {
+              const errMsg = json?.error || '';
+              alert(lang === 'th' ? `ถอดเสียงไม่สำเร็จ${errMsg ? ': ' + errMsg : ''} กรุณาลองใหม่` : `Transcription failed${errMsg ? ': ' + errMsg : ''}. Please try again.`);
+            }
           }
         }
       } catch (error) {
@@ -1646,6 +1697,7 @@ export default function SalesActivitiesPanel({
                           {it.done && <CheckCircle size={10} className="text-white" />}
                         </button>
                         <span className={`flex-1 ${it.done ? 'line-through text-gray-600' : 'text-gray-700'}`}>{it.text}</span>
+                        <button type="button" onClick={() => removeActionItem(i)} className="text-red-600"><Trash2 size={12} /></button>
                         <button type="button" onClick={() => removeActionItem(i)} className="text-red-600"><Trash2 size={12} /></button>
                       </div>
                     ))}

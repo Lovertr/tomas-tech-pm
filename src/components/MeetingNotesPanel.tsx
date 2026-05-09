@@ -438,6 +438,45 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
     return (j.transcript as string) || "";
   };
 
+  const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB per chunk (under Supabase free 50MB limit)
+
+  const transcribeViaChunks = async (source: Blob | File): Promise<string> => {
+    const ext = source instanceof File ? (source.name.split(".").pop() || "webm") : "webm";
+    const mime = source.type || "audio/webm";
+    const totalChunks = Math.ceil(source.size / CHUNK_SIZE);
+    const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const chunkUrls: string[] = [];
+
+    // Upload chunks
+    for (let i = 0; i < totalChunks; i++) {
+      setTranscribeProgress(`กำลังอัพโหลดส่วนที่ ${i + 1}/${totalChunks}...`);
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, source.size);
+      const chunk = source.slice(start, end);
+      const chunkPath = `chunks/${sessionId}/${i}.${ext}`;
+      const { error: chunkErr } = await supabase.storage
+        .from("meeting-audio")
+        .upload(chunkPath, chunk, { contentType: mime, upsert: false });
+      if (chunkErr) throw new Error(`อัพโหลด chunk ${i + 1} ไม่สำเร็จ: ${chunkErr.message}`);
+      const { data: urlData } = supabase.storage.from("meeting-audio").getPublicUrl(chunkPath);
+      chunkUrls.push(urlData.publicUrl);
+    }
+
+    // Transcribe assembled chunks
+    setTranscribeProgress("กำลังถอดเสียง (อาจใช้เวลา 2-3 นาที)...");
+    const j = await safeFetchJson("/api/ai/transcribe-audio-chunks", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chunkUrls, mimeType: mime, lang: "th" }),
+    });
+
+    // Clean up chunks (best effort)
+    for (let i = 0; i < totalChunks; i++) {
+      supabase.storage.from("meeting-audio").remove([`chunks/${sessionId}/${i}.${ext}`]).catch(() => {});
+    }
+
+    return (j.transcript as string) || "";
+  };
+
   const transcribeLargeFile = async (source: Blob | File): Promise<string> => {
     setTranscribeProgress("กำลังอัพโหลดไฟล์เสียง...");
     const ext = source instanceof File ? (source.name.split(".").pop() || "webm") : "webm";
@@ -445,7 +484,17 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
     const { error: uploadErr } = await supabase.storage
       .from("meeting-audio")
       .upload(filename, source, { contentType: source.type || "audio/webm", upsert: false });
-    if (uploadErr) throw new Error("อัพโหลดไฟล์เสียงไม่สำเร็จ: " + uploadErr.message);
+
+    // If upload fails due to size limit, fall back to chunked upload
+    if (uploadErr) {
+      const errMsg = uploadErr.message || "";
+      if (errMsg.includes("exceeded") || errMsg.includes("size") || errMsg.includes("too large")) {
+        console.log("Supabase upload exceeded size limit, falling back to chunked upload...");
+        return transcribeViaChunks(source);
+      }
+      throw new Error("อัพโหลดไฟล์เสียงไม่สำเร็จ: " + errMsg);
+    }
+
     const { data: urlData } = supabase.storage.from("meeting-audio").getPublicUrl(filename);
     const storageUrl = urlData.publicUrl;
     if (!storageUrl) throw new Error("ไม่สามารถสร้าง URL สำหรับไฟล์เสียงได้");
@@ -817,4 +866,3 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
     </div>
   );
 }
-
