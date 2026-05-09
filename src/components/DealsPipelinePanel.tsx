@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit2, X, User, Search, Users, MessageSquare, Send, Loader2, UserPlus, UserMinus, CheckCircle, XCircle, Bell, Clock } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Plus, Trash2, Edit2, X, User, Search, Users, MessageSquare, Send, Loader2, UserPlus, UserMinus, CheckCircle, XCircle, Bell, Clock, GripVertical } from 'lucide-react';
 import TranslateButton, { InlineTranslateButton } from './TranslateButton';
 import type { Lang } from '@/lib/i18n';
 
@@ -22,7 +22,7 @@ interface Deal {
   customer_id: string;
   customer_name: string;
   value: number;
-  stage: 'new_lead' | 'waiting_present' | 'contacted' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'payment_received' | 'cancelled' | 'refused';
+  stage: 'new_lead' | 'waiting_present' | 'contacted' | 'proposal_created' | 'proposal_submitted' | 'proposal_confirmed' | 'quotation' | 'negotiation' | 'waiting_po' | 'po_received' | 'payment_received' | 'cancelled' | 'refused';
   expected_close_date?: string;
   probability?: number;
   owner_id?: string;
@@ -81,6 +81,7 @@ const stageLabels: Record<string, Record<string, string>> = {
   new_lead:           { th: 'ลีดใหม่',            en: 'New Lead',              jp: '新規リード' },
   waiting_present:    { th: 'รอนำเสนอ',          en: 'Waiting to Present',    jp: 'プレゼン待ち' },
   contacted:          { th: 'ติดต่อแล้ว',         en: 'Contacted',             jp: '連絡済み' },
+  proposal_created:   { th: 'สร้าง Proposal',    en: 'Proposal Created',      jp: '提案作成' },
   proposal_submitted: { th: 'เสนอ Proposal',     en: 'Proposal Submitted',    jp: '提案済み' },
   proposal_confirmed: { th: 'คอนเฟิร์ม Proposal', en: 'Proposal Confirmed',   jp: '提案承認' },
   quotation:          { th: 'เสนอราคา',           en: 'Quotation',             jp: '見積もり' },
@@ -94,13 +95,13 @@ const stageLabels: Record<string, Record<string, string>> = {
 
 const stageColors: Record<string, string> = {
   new_lead: '#0EA5E9', waiting_present: '#6B7280', contacted: '#3B82F6',
-  proposal_submitted: '#F59E0B', proposal_confirmed: '#8B5CF6', quotation: '#F7941D',
+  proposal_created: '#D97706', proposal_submitted: '#F59E0B', proposal_confirmed: '#8B5CF6', quotation: '#F7941D',
   negotiation: '#EC4899', waiting_po: '#14B8A6', po_received: '#22C55E',
   payment_received: '#059669', cancelled: '#EF4444', refused: '#9CA3AF',
 };
 
 const getTextColorForBackground = (bgColor: string): string => {
-  const darkColors = ['#0EA5E9', '#3B82F6', '#8B5CF6', '#EF4444', '#059669'];
+  const darkColors = ['#0EA5E9', '#3B82F6', '#8B5CF6', '#EF4444', '#059669', '#D97706'];
   return darkColors.includes(bgColor) ? '#FFFFFF' : '#1F2937';
 };
 
@@ -162,7 +163,7 @@ const panelText: Record<string, Record<string, string>> = {
 };
 
 const stageKeys: Array<Deal['stage']> = [
-  'new_lead', 'waiting_present', 'contacted', 'proposal_submitted', 'proposal_confirmed',
+  'new_lead', 'waiting_present', 'contacted', 'proposal_created', 'proposal_submitted', 'proposal_confirmed',
   'quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received', 'cancelled', 'refused',
 ];
 
@@ -191,6 +192,67 @@ export default function DealsPipelinePanel({
   const [collabLoading, setCollabLoading] = useState(false);
   const [inviteUserId, setInviteUserId] = useState('');
   const commentsEndRef = useRef<HTMLDivElement>(null);
+
+  /* --- Drag & Drop state --- */
+  const [dragDealId, setDragDealId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  const [dragMoving, setDragMoving] = useState(false);
+
+  const handleDragStart = useCallback((e: React.DragEvent, deal: Deal) => {
+    setDragDealId(deal.id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', deal.id);
+    // Make the drag image slightly transparent
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
+  }, []);
+
+  const handleDragEnd = useCallback((e: React.DragEvent) => {
+    setDragDealId(null);
+    setDragOverStage(null);
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, stage: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverStage(stage);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Only clear if leaving the column entirely (not entering a child)
+    const relatedTarget = e.relatedTarget as HTMLElement | null;
+    if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
+      setDragOverStage(null);
+    }
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent, targetStage: string) => {
+    e.preventDefault();
+    const dealId = e.dataTransfer.getData('text/plain');
+    setDragOverStage(null);
+    setDragDealId(null);
+    if (!dealId) return;
+    // Find the deal and check if stage actually changed
+    const deal = deals.find(d => d.id === dealId);
+    if (!deal || deal.stage === targetStage) return;
+    // Check permission
+    if (!canEditDeal(deal)) return;
+    // Optimistic update
+    setDragMoving(true);
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: targetStage as Deal['stage'] } : d));
+    try {
+      await handleChangeStage(dealId, targetStage);
+    } catch {
+      // Revert on error
+      setDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: deal.stage } : d));
+    } finally {
+      setDragMoving(false);
+    }
+  }, [deals]);
 
   /* --- Search / filter state --- */
   const [searchName, setSearchName] = useState('');
@@ -523,23 +585,38 @@ export default function DealsPipelinePanel({
                 style={{ backgroundColor: stageColors[stage], color: getTextColorForBackground(stageColors[stage]) }}>
                 <span>{stageName(stage)} ({col.length})</span>
               </div>
-              <div className="bg-[#F1F5F9] border border-t-0 rounded-b-lg p-2 space-y-2 min-h-[420px]" style={{ borderColor: stageColors[stage] + '40' }}>
+              <div
+                className={`border border-t-0 rounded-b-lg p-2 space-y-2 min-h-[420px] transition-colors duration-150 ${
+                  dragOverStage === stage && dragDealId ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-300' : 'bg-[#F1F5F9]'
+                }`}
+                style={{ borderColor: dragOverStage === stage ? undefined : stageColors[stage] + '40' }}
+                onDragOver={(e) => handleDragOver(e, stage)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, stage)}>
                 {col.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 text-sm">{L('noDeals')}</div>
                 ) : (
                   col.map((deal) => {
                     const mine = isMyDeal(deal);
                     const editable = canEditDeal(deal);
+                    const isDragging = dragDealId === deal.id;
                     return (
                       <div key={deal.id}
-                        className={`rounded-lg p-3 border transition cursor-pointer ${
+                        draggable={editable}
+                        onDragStart={editable ? (e) => handleDragStart(e, deal) : undefined}
+                        onDragEnd={handleDragEnd}
+                        className={`rounded-lg p-3 border transition ${editable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${
+                          isDragging ? 'opacity-50 ring-2 ring-blue-400 scale-95' :
                           mine ? 'bg-[#FFF7ED] border-[#F7941D] hover:shadow-md'
                           : isMyCollab(deal) ? 'bg-blue-50 border-blue-300 hover:shadow-md'
                           : 'bg-white border-gray-200 hover:border-[#003087] hover:shadow-md'
                         }`}
                         onClick={() => openDetail(deal)}>
-                        {/* MY DEAL / COLLABORATOR badge */}
-                        <div className="flex gap-1 mb-1.5">
+                        {/* Drag handle + MY DEAL / COLLABORATOR badge */}
+                        <div className="flex items-center gap-1 mb-1.5">
+                          {editable && (
+                            <GripVertical size={14} className="text-gray-300 flex-shrink-0 -ml-1" />
+                          )}
                           {mine && (
                             <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F7941D] rounded px-1.5 py-0.5">
                               {L('myDeal')}

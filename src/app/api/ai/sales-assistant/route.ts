@@ -7,6 +7,7 @@ const STAGE_LABELS: Record<string, string> = {
   new_lead: "ลีดใหม่",
   waiting_present: "รอนำเสนอ",
   contacted: "ติดต่อแล้ว",
+  proposal_created: "สร้าง Proposal",
   proposal_submitted: "เสนอ Proposal",
   proposal_confirmed: "คอนเฟิร์ม Proposal",
   quotation: "เสนอราคา",

@@ -80,6 +80,7 @@ const defaultStatusColor = { bg: 'bg-gray-50', text: 'text-gray-700', badge: '#4
 const pipelineStageColors: Record<string, string> = {
   waiting_present: '#6B7280',
   contacted: '#3B82F6',
+  proposal_created: '#D97706',
   proposal_submitted: '#F59E0B',
   proposal_confirmed: '#8B5CF6',
   quotation: '#F7941D',

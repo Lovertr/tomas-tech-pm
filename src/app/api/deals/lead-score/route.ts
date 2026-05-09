@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   for (const a of activities || []) { actCount[a.deal_id] = (actCount[a.deal_id] || 0) + 1; }
 
   const stageScore: Record<string, number> = {
-    new_lead: 5, waiting_present: 10, contacted: 20, proposal_submitted: 35,
+    new_lead: 5, waiting_present: 10, contacted: 20, proposal_created: 30, proposal_submitted: 35,
     proposal_confirmed: 50, quotation: 60, negotiation: 70, waiting_po: 80,
     po_received: 95, payment_received: 100, cancelled: 0, refused: 0,
   };

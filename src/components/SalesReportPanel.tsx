@@ -195,14 +195,15 @@ const i18n: Record<string, Record<string, string>> = {
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  waiting_present: "#6B7280", contacted: "#3B82F6", proposal_submitted: "#F59E0B",
-  proposal_confirmed: "#8B5CF6", quotation: "#F7941D", negotiation: "#EC4899",
-  waiting_po: "#14B8A6", po_received: "#22C55E", payment_received: "#059669",
-  cancelled: "#EF4444", refused: "#9CA3AF",
+  waiting_present: "#6B7280", contacted: "#3B82F6", proposal_created: "#D97706",
+  proposal_submitted: "#F59E0B", proposal_confirmed: "#8B5CF6", quotation: "#F7941D",
+  negotiation: "#EC4899", waiting_po: "#14B8A6", po_received: "#22C55E",
+  payment_received: "#059669", cancelled: "#EF4444", refused: "#9CA3AF",
 };
 const STAGE_LABELS_I18N: Record<string, Record<string, string>> = {
   waiting_present:    { th: "รอนำเสนอ",           en: "Waiting to Present",    jp: "プレゼン待ち" },
   contacted:          { th: "ติดต่อแล้ว",          en: "Contacted",             jp: "連絡済み" },
+  proposal_created:   { th: "สร้าง Proposal",     en: "Proposal Created",      jp: "提案作成" },
   proposal_submitted: { th: "เสนอ Proposal",      en: "Proposal Submitted",    jp: "提案済み" },
   proposal_confirmed: { th: "คอนเฟิร์ม Proposal", en: "Proposal Confirmed",   jp: "提案承認" },
   quotation:          { th: "เสนอราคา",            en: "Quotation",             jp: "見積もり" },

@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
     if (d.stage === 'payment_received') monthlyByStage[m].payment += Number(d.value || 0);
     else if (d.stage === 'po_received') monthlyByStage[m].po += Number(d.value || 0);
     else if (d.stage === 'quotation' || d.stage === 'negotiation' || d.stage === 'waiting_po') monthlyByStage[m].quotation += Number(d.value || 0);
-    else if (d.stage === 'proposal_submitted' || d.stage === 'proposal_confirmed') monthlyByStage[m].proposal += Number(d.value || 0);
+    else if (d.stage === 'proposal_created' || d.stage === 'proposal_submitted' || d.stage === 'proposal_confirmed') monthlyByStage[m].proposal += Number(d.value || 0);
   });
 
   // ── Conversion rates for forecasting ──
@@ -176,13 +176,13 @@ export async function GET(req: NextRequest) {
   const wonTotal = allDeals.filter(d => d.stage === 'po_received' || d.stage === 'payment_received').length;
   const reachedQuotation = allDeals.filter(d => ['quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received'].includes(d.stage)).length;
   const quotationToWon = reachedQuotation > 0 ? wonTotal / reachedQuotation : 0;
-  const reachedProposal = allDeals.filter(d => ['proposal_submitted', 'proposal_confirmed', 'quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received'].includes(d.stage)).length;
+  const reachedProposal = allDeals.filter(d => ['proposal_created', 'proposal_submitted', 'proposal_confirmed', 'quotation', 'negotiation', 'waiting_po', 'po_received', 'payment_received'].includes(d.stage)).length;
   const proposalToWon = reachedProposal > 0 ? wonTotal / reachedProposal : 0;
 
   // Current pipeline value by category for forecast
   const currentPO = allDeals.filter(d => d.stage === 'po_received').reduce((s, d) => s + Number(d.value || 0), 0);
   const currentQuotation = allDeals.filter(d => ['quotation', 'negotiation', 'waiting_po'].includes(d.stage)).reduce((s, d) => s + Number(d.value || 0), 0);
-  const currentProposal = allDeals.filter(d => ['proposal_submitted', 'proposal_confirmed'].includes(d.stage)).reduce((s, d) => s + Number(d.value || 0), 0);
+  const currentProposal = allDeals.filter(d => ['proposal_created', 'proposal_submitted', 'proposal_confirmed'].includes(d.stage)).reduce((s, d) => s + Number(d.value || 0), 0);
   const actualRevenue = allDeals.filter(d => d.stage === 'payment_received').reduce((s, d) => s + Number(d.value || 0), 0);
 
   // ── Strengths & weaknesses for AI analysis ──
@@ -256,7 +256,7 @@ export async function GET(req: NextRequest) {
   });
 
   // Proposal deals → weighted by conversion rate
-  allDeals.filter(d => ['proposal_submitted', 'proposal_confirmed'].includes(d.stage)).forEach(d => {
+  allDeals.filter(d => ['proposal_created', 'proposal_submitted', 'proposal_confirmed'].includes(d.stage)).forEach(d => {
     const m = d.expected_close_date ? d.expected_close_date.slice(0, 7) : nowMonth;
     monthlyForecastIncome[m] = (monthlyForecastIncome[m] || 0) + Number(d.value || 0) * proposalToWon;
   });
@@ -352,9 +352,9 @@ export async function GET(req: NextRequest) {
       wonByIndustry,
       conversionRates: {
         overall: Number(conversionRate),
-        quotationToWon: Math.round(quotationToWon * 100),
-        proposalToWon: Math.round(proposalToWon * 100),
-      },
-    },
-  });
+    quotationToWon: Math.round(quotationToWon * 100),
+    proposalToWon: Math.round(proposalToWon * 100),
+  },
+},
+});
 }

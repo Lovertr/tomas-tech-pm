@@ -44,6 +44,7 @@ const STAGE_LABELS: Record<string, Record<string, string>> = {
   new_lead: { th: "ลีดใหม่", en: "New Lead", jp: "新規リード" },
   waiting_present: { th: "รอนำเสนอ", en: "Waiting Present", jp: "プレゼン待ち" },
   contacted: { th: "ติดต่อแล้ว", en: "Contacted", jp: "連絡済み" },
+  proposal_created: { th: "สร้าง Proposal", en: "Proposal Created", jp: "提案作成" },
   proposal_submitted: { th: "เสนอ Proposal", en: "Proposal Submitted", jp: "提案提出" },
   proposal_confirmed: { th: "คอนเฟิร์ม Proposal", en: "Proposal Confirmed", jp: "提案確認" },
   quotation: { th: "เสนอราคา", en: "Quotation", jp: "見積" },

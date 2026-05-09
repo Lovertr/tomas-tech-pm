@@ -6,7 +6,8 @@ import { notify, getAdminManagerIds } from "@/lib/notify";
 
 const STAGE_LABELS: Record<string, string> = {
   new_lead: "ลีดใหม่", waiting_present: "รอนำเสนอ", contacted: "ติดต่อแล้ว",
-  proposal_submitted: "เสนอ Proposal", proposal_confirmed: "คอนเฟิร์ม Proposal",
+  proposal_created: "สร้าง Proposal", proposal_submitted: "เสนอ Proposal",
+  proposal_confirmed: "คอนเฟิร์ม Proposal",
   quotation: "เสนอราคา", negotiation: "เจรจาต่อรอง", waiting_po: "รอ PO",
   po_received: "ได้รับ PO", payment_received: "ได้รับยอดชำระแล้ว",
   cancelled: "ยกเลิก", refused: "ปฏิเสธ",
