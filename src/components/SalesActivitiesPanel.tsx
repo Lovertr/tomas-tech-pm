@@ -393,10 +393,14 @@ export default function SalesActivitiesPanel({
     type: 'call_contact' as ActivityType,
     description: '',
     notes: '',
+    transcript: '',
+    ai_summary: '',
     date: new Date().toISOString().split('T')[0],
     audio_url: '',
     participants: [] as string[],
   });
+  const [isPlayingSegments, setIsPlayingSegments] = useState(false);
+  const segmentAudioRef = useRef<HTMLAudioElement | null>(null);
   const [participantInput, setParticipantInput] = useState('');
   const [participantDropdownOpen, setParticipantDropdownOpen] = useState(false);
   const participantDropdownRef = useRef<HTMLDivElement>(null);
@@ -432,7 +436,9 @@ export default function SalesActivitiesPanel({
         type: editingActivity.type,
         description: editingActivity.description ?? '',
         notes: editingActivity.notes ?? '',
-        date: editingActivity.date ?? new Date().toISOString().split('T')[0],
+        transcript: '',
+        ai_summary: '',
+        date: editingActivity.date ? editingActivity.date.split('T')[0] : new Date().toISOString().split('T')[0],
         audio_url: '',
         participants: editingActivity.participants ?? [],
       });
@@ -583,6 +589,8 @@ export default function SalesActivitiesPanel({
       type: 'call_contact',
       description: '',
       notes: '',
+      transcript: '',
+      ai_summary: '',
       date: new Date().toISOString().split('T')[0],
       audio_url: '',
       participants: [],
@@ -669,7 +677,7 @@ export default function SalesActivitiesPanel({
         if (json?.transcript) {
           setFormData((prev) => ({
             ...prev,
-            description: prev.description ? `${prev.description}\n\n[Transcript]\n${json.transcript}` : `[Transcript]\n${json.transcript}`,
+            transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript,
           }));
           setAudioPreviewUrl(URL.createObjectURL(file));
           setUploadedFile({ name: file.name, url: '' });
@@ -696,7 +704,7 @@ export default function SalesActivitiesPanel({
           if (json?.transcript) {
             setFormData((prev) => ({
               ...prev,
-              description: prev.description ? `${prev.description}\n\n[Transcript]\n${json.transcript}` : `[Transcript]\n${json.transcript}`,
+              transcript: prev.transcript ? `${prev.transcript}\n\n${json.transcript}` : json.transcript,
               audio_url: publicUrl.publicUrl,
             }));
             setAudioPreviewUrl(URL.createObjectURL(file));
@@ -738,7 +746,7 @@ export default function SalesActivitiesPanel({
       if (fullTranscript) {
         setFormData((prev) => ({
           ...prev,
-          description: prev.description ? `${prev.description}\n\n[Transcript]\n${fullTranscript}` : `[Transcript]\n${fullTranscript}`,
+          transcript: prev.transcript ? `${prev.transcript}\n\n${fullTranscript}` : fullTranscript,
         }));
       }
     } catch (error) {
@@ -750,9 +758,12 @@ export default function SalesActivitiesPanel({
   };
 
   const handleExtractData = async () => {
-    // Extract from notes field (where transcription + manual notes go)
-    const sourceText = formData.notes || formData.description;
-    if (!sourceText) return;
+    // Extract from notes, transcript, or description
+    const sourceText = formData.notes || formData.transcript || formData.description;
+    if (!sourceText) {
+      alert(lang === 'th' ? 'ไม่มีข้อมูลให้สกัด กรุณากรอกบันทึกเพิ่มเติมหรือแปลงเสียงก่อน' : 'No text to extract from. Please add notes or transcribe audio first.');
+      return;
+    }
 
     try {
       setExtracting(true);
@@ -762,29 +773,38 @@ export default function SalesActivitiesPanel({
         body: JSON.stringify({ raw_text: sourceText }),
       });
 
+      if (!res.ok) {
+        const errJson = await safeFetchJson(res);
+        alert(lang === 'th' ? `สกัดข้อมูลไม่สำเร็จ: ${errJson?.error || res.statusText}` : `Extract failed: ${errJson?.error || res.statusText}`);
+        return;
+      }
+
       const json = await safeFetchJson(res);
-      if (json) {
+      if (json && !json.error) {
         setExtractedData(json);
-        // Merge extracted data into notes (like MeetingNotesPanel)
-        let mergeNotes = formData.notes || '';
+        // Build AI summary text for separate field
+        let summaryText = '';
+        if (json.summary) {
+          summaryText += `[Summary]\n${json.summary}`;
+        }
         if (json.action_items && json.action_items.length > 0) {
-          mergeNotes += '\n\n[Action Items]\n' + json.action_items.map((item: { text?: string; owner?: string; due_date?: string }) =>
+          summaryText += (summaryText ? '\n\n' : '') + '[Action Items]\n' + json.action_items.map((item: { text?: string; owner?: string; due_date?: string }) =>
             `- ${item.text || ''}${item.owner ? ` (${item.owner})` : ''}${item.due_date ? ` Due: ${item.due_date}` : ''}`
           ).join('\n');
         }
         if (json.decisions && json.decisions.length > 0) {
-          mergeNotes += '\n\n[Decisions]\n' + json.decisions.map((d: string) => `- ${d}`).join('\n');
+          summaryText += (summaryText ? '\n\n' : '') + '[Decisions]\n' + json.decisions.map((d: string) => `- ${d}`).join('\n');
         }
         if (json.risks && json.risks.length > 0) {
-          mergeNotes += '\n\n[Risks]\n' + json.risks.map((r: string) => `- ${r}`).join('\n');
+          summaryText += (summaryText ? '\n\n' : '') + '[Risks]\n' + json.risks.map((r: string) => `- ${r}`).join('\n');
         }
-        if (json.summary) {
-          mergeNotes += '\n\n[Summary]\n' + json.summary;
-        }
-        setFormData(prev => ({ ...prev, notes: mergeNotes.trim() }));
+        setFormData(prev => ({ ...prev, ai_summary: summaryText.trim() }));
+      } else {
+        alert(lang === 'th' ? `สกัดข้อมูลไม่สำเร็จ: ${json?.error || 'ไม่มีข้อมูล'}` : `Extract failed: ${json?.error || 'No data'}`);
       }
     } catch (error) {
       console.error('Failed to extract data:', error);
+      alert(lang === 'th' ? 'เกิดข้อผิดพลาดในการสกัดข้อมูล' : 'Failed to extract data');
     } finally {
       setExtracting(false);
     }
@@ -1395,7 +1415,7 @@ export default function SalesActivitiesPanel({
                     </label>
                   </div>
 
-                  {/* Transcribe + Download Buttons */}
+                  {/* Transcribe + Play + Download Buttons */}
                   {audioSegments.length > 0 && (
                     <div className="flex gap-2">
                       <button
@@ -1419,6 +1439,32 @@ export default function SalesActivitiesPanel({
                       <button
                         type="button"
                         onClick={() => {
+                          if (isPlayingSegments && segmentAudioRef.current) {
+                            segmentAudioRef.current.pause();
+                            segmentAudioRef.current = null;
+                            setIsPlayingSegments(false);
+                          } else {
+                            const combined = new Blob(audioSegments, { type: 'audio/webm' });
+                            const url = URL.createObjectURL(combined);
+                            const audio = new Audio(url);
+                            segmentAudioRef.current = audio;
+                            audio.onended = () => {
+                              setIsPlayingSegments(false);
+                              URL.revokeObjectURL(url);
+                              segmentAudioRef.current = null;
+                            };
+                            audio.play();
+                            setIsPlayingSegments(true);
+                          }
+                        }}
+                        className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                      >
+                        {isPlayingSegments ? <Pause size={14} /> : <Play size={14} />}
+                        {lang === 'th' ? (isPlayingSegments ? 'หยุด' : 'ฟัง') : (isPlayingSegments ? 'Pause' : 'Play')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           const combined = new Blob(audioSegments, { type: 'audio/webm' });
                           const url = URL.createObjectURL(combined);
                           const a = document.createElement('a');
@@ -1430,7 +1476,6 @@ export default function SalesActivitiesPanel({
                         className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2"
                       >
                         <Download size={14} />
-                        {lang === 'th' ? 'ดาวน์โหลด' : lang === 'jp' ? 'DL' : 'Download'}
                       </button>
                     </div>
                   )}
@@ -1460,6 +1505,22 @@ export default function SalesActivitiesPanel({
                 </div>
               </div>
 
+              {/* Transcript Field (separate from description) */}
+              {formData.transcript && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {lang === 'th' ? 'ข้อความจากเสียง (Transcript)' : lang === 'jp' ? '音声テキスト' : 'Audio Transcript'}
+                  </label>
+                  <textarea
+                    value={formData.transcript}
+                    onChange={(e) => setFormData({ ...formData, transcript: e.target.value })}
+                    className="w-full bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-green-600 resize-none"
+                    rows={4}
+                    placeholder={lang === 'th' ? 'ข้อความที่แปลงจากเสียง...' : 'Transcribed audio text...'}
+                  />
+                </div>
+              )}
+
               {/* AI Extract Section */}
               <div className="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -1470,7 +1531,7 @@ export default function SalesActivitiesPanel({
                 <button
                   type="button"
                   onClick={handleExtractData}
-                  disabled={extracting || (!formData.notes && !formData.description)}
+                  disabled={extracting || (!formData.notes && !formData.transcript && !formData.description)}
                   className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-3"
                 >
                   {extracting ? (
@@ -1531,6 +1592,36 @@ export default function SalesActivitiesPanel({
                   </div>
                 )}
               </div>
+
+              {/* AI Summary Field (separate from notes) */}
+              {formData.ai_summary && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {lang === 'th' ? 'ข้อมูลจาก AI' : lang === 'jp' ? 'AI抽出データ' : 'AI Extracted Data'}
+                  </label>
+                  <textarea
+                    value={formData.ai_summary}
+                    onChange={(e) => setFormData({ ...formData, ai_summary: e.target.value })}
+                    className="w-full bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-purple-600 resize-none"
+                    rows={5}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Append AI summary to notes for saving
+                      const newNotes = formData.notes
+                        ? `${formData.notes}\n\n--- AI Summary ---\n${formData.ai_summary}`
+                        : `--- AI Summary ---\n${formData.ai_summary}`;
+                      setFormData(prev => ({ ...prev, notes: newNotes }));
+                      alert(lang === 'th' ? 'บันทึกข้อมูล AI ลงบันทึกเพิ่มเติมแล้ว' : 'AI data saved to notes');
+                    }}
+                    className="mt-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+                  >
+                    <FileText size={14} />
+                    {lang === 'th' ? 'บันทึกข้อมูล AI ลง Notes' : lang === 'jp' ? 'AIデータをメモに保存' : 'Save AI data to Notes'}
+                  </button>
+                </div>
+              )}
 
               {/* Form Buttons */}
               <div className="flex gap-2 pt-4">
