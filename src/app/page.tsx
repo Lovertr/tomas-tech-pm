@@ -327,6 +327,7 @@ export default function App() {
     { id: "dept_kpi", icon: Target, label: lang === "th" ? "KPI แผนก" : lang === "jp" ? "部門KPI" : "Dept KPIs", module: "dashboard", group: "admin" },
     { id: "win_loss", icon: Trophy, label: lang === "th" ? "วิเคราะห์ Win/Loss" : lang === "jp" ? "Win/Loss分析" : "Win/Loss Analysis", module: "deals_pipeline", group: "crm" },
     { id: "sales_ai", icon: Zap, label: lang === "th" ? "AI ผู้ช่วยขาย" : lang === "jp" ? "AI営業アシスタント" : "AI Sales Assistant", module: "deals_pipeline", group: "crm" },
+    { id: "proposal_gen", icon: FileStack, label: lang === "th" ? "สร้าง Proposal อัตโนมัติ" : lang === "jp" ? "提案書自動生成" : "Auto-Generate Proposal", module: "deals_pipeline", group: "crm" },
     { id: "project_deps", icon: GitBranch, label: lang === "th" ? "การพึ่งพาโครงการ" : lang === "jp" ? "依存関係" : "Dependencies", module: "projects", group: "planning" },
     { id: "perf_review", icon: Trophy, label: lang === "th" ? "ประเมินผลงาน" : lang === "jp" ? "業績評価" : "Performance Review", module: "team", group: "people" },
     { id: "expense_approval", icon: CreditCard, label: lang === "th" ? "อนุมัติค่าใช้จ่าย" : lang === "jp" ? "経費承認" : "Expense Approval", module: "transactions", group: "finance" },
@@ -1057,9 +1058,9 @@ export default function App() {
                       {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                     </button>
                     {!collapsed && g.items.map(item => (
-                      <button key={item.id} onClick={() => { if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } setMobileMenuOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
-                        style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
+                      <button key={item.id} onClick={() => { if (item.id === "proposal_gen") { window.open("https://lin.ee/O9LF81d", "_blank"); } else if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } setMobileMenuOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${item.id === "proposal_gen" ? "text-[#06C755] hover:bg-[#06C755]/10" : page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
+                        style={page === item.id && item.id !== "proposal_gen" ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
                         <item.icon size={20} /><span className="truncate">{item.label}</span>
                       </button>
                     ))}
@@ -1115,9 +1116,9 @@ export default function App() {
                   <div className="h-px bg-[#E2E8F0] mx-2 my-2" />
                 )}
                 {!collapsed && g.items.map(item => (
-                  <button key={item.id} onClick={() => { if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } }} title={!sidebarOpen ? item.label : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
-                    style={page === item.id ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
+                  <button key={item.id} onClick={() => { if (item.id === "proposal_gen") { window.open("https://lin.ee/O9LF81d", "_blank"); } else if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } }} title={!sidebarOpen ? item.label : undefined}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${item.id === "proposal_gen" ? "text-[#06C755] hover:bg-[#06C755]/10" : page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
+                    style={page === item.id && item.id !== "proposal_gen" ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
                     <item.icon size={20} />{sidebarOpen && <span className="truncate">{item.label}</span>}
                   </button>
                 ))}
