@@ -60,7 +60,19 @@ export function useAuth() {
   // Granular permission checks per module
   // Levels: 0=none 1=view 2=comment 3=edit 4=create 5=full
   // While perms are loading, default to showing all menus (level 5) so sidebar isn't empty
-  const moduleLevel = (key: string): number => permsLoaded ? (perms[key] ?? 0) : 5;
+  // When perms loaded but empty/all-zero → fall back to role-based defaults
+  const hasAnyPerms = permsLoaded && Object.values(perms).some(v => v > 0);
+  const roleFallback = (): number => {
+    if (!user) return 1;
+    if (user.role === 'admin') return 5;
+    if (user.role === 'manager') return 3;
+    return 1; // member: at least view
+  };
+  const moduleLevel = (key: string): number => {
+    if (!permsLoaded) return 5; // still loading → show all
+    if (!hasAnyPerms) return roleFallback(); // no perms configured → role default
+    return perms[key] ?? 0;
+  };
   const canView = (key: string) => moduleLevel(key) >= 1;
   const canComment = (key: string) => moduleLevel(key) >= 2;
   const canEdit = (key: string) => moduleLevel(key) >= 3;
@@ -107,8 +119,8 @@ export function useAuth() {
       ],
     };
 
-    const perms = rolePermissions[user.role] || rolePermissions['member'] || [];
-    return perms.includes(permission);
+    const rolePerms = rolePermissions[user.role] || rolePermissions['member'] || [];
+    return rolePerms.includes(permission);
   };
 
   const isAdmin = user?.role === 'admin';
