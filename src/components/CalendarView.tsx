@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Calendar as CalIcon, Flag, ListTodo } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalIcon, Flag, ListTodo, Zap } from "lucide-react";
 
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
 interface Task { id: string; title: string; status: string; priority: string; due_date?: string | null; project_id: string; }
 interface Milestone { id: string; title: string; due_date: string; status: string; project_id: string; }
 interface Meeting { id: string; title: string; meeting_date: string; project_id: string; }
+interface SalesActivity { id: string; subject: string; activity_type: string; activity_date: string; customer_name?: string; }
 
 const PRIO_DOT: Record<string, string> = { urgent: "bg-red-600", high: "bg-orange-600", medium: "bg-blue-600", low: "bg-slate-600" };
 
@@ -21,6 +22,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
   const [tasks, setTasks] = useState<Task[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [salesActivities, setSalesActivities] = useState<SalesActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -28,14 +30,22 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
     setLoading(true);
     try {
       const proj = filterProjectId !== "all" ? `?project_id=${filterProjectId}` : "";
-      const [t, m, mt] = await Promise.all([
+      const [t, m, mt, da] = await Promise.all([
         fetch(`/api/tasks${proj}`).then(r => r.ok ? r.json() : { tasks: [] }),
         fetch(`/api/milestones${proj}`).then(r => r.ok ? r.json() : { milestones: [] }),
         fetch(`/api/meeting-notes${proj}`).then(r => r.ok ? r.json() : { meetings: [] }),
+        fetch('/api/deal-activities').then(r => r.ok ? r.json() : { activities: [] }),
       ]);
       setTasks(t.tasks ?? []);
       setMilestones(m.milestones ?? []);
       setMeetings(mt.meetings ?? mt.notes ?? []);
+      setSalesActivities((da.activities ?? []).map((a: Record<string, unknown>) => ({
+        id: a.id,
+        subject: a.subject ?? '',
+        activity_type: a.activity_type ?? '',
+        activity_date: a.activity_date ?? '',
+        customer_name: (a.customers as { company_name?: string })?.company_name ?? '',
+      })));
     } finally { setLoading(false); }
   }, [filterProjectId]);
 
@@ -56,13 +66,15 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
   const eventsByDay = useMemo(() => {
-    const m = new Map<string, { tasks: Task[]; milestones: Milestone[]; meetings: Meeting[] }>();
+    const m = new Map<string, { tasks: Task[]; milestones: Milestone[]; meetings: Meeting[]; activities: SalesActivity[] }>();
     const key = (d: string) => d.slice(0, 10);
-    tasks.forEach(t => { if (!t.due_date) return; const k = key(t.due_date); if (!m.has(k)) m.set(k, { tasks: [], milestones: [], meetings: [] }); m.get(k)!.tasks.push(t); });
-    milestones.forEach(ms => { const k = key(ms.due_date); if (!m.has(k)) m.set(k, { tasks: [], milestones: [], meetings: [] }); m.get(k)!.milestones.push(ms); });
-    meetings.forEach(mt => { const k = key(mt.meeting_date); if (!m.has(k)) m.set(k, { tasks: [], milestones: [], meetings: [] }); m.get(k)!.meetings.push(mt); });
+    const ensure = (k: string) => { if (!m.has(k)) m.set(k, { tasks: [], milestones: [], meetings: [], activities: [] }); };
+    tasks.forEach(t => { if (!t.due_date) return; const k = key(t.due_date); ensure(k); m.get(k)!.tasks.push(t); });
+    milestones.forEach(ms => { const k = key(ms.due_date); ensure(k); m.get(k)!.milestones.push(ms); });
+    meetings.forEach(mt => { const k = key(mt.meeting_date); ensure(k); m.get(k)!.meetings.push(mt); });
+    salesActivities.forEach(sa => { if (!sa.activity_date) return; const k = key(sa.activity_date); ensure(k); m.get(k)!.activities.push(sa); });
     return m;
-  }, [tasks, milestones, meetings]);
+  }, [tasks, milestones, meetings, salesActivities]);
 
   const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const monthLabel = cursor.toLocaleDateString("th-TH", { year: "numeric", month: "long" });
@@ -83,6 +95,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-600" /> Task</span>
           <span className="flex items-center gap-1"><Flag size={11} className="text-orange-600" /> Mil</span>
           <span className="flex items-center gap-1"><CalIcon size={11} className="text-purple-600" /> Meet</span>
+          <span className="flex items-center gap-1"><Zap size={11} className="text-green-600" /> Sales</span>
         </div>
       </div>
 
@@ -102,7 +115,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
           const isToday = c.date.getTime() === today.getTime();
           const isSel = selected === k;
           const dow = c.date.getDay();
-          const totalEv = ev ? ev.tasks.length + ev.milestones.length + ev.meetings.length : 0;
+          const totalEv = ev ? ev.tasks.length + ev.milestones.length + ev.meetings.length + ev.activities.length : 0;
           return (
             <div key={i} onClick={() => setSelected(k)}
               className={`border-b border-r border-gray-300 min-h-16 sm:min-h-24 p-1 sm:p-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${isSel ? "bg-blue-100 ring-1 ring-blue-500" : ""}`}>
@@ -121,6 +134,11 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
                     <CalIcon size={9} /> {m.title}
                   </div>
                 ))}
+                {ev?.activities.slice(0, 2).map(sa => (
+                  <div key={sa.id} className="flex items-center gap-1 text-[10px] text-green-600 truncate">
+                    <Zap size={9} /> {sa.subject || sa.activity_type}
+                  </div>
+                ))}
                 {ev?.tasks.slice(0, 3).map(t => (
                   <div key={t.id} onClick={(e) => { e.stopPropagation(); onTaskClick?.(t.id); }}
                     className="flex items-center gap-1 text-[10px] text-gray-700 hover:text-gray-900 truncate" title={t.title}>
@@ -128,8 +146,8 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
                     {t.title}
                   </div>
                 ))}
-                {totalEv > 5 && (
-                  <div className="text-[10px] text-gray-600">+{totalEv - 5} more</div>
+                {totalEv > 7 && (
+                  <div className="text-[10px] text-gray-600">+{totalEv - 7} more</div>
                 )}
               </div>
               {/* Mobile: compact dot indicators */}
@@ -139,6 +157,9 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
                 ))}
                 {ev?.meetings.slice(0, 2).map(m => (
                   <span key={m.id} className="w-2 h-2 rounded-full bg-purple-500" />
+                ))}
+                {ev?.activities.slice(0, 2).map(sa => (
+                  <span key={sa.id} className="w-2 h-2 rounded-full bg-green-500" />
                 ))}
                 {ev?.tasks.slice(0, 3).map(t => (
                   <span key={t.id} className={`w-2 h-2 rounded-full ${PRIO_DOT[t.priority] || "bg-slate-400"}`} />
@@ -172,6 +193,13 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
               <span className="text-xs text-gray-600">({projMap.get(mt.project_id)?.project_code})</span>
             </div>
           ))}
+          {selectedDay.activities.map(sa => (
+            <div key={sa.id} className="flex items-center gap-2 text-sm">
+              <Zap size={14} className="text-green-600" />
+              <span className="text-gray-700">{sa.subject || sa.activity_type}</span>
+              {sa.customer_name && <span className="text-xs text-gray-600">({sa.customer_name})</span>}
+            </div>
+          ))}
           {selectedDay.tasks.map(t => (
             <div key={t.id} onClick={() => onTaskClick?.(t.id)} className="flex items-center gap-2 text-sm cursor-pointer hover:text-[#00AEEF]">
               <ListTodo size={14} className="text-blue-600" />
@@ -180,7 +208,7 @@ export default function CalendarView({ projects, filterProjectId = "all", onTask
               <span className={`ml-auto w-2 h-2 rounded-full ${PRIO_DOT[t.priority]}`} />
             </div>
           ))}
-          {!selectedDay.tasks.length && !selectedDay.milestones.length && !selectedDay.meetings.length && (
+          {!selectedDay.tasks.length && !selectedDay.milestones.length && !selectedDay.meetings.length && !selectedDay.activities.length && (
             <div className="text-xs text-gray-600">ไม่มีรายการ</div>
           )}
         </div>

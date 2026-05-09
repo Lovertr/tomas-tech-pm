@@ -52,12 +52,15 @@ interface DealActivity {
   id: string;
   deal_id: string;
   deal_title: string;
+  customer_id: string;
   customer_name: string;
   type: ActivityType;
   description: string;
+  notes: string;
   date: string;
   performer?: string;
   performer_id?: string;
+  participants: string[];
 }
 
 interface Deal {
@@ -388,16 +391,23 @@ export default function SalesActivitiesPanel({
     customer_id: '',
     type: 'call_contact' as ActivityType,
     description: '',
+    notes: '',
     date: new Date().toISOString().split('T')[0],
     audio_url: '',
+    participants: [] as string[],
   });
+  const [participantInput, setParticipantInput] = useState('');
   const [dealSearchText, setDealSearchText] = useState('');
   const [dealDropdownOpen, setDealDropdownOpen] = useState(false);
   const dealDropdownRef = useRef<HTMLDivElement>(null);
+  const [customerSearchText, setCustomerSearchText] = useState('');
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dealDropdownRef.current && !dealDropdownRef.current.contains(e.target as Node)) setDealDropdownOpen(false);
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(e.target as Node)) setCustomerDropdownOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -414,12 +424,18 @@ export default function SalesActivitiesPanel({
     if (editingActivity) {
       setFormData({
         deal_id: editingActivity.deal_id ?? '',
-        customer_id: '',
+        customer_id: editingActivity.customer_id ?? '',
         type: editingActivity.type,
         description: editingActivity.description ?? '',
+        notes: editingActivity.notes ?? '',
         date: editingActivity.date ?? new Date().toISOString().split('T')[0],
         audio_url: '',
+        participants: editingActivity.participants ?? [],
       });
+      // Set customer search text for display
+      if (editingActivity.customer_id) {
+        setCustomerSearchText(editingActivity.customer_name ?? '');
+      }
       setShowForm(true);
     }
   }, [editingActivity]);
@@ -433,13 +449,16 @@ export default function SalesActivitiesPanel({
         const mapped = (json.activities ?? []).map((a: Record<string, unknown>) => ({
           id: a.id,
           deal_id: a.deal_id,
+          customer_id: a.customer_id ?? '',
           deal_title: (a.deals as { title?: string })?.title ?? '',
           customer_name: (a.customers as { company_name?: string })?.company_name ?? '',
           type: (a.activity_type ?? 'call_contact') as ActivityType,
           description: a.subject ?? '',
+          notes: a.notes ?? '',
           date: a.activity_date ?? '',
           performer: (a.performer as { display_name?: string })?.display_name ?? (a.performer as { email?: string })?.email ?? '',
           performer_id: (a.performer as { id?: string })?.id,
+          participants: (a.participants ?? []) as string[],
         }));
         setActivities(mapped.sort((a: DealActivity, b: DealActivity) =>
           new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -522,8 +541,11 @@ export default function SalesActivitiesPanel({
           customer_id: formData.customer_id || null,
           activity_type: formData.type,
           subject: formData.description,
+          description: formData.description,
+          notes: formData.notes || null,
           activity_date: formData.date,
           audio_url: formData.audio_url || null,
+          participants: formData.participants.length > 0 ? formData.participants : null,
         }),
       });
 
@@ -556,9 +578,14 @@ export default function SalesActivitiesPanel({
       customer_id: '',
       type: 'call_contact',
       description: '',
+      notes: '',
       date: new Date().toISOString().split('T')[0],
       audio_url: '',
+      participants: [],
     });
+    setParticipantInput('');
+    setCustomerSearchText('');
+    setCustomerDropdownOpen(false);
     setAudioBlob(null);
     setAudioSegments([]);
     setUploadedFile(null);
@@ -723,7 +750,7 @@ export default function SalesActivitiesPanel({
 
     try {
       setExtracting(true);
-      const res = await fetch('/api/ai/extract', {
+      const res = await fetch('/api/ai/extract-meeting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ raw_text: formData.description }),
@@ -732,6 +759,23 @@ export default function SalesActivitiesPanel({
       const json = await safeFetchJson(res);
       if (json) {
         setExtractedData(json);
+        // Merge extracted data into notes (like MeetingNotesPanel)
+        let mergeNotes = formData.notes || '';
+        if (json.action_items && json.action_items.length > 0) {
+          mergeNotes += '\n\n[Action Items]\n' + json.action_items.map((item: { text?: string; owner?: string; due_date?: string }) =>
+            `- ${item.text || ''}${item.owner ? ` (${item.owner})` : ''}${item.due_date ? ` Due: ${item.due_date}` : ''}`
+          ).join('\n');
+        }
+        if (json.decisions && json.decisions.length > 0) {
+          mergeNotes += '\n\n[Decisions]\n' + json.decisions.map((d: string) => `- ${d}`).join('\n');
+        }
+        if (json.risks && json.risks.length > 0) {
+          mergeNotes += '\n\n[Risks]\n' + json.risks.map((r: string) => `- ${r}`).join('\n');
+        }
+        if (json.summary) {
+          mergeNotes += '\n\n[Summary]\n' + json.summary;
+        }
+        setFormData(prev => ({ ...prev, notes: mergeNotes.trim() }));
       }
     } catch (error) {
       console.error('Failed to extract data:', error);
@@ -744,8 +788,7 @@ export default function SalesActivitiesPanel({
   const filteredActivities = activities.filter((a) => {
     if (filterDealId && a.deal_id !== filterDealId) return false;
     if (filterSalespersonId && a.performer_id !== filterSalespersonId) return false;
-    // Member only sees their own activities
-    if (!isAdminManager && a.performer_id !== currentUserId) return false;
+    // All users can see all activities now
     return true;
   });
 
@@ -1085,23 +1128,46 @@ export default function SalesActivitiesPanel({
                 </div>
               </div>
 
-              {/* Customer Dropdown - Optional */}
+              {/* Customer Search Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {L('form.customerLabel')}
                 </label>
-                <select
-                  value={formData.customer_id}
-                  onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
-                >
-                  <option value="">{L('form.customerPlaceholder')}</option>
-                  {customers.map((customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.company_name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative" ref={customerDropdownRef}>
+                  <input
+                    type="text"
+                    placeholder={formData.customer_id ? (customers.find(c => c.id === formData.customer_id)?.company_name) : L('form.customerPlaceholder')}
+                    value={customerDropdownOpen ? customerSearchText : (formData.customer_id ? (customers.find(c => c.id === formData.customer_id)?.company_name) || '' : '')}
+                    onChange={(e) => { setCustomerSearchText(e.target.value); setCustomerDropdownOpen(true); }}
+                    onFocus={() => { setCustomerDropdownOpen(true); setCustomerSearchText(''); }}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600 pr-8"
+                  />
+                  {formData.customer_id && (
+                    <button type="button" onClick={() => { setFormData({ ...formData, customer_id: '' }); setCustomerSearchText(''); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+                  )}
+                  {customerDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div
+                        className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => { setFormData({ ...formData, customer_id: '' }); setCustomerDropdownOpen(false); setCustomerSearchText(''); }}
+                      >{L('form.customerPlaceholder')}</div>
+                      {customers
+                        .filter(c => {
+                          if (!customerSearchText) return true;
+                          return c.company_name.toLowerCase().includes(customerSearchText.toLowerCase());
+                        })
+                        .slice(0, 50)
+                        .map(c => (
+                          <div key={c.id}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 ${formData.customer_id === c.id ? 'bg-blue-100 font-medium text-blue-800' : 'text-gray-800'}`}
+                            onClick={() => { setFormData({ ...formData, customer_id: c.id }); setCustomerDropdownOpen(false); setCustomerSearchText(''); }}
+                          >{c.company_name}</div>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Activity Type */}
@@ -1150,6 +1216,69 @@ export default function SalesActivitiesPanel({
                   className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600 resize-none"
                   rows={4}
                   placeholder={L('form.descriptionPlaceholder')}
+                />
+              </div>
+
+              {/* Participants */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {lang === 'th' ? 'ผู้เข้าร่วม' : lang === 'jp' ? '参加者' : 'Participants'}
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={participantInput}
+                    onChange={(e) => setParticipantInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = participantInput.trim();
+                        if (val && !formData.participants.includes(val)) {
+                          setFormData({ ...formData, participants: [...formData.participants, val] });
+                        }
+                        setParticipantInput('');
+                      }
+                    }}
+                    placeholder={lang === 'th' ? 'พิมพ์ชื่อแล้วกด Enter หรือ +' : lang === 'jp' ? '名前を入力してEnterまたは+' : 'Type name and press Enter or +'}
+                    className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = participantInput.trim();
+                      if (val && !formData.participants.includes(val)) {
+                        setFormData({ ...formData, participants: [...formData.participants, val] });
+                      }
+                      setParticipantInput('');
+                    }}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+                  >+</button>
+                </div>
+                {formData.participants.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {formData.participants.map((p, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {p}
+                        <button type="button" onClick={() => {
+                          setFormData({ ...formData, participants: formData.participants.filter((_, idx) => idx !== i) });
+                        }} className="text-blue-500 hover:text-blue-700">&times;</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {lang === 'th' ? 'บันทึกเพิ่มเติม' : lang === 'jp' ? '追加メモ' : 'Additional Notes'}
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-blue-600 resize-none"
+                  rows={3}
+                  placeholder={lang === 'th' ? 'บันทึกเพิ่มเติม, สิ่งที่ต้องทำต่อ...' : lang === 'jp' ? '追加メモ、次のアクション...' : 'Additional notes, next actions...'}
                 />
               </div>
 
