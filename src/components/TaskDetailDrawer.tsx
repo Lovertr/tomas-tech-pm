@@ -439,7 +439,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 <div key={item.id} className="flex items-center gap-2 group bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2">
                   <input type="checkbox" checked={item.is_completed} onChange={() => toggleCheck(item)}
                     className="w-4 h-4 accent-[#F7941D]" />
-                  <span className={`flex-1 text-sm ${item.is_completed ? "line-through text-slate-500" : "text-slate-100"}`}>
+                  <span className={`flex-1 text-sm ${item.is_completed ? "line-through text-slate-500" : "text-slate-800"}`}>
                     {item.title}
                   </span>
                   <button onClick={() => deleteCheck(item.id)} className="opacity-0 group-hover:opacity-100 text-red-700">
@@ -475,7 +475,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 {deps.blockedBy.length === 0 && <div className="text-xs text-slate-500">— ไม่มี —</div>}
                 {deps.blockedBy.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2 mb-1">
-                    <span className="text-sm text-slate-100">{d.depends?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
+                    <span className="text-sm text-slate-800">{d.depends?.title ?? d.depends_on_task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
                     <button onClick={() => removeDep(d.id)} className="text-red-700 hover:text-red-800"><Trash2 size={14} /></button>
                   </div>
                 ))}
@@ -485,7 +485,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 {deps.blocking.length === 0 && <div className="text-xs text-slate-500">— ไม่มี —</div>}
                 {deps.blocking.map(d => (
                   <div key={d.id} className="flex items-center justify-between bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2 mb-1">
-                    <span className="text-sm text-slate-100">{d.blocking?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
+                    <span className="text-sm text-slate-800">{d.blocking?.title ?? d.task_id} <span className="text-xs text-slate-500 ml-2">{depTypeShort(d.dependency_type)}</span></span>
                     <button onClick={() => removeDep(d.id)} className="text-red-700 hover:text-red-800"><Trash2 size={14} /></button>
                   </div>
                 ))}
@@ -504,7 +504,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 <div key={a.id} className="flex gap-3 text-sm bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3">
                   <Activity size={14} className="text-[#00AEEF] mt-0.5 shrink-0" />
                   <div className="flex-1">
-                    <div className="text-slate-100">
+                    <div className="text-slate-800">
                       <span className="font-medium">{authorLabel(a.actor)}</span>{" "}
                       <span className="text-slate-600">{a.action}</span>
                       {a.entity_type && <span className="text-slate-500"> {a.entity_type}</span>}
