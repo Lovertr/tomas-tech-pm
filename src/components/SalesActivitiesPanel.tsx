@@ -403,6 +403,37 @@ export default function SalesActivitiesPanel({
   });
   const [isPlayingSegments, setIsPlayingSegments] = useState(false);
   const segmentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const noSleepRef = useRef<{ stop: () => void } | null>(null);
+  const recTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // --- Wake Lock + NoSleep helpers ---
+  const acquireWakeLock = async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await (navigator as unknown as { wakeLock: { request: (type: string) => Promise<WakeLockSentinel> } }).wakeLock.request("screen");
+        wakeLockRef.current.addEventListener("release", () => { wakeLockRef.current = null; });
+      }
+    } catch { /* not available */ }
+  };
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) { wakeLockRef.current.release(); wakeLockRef.current = null; }
+  };
+  const startNoSleepAudio = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.001;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      noSleepRef.current = { stop: () => { osc.stop(); ctx.close(); } };
+    } catch { /* fallback */ }
+  };
+  const stopNoSleepAudio = () => {
+    if (noSleepRef.current) { noSleepRef.current.stop(); noSleepRef.current = null; }
+  };
   const [participantInput, setParticipantInput] = useState('');
   const [actionItemInput, setActionItemInput] = useState('');
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
@@ -621,53 +652,85 @@ export default function SalesActivitiesPanel({
 
   const handleStartRecording = async () => {
     try {
+      // Prevent screen sleep + keep browser alive in background
+      await acquireWakeLock();
+      startNoSleepAudio();
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
-      let chunks: Blob[] = [];
-      let segmentTime = 0;
+      const segments: Blob[] = [];
+      let currentChunks: Blob[] = [];
 
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
+      const createRecorder = () => {
+        const rec = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+        currentChunks = [];
+        rec.ondataavailable = (e) => { if (e.data.size > 0) currentChunks.push(e.data); };
+        rec.onstop = () => {
+          if (currentChunks.length > 0) {
+            segments.push(new Blob(currentChunks, { type: 'audio/webm' }));
+          }
+        };
+        return rec;
       };
 
-      recorder.onstop = () => {
-        if (chunks.length > 0) {
-          const blob = new Blob(chunks, { type: 'audio/webm' });
-          setAudioSegments((prev) => [...prev, blob]);
-          chunks = [];
-        }
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
+      let recorder = createRecorder();
+      recorder.start(1000);
       setMediaRecorder(recorder);
       setIsRecording(true);
       setRecordingTime(0);
       setAudioBlob(null);
       setAudioSegments([]);
-      recorder.start();
 
+      // Use timestamp-based elapsed time (resilient to timer throttling)
+      const startedAt = Date.now();
+      let lastSegmentSplit = 0;
       const interval = setInterval(() => {
-        setRecordingTime((t) => t + 1);
-        segmentTime += 1;
-        if (segmentTime >= SEGMENT_DURATION / 1000) {
+        const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+        setRecordingTime(elapsed);
+        if (elapsed > 0 && elapsed - lastSegmentSplit >= SEGMENT_DURATION / 1000 && recorder.state === 'recording') {
+          lastSegmentSplit = elapsed;
           recorder.stop();
-          recorder.start();
-          segmentTime = 0;
+          recorder = createRecorder();
+          recorder.start(1000);
+          setMediaRecorder(recorder);
         }
       }, 1000);
+      recTimerRef.current = interval;
 
-      const cleanup = () => clearInterval(interval);
-      return cleanup;
+      // Re-acquire wake lock when tab becomes visible again
+      const handleVisChange = async () => {
+        if (document.visibilityState === 'visible' && !wakeLockRef.current) {
+          await acquireWakeLock();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisChange);
+
+      // Store cleanup for stop
+      (window as unknown as Record<string, unknown>).__salesStopCleanup = () => {
+        if (recorder.state !== 'inactive') recorder.stop();
+        stream.getTracks().forEach((t) => t.stop());
+        clearInterval(interval);
+        releaseWakeLock();
+        stopNoSleepAudio();
+        document.removeEventListener('visibilitychange', handleVisChange);
+        setTimeout(() => {
+          if (segments.length > 0) {
+            const combined = new Blob(segments, { type: 'audio/webm' });
+            setAudioBlob(combined);
+            setAudioSegments([...segments]);
+            setAudioPreviewUrl(URL.createObjectURL(combined));
+          }
+        }, 200);
+      };
     } catch (error) {
       console.error('Failed to start recording:', error);
     }
   };
 
   const handleStopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      setIsRecording(false);
-    }
+    setIsRecording(false);
+    if (recTimerRef.current) clearInterval(recTimerRef.current);
+    const cleanup = (window as unknown as Record<string, unknown>).__salesStopCleanup as (() => void) | undefined;
+    if (cleanup) { cleanup(); delete (window as unknown as Record<string, unknown>).__salesStopCleanup; }
   };
 
   const handleUploadAudio = async (file: File) => {

@@ -316,8 +316,41 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
 
   const timerRef = { current: null as NodeJS.Timeout | null };
+  const wakeLockRef = { current: null as WakeLockSentinel | null };
+  const noSleepAudioRef = { current: null as HTMLAudioElement | null };
   const SEGMENT_DURATION = 180;
   const DIRECT_UPLOAD_LIMIT = 3.5 * 1024 * 1024;
+
+  // --- Wake Lock + NoSleep helpers to keep recording alive ---
+  const acquireWakeLock = async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await (navigator as unknown as { wakeLock: { request: (type: string) => Promise<WakeLockSentinel> } }).wakeLock.request("screen");
+        wakeLockRef.current.addEventListener("release", () => { wakeLockRef.current = null; });
+      }
+    } catch { /* wake lock not available or denied */ }
+  };
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) { wakeLockRef.current.release(); wakeLockRef.current = null; }
+  };
+  const startNoSleepAudio = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.001; // inaudible
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      // Store for cleanup
+      (noSleepAudioRef as { current: unknown }).current = { stop: () => { oscillator.stop(); ctx.close(); } };
+    } catch { /* fallback: no-op */ }
+  };
+  const stopNoSleepAudio = () => {
+    const ref = noSleepAudioRef.current as unknown as { stop?: () => void } | null;
+    if (ref?.stop) ref.stop();
+    noSleepAudioRef.current = null;
+  };
 
   const meetingType = form.meeting_type || "project";
 
@@ -337,6 +370,10 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
 
   const startRecording = async () => {
     try {
+      // Prevent screen sleep + keep browser alive in background
+      await acquireWakeLock();
+      startNoSleepAudio();
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const segments: Blob[] = [];
       let currentChunks: Blob[] = [];
@@ -362,11 +399,14 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
       setAudioSegments([]);
       setAudioPreviewUrl(null);
 
-      let elapsed = 0;
+      // Use start timestamp for accurate elapsed time (resilient to timer throttling)
+      const startedAt = Date.now();
+      let lastSegmentSplit = 0;
       const interval = setInterval(() => {
-        elapsed++;
+        const elapsed = Math.floor((Date.now() - startedAt) / 1000);
         setRecordingTime(elapsed);
-        if (elapsed > 0 && elapsed % SEGMENT_DURATION === 0 && recorder.state === "recording") {
+        if (elapsed > 0 && elapsed - lastSegmentSplit >= SEGMENT_DURATION && recorder.state === "recording") {
+          lastSegmentSplit = elapsed;
           recorder.stop();
           recorder = createRecorder();
           recorder.start(1000);
@@ -375,10 +415,21 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
       }, 1000);
       timerRef.current = interval;
 
+      // Re-acquire wake lock if released (e.g. after visibility change)
+      const handleVisChange = async () => {
+        if (document.visibilityState === "visible" && !wakeLockRef.current) {
+          await acquireWakeLock();
+        }
+      };
+      document.addEventListener("visibilitychange", handleVisChange);
+
       (window as unknown as Record<string, unknown>).__stopRecordingCleanup = () => {
         if (recorder.state !== "inactive") recorder.stop();
         stream.getTracks().forEach(t => t.stop());
         clearInterval(interval);
+        releaseWakeLock();
+        stopNoSleepAudio();
+        document.removeEventListener("visibilitychange", handleVisChange);
         setTimeout(() => {
           const allSegments = [...segments];
           if (allSegments.length > 0) {
