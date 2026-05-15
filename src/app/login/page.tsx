@@ -86,7 +86,7 @@ export default function LoginPage() {
       const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, old_password: password, new_password: newPassword }),
+        body: JSON.stringify({ oldPassword: password, newPassword }),
       });
 
       const data = await response.json();
