@@ -492,7 +492,6 @@ export default function App() {
       <MyTasks
         onTaskClick={(id) => setDrawerTaskId(id)}
         refreshKey={boardRefreshKey}
-        lang={lang}
       />
     </div>
   );
@@ -503,7 +502,7 @@ export default function App() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl font-bold text-gray-800">Gantt Chart</h1>
+          <h1 className="text-2xl font-bold text-gray-800">{t.ganttChart || "Gantt Chart"}</h1>
           <select value={pid} onChange={e => setGanttProjectId(e.target.value)}
             className="px-3 py-2 rounded-xl text-sm bg-[#FFFFFF] text-gray-800 border border-[#E2E8F0] outline-none">
             {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
@@ -522,7 +521,7 @@ export default function App() {
   const MilestonesPage = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-800">Milestones</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t.milestones || "Milestones"}</h1>
         <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
           className="px-3 py-2 rounded-xl text-sm bg-[#FFFFFF] text-gray-800 border border-[#E2E8F0] outline-none">
           <option value="all">{t.all} {t.projects}</option>
@@ -542,7 +541,7 @@ export default function App() {
   const CalendarPage = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-800">Calendar</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t.calendar || "Calendar"}</h1>
         <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
           className="px-3 py-2 rounded-xl text-sm bg-[#FFFFFF] text-gray-800 border border-[#E2E8F0] outline-none">
           <option value="all">{t.all} {t.projects}</option>
@@ -564,7 +563,7 @@ export default function App() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl font-bold text-gray-800">Sprint Board</h1>
+          <h1 className="text-2xl font-bold text-gray-800">{t.sprint || "Sprint Board"}</h1>
           <select value={pid} onChange={e => setGanttProjectId(e.target.value)}
             className="px-3 py-2 rounded-xl text-sm bg-[#FFFFFF] text-gray-800 border border-[#E2E8F0] outline-none">
             {data.projects.map(p => <option key={p.id} value={p.id}>{p.project_code} — {p.name_th || p.name_en}</option>)}
@@ -585,7 +584,7 @@ export default function App() {
   const MeetingsPage = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-800">Meeting Notes</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t.meetings || "Meeting Notes"}</h1>
         <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}
           className="px-3 py-2 rounded-xl text-sm bg-[#FFFFFF] text-gray-800 border border-[#E2E8F0] outline-none">
           <option value="all">{t.all} {t.projects}</option>
@@ -615,21 +614,21 @@ export default function App() {
 
   const RisksPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Risk Register" />
+      <ProjectFilterHeader title={t.risks || "Risk Register"} />
       <RisksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
         canManage={projPerms.canManageInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
   const IssuesPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Issue Log" />
+      <ProjectFilterHeader title={t.issues || "Issue Log"} />
       <IssuesPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
         canManage={projPerms.canManageInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
   const ChangesPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Change Requests" />
+      <ProjectFilterHeader title={t.changeRequests || "Change Requests"} />
       <ChangeRequestsPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
         canManage={projPerms.canManageInProject(taskFilter)} canApprove={projPerms.canApproveInProject(taskFilter)}
         refreshKey={boardRefreshKey} />
@@ -637,7 +636,7 @@ export default function App() {
   );
   const DecisionsPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Decision Log" />
+      <ProjectFilterHeader title={t.decisions || "Decision Log"} />
       <DecisionLogPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
         canManage={projPerms.canApproveInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
@@ -645,14 +644,14 @@ export default function App() {
 
   const TemplatesPage = () => (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Templates</h1>
+      <h1 className="text-2xl font-bold text-gray-800">{t.templates || "Templates"}</h1>
       <TemplatesPanel projects={data.projects} canManage={projPerms.isPMOfAnyProject}
         refreshKey={boardRefreshKey} onProjectCreated={() => setBoardRefreshKey(k => k + 1)} />
     </div>
   );
   const RecurringPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Recurring Tasks" />
+      <ProjectFilterHeader title={t.recurring || "Recurring Tasks"} />
       <RecurringTasksPanel projects={data.projects} members={data.members} filterProjectId={taskFilter}
         canManage={projPerms.canManageInProject(taskFilter, true)} refreshKey={boardRefreshKey} lang={lang} />
     </div>
@@ -660,14 +659,14 @@ export default function App() {
 
   const InvoicesPage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="ใบแจ้งหนี้ / Invoices" />
+      <ProjectFilterHeader title={t.invoices || "Invoices"} />
       <InvoicesPanel projects={data.projects} filterProjectId={taskFilter}
         canManage={projPerms.canManageInProject(taskFilter)} refreshKey={boardRefreshKey} />
     </div>
   );
   const FinancePage = () => (
     <div className="space-y-6">
-      <ProjectFilterHeader title="Finance — P&L / EVM" />
+      <ProjectFilterHeader title={t.finance || "Finance (P&L/EVM)"} />
       <FinancePanel filterProjectId={taskFilter} refreshKey={boardRefreshKey} />
     </div>
   );
