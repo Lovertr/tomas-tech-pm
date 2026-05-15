@@ -45,3 +45,5 @@ next-env.d.ts
 # FUSE mount artifacts
 .fuse_hidden*
 **/.fuse_hidden*
+
+client_secret_*.json
