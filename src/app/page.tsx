@@ -19,7 +19,7 @@ import {
 import { translations, type Lang } from "@/lib/i18n";
 import { monthlyCostData } from "@/lib/mockData";
 import { useData, type DBProject, type DBTask, type DBMember, type DBPosition } from "@/lib/useData";
-import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen, Bell as BellIcon, Award, ClipboardList, UserCheck, Globe, RefreshCcw, Layers, Smartphone, Trophy, Mail, CreditCard } from "lucide-react";
+import { Inbox, GanttChart as GanttIcon, Flag, CalendarDays, Zap, NotebookPen, ShieldAlert, Bug, GitPullRequest, Lightbulb, FileStack, Repeat, Receipt, Wallet, Link2, PiggyBank, ArrowLeftRight, FileText, HandCoins, Building2, GitBranch, PhoneCall, PieChart as PieChartIcon, BookOpen, Bell as BellIcon, Award, ClipboardList, UserCheck, Globe, RefreshCcw, Layers, Smartphone, Trophy, Mail, CreditCard, Car } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { type CommandItem } from "@/components/CommandPalette";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
@@ -98,6 +98,7 @@ const ProjectDependencyPanel = dyn(() => import("@/components/ProjectDependencyP
 const EmailActivityPanel = dyn(() => import("@/components/EmailActivityPanel"));
 const MyProfilePanel = dyn(() => import("@/components/MyProfilePanel"));
 const KnowledgeBasePanel = dyn(() => import("@/components/KnowledgeBasePanel"));
+const VehicleBookingPanel = dyn(() => import("@/components/VehicleBookingPanel"));
 
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
@@ -331,6 +332,7 @@ export default function App() {
     { id: "project_deps", icon: GitBranch, label: lang === "th" ? "การพึ่งพาโครงการ" : lang === "jp" ? "依存関係" : "Dependencies", module: "projects", group: "planning" },
     { id: "perf_review", icon: Trophy, label: lang === "th" ? "ประเมินผลงาน" : lang === "jp" ? "業績評価" : "Performance Review", module: "team", group: "people" },
     { id: "expense_approval", icon: CreditCard, label: lang === "th" ? "อนุมัติค่าใช้จ่าย" : lang === "jp" ? "経費承認" : "Expense Approval", module: "transactions", group: "finance" },
+    { id: "vehicle_booking", icon: Car, label: lang === "th" ? "จองรถ" : lang === "jp" ? "車両予約" : "Vehicle Booking", module: "dashboard", group: "people" },
   ];
   const nav = allNav.filter(n => canView(n.module));
 
@@ -1021,7 +1023,8 @@ export default function App() {
   const ExpenseApprovalPage = () => <ExpenseApprovalPanel lang={lang} canApprove={["admin","manager"].includes(currentUser?.role ?? "member")} />;
   const MyProfilePage = () => <MyProfilePanel lang={lang} currentUser={currentUser} onProfileUpdated={() => window.location.reload()} />;
   const KnowledgeBasePage = () => <KnowledgeBasePanel lang={lang} canManage={["admin","manager"].includes(currentUser?.role ?? "member")} />;
-  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, sales_ai: SalesAIPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage, knowledge_base: KnowledgeBasePage };
+  const VehicleBookingPage = () => <VehicleBookingPanel lang={lang} role={currentUser?.role ?? "member"} currentUserId={currentUser?.id} />;
+  const pages: Record<string, () => React.ReactNode> = { dashboard: Dashboard, mytasks: MyTasksPage, projects: Projects, tasks: Tasks, gantt: GanttPage, milestones: MilestonesPage, calendar: CalendarPage, sprint: SprintPage, meetings: MeetingsPage, risks: RisksPage, issues: IssuesPage, changes: ChangesPage, decisions: DecisionsPage, templates: TemplatesPage, recurring: RecurringPage, invoices: InvoicesPage, finance: FinancePage, client_portal: ClientPortalPage, team: Team, allocation: Allocation, workload: Workload, timelog: TimeLog, approval: Approval, costs: Costs, reports: Reports, manpower: Manpower, settings: SettingsPage, project_budget: ProjectBudgetPage, transactions: TransactionsPage, quotations: QuotationsPage, customers: CustomersPage, deals_pipeline: DealsPipelinePage, sales_activities: SalesActivitiesPage, sales_report: SalesReportPage, departments: DepartmentsPage, help_center: HelpCenterPage, notif_prefs: NotifPrefsPage, skill_matrix: SkillMatrixPage, leave_mgmt: LeaveMgmtPage, recurring_expenses: RecurringExpensesPage, dept_kpi: DeptKPIPage, win_loss: WinLossPage, sales_ai: SalesAIPage, project_deps: ProjectDepsPage, perf_review: PerfReviewPage, expense_approval: ExpenseApprovalPage, my_profile: MyProfilePage, knowledge_base: KnowledgeBasePage, vehicle_booking: VehicleBookingPage };
   const Page = pages[page] || Dashboard;
 
   // Mobile bottom nav items (most used)
