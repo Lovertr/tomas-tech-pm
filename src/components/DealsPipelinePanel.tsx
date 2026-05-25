@@ -178,6 +178,9 @@ export default function DealsPipelinePanel({
   const [deals, setDeals] = useState<Deal[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [allMembers, setAllMembers] = useState<Member[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerSearchRef = useRef<HTMLDivElement>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [loading, setLoading] = useState(false);
@@ -266,6 +269,17 @@ export default function DealsPipelinePanel({
   });
 
   useEffect(() => { fetchDeals(); fetchCustomers(); fetchMembers(); }, [filterProjectId, refreshKey]);
+
+  // Close customer dropdown on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (customerSearchRef.current && !customerSearchRef.current.contains(e.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   /* --- Data fetching --- */
   const fetchDeals = async () => {
@@ -460,6 +474,7 @@ export default function DealsPipelinePanel({
       stage: 'new_lead', expected_close_date: '', probability: 0, notes: '',
       contact_person: '', contact_channel: '', work_done: '', next_steps: '',
     });
+    setCustomerSearch('');
     setSelectedDeal(null);
   };
 
@@ -472,6 +487,7 @@ export default function DealsPipelinePanel({
       contact_person: deal.contact_person || '', contact_channel: deal.contact_channel || '',
       work_done: deal.work_done || '', next_steps: deal.next_steps || '',
     });
+    setCustomerSearch(deal.customer_name || '');
     setShowForm(true);
   };
 
@@ -898,20 +914,43 @@ export default function DealsPipelinePanel({
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
-                <div>
+                <div ref={customerSearchRef} className="relative">
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('customer')} *</label>
-                  <select required value={formData.customer_id} onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]">
-                    <option value="">{L('selectCustomer')}</option>
-                    {customers.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
-                  </select>
+                  <input type="text"
+                    value={customerSearch || (formData.customer_id ? customers.find(c => c.id === formData.customer_id)?.company_name || '' : '')}
+                    onChange={(e) => { setCustomerSearch(e.target.value); setShowCustomerDropdown(true); if (!e.target.value) setFormData({ ...formData, customer_id: '' }); }}
+                    onFocus={() => setShowCustomerDropdown(true)}
+                    placeholder={lang === 'th' ? 'พิมพ์ค้นหาลูกค้า...' : lang === 'jp' ? '顧客を検索...' : 'Search customer...'}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                  {/* hidden required input for form validation */}
+                  <input type="text" required value={formData.customer_id} onChange={() => {}} className="sr-only" tabIndex={-1} />
+                  {showCustomerDropdown && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {customers
+                        .filter(c => !customerSearch || c.company_name.toLowerCase().includes(customerSearch.toLowerCase()))
+                        .slice(0, 30)
+                        .map(c => (
+                          <button key={c.id} type="button"
+                            onClick={() => { setFormData({ ...formData, customer_id: c.id }); setCustomerSearch(c.company_name); setShowCustomerDropdown(false); }}
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 ${formData.customer_id === c.id ? 'bg-blue-100 font-semibold text-[#003087]' : 'text-gray-800'}`}>
+                            {c.company_name}
+                          </button>
+                        ))}
+                      {customers.filter(c => !customerSearch || c.company_name.toLowerCase().includes(customerSearch.toLowerCase())).length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-400">{lang === 'th' ? 'ไม่พบลูกค้า' : lang === 'jp' ? '顧客が見つかりません' : 'No customer found'}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('owner')}</label>
                   {userRole === 'member' ? (
                     <input type="text" readOnly
-                      value={allMembers.find(m => m.id === currentUserId)?.display_name || allMembers.find(m => m.id === currentUserId)?.first_name_en || currentUserId || ''}
+                      value={(() => {
+                        const m = allMembers.find(m => m.id === currentUserId);
+                        return m?.display_name || [m?.first_name_en, m?.last_name_en].filter(Boolean).join(' ') || '';
+                      })()}
                       className="w-full bg-gray-100 border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-700 text-sm cursor-not-allowed" />
                   ) : (
                     <select value={formData.owner_id} onChange={(e) => setFormData({ ...formData, owner_id: e.target.value })}
@@ -923,8 +962,9 @@ export default function DealsPipelinePanel({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('value')} *</label>
-                  <input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })}
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('value')}</label>
+                  <input type="number" value={formData.value || ''} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
+                    placeholder="0"
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
@@ -958,6 +998,43 @@ export default function DealsPipelinePanel({
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('contactChannel')}</label>
                   <input type="text" value={formData.contact_channel} onChange={(e) => setFormData({ ...formData, contact_channel: e.target.value })}
                     placeholder={lang === 'th' ? 'เช่น LINE, โทรศัพท์, อีเมล' : lang === 'jp' ? '例: LINE, 電話, メール' : 'e.g. LINE, Phone, Email'}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('notes')}</label>
+                  <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={2} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('workDone')}</label>
+                  <textarea value={formData.work_done} onChange={(e) => setFormData({ ...formData, work_done: e.target.value })}
+                    placeholder={lang === 'th' ? 'รายละเอียดที่ทำไปแล้ว...' : lang === 'jp' ? '完了済みの作業...' : 'Details of completed work...'}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('nextSteps')}</label>
+                  <textarea value={formData.next_steps} onChange={(e) => setFormData({ ...formData, next_steps: e.target.value })}
+                    placeholder={lang === 'th' ? 'สิ่งที่จะต้องทำต่อ...' : lang === 'jp' ? '次のステップ...' : 'Next steps to take...'}
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{saving ? '...' : L('save')}</button>
+                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
+                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+Email'}
                     className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
                 </div>
 
