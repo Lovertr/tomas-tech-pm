@@ -553,18 +553,18 @@ export default function SalesActivitiesPanel({
 
   const fetchUsers = async () => {
     try {
-      // Try /api/users first (admin), fallback to extracting performers from activities
-      const res = await fetch('/api/users');
+      // Use /api/members (accessible to all users) instead of /api/users (admin-only)
+      const res = await fetch('/api/members');
       if (res.ok) {
         const json = await res.json();
-        const mapped = (json.users ?? [])
-          .filter((u: Record<string, unknown>) => u.is_active)
-          .map((u: Record<string, unknown>) => ({
-            id: u.id as string,
-            display_name: u.display_name as string | null,
-            display_name_th: u.display_name_th as string | null,
-            email: u.email as string,
-            department: u.department as string | null,
+        const mapped = (json.members ?? [])
+          .filter((m: Record<string, unknown>) => m.is_active !== false)
+          .map((m: Record<string, unknown>) => ({
+            id: (m.user_id as string) || (m.id as string),
+            display_name: (m.display_name as string) || [m.first_name_en, m.last_name_en].filter(Boolean).join(' ') || [m.first_name_th, m.last_name_th].filter(Boolean).join(' ') || null,
+            display_name_th: [m.first_name_th, m.last_name_th].filter(Boolean).join(' ') || null,
+            email: m.email as string,
+            department: m.department as string | null,
           }));
         setUsers(mapped);
       }

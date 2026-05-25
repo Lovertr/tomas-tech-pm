@@ -295,8 +295,19 @@ export default function DealsPipelinePanel({
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch('/api/users');
-      if (res.ok) { const json = await res.json(); setAllMembers(json.users ?? []); }
+      const res = await fetch('/api/members');
+      if (res.ok) {
+        const json = await res.json();
+        const mapped: Member[] = (json.members ?? []).map((m: Record<string, unknown>) => ({
+          id: (m.user_id as string) || (m.id as string),
+          display_name: (m.display_name as string) || [m.first_name_en, m.last_name_en].filter(Boolean).join(' ') || [m.first_name_th, m.last_name_th].filter(Boolean).join(' ') || undefined,
+          first_name_th: m.first_name_th as string | null,
+          last_name_th: m.last_name_th as string | null,
+          first_name_en: m.first_name_en as string | null,
+          last_name_en: m.last_name_en as string | null,
+        }));
+        setAllMembers(mapped);
+      }
     } catch (error) { console.error('Failed to fetch members:', error); }
   };
 
