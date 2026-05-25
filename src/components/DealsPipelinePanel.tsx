@@ -1034,40 +1034,4 @@ export default function DealsPipelinePanel({
     </div>
   );
 }
-Email'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
-                </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('notes')}</label>
-                  <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={2} />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('workDone')}</label>
-                  <textarea value={formData.work_done} onChange={(e) => setFormData({ ...formData, work_done: e.target.value })}
-                    placeholder={lang === 'th' ? 'รายละเอียดที่ทำไปแล้ว...' : lang === 'jp' ? '完了済みの作業...' : 'Details of completed work...'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">{L('nextSteps')}</label>
-                  <textarea value={formData.next_steps} onChange={(e) => setFormData({ ...formData, next_steps: e.target.value })}
-                    placeholder={lang === 'th' ? 'สิ่งที่จะต้องทำต่อ...' : lang === 'jp' ? '次のステップ...' : 'Next steps to take...'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{saving ? '...' : L('save')}</button>
-                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
-                  className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
