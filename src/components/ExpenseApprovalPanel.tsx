@@ -72,7 +72,7 @@ export default function ExpenseApprovalPanel({ lang, canApprove }: { lang: strin
       <div className="flex gap-2">
         {(["pending", "approved", "rejected", "all"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={"px-3 py-1.5 rounded-lg text-sm font-medium transition " + (filter === f ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>
+            className={"px-3 py-1.5 rounded-lg text-sm font-medium transition " + (filter === f ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>
             {t[f]}
           </button>
         ))}

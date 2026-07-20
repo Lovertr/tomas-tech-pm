@@ -492,7 +492,7 @@ export default function AdminUsersPage() {
             <div className="p-6 space-y-5">
               {/* Section: บัญชีผู้ใช้ */}
               <div>
-                <div className="text-xs font-semibold text-[#003087] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="text-xs font-semibold text-[#0072B8] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Shield className="w-3.5 h-3.5" /> บัญชีผู้ใช้
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -523,7 +523,7 @@ export default function AdminUsersPage() {
 
               {/* Section: ข้อมูลพนักงาน */}
               <div>
-                <div className="text-xs font-semibold text-[#003087] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="text-xs font-semibold text-[#0072B8] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Users className="w-3.5 h-3.5" /> ข้อมูลพนักงาน
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -561,7 +561,7 @@ export default function AdminUsersPage() {
 
               {/* Section: แผนก & ตำแหน่ง */}
               <div>
-                <div className="text-xs font-semibold text-[#003087] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="text-xs font-semibold text-[#0072B8] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <ShieldCheck className="w-3.5 h-3.5" /> แผนก & ตำแหน่ง
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

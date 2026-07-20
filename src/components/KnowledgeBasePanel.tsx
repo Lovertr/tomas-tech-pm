@@ -244,13 +244,13 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
       <div className="h-full flex flex-col bg-white rounded-2xl shadow-sm border border-[#E2E8F0]">
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b border-[#E2E8F0]">
-          <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-1 text-sm text-[#003087] hover:text-[#F7941D] transition">
+          <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-1 text-sm text-[#0072B8] hover:text-[#F59E0B] transition">
             <ArrowLeft size={16} />{t("backToList")}
           </button>
           <div className="flex-1" />
           {canManage && (
             <div className="flex gap-2">
-              <button onClick={() => openEditArticle(selectedArticle)} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-50 text-[#003087] rounded-lg hover:bg-blue-100 transition"><Edit3 size={14} />{t("editArticle")}</button>
+              <button onClick={() => openEditArticle(selectedArticle)} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-50 text-[#0072B8] rounded-lg hover:bg-blue-100 transition"><Edit3 size={14} />{t("editArticle")}</button>
               <button onClick={() => deleteArticle(selectedArticle.id)} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"><Trash2 size={14} /></button>
             </div>
           )}
@@ -259,9 +259,9 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-2 mb-3">
-              {selectedArticle.is_pinned && <Pin size={14} className="text-[#F7941D]" />}
+              {selectedArticle.is_pinned && <Pin size={14} className="text-[#F59E0B]" />}
               {selectedArticle.category && (
-                <span className="flex items-center gap-1 text-xs bg-blue-50 text-[#003087] px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-xs bg-blue-50 text-[#0072B8] px-2 py-0.5 rounded-full">
                   <CatIcon iconName={selectedArticle.category.icon} size={12} />
                   {getCatName(selectedArticle.category)}
                 </span>
@@ -289,10 +289,10 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
     return (
       <div className="h-full flex flex-col bg-white rounded-2xl shadow-sm border border-[#E2E8F0]">
         <div className="flex items-center gap-3 p-4 border-b border-[#E2E8F0]">
-          <button onClick={() => setShowEditor(false)} className="flex items-center gap-1 text-sm text-[#003087] hover:text-[#F7941D] transition"><ArrowLeft size={16} />{t("cancel")}</button>
+          <button onClick={() => setShowEditor(false)} className="flex items-center gap-1 text-sm text-[#0072B8] hover:text-[#F59E0B] transition"><ArrowLeft size={16} />{t("cancel")}</button>
           <h2 className="text-lg font-bold text-gray-800">{editMode ? t("editArticle") : t("newArticle")}</h2>
           <div className="flex-1" />
-          <button onClick={saveArticle} disabled={saving || !editForm.title.trim()} className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+          <button onClick={saveArticle} disabled={saving || !editForm.title.trim()} className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{t("save")}
           </button>
         </div>
@@ -301,27 +301,27 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
             {/* Category */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">{t("category")}</label>
-              <select value={editForm.category_id} onChange={e => setEditForm(p => ({ ...p, category_id: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20">
+              <select value={editForm.category_id} onChange={e => setEditForm(p => ({ ...p, category_id: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20">
                 <option value="">{t("allCategories")}</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{getCatName(c)}</option>)}
               </select>
             </div>
             {/* Titles */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("titleLabel")} *</label><input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" /></div>
-              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("titleEn")}</label><input value={editForm.title_en} onChange={e => setEditForm(p => ({ ...p, title_en: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" /></div>
-              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("titleJp")}</label><input value={editForm.title_jp} onChange={e => setEditForm(p => ({ ...p, title_jp: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("titleLabel")} *</label><input value={editForm.title} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("titleEn")}</label><input value={editForm.title_en} onChange={e => setEditForm(p => ({ ...p, title_en: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("titleJp")}</label><input value={editForm.title_jp} onChange={e => setEditForm(p => ({ ...p, title_jp: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" /></div>
             </div>
             {/* Content TH */}
-            <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("contentLabel")} *</label><textarea value={editForm.content} onChange={e => setEditForm(p => ({ ...p, content: e.target.value }))} rows={10} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20 resize-y" /></div>
+            <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("contentLabel")} *</label><textarea value={editForm.content} onChange={e => setEditForm(p => ({ ...p, content: e.target.value }))} rows={10} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20 resize-y" /></div>
             {/* Content EN */}
-            <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("contentEn")}</label><textarea value={editForm.content_en} onChange={e => setEditForm(p => ({ ...p, content_en: e.target.value }))} rows={6} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20 resize-y" /></div>
+            <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("contentEn")}</label><textarea value={editForm.content_en} onChange={e => setEditForm(p => ({ ...p, content_en: e.target.value }))} rows={6} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20 resize-y" /></div>
             {/* Content JP */}
-            <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("contentJp")}</label><textarea value={editForm.content_jp} onChange={e => setEditForm(p => ({ ...p, content_jp: e.target.value }))} rows={6} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20 resize-y" /></div>
+            <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("contentJp")}</label><textarea value={editForm.content_jp} onChange={e => setEditForm(p => ({ ...p, content_jp: e.target.value }))} rows={6} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20 resize-y" /></div>
             {/* Tags + Pin */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("tags")} <span className="text-gray-400">({t("tagsHint")})</span></label><input value={editForm.tags} onChange={e => setEditForm(p => ({ ...p, tags: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" placeholder="IoT, WMS, PLC" /></div>
-              <div className="flex items-end"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={editForm.is_pinned} onChange={e => setEditForm(p => ({ ...p, is_pinned: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 text-[#003087] focus:ring-[#003087]" /><span className="text-sm text-gray-600"><Pin size={14} className="inline mr-1" />{t("pinned")}</span></label></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("tags")} <span className="text-gray-400">({t("tagsHint")})</span></label><input value={editForm.tags} onChange={e => setEditForm(p => ({ ...p, tags: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" placeholder="IoT, WMS, PLC" /></div>
+              <div className="flex items-end"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={editForm.is_pinned} onChange={e => setEditForm(p => ({ ...p, is_pinned: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 text-[#0072B8] focus:ring-[#0072B8]" /><span className="text-sm text-gray-600"><Pin size={14} className="inline mr-1" />{t("pinned")}</span></label></div>
             </div>
           </div>
         </div>
@@ -338,15 +338,15 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
         <div className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-3">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-gray-700">{t("category")}</h3>
-            {canManage && <button onClick={() => setShowCatModal(true)} className="text-[#003087] hover:text-[#F7941D] transition"><Plus size={16} /></button>}
+            {canManage && <button onClick={() => setShowCatModal(true)} className="text-[#0072B8] hover:text-[#F59E0B] transition"><Plus size={16} /></button>}
           </div>
-          <button onClick={() => setSelectedCat("all")} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition mb-1 ${selectedCat === "all" ? "bg-[#003087] text-white" : "text-gray-600 hover:bg-gray-50"}`}>
+          <button onClick={() => setSelectedCat("all")} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition mb-1 ${selectedCat === "all" ? "bg-[#0072B8] text-white" : "text-gray-600 hover:bg-gray-50"}`}>
             <FolderOpen size={16} /><span className="flex-1 text-left">{t("allCategories")}</span>
             <span className="text-xs opacity-70">{articles.length}</span>
           </button>
           <div className="space-y-0.5 max-h-[40vh] overflow-y-auto">
             {categories.map(cat => (
-              <button key={cat.id} onClick={() => setSelectedCat(cat.id)} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${selectedCat === cat.id ? "bg-[#003087] text-white" : "text-gray-600 hover:bg-gray-50"}`}>
+              <button key={cat.id} onClick={() => setSelectedCat(cat.id)} className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${selectedCat === cat.id ? "bg-[#0072B8] text-white" : "text-gray-600 hover:bg-gray-50"}`}>
                 <CatIcon iconName={cat.icon} size={16} />
                 <span className="flex-1 text-left truncate">{getCatName(cat)}</span>
                 <span className="text-xs opacity-70">{cat.article_count}</span>
@@ -356,7 +356,7 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
         </div>
 
         {/* AI Chat Toggle */}
-        <button onClick={() => setChatOpen(!chatOpen)} className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-[#003087] to-[#0050B3] text-white rounded-2xl shadow-sm hover:shadow-md transition text-sm font-medium">
+        <button onClick={() => setChatOpen(!chatOpen)} className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0072B8] to-[#0050B3] text-white rounded-2xl shadow-sm hover:shadow-md transition text-sm font-medium">
           <Bot size={18} />{t("aiAssistant")}
           <ChevronRight size={14} className={`ml-auto transition ${chatOpen ? "rotate-90" : ""}`} />
         </button>
@@ -365,7 +365,7 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
         {chatOpen && (
           <div className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] flex flex-col" style={{ height: "350px" }}>
             <div className="p-3 border-b border-[#E2E8F0] flex items-center gap-2">
-              <Bot size={16} className="text-[#003087]" />
+              <Bot size={16} className="text-[#0072B8]" />
               <span className="text-sm font-medium text-gray-700">{t("aiAssistant")}</span>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -374,7 +374,7 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
               )}
               {chatMessages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-700"}`}>
+                  <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-700"}`}>
                     {msg.content}
                   </div>
                 </div>
@@ -389,8 +389,8 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
               <div ref={chatEndRef} />
             </div>
             <div className="p-2 border-t border-[#E2E8F0] flex gap-2">
-              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} placeholder={t("aiPlaceholder")} className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" />
-              <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()} className="p-2 bg-[#003087] text-white rounded-lg hover:bg-[#0050B3] transition disabled:opacity-50"><Send size={14} /></button>
+              <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} placeholder={t("aiPlaceholder")} className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" />
+              <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()} className="p-2 bg-[#0072B8] text-white rounded-lg hover:bg-[#0050B3] transition disabled:opacity-50"><Send size={14} /></button>
             </div>
           </div>
         )}
@@ -402,10 +402,10 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
         <div className="flex items-center gap-3 p-4 border-b border-[#E2E8F0]">
           <div className="flex-1 relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("searchPlaceholder")} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("searchPlaceholder")} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" />
           </div>
           {canManage && (
-            <button onClick={openNewArticle} className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white rounded-lg transition hover:shadow-md" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+            <button onClick={openNewArticle} className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white rounded-lg transition hover:shadow-md" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>
               <Plus size={16} /><span className="hidden sm:inline">{t("newArticle")}</span>
             </button>
           )}
@@ -414,7 +414,7 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
         {/* Articles */}
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
-            <div className="flex justify-center items-center h-32"><Loader2 size={24} className="animate-spin text-[#003087]" /></div>
+            <div className="flex justify-center items-center h-32"><Loader2 size={24} className="animate-spin text-[#0072B8]" /></div>
           ) : articles.length === 0 ? (
             <div className="text-center text-gray-400 py-16">
               <BookOpen size={40} className="mx-auto mb-3 opacity-30" />
@@ -423,17 +423,17 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
           ) : (
             <div className="space-y-2">
               {articles.map(article => (
-                <button key={article.id} onClick={() => openArticle(article)} className="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-[#003087]/20 hover:bg-blue-50/30 transition group">
+                <button key={article.id} onClick={() => openArticle(article)} className="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-[#0072B8]/20 hover:bg-blue-50/30 transition group">
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        {article.is_pinned && <Pin size={12} className="text-[#F7941D] flex-shrink-0" />}
-                        <h3 className="text-sm font-semibold text-gray-800 group-hover:text-[#003087] transition truncate">{getTitle(article)}</h3>
+                        {article.is_pinned && <Pin size={12} className="text-[#F59E0B] flex-shrink-0" />}
+                        <h3 className="text-sm font-semibold text-gray-800 group-hover:text-[#0072B8] transition truncate">{getTitle(article)}</h3>
                       </div>
                       <p className="text-xs text-gray-500 line-clamp-2 mb-2">{getContent(article).slice(0, 150)}...</p>
                       <div className="flex items-center gap-2 flex-wrap">
                         {article.category && (
-                          <span className="flex items-center gap-1 text-[10px] bg-blue-50 text-[#003087] px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-[10px] bg-blue-50 text-[#0072B8] px-2 py-0.5 rounded-full">
                             <CatIcon iconName={article.category.icon} size={10} />{getCatName(article.category)}
                           </span>
                         )}
@@ -443,7 +443,7 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
                         <span className="text-[10px] text-gray-400 flex items-center gap-0.5"><Eye size={10} />{article.view_count}</span>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-gray-300 group-hover:text-[#003087] flex-shrink-0 mt-1 transition" />
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-[#0072B8] flex-shrink-0 mt-1 transition" />
                   </div>
                 </button>
               ))}
@@ -461,13 +461,13 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
               <button onClick={() => setShowCatModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             <div className="space-y-3">
-              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("categoryName")} *</label><input value={catForm.name} onChange={e => setCatForm(p => ({ ...p, name: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" /></div>
-              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("categoryNameEn")}</label><input value={catForm.name_en} onChange={e => setCatForm(p => ({ ...p, name_en: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("categoryName")} *</label><input value={catForm.name} onChange={e => setCatForm(p => ({ ...p, name: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" /></div>
+              <div><label className="block text-xs font-medium text-gray-600 mb-1">{t("categoryNameEn")}</label><input value={catForm.name_en} onChange={e => setCatForm(p => ({ ...p, name_en: e.target.value }))} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20" /></div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Icon</label>
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(ICON_MAP).map(name => (
-                    <button key={name} onClick={() => setCatForm(p => ({ ...p, icon: name }))} className={`p-2 rounded-lg border transition ${catForm.icon === name ? "border-[#003087] bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+                    <button key={name} onClick={() => setCatForm(p => ({ ...p, icon: name }))} className={`p-2 rounded-lg border transition ${catForm.icon === name ? "border-[#0072B8] bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
                       <CatIcon iconName={name} size={18} />
                     </button>
                   ))}
@@ -476,7 +476,7 @@ export default function KnowledgeBasePanel({ lang, canManage }: Props) {
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowCatModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition">{t("cancel")}</button>
-              <button onClick={saveCategory} disabled={!catForm.name.trim()} className="px-4 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>{t("save")}</button>
+              <button onClick={saveCategory} disabled={!catForm.name.trim()} className="px-4 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>{t("save")}</button>
             </div>
           </div>
         </div>

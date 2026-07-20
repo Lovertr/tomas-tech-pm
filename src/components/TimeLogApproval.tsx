@@ -86,7 +86,7 @@ export default function TimeLogApproval({ canApprove }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-gray-900">
-          <Clock size={20} className="text-[#00AEEF]" />
+          <Clock size={20} className="text-[#4DB5D6]" />
           <h2 className="text-lg font-semibold">TimeLog Approval</h2>
           <span className="text-xs text-gray-500">({rows.length} รายการ • {totalHours.toFixed(1)}h • ฿{totalAmount.toLocaleString()})</span>
         </div>

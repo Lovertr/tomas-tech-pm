@@ -196,7 +196,7 @@ const i18n: Record<string, Record<string, string>> = {
 
 const STAGE_COLORS: Record<string, string> = {
   waiting_present: "#6B7280", contacted: "#3B82F6", proposal_created: "#D97706",
-  proposal_submitted: "#F59E0B", proposal_confirmed: "#8B5CF6", quotation: "#F7941D",
+  proposal_submitted: "#F59E0B", proposal_confirmed: "#8B5CF6", quotation: "#F59E0B",
   negotiation: "#EC4899", waiting_po: "#14B8A6", po_received: "#22C55E",
   payment_received: "#059669", cancelled: "#EF4444", refused: "#9CA3AF",
 };
@@ -214,7 +214,7 @@ const STAGE_LABELS_I18N: Record<string, Record<string, string>> = {
   cancelled:          { th: "ยกเลิก",              en: "Cancelled",             jp: "キャンセル" },
   refused:            { th: "ปฏิเสธ",              en: "Refused",               jp: "拒否" },
 };
-const PIE_COLORS = ["#003087", "#00AEEF", "#F7941D", "#22C55E", "#8B5CF6", "#EF4444", "#EC4899", "#6366F1"];
+const PIE_COLORS = ["#0072B8", "#4DB5D6", "#F59E0B", "#22C55E", "#8B5CF6", "#EF4444", "#EC4899", "#6366F1"];
 
 interface SalesData {
   salespeople: { id: string; name: string }[];
@@ -419,7 +419,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003087]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0072B8]"></div>
         <span className="ml-3 text-gray-500">{t.loading}</span>
       </div>
     );
@@ -433,7 +433,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
           {(["summary", "revenue", "analysis"] as const).map(tb => (
             <button key={tb} onClick={() => setTab(tb)}
               className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${tab === tb ? "text-white" : "text-slate-600 hover:bg-slate-50"}`}
-              style={tab === tb ? { background: "#003087" } : {}}>
+              style={tab === tb ? { background: "#0072B8" } : {}}>
               {tb === "summary" && <BarChart3 size={14} />}
               {tb === "revenue" && <TrendingUp size={14} />}
               {tb === "analysis" && <Zap size={14} />}
@@ -449,7 +449,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
               <select
                 value={selectedOwner}
                 onChange={e => setSelectedOwner(e.target.value)}
-                className="text-xs border border-[#E2E8F0] rounded-lg px-2.5 py-2 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#003087] min-w-[160px]"
+                className="text-xs border border-[#E2E8F0] rounded-lg px-2.5 py-2 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#0072B8] min-w-[160px]"
               >
                 <option value="">{t.allSalespeople}</option>
                 {(data?.salespeople ?? []).map(sp => (
@@ -461,13 +461,13 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
             <div className="flex rounded-lg overflow-hidden border border-[#E2E8F0]">
               <button
                 onClick={() => setSelectedOwner("")}
-                className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${selectedOwner === "" ? "bg-[#003087] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${selectedOwner === "" ? "bg-[#0072B8] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
               >
                 <Users size={12} /> {t.allTeam}
               </button>
               <button
                 onClick={() => setSelectedOwner("me")}
-                className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${selectedOwner === "me" ? "bg-[#003087] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${selectedOwner === "me" ? "bg-[#0072B8] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
               >
                 <UserCheck size={12} /> {t.myData}
               </button>
@@ -484,11 +484,11 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <KPI icon={Users} label={t.totalDeals} value={String(s?.totalDeals || 0)} color="#003087" />
+            <KPI icon={Users} label={t.totalDeals} value={String(s?.totalDeals || 0)} color="#0072B8" />
             <KPI icon={CheckCircle2} label={t.closedWon} value={String(s?.wonCount || 0)} color="#22C55E" />
-            <KPI icon={Activity} label={t.conversion} value={`${s?.conversionRate || 0}%`} color="#00AEEF" />
+            <KPI icon={Activity} label={t.conversion} value={`${s?.conversionRate || 0}%`} color="#4DB5D6" />
             <KPI icon={XCircle} label={t.lost} value={String(s?.lostCount || 0)} color="#EF4444" />
-            <KPI icon={TrendingUp} label={t.pipeline} value={`THB ${fmtM(s?.totalPipeline || 0)}`} color="#F7941D" />
+            <KPI icon={TrendingUp} label={t.pipeline} value={`THB ${fmtM(s?.totalPipeline || 0)}`} color="#F59E0B" />
           </div>
 
           {/* Charts Row */}
@@ -498,8 +498,8 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h3 className="text-sm font-bold text-gray-800">{t.newDealsMonthly}</h3>
                 <div className="flex gap-1.5">
-                  <button onClick={() => setView("month")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "month" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600"}`}>{t.month}</button>
-                  <button onClick={() => setView("year")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "year" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600"}`}>{t.year}</button>
+                  <button onClick={() => setView("month")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "month" ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600"}`}>{t.month}</button>
+                  <button onClick={() => setView("year")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "year" ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600"}`}>{t.year}</button>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={250}>
@@ -510,8 +510,8 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1e6).toFixed(0)}M`} />
                   <Tooltip formatter={(v: any, name: any) => name === "value" ? [`THB ${fmtM(v)}`, t.dealValueLabel] : [v, t.dealCountLabel]} />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="count" name={t.dealCountLabel} fill="#00AEEF" radius={[4, 4, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="value" name={t.dealValueLabel} stroke="#003087" strokeWidth={2} dot={{ r: 3 }} />
+                  <Bar yAxisId="left" dataKey="count" name={t.dealCountLabel} fill="#4DB5D6" radius={[4, 4, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="value" name={t.dealValueLabel} stroke="#0072B8" strokeWidth={2} dot={{ r: 3 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -582,8 +582,8 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <KPI icon={DollarSign} label={t.actualRevenue} value={`THB ${fmtM(fc?.actualRevenue || 0)}`} color="#059669" />
             <KPI icon={FileText} label={t.confirmedPO} value={`THB ${fmtM(fc?.currentPO || 0)}`} color="#22C55E" />
-            <KPI icon={Briefcase} label={t.quotedValue} value={`THB ${fmtM(fc?.currentQuotation || 0)}`} color="#F7941D" />
-            <KPI icon={Target} label={t.proposalValue} value={`THB ${fmtM(fc?.currentProposal || 0)}`} color="#003087" />
+            <KPI icon={Briefcase} label={t.quotedValue} value={`THB ${fmtM(fc?.currentQuotation || 0)}`} color="#F59E0B" />
+            <KPI icon={Target} label={t.proposalValue} value={`THB ${fmtM(fc?.currentProposal || 0)}`} color="#0072B8" />
           </div>
 
           {/* Revenue by Category */}
@@ -591,8 +591,8 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h3 className="text-sm font-bold text-gray-800">{t.revenueByCategory}</h3>
               <div className="flex gap-1.5">
-                <button onClick={() => setView("month")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "month" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600"}`}>{t.month}</button>
-                <button onClick={() => setView("year")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "year" ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600"}`}>{t.year}</button>
+                <button onClick={() => setView("month")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "month" ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600"}`}>{t.month}</button>
+                <button onClick={() => setView("year")} className={`px-2.5 py-1 text-[11px] font-medium rounded-lg ${view === "year" ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600"}`}>{t.year}</button>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={300}>
@@ -604,8 +604,8 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                 <Legend />
                 <Bar dataKey="payment" name={t.payment} fill="#059669" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="po" name={t.po} fill="#22C55E" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="quotation" name={t.quotation} fill="#F7941D" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="proposal" name={t.proposal} fill="#003087" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="quotation" name={t.quotation} fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="proposal" name={t.proposal} fill="#0072B8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -614,23 +614,23 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
           {forecastChartData.length > 0 && (
             <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
               <h3 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2">
-                <TrendingUp size={14} className="text-[#003087]" /> {t.forecastTimelineTitle || t.forecastBreakdown}
+                <TrendingUp size={14} className="text-[#0072B8]" /> {t.forecastTimelineTitle || t.forecastBreakdown}
               </h3>
               <p className="text-[11px] text-gray-400 mb-4">
-                <span className="inline-block w-3 h-[2px] bg-[#003087] mr-1 align-middle" /> {t.past}
+                <span className="inline-block w-3 h-[2px] bg-[#0072B8] mr-1 align-middle" /> {t.past}
                 &nbsp;&nbsp;
-                <span className="inline-block w-3 h-[2px] bg-[#F7941D] mr-1 align-middle" style={{ borderBottom: '2px dashed #F7941D', background: 'none' }} /> {t.future}
+                <span className="inline-block w-3 h-[2px] bg-[#F59E0B] mr-1 align-middle" style={{ borderBottom: '2px dashed #F59E0B', background: 'none' }} /> {t.future}
               </p>
               <ResponsiveContainer width="100%" height={340}>
                 <AreaChart data={forecastChartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
                   <defs>
                     <linearGradient id="gradActualLine" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#003087" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#003087" stopOpacity={0.02} />
+                      <stop offset="5%" stopColor="#0072B8" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#0072B8" stopOpacity={0.02} />
                     </linearGradient>
                     <linearGradient id="gradForecastLine" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F7941D" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#F7941D" stopOpacity={0.02} />
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -643,17 +643,17 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                     contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12 }}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Area type="monotone" dataKey="actualLine" name={t.past} stroke="#003087" strokeWidth={2.5} fill="url(#gradActualLine)" dot={{ r: 4, fill: '#003087', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#003087' }} connectNulls={false} />
-                  <Area type="monotone" dataKey="forecastLine" name={t.future} stroke="#F7941D" strokeWidth={2.5} strokeDasharray="8 4" fill="url(#gradForecastLine)" dot={{ r: 4, fill: '#F7941D', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#F7941D' }} connectNulls={false} />
+                  <Area type="monotone" dataKey="actualLine" name={t.past} stroke="#0072B8" strokeWidth={2.5} fill="url(#gradActualLine)" dot={{ r: 4, fill: '#0072B8', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#0072B8' }} connectNulls={false} />
+                  <Area type="monotone" dataKey="forecastLine" name={t.future} stroke="#F59E0B" strokeWidth={2.5} strokeDasharray="8 4" fill="url(#gradForecastLine)" dot={{ r: 4, fill: '#F59E0B', stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#F59E0B' }} connectNulls={false} />
                 </AreaChart>
               </ResponsiveContainer>
               {fc && (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4 pt-4 border-t border-[#E2E8F0]">
-                  <ForecastRow label={t.forecastActual} value={fc.actualRevenue} color="#003087" icon={<CheckCircle2 size={14} />} />
+                  <ForecastRow label={t.forecastActual} value={fc.actualRevenue} color="#0072B8" icon={<CheckCircle2 size={14} />} />
                   <ForecastRow label={t.forecastPO} value={fc.currentPO} color="#22C55E" icon={<FileText size={14} />} />
-                  <ForecastRow label={`${t.forecastQuotation} (${fc.quotationToWonRate}%)`} value={fc.estimatedFromQuotation} color="#F7941D" icon={<Briefcase size={14} />} />
-                  <ForecastRow label={`${t.forecastProposal} (${fc.proposalToWonRate}%)`} value={fc.estimatedFromProposal} color="#003087" icon={<Target size={14} />} />
-                  <ForecastRow label={t.forecastTotal} value={fc.totalForecast} color="#003087" icon={<TrendingUp size={14} />} />
+                  <ForecastRow label={`${t.forecastQuotation} (${fc.quotationToWonRate}%)`} value={fc.estimatedFromQuotation} color="#F59E0B" icon={<Briefcase size={14} />} />
+                  <ForecastRow label={`${t.forecastProposal} (${fc.proposalToWonRate}%)`} value={fc.estimatedFromProposal} color="#0072B8" icon={<Target size={14} />} />
+                  <ForecastRow label={t.forecastTotal} value={fc.totalForecast} color="#0072B8" icon={<TrendingUp size={14} />} />
                 </div>
               )}
             </div>
@@ -669,16 +669,16 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <KPI icon={Target} label={t.weighted} value={`THB ${fmtM(ai.weightedPipeline)}`} color="#003087" />
-                <KPI icon={Clock} label={t.avgAge} value={`${ai.avgDealAge} ${t.days}`} color="#F7941D" />
+                <KPI icon={Target} label={t.weighted} value={`THB ${fmtM(ai.weightedPipeline)}`} color="#0072B8" />
+                <KPI icon={Clock} label={t.avgAge} value={`${ai.avgDealAge} ${t.days}`} color="#F59E0B" />
                 <KPI icon={AlertCircle} label={t.overdue} value={String(ai.overdueDeals)} color="#EF4444" />
-                <KPI icon={Activity} label={t.activities} value={String(ai.totalActivities)} color="#00AEEF" />
+                <KPI icon={Activity} label={t.activities} value={String(ai.totalActivities)} color="#4DB5D6" />
               </div>
               {ai.ownerStats && ai.ownerStats.length > 0 && (
                 <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden">
                   <div className="px-5 py-3 border-b border-[#E2E8F0] bg-slate-50/50">
                     <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                      <Users size={14} className="text-[#003087]" /> {t.ownerPerformance}
+                      <Users size={14} className="text-[#0072B8]" /> {t.ownerPerformance}
                     </h3>
                   </div>
                   <div className="overflow-x-auto">
@@ -713,7 +713,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                 {activityChartData.length > 0 && (
                   <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
                     <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <Zap size={14} className="text-[#F7941D]" /> {t.activityTypes}
+                      <Zap size={14} className="text-[#F59E0B]" /> {t.activityTypes}
                     </h3>
                     <div className="flex flex-col md:flex-row items-center gap-4">
                       <ResponsiveContainer width="100%" height={220}>
@@ -739,7 +739,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                 {industryChartData.length > 0 && (
                   <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
                     <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <Building2 size={14} className="text-[#003087]" /> {t.industryDist}
+                      <Building2 size={14} className="text-[#0072B8]" /> {t.industryDist}
                     </h3>
                     <div className="flex flex-col md:flex-row items-center gap-4">
                       <ResponsiveContainer width="100%" height={220}>
@@ -765,7 +765,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
               </div>
               <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5">
                 <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Lightbulb size={14} className="text-[#F7941D]" /> {t.aiRecommendations}
+                  <Lightbulb size={14} className="text-[#F59E0B]" /> {t.aiRecommendations}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {ai.overdueDeals > 0 && (
@@ -780,7 +780,7 @@ export default function SalesReportPanel({ lang = "th", filterProjectId = "all",
                   {ai.activeDealsCount > 0 && Number(s?.conversionRate || 0) < 30 && (<InsightCard icon={<Target size={16} className="text-orange-500" />} title={t.lowConversion} text={t.lowConversionText.replace("{rate}", s?.conversionRate || "0")} severity="medium" />)}
                   {ai.ownerStats.some(o => o.deals > 0 && o.won === 0) && (<InsightCard icon={<Users size={16} className="text-blue-500" />} title={t.coachingNeeded} text={t.coachingText} severity="medium" />)}
                   {(() => { const best = ai.ownerStats.filter(o => o.won > 0).sort((a, b) => b.wonValue - a.wonValue)[0]; return best ? (<InsightCard icon={<Award size={16} className="text-yellow-500" />} title={t.bestPerformer} text={t.bestPerformerText.replace(/\{name\}/g, best.name).replace("{value}", fmtM(best.wonValue)).replace("{won}", String(best.won))} severity="info" />) : null; })()}
-                  {fc && (<InsightCard icon={<Zap size={16} className="text-[#003087]" />} title={t.actionItems} text={t.actionItemsText.replace("{overdue}", String(ai.overdueDeals)).replace("{po}", fmtM(fc.currentPO)).replace("{quot}", fmtM(fc.currentQuotation)).replace("{prop}", fmtM(fc.currentProposal))} severity="high" />)}
+                  {fc && (<InsightCard icon={<Zap size={16} className="text-[#0072B8]" />} title={t.actionItems} text={t.actionItemsText.replace("{overdue}", String(ai.overdueDeals)).replace("{po}", fmtM(fc.currentPO)).replace("{quot}", fmtM(fc.currentQuotation)).replace("{prop}", fmtM(fc.currentProposal))} severity="high" />)}
                   {ai.weightedPipeline > 0 && (<InsightCard icon={<DollarSign size={16} className="text-green-500" />} title={t.pipelineHealth} text={t.pipelineHealthText.replace("{value}", fmtM(ai.weightedPipeline)).replace("{count}", String(ai.activeDealsCount)).replace("{age}", String(ai.avgDealAge))} severity="info" />)}
                   {(() => { const topType = activityChartData[0]; return topType ? (<InsightCard icon={<Zap size={16} className="text-yellow-500" />} title={t.topActivity} text={t.topActivityText.replace("{name}", topType.name).replace("{count}", String(topType.value))} severity="info" />) : null; })()}
                   {(() => { const topInd = industryChartData[0]; return topInd ? (<InsightCard icon={<Building2 size={16} className="text-purple-500" />} title={t.topIndustry} text={t.topIndustryText.replace("{name}", topInd.name).replace("{value}", fmtM(topInd.value)).replace("{count}", String(topInd.count))} severity="info" />) : null; })()}

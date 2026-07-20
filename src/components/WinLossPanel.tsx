@@ -59,7 +59,7 @@ export default function WinLossPanel({ lang }: { lang: string }) {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
-          <div className="text-2xl font-bold text-[#003087]">{winRate}%</div>
+          <div className="text-2xl font-bold text-[#0072B8]">{winRate}%</div>
           <div className="text-sm text-gray-500">{t.winRate}</div>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
@@ -71,7 +71,7 @@ export default function WinLossPanel({ lang }: { lang: string }) {
           <div className="text-sm text-gray-500">{t.lost}</div>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
-          <div className="text-2xl font-bold text-[#F7941D]">{fmt(avgWon)}</div>
+          <div className="text-2xl font-bold text-[#F59E0B]">{fmt(avgWon)}</div>
           <div className="text-sm text-gray-500">{t.avgDeal} ({t.won})</div>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function WinLossPanel({ lang }: { lang: string }) {
         <div className="flex gap-2 p-4 border-b border-gray-100">
           {(["all", "won", "lost"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={"px-3 py-1.5 rounded-lg text-sm font-medium transition " + (filter === f ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>
+              className={"px-3 py-1.5 rounded-lg text-sm font-medium transition " + (filter === f ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>
               {t[f]}
             </button>
           ))}

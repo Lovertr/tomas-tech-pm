@@ -366,7 +366,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th', currentUserId
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#003087] to-[#00AEEF] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0072B8] to-[#4DB5D6] flex items-center justify-center">
             <Building2 size={20} className="text-white" />
           </div>
           <div>
@@ -376,7 +376,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th', currentUserId
         </div>
         {canManage && (
           <button onClick={openAdd}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
             <Plus size={16} /> {L('add_button')}
           </button>
         )}
@@ -498,7 +498,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th', currentUserId
               <button onClick={() => setShowForm(false)}
                 className="px-4 py-2 text-sm text-slate-600 hover:text-gray-900">{L('form_cancel')}</button>
               <button onClick={saveDept}
-                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2">
+                className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2">
                 <Save size={14} /> {editingId ? L('form_update') : L('form_create')}
               </button>
             </div>
@@ -658,7 +658,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th', currentUserId
               <div className="px-5 py-3 border-b border-[#E2E8F0] bg-blue-50/50">
                 <p className="text-xs text-gray-500 mb-1">{L('head_label')}</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#003087] to-[#00AEEF] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0072B8] to-[#4DB5D6] flex items-center justify-center text-white text-xs font-bold">
                     {detailDept.head.display_name.charAt(0)}
                   </div>
                   <div>
@@ -799,7 +799,7 @@ export default function DepartmentsPanel({ canManage, lang = 'th', currentUserId
               <button
                 onClick={transferEmployee}
                 disabled={!transferTargetDeptId || transferLoading}
-                className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
               >
                 <ArrowRightLeft size={14} /> {transferLoading ? '...' : L('mgmt_confirm')}
               </button>

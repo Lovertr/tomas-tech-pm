@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     const isThaiLang = lang.startsWith("th");
 
-    const systemPrompt = `You are TOMAS TECH's internal knowledge assistant. Your job is to answer questions about the company's technical knowledge base — including IoT, WMS, MES, PLC, AGV/AMR, Production Control, PEGASUS, ASPROVA, and other automation/manufacturing topics.
+    const systemPrompt = `You are CONSERTECH's internal knowledge assistant. Your job is to answer questions about the company's technical knowledge base — including AGV/AMR, Robot, Industrial Sensors, Factory Automation, IoT, WMS, MES, PLC, Production Control, and other industrial equipment/automation topics.
 
 AVAILABLE KNOWLEDGE CATEGORIES:
 ${categoriesList}

@@ -1,4 +1,4 @@
-# TOMAS TECH — Project Management System
+# CONSERTECH — Project Management System
 # สถานะโครงการ & แผนงาน
 
 > อัปเดตล่าสุด: 2026-05-01
@@ -84,7 +84,7 @@ Backend (Supabase)
 ### การเงิน
 - [x] Project Budget (งบประมาณโปรเจค)
 - [x] Transactions (รายรับ-รายจ่าย)
-- [x] Quotations (ใบเสนอราคา: ฟอร์ม TOMAS TECH, PDF, Excel, ระบบอนุมัติ)
+- [x] Quotations (ใบเสนอราคา: ฟอร์ม CONSERTECH, PDF, Excel, ระบบอนุมัติ)
 - [x] Invoices (ใบแจ้งหนี้)
 - [x] Finance P&L / EVM (กำไร-ขาดทุน, Earned Value Management)
 - [x] Costs (ค่าใช้จ่าย)
@@ -111,7 +111,7 @@ Backend (Supabase)
 - [x] Open Projects (โครงการว่าง — สมัครเข้าร่วม)
 - [x] Command Palette (Ctrl+K)
 - [x] Keyboard Shortcuts (?)
-- [x] Light Theme (TOMAS TECH brand: #003087, #00AEEF, #F7941D)
+- [x] Light Theme (CONSERTECH brand: #003087, #00AEEF, #F7941D)
 - [x] Mobile Responsive (sidebar ยุบได้)
 - [x] Error Boundary (ป้องกัน white page crash)
 - [x] Translate Button (แปลข้อความ AI)
@@ -233,7 +233,7 @@ Backend (Supabase)
 ## 7. Git Push Commands (Template)
 
 ```powershell
-cd C:\Users\trin_\tomas-tech-pm
+cd C:\Users\trin_\consertech-pm
 git add -A
 git commit -m "feat/fix: <สรุปสิ่งที่ทำ>"
 git push origin main
@@ -262,7 +262,7 @@ git push origin main
 - สร้าง ROADMAP.md แผนพัฒนา 4 เฟส 22 รายการ
 - สร้างศูนย์ช่วยเหลือในแอป (Help Center): คู่มือ 10 หมวด 3 ภาษา (TH/EN/JP)
 - เพิ่ม AI Q&A ถาม-ตอบเกี่ยวกับคู่มือ (ใช้ Gemini via aiCall)
-- เพิ่มดาวน์โหลดคู่มือ PDF (HTML render + TOMAS TECH branding)
+- เพิ่มดาวน์โหลดคู่มือ PDF (HTML render + CONSERTECH branding)
 - ไฟล์ใหม่: src/lib/helpContent.ts, src/components/HelpPanel.tsx
 - ไฟล์ใหม่: src/app/api/help/ask/route.ts, src/app/api/help/pdf/route.ts
 - เพิ่มเมนู "ศูนย์ช่วยเหลือ" ใน sidebar (กลุ่ม admin, ทุก role เข้าถึงได้)

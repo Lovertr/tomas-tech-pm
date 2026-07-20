@@ -12,7 +12,7 @@ interface Invoice {
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; client_name?: string | null; }
 
 const STATUS_LBL: Record<string, string> = { draft: "ร่าง", sent: "ส่งแล้ว", paid: "ชำระแล้ว", overdue: "เกินกำหนด", cancelled: "ยกเลิก" };
-const STATUS_COLOR: Record<string, string> = { draft: "#94A3B8", sent: "#00AEEF", paid: "#22C55E", overdue: "#EF4444", cancelled: "#64748B" };
+const STATUS_COLOR: Record<string, string> = { draft: "#94A3B8", sent: "#4DB5D6", paid: "#22C55E", overdue: "#EF4444", cancelled: "#64748B" };
 const STATUS_BG_COLOR: Record<string, string> = { draft: "#DBEAFE", sent: "#D1F5FF", paid: "#DCFCE7", overdue: "#FEE2E2", cancelled: "#E2E8F0" };
 
 const fmtMoney = (n?: number | null) =>
@@ -53,9 +53,9 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
     const w = window.open("", "_blank", "width=820,height=900");
     if (!w) return;
     w.document.write(`<html><head><title>${inv.invoice_number}</title>
-      <style>body{font-family:'Sarabun',sans-serif;padding:40px;color:#1a1a1a}h1{color:#003087;border-bottom:3px solid #F7941D;padding-bottom:10px}
+      <style>body{font-family:'Sarabun',sans-serif;padding:40px;color:#1a1a1a}h1{color:#0072B8;border-bottom:3px solid #F59E0B;padding-bottom:10px}
       table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}
-      th{background:#003087;color:white}.r{text-align:right}.tot{font-size:1.3em;color:#003087;font-weight:bold}</style>
+      th{background:#0072B8;color:white}.r{text-align:right}.tot{font-size:1.3em;color:#0072B8;font-weight:bold}</style>
       </head><body>
       <h1>ใบแจ้งหนี้ / INVOICE</h1>
       <p><strong>เลขที่:</strong> ${inv.invoice_number}<br/>
@@ -68,7 +68,7 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
       <tr><td>VAT ${inv.vat_pct}%</td><td class="r">${fmtMoney(inv.vat_amount)}</td></tr>
       <tr><td class="tot">รวมทั้งสิ้น</td><td class="r tot">${fmtMoney(inv.total)}</td></tr></table>
       ${inv.notes ? `<p style="margin-top:30px"><strong>หมายเหตุ:</strong><br/>${inv.notes}</p>` : ""}
-      <p style="margin-top:60px;color:#94A3B8;font-size:.85em;text-align:center">TOMAS TECH CO., LTD. — ออกโดยระบบ Project Management</p>
+      <p style="margin-top:60px;color:#94A3B8;font-size:.85em;text-align:center">CONSERTECH CO., LTD. — ออกโดยระบบ Project Management</p>
       <script>window.print()</script></body></html>`);
     w.document.close();
   };
@@ -86,13 +86,13 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
-          <Stat label="มูลค่าใบแจ้งหนี้รวม" value={fmtMoney(stats.total)} color="#00AEEF" />
+          <Stat label="มูลค่าใบแจ้งหนี้รวม" value={fmtMoney(stats.total)} color="#4DB5D6" />
           <Stat label="ชำระแล้ว" value={fmtMoney(stats.paid)} color="#22C55E" />
-          <Stat label="ค้างชำระ" value={fmtMoney(stats.outstanding)} color="#F7941D" />
+          <Stat label="ค้างชำระ" value={fmtMoney(stats.outstanding)} color="#F59E0B" />
           <Stat label="เกินกำหนด" value={`${stats.overdue} ใบ`} color="#EF4444" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
+          <button onClick={() => setCreating(true)} className="ml-3 px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
             <Plus size={16} /> สร้างใบแจ้งหนี้
           </button>
         )}
@@ -102,7 +102,7 @@ export default function InvoicesPanel({ projects, filterProjectId = "all", canMa
         {(["all", "draft", "sent", "paid", "overdue"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-4 py-1.5 text-xs font-medium ${filter === f ? "text-white" : "text-slate-600"}`}
-            style={filter === f ? { background: "#003087" } : { background: "#F5F5F5" }}>
+            style={filter === f ? { background: "#0072B8" } : { background: "#F5F5F5" }}>
             {f === "all" ? "ทั้งหมด" : STATUS_LBL[f]}
           </button>
         ))}
@@ -241,7 +241,7 @@ function CreateInvoiceModal({ projects, defaultProjectId, onClose, onSaved }: {
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังสร้าง..." : "สร้าง"}</button>
+          <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังสร้าง..." : "สร้าง"}</button>
         </div>
       </div>
     </div>
@@ -263,7 +263,7 @@ function EditInvoiceModal({ invoice, projects, onClose, onSaved }: {
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const inp = "w-full border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]";
+  const inp = "w-full border border-[#D1D5DB] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]";
 
   const submit = async () => {
     if (!form.project_id) { setErr("กรุณาเลือกโปรเจค"); return; }
@@ -313,7 +313,7 @@ function EditInvoiceModal({ invoice, projects, onClose, onSaved }: {
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
+          <button onClick={submit} disabled={busy} className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">{busy ? "กำลังบันทึก..." : "บันทึก"}</button>
         </div>
       </div>
     </div>

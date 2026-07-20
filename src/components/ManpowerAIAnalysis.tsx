@@ -56,7 +56,7 @@ export default function ManpowerAIAnalysis({ lang = "th" }: Props) {
     }
   };
 
-  const prioColors = { high: "#EF4444", medium: "#F7941D", low: "#10B981" };
+  const prioColors = { high: "#EF4444", medium: "#F59E0B", low: "#10B981" };
   const prioLabels = { high: L("high"), medium: L("medium"), low: L("low") };
 
   const Section = ({ id, icon: Icon, title, count, children }: {
@@ -66,9 +66,9 @@ export default function ManpowerAIAnalysis({ lang = "th" }: Props) {
       <button onClick={() => toggleSection(id)}
         className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors">
         <div className="flex items-center gap-2">
-          <Icon size={16} className="text-[#003087]" />
+          <Icon size={16} className="text-[#0072B8]" />
           <span className="text-sm font-semibold text-gray-700">{title}</span>
-          {count !== undefined && <span className="text-xs bg-[#003087]/10 text-[#003087] px-2 py-0.5 rounded-full">{count}</span>}
+          {count !== undefined && <span className="text-xs bg-[#0072B8]/10 text-[#0072B8] px-2 py-0.5 rounded-full">{count}</span>}
         </div>
         {expandedSections[id] ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
       </button>
@@ -81,12 +81,12 @@ export default function ManpowerAIAnalysis({ lang = "th" }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles size={20} className="text-[#F7941D]" />
+          <Sparkles size={20} className="text-[#F59E0B]" />
           <h2 className="text-lg font-bold text-gray-800">{L("title")}</h2>
         </div>
         <button onClick={analyze} disabled={loading}
           className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2 disabled:opacity-50"
-          style={{ background: "linear-gradient(135deg, #003087, #00AEEF)" }}>
+          style={{ background: "linear-gradient(135deg, #0072B8, #4DB5D6)" }}>
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {loading ? L("analyzing") : L("analyze")}
         </button>

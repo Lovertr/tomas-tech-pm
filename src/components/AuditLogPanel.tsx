@@ -214,7 +214,7 @@ export default function AuditLogPanel({ lang = "th" }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${showFilters ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${showFilters ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
           >
             <Filter size={14} /> {showFilters ? t.close : t.filterTable}
           </button>
@@ -234,19 +234,19 @@ export default function AuditLogPanel({ lang = "th" }: Props) {
             <input
               type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder={t.search}
-              className="w-full pl-9 pr-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087] outline-none"
+              className="w-full pl-9 pr-3 py-2 border border-[#E2E8F0] rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8] outline-none"
             />
           </div>
           <select
             value={tableName} onChange={e => setTableName(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087] outline-none"
+            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8] outline-none"
           >
             <option value="">{t.allTables}</option>
             {Object.entries(TABLE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
           <select
             value={action} onChange={e => setAction(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087] outline-none"
+            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8] outline-none"
           >
             <option value="">{t.allActions}</option>
             <option value="INSERT">{t.INSERT}</option>
@@ -255,12 +255,12 @@ export default function AuditLogPanel({ lang = "th" }: Props) {
           </select>
           <input
             type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087] outline-none"
+            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8] outline-none"
             placeholder={t.dateFrom}
           />
           <input
             type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087] outline-none"
+            className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8] outline-none"
             placeholder={t.dateTo}
           />
         </div>
@@ -305,7 +305,7 @@ export default function AuditLogPanel({ lang = "th" }: Props) {
                   <td className="px-4 py-3 text-xs text-gray-400 font-mono">{log.ip_address || "-"}</td>
                   <td className="px-4 py-3">
                     {(log.old_value || log.new_value) && (
-                      <button onClick={() => setDetail(log)} className="p-1 rounded hover:bg-gray-100 transition text-gray-400 hover:text-[#003087]">
+                      <button onClick={() => setDetail(log)} className="p-1 rounded hover:bg-gray-100 transition text-gray-400 hover:text-[#0072B8]">
                         <Eye size={14} />
                       </button>
                     )}

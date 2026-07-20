@@ -66,7 +66,7 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     communication: "การสื่อสาร",
     noMessages: "ยังไม่มีข้อความ — พิมพ์เพื่อเริ่มสนทนากับทีมงาน",
     typeMessage: "พิมพ์ข้อความ...",
-    powered: "Powered by TOMAS TECH Project Management System",
+    powered: "Powered by CONSERTECH Project Management System",
     clientName: "ชื่อผู้ติดต่อ *",
     email: "อีเมล",
     phone: "โทรศัพท์",
@@ -138,7 +138,7 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     communication: "Communication",
     noMessages: "No messages yet — type to start a conversation with the team",
     typeMessage: "Type a message...",
-    powered: "Powered by TOMAS TECH Project Management System",
+    powered: "Powered by CONSERTECH Project Management System",
     clientName: "Contact Name *",
     email: "Email",
     phone: "Phone",
@@ -210,7 +210,7 @@ const portalI18n: Record<PortalLang, Record<string, string>> = {
     communication: "コミュニケーション",
     noMessages: "メッセージはまだありません — チームとの会話を始めましょう",
     typeMessage: "メッセージを入力...",
-    powered: "Powered by TOMAS TECH Project Management System",
+    powered: "Powered by CONSERTECH Project Management System",
     clientName: "連絡先名 *",
     email: "メール",
     phone: "電話",
@@ -387,7 +387,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="animate-spin mx-auto mb-3" size={32} color="#003087" />
+        <Loader2 className="animate-spin mx-auto mb-3" size={32} color="#0072B8" />
         <p className="text-gray-600">{t.loading}</p>
       </div>
     </div>
@@ -422,11 +422,11 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         <div className="max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: "#003087" }}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: "#0072B8" }}>
                 TT
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">TOMAS TECH — {t.clientPortal}</p>
+                <p className="text-xs text-gray-500 font-medium">CONSERTECH — {t.clientPortal}</p>
                 <h1 className="text-lg font-bold text-gray-900">{lang === "en" && project.name_en ? project.name_en : project.name_th}</h1>
               </div>
             </div>
@@ -437,7 +437,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                   key={l}
                   onClick={() => changeLang(l)}
                   className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-gray-500 hover:bg-gray-100"}`}
-                  style={lang === l ? { backgroundColor: "#003087" } : {}}
+                  style={lang === l ? { backgroundColor: "#0072B8" } : {}}
                 >
                   {LANG_LABELS[l]}
                 </button>
@@ -472,19 +472,19 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600 font-medium">{t.progress}</span>
-                <span className="font-bold" style={{ color: "#003087" }}>{project.progress ?? 0}%</span>
+                <span className="font-bold" style={{ color: "#0072B8" }}>{project.progress ?? 0}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
-                <div className="h-3 rounded-full transition-all duration-500" style={{ width: `${project.progress ?? 0}%`, backgroundColor: "#003087" }} />
+                <div className="h-3 rounded-full transition-all duration-500" style={{ width: `${project.progress ?? 0}%`, backgroundColor: "#0072B8" }} />
               </div>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-              <StatCard icon={Target} label={t.totalTasks} value={tasks.length} color="#003087" />
+              <StatCard icon={Target} label={t.totalTasks} value={tasks.length} color="#0072B8" />
               <StatCard icon={Loader2} label={t.inProgress} value={tasksInProgress} color="#3B82F6" />
               <StatCard icon={CheckCircle2} label={t.completed} value={tasksDone} color="#22C55E" />
-              <StatCard icon={Flag} label={t.milestone} value={`${milestonesDone}/${milestones.length}`} color="#F7941D" />
+              <StatCard icon={Flag} label={t.milestone} value={`${milestonesDone}/${milestones.length}`} color="#F59E0B" />
             </div>
           </div>
         )}
@@ -502,7 +502,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === tab.key ? "text-white" : "text-gray-600 hover:bg-gray-50"
               }`}
-              style={activeTab === tab.key ? { backgroundColor: "#003087" } : {}}
+              style={activeTab === tab.key ? { backgroundColor: "#0072B8" } : {}}
             >
               <tab.icon size={16} />
               <span className="hidden sm:inline">{tab.label}</span>
@@ -518,7 +518,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             {permissions.view_tasks && tasks.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Target size={18} style={{ color: "#003087" }} />
+                  <Target size={18} style={{ color: "#0072B8" }} />
                   {t.taskStatus}
                 </h3>
                 {(() => {
@@ -556,7 +556,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             {permissions.view_milestones && milestones.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Flag size={18} style={{ color: "#F7941D" }} />
+                  <Flag size={18} style={{ color: "#F59E0B" }} />
                   {t.milestoneTimeline}
                 </h3>
                 <div className="space-y-3">
@@ -589,7 +589,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
             {permissions.submit_requests && clientRequests.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <MessageSquare size={18} style={{ color: "#003087" }} />
+                  <MessageSquare size={18} style={{ color: "#0072B8" }} />
                   {t.recentRequests}
                 </h3>
                 <div className="space-y-2">
@@ -625,7 +625,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
               <button
                 onClick={() => setShowForm(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#F7941D" }}
+                style={{ backgroundColor: "#F59E0B" }}
               >
                 <Plus size={16} />
                 {t.submitRequest}
@@ -639,7 +639,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
                 <button
                   onClick={() => setShowForm(true)}
                   className="mt-3 text-sm font-medium hover:underline"
-                  style={{ color: "#003087" }}
+                  style={{ color: "#0072B8" }}
                 >
                   {t.submitRequest}
                 </button>
@@ -679,7 +679,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         <button
           onClick={() => { setActiveTab("requests"); setShowForm(true); }}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white sm:hidden z-30"
-          style={{ backgroundColor: "#F7941D" }}
+          style={{ backgroundColor: "#F59E0B" }}
         >
           <Plus size={24} />
         </button>
@@ -917,7 +917,7 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
           {/* Chat / Comments Section */}
           <div className="border-t pt-3">
             <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-              <MessageSquare size={14} style={{ color: "#003087" }} />
+              <MessageSquare size={14} style={{ color: "#0072B8" }} />
               {t.communication}
             </p>
 
@@ -935,7 +935,7 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
                           ? "rounded-br-md text-white"
                           : "rounded-bl-md bg-gray-100 text-gray-900"
                       }`}
-                      style={c.sender_type === "client" ? { backgroundColor: "#003087" } : {}}
+                      style={c.sender_type === "client" ? { backgroundColor: "#0072B8" } : {}}
                     >
                       {c.sender_type === "team" && (
                         <p className="text-[10px] font-semibold text-blue-700 mb-0.5">{c.sender_name}</p>
@@ -1029,7 +1029,7 @@ function RequestCard({ request: cr, token, lang }: { request: ClientRequest; tok
                 onClick={handleSend}
                 disabled={(!newMsg.trim() && pendingFiles.length === 0) || sending}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
-                style={{ backgroundColor: "#003087" }}
+                style={{ backgroundColor: "#0072B8" }}
               >
                 {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
               </button>
@@ -1140,7 +1140,7 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
     <div className="bg-white rounded-xl shadow-sm border">
       <div className="px-6 py-4 border-b flex items-center justify-between flex-wrap gap-2">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-          <BarChart3 size={18} style={{ color: "#003087" }} />
+          <BarChart3 size={18} style={{ color: "#0072B8" }} />
           {gt.projectPlan}
         </h3>
         <div className="flex bg-gray-100 rounded-lg p-0.5">
@@ -1207,11 +1207,11 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
                 return (
                   <div key={m.id} className="flex items-center gap-2 h-8">
                     <div className="w-[120px] sm:w-[160px] flex-shrink-0 truncate text-xs text-gray-600 pr-2 text-right flex items-center justify-end gap-1 italic">
-                      <Flag size={10} style={{ color: "#F7941D" }} />
+                      <Flag size={10} style={{ color: "#F59E0B" }} />
                       {m.title}
                     </div>
                     <div className="flex-1 relative h-6">
-                      <div className="absolute w-3.5 h-3.5 rotate-45 top-1.5 shadow-sm" style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F7941D" }} title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`} />
+                      <div className="absolute w-3.5 h-3.5 rotate-45 top-1.5 shadow-sm" style={{ left: `${left}%`, transform: `translateX(-50%) rotate(45deg)`, backgroundColor: done ? "#22C55E" : "#F59E0B" }} title={`${m.title}: ${new Date(m.due_date!).toLocaleDateString(loc)}`} />
                       {todayPct > 0 && todayPct < 100 && (
                         <div className="absolute top-0 h-full w-0.5 bg-red-400 z-10" style={{ left: `${todayPct}%` }} />
                       )}
@@ -1237,7 +1237,7 @@ function GanttChart({ tasks, milestones, project, lang }: { tasks: Task[]; miles
           </div>
         ))}
         <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-          <div className="w-2.5 h-2.5 rotate-45" style={{ backgroundColor: "#F7941D" }} />
+          <div className="w-2.5 h-2.5 rotate-45" style={{ backgroundColor: "#F59E0B" }} />
           {gt.milestone}
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
@@ -1477,7 +1477,7 @@ function SubmitRequestForm({
             onClick={handleSubmit}
             disabled={submitting || !form.title.trim() || !form.client_name.trim()}
                         className="flex-1 py-2.5 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ backgroundColor: "#003087" }}
+            style={{ backgroundColor: "#0072B8" }}
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             {t.send}

@@ -19,22 +19,22 @@ interface Props {
 }
 
 const TYPE_META: Record<string, { icon: typeof Bell; color: string }> = {
-  task_assigned:       { icon: ListTodo,        color: "#00AEEF" },
+  task_assigned:       { icon: ListTodo,        color: "#4DB5D6" },
   task_completed:      { icon: CheckCheck,      color: "#22C55E" },
-  task_due:            { icon: AlertTriangle,   color: "#F7941D" },
+  task_due:            { icon: AlertTriangle,   color: "#F59E0B" },
   task_overdue:        { icon: AlertTriangle,   color: "#EF4444" },
-  deal_stage_changed:  { icon: TrendingUp,      color: "#003087" },
+  deal_stage_changed:  { icon: TrendingUp,      color: "#0072B8" },
   deal_won:            { icon: DollarSign,      color: "#22C55E" },
   deal_payment:        { icon: DollarSign,      color: "#059669" },
-  deal_created:        { icon: Briefcase,       color: "#003087" },
+  deal_created:        { icon: Briefcase,       color: "#0072B8" },
   comment:             { icon: MessageSquare,   color: "#A855F7" },
-  mention:             { icon: MessageSquare,   color: "#F7941D" },
-  milestone:           { icon: Flag,            color: "#F7941D" },
+  mention:             { icon: MessageSquare,   color: "#F59E0B" },
+  milestone:           { icon: Flag,            color: "#F59E0B" },
   meeting:             { icon: Calendar,        color: "#A855F7" },
-  quotation_approval:  { icon: FileText,        color: "#F7941D" },
+  quotation_approval:  { icon: FileText,        color: "#F59E0B" },
   quotation_approved:  { icon: CheckCheck,      color: "#22C55E" },
   quotation_rejected:  { icon: XCircle,         color: "#EF4444" },
-  project_enrollment:  { icon: UserPlus,        color: "#00AEEF" },
+  project_enrollment:  { icon: UserPlus,        color: "#4DB5D6" },
   approval:            { icon: CheckCheck,      color: "#22C55E" },
   info:                { icon: Info,            color: "#94A3B8" },
 };
@@ -113,7 +113,7 @@ export default function NotificationBell({ onNavigate }: Props) {
       <button onClick={() => setOpen(!open)} className="p-2 rounded-xl bg-slate-100 relative text-gray-500 hover:text-gray-700">
         <Bell size={18} />
         {badgeCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-gray-900 text-[10px] font-bold flex items-center justify-center bg-[#F7941D]">
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-gray-900 text-[10px] font-bold flex items-center justify-center bg-[#F59E0B]">
             {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         )}

@@ -279,7 +279,7 @@ export function useData() {
     name_en: p.name_en ?? "",
     name_jp: p.name_jp ?? "",
     rate: Number(p.default_hourly_rate) || 0,
-    color: p.color ?? "#003087",
+    color: p.color ?? "#0072B8",
   }));
 
   const initials = (en: string | null, th: string | null) => {

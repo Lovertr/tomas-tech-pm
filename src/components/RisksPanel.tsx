@@ -17,11 +17,11 @@ const SCORE: Record<string, number> = { very_low: 1, low: 2, medium: 3, high: 4,
 const LEVELS = ["very_low", "low", "medium", "high", "very_high"];
 const LBL: Record<string, string> = { very_low: "ต่ำมาก", low: "ต่ำ", medium: "กลาง", high: "สูง", very_high: "สูงมาก" };
 const STATUS_LBL: Record<string, string> = { identified: "ระบุแล้ว", assessed: "ประเมินแล้ว", mitigated: "บรรเทาแล้ว", closed: "ปิด" };
-const STATUS_COLOR: Record<string, string> = { identified: "#F7941D", assessed: "#3B82F6", mitigated: "#22C55E", closed: "#94A3B8" };
+const STATUS_COLOR: Record<string, string> = { identified: "#F59E0B", assessed: "#3B82F6", mitigated: "#22C55E", closed: "#94A3B8" };
 
 const cellColor = (score: number) => {
   if (score >= 15) return "#EF4444";
-  if (score >= 8) return "#F7941D";
+  if (score >= 8) return "#F59E0B";
   if (score >= 4) return "#FACC15";
   return "#22C55E";
 };
@@ -87,7 +87,7 @@ export default function RisksPanel({ projects, members, filterProjectId = "all",
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 flex-1">
           <Stat label="ความเสี่ยงสูง" value={stats.high} color="#EF4444" />
-          <Stat label="ความเสี่ยงกลาง" value={stats.med} color="#F7941D" />
+          <Stat label="ความเสี่ยงกลาง" value={stats.med} color="#F59E0B" />
           <Stat label="ความเสี่ยงต่ำ" value={stats.low} color="#22C55E" />
           <Stat label="ปิดแล้ว" value={stats.closed} color="#94A3B8" />
         </div>

@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     terms: body.terms || null,
     notes: body.notes || null,
     created_by: ctx.userId,
-    // New TOMAS TECH fields
+    // New CONSERTECH fields
     attention: body.attention || null,
     customer_phone: body.customer_phone || null,
     customer_email: body.customer_email || null,

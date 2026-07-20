@@ -294,7 +294,7 @@ export default function VehicleBookingPanel({
 
   const getName = (u?: { username: string; full_name?: string }) => u?.full_name || u?.username || "-";
 
-  if (loading) return <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003087]" /></div>;
+  if (loading) return <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0072B8]" /></div>;
 
   // ── TABS ──
   const tabs = [
@@ -308,7 +308,7 @@ export default function VehicleBookingPanel({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <Car className="text-[#003087]" size={22} /> {L("title")}
+          <Car className="text-[#0072B8]" size={22} /> {L("title")}
         </h2>
       </div>
 
@@ -316,7 +316,7 @@ export default function VehicleBookingPanel({
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto">
         {tabs.map(t => (
           <button key={t.key} onClick={() => { setTab(t.key); setStatusFilter("all"); }}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${tab === t.key ? "bg-white text-[#003087] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${tab === t.key ? "bg-white text-[#0072B8] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
             <t.icon size={16} /> {t.label}
           </button>
         ))}
@@ -328,7 +328,7 @@ export default function VehicleBookingPanel({
           <Filter size={14} className="text-gray-400" />
           {["all", "pending", "approved", "rejected", ...(tab === "booking" ? ["completed", "cancelled"] : ["cancelled"])].map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${statusFilter === s ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${statusFilter === s ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
               {L(s)}
             </button>
           ))}
@@ -339,7 +339,7 @@ export default function VehicleBookingPanel({
       {tab === "booking" && (
         <div className="space-y-4">
           <button onClick={() => setShowBookingForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#003087] text-white rounded-lg hover:bg-[#002570] text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 bg-[#0072B8] text-white rounded-lg hover:bg-[#002570] text-sm font-medium transition-colors">
             <Plus size={16} /> {L("bookVehicle")}
           </button>
 
@@ -352,7 +352,7 @@ export default function VehicleBookingPanel({
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("licensePlate")} *</label>
                     <select value={bForm.vehicle_id} onChange={e => setBForm({ ...bForm, vehicle_id: e.target.value })}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]">
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]">
                       <option value="">-- {lang === "th" ? "เลือกรถ" : "Select"} --</option>
                       {activeVehicles.map(v => (
                         <option key={v.id} value={v.id}>{v.license_plate} — {v.brand} {v.model} {v.color ? `(${v.color})` : ""}</option>
@@ -363,40 +363,40 @@ export default function VehicleBookingPanel({
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("startDate")} *</label>
                       <input type="datetime-local" value={bForm.start_datetime} onChange={e => setBForm({ ...bForm, start_datetime: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("endDate")} *</label>
                       <input type="datetime-local" value={bForm.end_datetime} onChange={e => setBForm({ ...bForm, end_datetime: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("destination")} *</label>
                     <input type="text" value={bForm.destination} onChange={e => setBForm({ ...bForm, destination: e.target.value })}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("purpose")} *</label>
                     <textarea value={bForm.purpose} onChange={e => setBForm({ ...bForm, purpose: e.target.value })} rows={2}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("passengers")}</label>
                       <input type="number" min={1} value={bForm.passenger_count} onChange={e => setBForm({ ...bForm, passenger_count: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("notes")}</label>
                     <textarea value={bForm.notes} onChange={e => setBForm({ ...bForm, notes: e.target.value })} rows={2}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button onClick={() => setShowBookingForm(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">{L("close")}</button>
-                  <button onClick={submitBooking} className="px-4 py-2 text-sm bg-[#003087] text-white rounded-lg hover:bg-[#002570]">{L("save")}</button>
+                  <button onClick={submitBooking} className="px-4 py-2 text-sm bg-[#0072B8] text-white rounded-lg hover:bg-[#002570]">{L("save")}</button>
                 </div>
               </div>
             </div>
@@ -484,7 +484,7 @@ export default function VehicleBookingPanel({
       {tab === "personal" && (
         <div className="space-y-4">
           <button onClick={() => setShowPersonalForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#003087] text-white rounded-lg hover:bg-[#002570] text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 bg-[#0072B8] text-white rounded-lg hover:bg-[#002570] text-sm font-medium transition-colors">
             <Plus size={16} /> {L("requestPersonal")}
           </button>
 
@@ -498,40 +498,40 @@ export default function VehicleBookingPanel({
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("requestDate")} *</label>
                       <input type="date" value={pForm.request_date} onChange={e => setPForm({ ...pForm, request_date: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("endDate")}</label>
                       <input type="date" value={pForm.end_date} onChange={e => setPForm({ ...pForm, end_date: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("reason")} *</label>
                     <textarea value={pForm.reason} onChange={e => setPForm({ ...pForm, reason: e.target.value })} rows={2}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("destination")}</label>
                     <input type="text" value={pForm.destination} onChange={e => setPForm({ ...pForm, destination: e.target.value })}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("distance")}</label>
                       <input type="number" value={pForm.estimated_distance} onChange={e => setPForm({ ...pForm, estimated_distance: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("notes")}</label>
                     <textarea value={pForm.notes} onChange={e => setPForm({ ...pForm, notes: e.target.value })} rows={2}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button onClick={() => setShowPersonalForm(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">{L("close")}</button>
-                  <button onClick={submitPersonal} className="px-4 py-2 text-sm bg-[#003087] text-white rounded-lg hover:bg-[#002570]">{L("save")}</button>
+                  <button onClick={submitPersonal} className="px-4 py-2 text-sm bg-[#0072B8] text-white rounded-lg hover:bg-[#002570]">{L("save")}</button>
                 </div>
               </div>
             </div>
@@ -596,7 +596,7 @@ export default function VehicleBookingPanel({
       {tab === "manage" && canManage && (
         <div className="space-y-4">
           <button onClick={() => { setEditingVehicle(null); setVForm({ license_plate: "", brand: "", model: "", color: "", vehicle_type: "sedan", seat_count: "5", image_url: "", mandatory_insurance_expiry: "", voluntary_insurance_expiry: "", voluntary_insurance_company: "", voluntary_insurance_type: "", current_mileage: "0", registration_date: "", notes: "" }); setShowVehicleForm(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#003087] text-white rounded-lg hover:bg-[#002570] text-sm font-medium transition-colors">
+            className="flex items-center gap-2 px-4 py-2 bg-[#0072B8] text-white rounded-lg hover:bg-[#002570] text-sm font-medium transition-colors">
             <Plus size={16} /> {L("addVehicle")}
           </button>
 
@@ -610,12 +610,12 @@ export default function VehicleBookingPanel({
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("licensePlate")} *</label>
                       <input type="text" value={vForm.license_plate} onChange={e => setVForm({ ...vForm, license_plate: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("vehicleType")}</label>
                       <select value={vForm.vehicle_type} onChange={e => setVForm({ ...vForm, vehicle_type: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]">
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]">
                         {VEHICLE_TYPES.map(vt => <option key={vt} value={vt}>{L(vt)}</option>)}
                       </select>
                     </div>
@@ -624,76 +624,76 @@ export default function VehicleBookingPanel({
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("brand")} *</label>
                       <input type="text" value={vForm.brand} onChange={e => setVForm({ ...vForm, brand: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("model")} *</label>
                       <input type="text" value={vForm.model} onChange={e => setVForm({ ...vForm, model: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("color")}</label>
                       <input type="text" value={vForm.color} onChange={e => setVForm({ ...vForm, color: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("seatCount")}</label>
                       <input type="number" min={1} value={vForm.seat_count} onChange={e => setVForm({ ...vForm, seat_count: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("imageUrl")}</label>
                     <input type="url" value={vForm.image_url} onChange={e => setVForm({ ...vForm, image_url: e.target.value })}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("mandatoryIns")}</label>
                       <input type="date" value={vForm.mandatory_insurance_expiry} onChange={e => setVForm({ ...vForm, mandatory_insurance_expiry: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("voluntaryIns")}</label>
                       <input type="date" value={vForm.voluntary_insurance_expiry} onChange={e => setVForm({ ...vForm, voluntary_insurance_expiry: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("insCompany")}</label>
                       <input type="text" value={vForm.voluntary_insurance_company} onChange={e => setVForm({ ...vForm, voluntary_insurance_company: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("insType")}</label>
                       <input type="text" value={vForm.voluntary_insurance_type} onChange={e => setVForm({ ...vForm, voluntary_insurance_type: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("mileage")}</label>
                       <input type="number" min={0} value={vForm.current_mileage} onChange={e => setVForm({ ...vForm, current_mileage: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">{L("regDate")}</label>
                       <input type="date" value={vForm.registration_date} onChange={e => setVForm({ ...vForm, registration_date: e.target.value })}
-                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                        className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">{L("notes")}</label>
                     <textarea value={vForm.notes} onChange={e => setVForm({ ...vForm, notes: e.target.value })} rows={2}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]" />
+                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]" />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button onClick={() => { setShowVehicleForm(false); setEditingVehicle(null); }} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">{L("close")}</button>
-                  <button onClick={submitVehicle} className="px-4 py-2 text-sm bg-[#003087] text-white rounded-lg hover:bg-[#002570]">{L("save")}</button>
+                  <button onClick={submitVehicle} className="px-4 py-2 text-sm bg-[#0072B8] text-white rounded-lg hover:bg-[#002570]">{L("save")}</button>
                 </div>
               </div>
             </div>
@@ -719,7 +719,7 @@ export default function VehicleBookingPanel({
                   <div key={v.id} className={`bg-white rounded-xl border p-4 space-y-3 ${v.is_active === false ? "opacity-50 border-gray-300" : "border-gray-100 hover:shadow-md"} transition-shadow`}>
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-lg font-bold text-[#003087]">{v.license_plate}</p>
+                        <p className="text-lg font-bold text-[#0072B8]">{v.license_plate}</p>
                         <p className="text-sm text-gray-600">{v.brand} {v.model} {v.color ? `(${v.color})` : ""}</p>
                       </div>
                       <div className="flex gap-1">
@@ -770,7 +770,7 @@ export default function VehicleBookingPanel({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4" onClick={() => setDetailBooking(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-3" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <Car size={18} className="text-[#003087]" /> {lang === "th" ? "รายละเอียดการจอง" : "Booking Detail"}
+              <Car size={18} className="text-[#0072B8]" /> {lang === "th" ? "รายละเอียดการจอง" : "Booking Detail"}
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-gray-500">{L("licensePlate")}</span><span className="font-medium">{detailBooking.vehicle?.license_plate} — {detailBooking.vehicle?.brand} {detailBooking.vehicle?.model}</span></div>
@@ -799,7 +799,7 @@ export default function VehicleBookingPanel({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4" onClick={() => setDetailPersonal(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-3" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <User size={18} className="text-[#003087]" /> {lang === "th" ? "รายละเอียดคำขอ" : "Request Detail"}
+              <User size={18} className="text-[#0072B8]" /> {lang === "th" ? "รายละเอียดคำขอ" : "Request Detail"}
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-gray-500">{L("requestDate")}</span><span>{fmtDate(detailPersonal.request_date)}{detailPersonal.end_date ? ` → ${fmtDate(detailPersonal.end_date)}` : ""}</span></div>

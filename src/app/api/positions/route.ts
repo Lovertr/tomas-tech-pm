@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         name_en: name_en || name_th,
         name_jp: name_jp || null,
         default_hourly_rate: default_hourly_rate || 0,
-        color: color || "#003087",
+        color: color || "#0072B8",
         icon: icon || "Briefcase",
         sort_order: sort_order || 0,
       })

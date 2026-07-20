@@ -64,11 +64,11 @@ export default function DecisionLogPanel({ projects, members, filterProjectId = 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="grid grid-cols-3 gap-2 md:gap-3 flex-1">
           <Stat label="Decision ทั้งหมด" value={items.length} color="#A855F7" />
-          <Stat label="เดือนนี้" value={thisMonth} color="#00AEEF" />
+          <Stat label="เดือนนี้" value={thisMonth} color="#4DB5D6" />
           <Stat label="โครงการ" value={new Set(items.map(i => i.project_id)).size} color="#22C55E" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
             <Plus size={14} /> เพิ่ม Decision
           </button>
         )}
@@ -240,7 +240,7 @@ function DecisionModal({ initial, projects, members, defaultProjectId, onClose, 
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </div>

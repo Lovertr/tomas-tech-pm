@@ -69,8 +69,8 @@ export default function LeaveManagementPanel({ lang = "th", role = "member" }: {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><CalendarDays className="text-[#00AEEF]" size={22} /> {L("title")}</h2>
-        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-[#003087] text-white rounded-xl text-sm flex items-center gap-1"><Plus size={16} /> {L("request")}</button>
+        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><CalendarDays className="text-[#4DB5D6]" size={22} /> {L("title")}</h2>
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-[#0072B8] text-white rounded-xl text-sm flex items-center gap-1"><Plus size={16} /> {L("request")}</button>
       </div>
 
       {/* Balance cards */}
@@ -84,7 +84,7 @@ export default function LeaveManagementPanel({ lang = "th", role = "member" }: {
               <div className="text-2xl font-bold text-gray-800">{b.quota - b.used}</div>
               <div className="text-[10px] text-gray-400">{L("used")} {b.used}/{b.quota}</div>
               <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#00AEEF] rounded-full" style={{ width: Math.min(100, (b.used / b.quota) * 100) + "%" }} />
+                <div className="h-full bg-[#4DB5D6] rounded-full" style={{ width: Math.min(100, (b.used / b.quota) * 100) + "%" }} />
               </div>
             </div>
           ))}
@@ -95,7 +95,7 @@ export default function LeaveManagementPanel({ lang = "th", role = "member" }: {
       <div className="flex gap-2 flex-wrap">
         {["all", "pending", "approved", "rejected"].map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={"px-3 py-1.5 rounded-full text-xs font-medium border " + (filter === s ? "bg-[#003087] text-white border-[#003087]" : "bg-white text-gray-600 border-gray-300")}>
+            className={"px-3 py-1.5 rounded-full text-xs font-medium border " + (filter === s ? "bg-[#0072B8] text-white border-[#0072B8]" : "bg-white text-gray-600 border-gray-300")}>
             {L(s)} {s !== "all" && <span className="ml-1 opacity-70">({requests.filter(r => r.status === s).length})</span>}
           </button>
         ))}
@@ -145,7 +145,7 @@ export default function LeaveManagementPanel({ lang = "th", role = "member" }: {
               className="w-full border border-gray-300 rounded-xl px-3 py-2 mb-4 text-sm" />
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 text-gray-600 text-sm">Cancel</button>
-              <button onClick={submit} className="px-4 py-2 bg-[#003087] text-white rounded-xl text-sm">Submit</button>
+              <button onClick={submit} className="px-4 py-2 bg-[#0072B8] text-white rounded-xl text-sm">Submit</button>
             </div>
           </div>
         </div>

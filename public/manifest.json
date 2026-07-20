@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "TOMAS TECH - Project Management",
-  "short_name": "TOMAS PM",
-  "description": "TOMAS TECH CO., LTD. - Project Management System",
+  "name": "CONSERTECH - Project Management",
+  "short_name": "CONSERTECH PM",
+  "description": "CONSERTECH CO., LTD. - Project Management System",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#003087",
+  "theme_color": "#0072B8",
   "orientation": "any",
   "categories": ["business", "productivity"],
   "icons": [

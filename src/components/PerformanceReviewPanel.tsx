@@ -83,7 +83,7 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-bold text-gray-800">{t.title}</h2>
-        {canManage && <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-[#003087] text-white rounded-lg text-sm hover:bg-[#002266]">{t.add}</button>}
+        {canManage && <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-[#0072B8] text-white rounded-lg text-sm hover:bg-[#002266]">{t.add}</button>}
       </div>
 
       {showForm && (
@@ -102,7 +102,7 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
                 <div className="flex gap-1">
                   {[1,2,3,4,5].map(n => (
                     <button key={n} onClick={() => setForm({ ...form, scores: { ...form.scores, [c]: n } })}
-                      className={"w-8 h-8 rounded text-sm font-medium transition " + ((form.scores[c] || 0) >= n ? "bg-[#F7941D] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200")}>
+                      className={"w-8 h-8 rounded text-sm font-medium transition " + ((form.scores[c] || 0) >= n ? "bg-[#F59E0B] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200")}>
                       {n}
                     </button>
                   ))}
@@ -114,7 +114,7 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
           <textarea value={form.manager_review} onChange={e => setForm({ ...form, manager_review: e.target.value })} placeholder={t.mgrReview} rows={2} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
           <div className="flex gap-2">
             <button onClick={() => handleSave("draft")} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm">{t.save} ({t.draft})</button>
-            <button onClick={() => handleSave("submitted")} className="px-4 py-2 bg-[#003087] text-white rounded-lg text-sm">{t.submit}</button>
+            <button onClick={() => handleSave("submitted")} className="px-4 py-2 bg-[#0072B8] text-white rounded-lg text-sm">{t.submit}</button>
           </div>
         </div>
       )}
@@ -122,7 +122,7 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
       <div className="flex gap-2">
         {(["all", "draft", "submitted", "completed"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={"px-3 py-1.5 rounded-lg text-sm font-medium transition " + (filter === f ? "bg-[#003087] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>
+            className={"px-3 py-1.5 rounded-lg text-sm font-medium transition " + (filter === f ? "bg-[#0072B8] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>
             {t[f]} {f !== "all" && "(" + reviews.filter(r => r.status === f).length + ")"}
           </button>
         ))}
@@ -139,7 +139,7 @@ export default function PerformanceReviewPanel({ lang, canManage }: { lang: stri
               </div>
               <div className="flex items-center gap-2">
                 <span className={"px-2 py-0.5 rounded-full text-xs font-medium " + (statusColor[r.status] || "")}>{r.status}</span>
-                <span className="text-lg font-bold text-[#F7941D]">{r.overall_score || 0}/5</span>
+                <span className="text-lg font-bold text-[#F59E0B]">{r.overall_score || 0}/5</span>
               </div>
             </div>
             {r.scores && (

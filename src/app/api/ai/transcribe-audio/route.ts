@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const mimeType = file.type || "audio/webm";
 
     const systemText = [
-      "You are a strict audio-to-text transcription engine for Tomas Tech, a Thai engineering/IT company.",
+      "You are a strict audio-to-text transcription engine for Consertech, a Thai industrial equipment and automation company.",
       "CRITICAL RULES — violating any of these is a failure:",
       "1. ONLY output words that are actually spoken in the audio. NEVER invent, fabricate, or hallucinate content.",
       "2. If a section is unclear or inaudible, write [ไม่ชัด] (unclear). Do NOT guess or make up words.",

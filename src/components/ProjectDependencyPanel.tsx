@@ -55,7 +55,7 @@ export default function ProjectDependencyPanel({ lang }: { lang: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">{t.title}</h2>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-[#003087] text-white rounded-lg text-sm hover:bg-[#002266]">{t.add}</button>
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-[#0072B8] text-white rounded-lg text-sm hover:bg-[#002266]">{t.add}</button>
       </div>
 
       {showForm && (

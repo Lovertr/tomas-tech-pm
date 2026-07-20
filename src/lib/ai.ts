@@ -49,7 +49,7 @@ export async function aiCall(prompt: string, opts: AiCallOptions = {}): Promise<
   const provider = opts.provider ?? getProvider();
   const tier = opts.model ?? "haiku";
   const systemParts = [
-    opts.system ?? "You are a helpful project-management AI assistant for Tomas Tech.",
+    opts.system ?? "You are a helpful project-management AI assistant for Consertech.",
     langInstruction(opts.lang),
     opts.json ? "Output ONLY valid JSON. No markdown fences, no commentary." : "",
   ].filter(Boolean);

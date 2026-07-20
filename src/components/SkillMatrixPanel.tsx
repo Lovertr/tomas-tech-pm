@@ -93,24 +93,24 @@ export default function SkillMatrixPanel({ lang = "th", canManage = false }: { l
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Sparkles className="text-[#F7941D]" size={22} /> {L("title")}</h2>
+        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><Sparkles className="text-[#F59E0B]" size={22} /> {L("title")}</h2>
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={L("search")}
-              className="pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-sm w-48 focus:ring-2 focus:ring-[#00AEEF] focus:border-[#00AEEF]" />
+              className="pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-sm w-48 focus:ring-2 focus:ring-[#4DB5D6] focus:border-[#4DB5D6]" />
           </div>
-          {canManage && <button onClick={() => setShowAdd(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-xl text-sm flex items-center gap-1"><Plus size={16} /> {L("addSkill")}</button>}
+          {canManage && <button onClick={() => setShowAdd(true)} className="px-3 py-2 bg-[#0072B8] hover:bg-[#002060] text-white rounded-xl text-sm flex items-center gap-1"><Plus size={16} /> {L("addSkill")}</button>}
         </div>
       </div>
 
       {/* Category filter */}
       <div className="flex flex-wrap gap-2">
-        <button onClick={() => setFilterCat("all")} className={"px-3 py-1 rounded-full text-xs font-medium border " + (filterCat === "all" ? "bg-[#003087] text-white border-[#003087]" : "bg-white text-gray-600 border-gray-300")}>
+        <button onClick={() => setFilterCat("all")} className={"px-3 py-1 rounded-full text-xs font-medium border " + (filterCat === "all" ? "bg-[#0072B8] text-white border-[#0072B8]" : "bg-white text-gray-600 border-gray-300")}>
           All ({catalog.length})
         </button>
         {Object.entries(CATS).map(([k, v]) => catCounts[k] ? (
-          <button key={k} onClick={() => setFilterCat(k)} className={"px-3 py-1 rounded-full text-xs font-medium border " + (filterCat === k ? "bg-[#003087] text-white border-[#003087]" : v.color + " border-transparent")}>
+          <button key={k} onClick={() => setFilterCat(k)} className={"px-3 py-1 rounded-full text-xs font-medium border " + (filterCat === k ? "bg-[#0072B8] text-white border-[#0072B8]" : v.color + " border-transparent")}>
             {v.label} ({catCounts[k]})
           </button>
         ) : null)}
@@ -165,7 +165,7 @@ export default function SkillMatrixPanel({ lang = "th", canManage = false }: { l
             </select>
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-gray-600 text-sm">Cancel</button>
-              <button onClick={addToCatalog} className="px-4 py-2 bg-[#003087] text-white rounded-xl text-sm">Save</button>
+              <button onClick={addToCatalog} className="px-4 py-2 bg-[#0072B8] text-white rounded-xl text-sm">Save</button>
             </div>
           </div>
         </div>

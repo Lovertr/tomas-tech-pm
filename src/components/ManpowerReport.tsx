@@ -217,7 +217,7 @@ export default function ManpowerReport({ positions, members, projects }: Props) 
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-gray-900">
-          <BarChart3 size={20} className="text-[#00AEEF]" />
+          <BarChart3 size={20} className="text-[#4DB5D6]" />
           <h2 className="text-lg font-semibold">Manpower Report</h2>
         </div>
         <button onClick={exportXLSX} disabled={logs.length === 0}

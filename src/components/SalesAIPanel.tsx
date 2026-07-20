@@ -245,7 +245,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #003087, #00AEEF)" }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0072B8, #4DB5D6)" }}>
             <Bot size={22} className="text-white" />
           </div>
           <div>
@@ -253,7 +253,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
             <p className="text-xs text-gray-500">{L("subtitle")}</p>
           </div>
         </div>
-        <button onClick={fetchSnapshot} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-[#003087] bg-white border border-gray-200 rounded-lg hover:border-[#003087]/30 transition">
+        <button onClick={fetchSnapshot} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-[#0072B8] bg-white border border-gray-200 rounded-lg hover:border-[#0072B8]/30 transition">
           <RefreshCcw size={13} /> {L("refresh")}
         </button>
       </div>
@@ -274,11 +274,11 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
       {/* Sales Overview Cards */}
       <div>
         <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <BarChart3 size={15} className="text-[#003087]" /> {L("overview")}
+          <BarChart3 size={15} className="text-[#0072B8]" /> {L("overview")}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: L("totalDeals"), value: snapshot.totalDeals, icon: Briefcase, color: "#003087", bg: "bg-blue-50" },
+            { label: L("totalDeals"), value: snapshot.totalDeals, icon: Briefcase, color: "#0072B8", bg: "bg-blue-50" },
             { label: L("pipelineValue"), value: "฿" + fmtValue(snapshot.totalValue), icon: DollarSign, color: "#10B981", bg: "bg-emerald-50" },
             { label: L("stuckDeals"), value: snapshot.stuckDeals, icon: AlertTriangle, color: "#EF4444", bg: "bg-red-50" },
             { label: L("hotDeals"), value: snapshot.hotDeals, icon: TrendingUp, color: "#F59E0B", bg: "bg-amber-50" },
@@ -303,7 +303,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
       {/* AI Deal Insights */}
       <div>
         <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <Sparkles size={15} className="text-[#F7941D]" /> {L("aiInsights")}
+          <Sparkles size={15} className="text-[#F59E0B]" /> {L("aiInsights")}
         </h2>
         {snapshot.loading ? (
           <div className="flex items-center justify-center py-8 text-gray-400">
@@ -332,7 +332,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-600 italic flex-1">{deal.suggestion}</p>
                   <button onClick={() => askAboutDeal(deal.id, deal.title)}
-                    className="flex items-center gap-1 text-xs text-[#003087] hover:text-blue-700 font-medium ml-2 flex-shrink-0">
+                    className="flex items-center gap-1 text-xs text-[#0072B8] hover:text-blue-700 font-medium ml-2 flex-shrink-0">
                     {L("analyzeDeal")} <ArrowRight size={12} />
                   </button>
                 </div>
@@ -344,7 +344,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
 
       {/* Chat with AI */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2" style={{ background: "linear-gradient(135deg, #003087 0%, #0050B3 100%)" }}>
+        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2" style={{ background: "linear-gradient(135deg, #0072B8 0%, #0050B3 100%)" }}>
           <MessageSquare size={16} className="text-white" />
           <h2 className="text-sm font-semibold text-white">{L("askAI")}</h2>
         </div>
@@ -356,7 +356,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
             {quickActions.map(qa => (
               <button key={qa.key} onClick={() => sendMessage(L(qa.key))}
                 disabled={sending}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full hover:border-[#003087]/40 hover:text-[#003087] transition text-gray-600 disabled:opacity-50">
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full hover:border-[#0072B8]/40 hover:text-[#0072B8] transition text-gray-600 disabled:opacity-50">
                 <qa.icon size={12} /> {L(qa.key)}
               </button>
             ))}
@@ -367,7 +367,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
         <div className="h-[400px] overflow-y-auto p-4 space-y-4" style={{ background: "linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%)" }}>
           {messages.length === 0 && !sending && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #003087, #00AEEF)" }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #0072B8, #4DB5D6)" }}>
                 <Bot size={16} className="text-white" />
               </div>
               <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-gray-100 max-w-[85%]">
@@ -379,13 +379,13 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
           {messages.map((msg, i) => (
             <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
               {msg.role === "assistant" && (
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #003087, #00AEEF)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #0072B8, #4DB5D6)" }}>
                   <Bot size={16} className="text-white" />
                 </div>
               )}
               <div className={`rounded-2xl p-4 max-w-[85%] ${
                 msg.role === "user"
-                  ? "bg-[#003087] text-white rounded-tr-sm"
+                  ? "bg-[#0072B8] text-white rounded-tr-sm"
                   : "bg-white shadow-sm border border-gray-100 rounded-tl-sm"
               }`}>
                 <p className={`text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "text-white" : "text-gray-700"}`}>
@@ -405,7 +405,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
 
           {sending && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #003087, #00AEEF)" }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #0072B8, #4DB5D6)" }}>
                 <Bot size={16} className="text-white" />
               </div>
               <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-gray-100">
@@ -435,7 +435,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
               onKeyDown={handleKeyDown}
               placeholder={L("placeholder")}
               rows={1}
-              className="flex-1 resize-none px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-[#003087] outline-none transition bg-gray-50 text-gray-800 placeholder-gray-400"
+              className="flex-1 resize-none px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-[#0072B8] outline-none transition bg-gray-50 text-gray-800 placeholder-gray-400"
               style={{ maxHeight: "120px" }}
               disabled={sending}
             />
@@ -443,7 +443,7 @@ export default function SalesAIPanel({ lang = "th", currentUserId }: Props) {
               onClick={() => sendMessage()}
               disabled={!input.trim() || sending}
               className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition disabled:opacity-40"
-              style={{ background: "linear-gradient(135deg, #003087, #0050B3)" }}
+              style={{ background: "linear-gradient(135deg, #0072B8, #0050B3)" }}
             >
               {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             </button>

@@ -130,7 +130,7 @@ export default function MilestonesPanel({ projects, filterProjectId = "all", can
       <div className="flex items-center justify-between">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
           <Stat label="เลยกำหนด" value={groups.overdue.length} color="#EF4444" />
-          <Stat label="ใน 14 วัน" value={groups.soon.length} color="#F7941D" />
+          <Stat label="ใน 14 วัน" value={groups.soon.length} color="#F59E0B" />
           <Stat label="กำลังจะมา" value={groups.upcoming.length} color="#3B82F6" />
           <Stat label="เสร็จแล้ว" value={groups.completed.length} color="#22C55E" />
         </div>
@@ -148,7 +148,7 @@ export default function MilestonesPanel({ projects, filterProjectId = "all", can
         </div>
       )}
       <Section title="เลยกำหนด" items={groups.overdue} accent="#EF4444" />
-      <Section title="ใน 14 วัน" items={groups.soon} accent="#F7941D" />
+      <Section title="ใน 14 วัน" items={groups.soon} accent="#F59E0B" />
       <Section title="กำลังจะมา" items={groups.upcoming} accent="#3B82F6" />
       <Section title="เสร็จแล้ว" items={groups.completed} accent="#22C55E" />
 

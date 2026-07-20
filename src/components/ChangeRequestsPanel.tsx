@@ -13,7 +13,7 @@ interface Project { id: string; project_code?: string | null; name_th?: string |
 interface Member { id: string; first_name_th?: string | null; last_name_th?: string | null; first_name_en?: string | null; last_name_en?: string | null; }
 
 const STATUS_LBL: Record<string, string> = { pending: "รออนุมัติ", approved: "อนุมัติ", rejected: "ปฏิเสธ", implemented: "ดำเนินการแล้ว" };
-const STATUS_COLOR: Record<string, string> = { pending: "#F7941D", approved: "#22C55E", rejected: "#EF4444", implemented: "#3B82F6" };
+const STATUS_COLOR: Record<string, string> = { pending: "#F59E0B", approved: "#22C55E", rejected: "#EF4444", implemented: "#3B82F6" };
 
 const memberName = (m?: Member | null) =>
   m ? (m.first_name_th ? `${m.first_name_th} ${m.last_name_th ?? ""}`.trim() : `${m.first_name_en ?? ""} ${m.last_name_en ?? ""}`.trim()) : "—";
@@ -73,9 +73,9 @@ export default function ChangeRequestsPanel({ projects, members, filterProjectId
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 flex-1">
-          <Stat label="รออนุมัติ" value={stats.pending} color="#F7941D" />
+          <Stat label="รออนุมัติ" value={stats.pending} color="#F59E0B" />
           <Stat label="อนุมัติแล้ว" value={stats.approved} color="#22C55E" />
-          <Stat label="งบที่เพิ่ม" value={fmtMoney(totalBudgetImpact)} color="#00AEEF" isString />
+          <Stat label="งบที่เพิ่ม" value={fmtMoney(totalBudgetImpact)} color="#4DB5D6" isString />
           <Stat label="วันที่เลื่อน" value={`${totalScheduleImpact} วัน`} color="#A855F7" isString />
         </div>
         {canManage && (

@@ -24,8 +24,8 @@ interface Props {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Building2 }> = {
-  project: { label: "โปรเจค", color: "#003087", bg: "bg-[#003087]/10", icon: Briefcase },
-  department: { label: "แผนก", color: "#F7941D", bg: "bg-[#F7941D]/10", icon: Building2 },
+  project: { label: "โปรเจค", color: "#0072B8", bg: "bg-[#0072B8]/10", icon: Briefcase },
+  department: { label: "แผนก", color: "#F59E0B", bg: "bg-[#F59E0B]/10", icon: Building2 },
   company: { label: "บริษัท", color: "#22C55E", bg: "bg-green-50", icon: Globe },
 };
 
@@ -104,8 +104,8 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
       <div key={n.id} className="bg-white border border-gray-300 rounded-xl overflow-hidden">
         <div className="p-4 flex items-start gap-3 cursor-pointer hover:bg-gray-100"
           onClick={() => setExpanded(isOpen ? null : n.id)}>
-          <div className="w-12 h-12 rounded-lg bg-[#003087]/20 border border-[#003087]/40 flex flex-col items-center justify-center shrink-0">
-            <div className="text-[10px] text-[#00AEEF] uppercase">{d.toLocaleDateString("th-TH", { month: "short" })}</div>
+          <div className="w-12 h-12 rounded-lg bg-[#0072B8]/20 border border-[#0072B8]/40 flex flex-col items-center justify-center shrink-0">
+            <div className="text-[10px] text-[#4DB5D6] uppercase">{d.toLocaleDateString("th-TH", { month: "short" })}</div>
             <div className="text-lg font-bold text-gray-900 leading-none">{d.getDate()}</div>
           </div>
           <div className="flex-1 min-w-0">
@@ -169,7 +169,7 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
                       </span>
                       <div className="flex-1">
                         <span className={it.done ? "line-through text-gray-600" : "text-gray-700"}>{it.text}</span>
-                        {it.assignee && <span className="ml-2 text-xs text-[#00AEEF]">@{it.assignee}</span>}
+                        {it.assignee && <span className="ml-2 text-xs text-[#4DB5D6]">@{it.assignee}</span>}
                         {it.due && <span className="ml-2 text-xs text-orange-600">{it.due}</span>}
                       </div>
                     </div>
@@ -187,12 +187,12 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="grid grid-cols-3 gap-2 md:gap-3 flex-1">
-          <Stat label="ทั้งหมด" value={items.length} color="#003087" />
-          <Stat label="กำลังจะมา" value={upcoming.length} color="#F7941D" />
+          <Stat label="ทั้งหมด" value={items.length} color="#0072B8" />
+          <Stat label="กำลังจะมา" value={upcoming.length} color="#F59E0B" />
           <Stat label="ผ่านมาแล้ว" value={past.length} color="#94A3B8" />
         </div>
         {canManage && (
-          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <button onClick={() => setCreating(true)} className="px-3 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-xs md:text-sm font-medium flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
             <Plus size={14} /> เพิ่ม Meeting
           </button>
         )}
@@ -210,7 +210,7 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
           const TabIcon = tab.icon;
           return (
             <button key={tab.key} onClick={() => setTypeFilter(tab.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${active ? "bg-[#003087] text-white" : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-100"}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${active ? "bg-[#0072B8] text-white" : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-100"}`}>
               {TabIcon && <TabIcon size={12} />} {tab.label}
             </button>
           );
@@ -228,7 +228,7 @@ export default function MeetingNotesPanel({ projects, filterProjectId = "all", c
       {upcoming.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
-            <div className="w-1 h-4 rounded-full bg-[#F7941D]" />
+            <div className="w-1 h-4 rounded-full bg-[#F59E0B]" />
             <h3 className="text-sm font-semibold text-gray-900">กำลังจะมา</h3>
             <span className="text-xs text-gray-600">({upcoming.length})</span>
           </div>
@@ -735,7 +735,7 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
               return (
                 <button key={t} type="button"
                   onClick={() => setForm({ ...form, meeting_type: t })}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${active ? "border-[#003087] bg-[#003087]/5 text-[#003087] ring-1 ring-[#003087]/30" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${active ? "border-[#0072B8] bg-[#0072B8]/5 text-[#0072B8] ring-1 ring-[#0072B8]/30" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}>
                   <Icon size={16} /> {cfg.label}
                 </button>
               );
@@ -756,7 +756,7 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
             </div>
             <div className="flex items-end">
               <label className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
-                <input type="checkbox" className="w-4 h-4 accent-[#003087] rounded"
+                <input type="checkbox" className="w-4 h-4 accent-[#0072B8] rounded"
                   checked={form.client_visible ?? false}
                   onChange={e => setForm({ ...form, client_visible: e.target.checked })} />
                 <span className="text-sm text-gray-700 flex items-center gap-1"><Eye size={14} className="text-blue-600" /> ลูกค้าเห็นสรุป</span>
@@ -771,7 +771,7 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs text-gray-600">เลือกแผนก *</label>
               <div className="flex gap-2">
-                <button type="button" onClick={selectAllDepts} className="text-[10px] text-[#003087] hover:underline">เลือกทั้งหมด</button>
+                <button type="button" onClick={selectAllDepts} className="text-[10px] text-[#0072B8] hover:underline">เลือกทั้งหมด</button>
                 <button type="button" onClick={clearDepts} className="text-[10px] text-gray-500 hover:underline">ล้าง</button>
               </div>
             </div>
@@ -780,8 +780,8 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
                 const selected = (form.department_ids ?? []).includes(dept.id);
                 return (
                   <button key={dept.id} type="button" onClick={() => toggleDept(dept.id)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all text-left ${selected ? "bg-[#F7941D]/15 border border-[#F7941D]/40 text-[#F7941D]" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? "bg-[#F7941D] border-[#F7941D]" : "border-gray-400"}`}>
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all text-left ${selected ? "bg-[#F59E0B]/15 border border-[#F59E0B]/40 text-[#F59E0B]" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? "bg-[#F59E0B] border-[#F59E0B]" : "border-gray-400"}`}>
                       {selected && <Check size={8} className="text-white" />}
                     </div>
                     <span className="truncate">{dept.code} - {dept.name_th}</span>
@@ -824,7 +824,7 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
               value={attendeeInput}
               onChange={e => setAttendeeInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAttendee(); } }} />
-            <button type="button" onClick={addAttendee} className="px-3 py-2 bg-[#003087] text-white rounded-lg text-sm">เพิ่ม</button>
+            <button type="button" onClick={addAttendee} className="px-3 py-2 bg-[#0072B8] text-white rounded-lg text-sm">เพิ่ม</button>
           </div>
           {form.attendees && form.attendees.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -916,7 +916,7 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
               value={aiInput}
               onChange={e => setAiInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAction(); } }} />
-            <button type="button" onClick={addAction} className="px-3 py-2 bg-[#003087] text-white rounded-lg text-sm">เพิ่ม</button>
+            <button type="button" onClick={addAction} className="px-3 py-2 bg-[#0072B8] text-white rounded-lg text-sm">เพิ่ม</button>
           </div>
           {form.action_items && form.action_items.length > 0 && (
             <div className="space-y-1 mt-2">
@@ -937,7 +937,7 @@ function MeetingModal({ initial, projects, departments, defaultProjectId, onClos
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-gray-500 hover:text-gray-900 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </div>

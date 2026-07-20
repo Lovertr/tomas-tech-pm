@@ -220,7 +220,7 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-300 gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
-          <Calendar size={16} className="text-[#00AEEF] shrink-0" />
+          <Calendar size={16} className="text-[#4DB5D6] shrink-0" />
           <span className="font-semibold text-gray-900 truncate">{data.project?.name_th || data.project?.name_en}</span>
           <span className="text-xs text-gray-600 shrink-0">({data.project?.project_code})</span>
         </div>
@@ -302,8 +302,8 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
             {/* Today marker */}
             {todayX >= 0 && todayX <= totalWidth && (
               <g>
-                <line x1={todayX} x2={todayX} y1={HEADER_H} y2={chartHeight} stroke="#F7941D" strokeWidth={2} strokeDasharray="4 4" />
-                <text x={todayX + 4} y={HEADER_H - 4} fill="#F7941D" fontSize={10} fontWeight="bold">วันนี้</text>
+                <line x1={todayX} x2={todayX} y1={HEADER_H} y2={chartHeight} stroke="#F59E0B" strokeWidth={2} strokeDasharray="4 4" />
+                <text x={todayX + 4} y={HEADER_H - 4} fill="#F59E0B" fontSize={10} fontWeight="bold">วันนี้</text>
               </g>
             )}
 
@@ -346,7 +346,7 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
                 )}
                 {hoverTask === b.task.id && (
                   <g>
-                    <rect x={b.x} y={b.y - 1} width={b.w} height={b.h + 2} rx={5} fill="none" stroke="#00AEEF" strokeWidth={2} />
+                    <rect x={b.x} y={b.y - 1} width={b.w} height={b.h + 2} rx={5} fill="none" stroke="#4DB5D6" strokeWidth={2} />
                   </g>
                 )}
               </g>
@@ -356,7 +356,7 @@ export default function GanttChart({ projectId, onTaskClick, refreshKey = 0 }: P
             {data.milestones.map(m => {
               if (!m.due_date) return null;
               const x = dayDiff(startOfDay(new Date(m.due_date)), range.start) * pxPerDay;
-              const color = m.status === "completed" ? "#22C55E" : m.status === "missed" ? "#EF4444" : "#F7941D";
+              const color = m.status === "completed" ? "#22C55E" : m.status === "missed" ? "#EF4444" : "#F59E0B";
               return (
                 <g key={m.id}>
                   <line x1={x} x2={x} y1={HEADER_H} y2={chartHeight} stroke={color} strokeWidth={1} strokeDasharray="2 3" opacity={0.4} />

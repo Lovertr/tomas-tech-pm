@@ -125,8 +125,8 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
-          <Stat label={L('total_budget')} value={fmtMoney(stats.totalPlanned)} color="#003087" />
-          <Stat label={L('actual_spent')} value={fmtMoney(stats.totalActual)} color="#F7941D" />
+          <Stat label={L('total_budget')} value={fmtMoney(stats.totalPlanned)} color="#0072B8" />
+          <Stat label={L('actual_spent')} value={fmtMoney(stats.totalActual)} color="#F59E0B" />
           <Stat
             label={L('remaining_over')}
             value={fmtMoney(stats.totalVariance)}
@@ -136,7 +136,7 @@ export default function ProjectBudgetPanel({ projects, members, filterProjectId 
         {canManage && (
           <button
             onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
+            className="ml-3 px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
             <Plus size={16} /> {L('add_budget_item')}
           </button>
@@ -298,7 +298,7 @@ function CreateBudgetModal({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -375,7 +375,7 @@ function CreateBudgetModal({
           <button
             onClick={submit}
             disabled={busy}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
             {busy ? L('creating') : L('create_button')}
           </button>
@@ -422,7 +422,7 @@ function EditBudgetForm({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]";
 
   return (
     <div className="mt-3 pt-3 border-t border-[#E2E8F0] space-y-3">
@@ -459,7 +459,7 @@ function EditBudgetForm({
         <button
           onClick={submit}
           disabled={busy}
-          className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
+          className="px-3 py-1.5 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
         >
           {busy ? L('saving') : L('save_button')}
         </button>

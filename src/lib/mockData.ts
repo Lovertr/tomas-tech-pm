@@ -1,9 +1,9 @@
 export const mockPositions = [
-  { id: "p1", name_th: "ผู้จัดการโครงการ", name_en: "Project Manager", name_jp: "プロジェクトマネージャー", rate: 850, color: "#003087" },
+  { id: "p1", name_th: "ผู้จัดการโครงการ", name_en: "Project Manager", name_jp: "プロジェクトマネージャー", rate: 850, color: "#0072B8" },
   { id: "p2", name_th: "วิศวกร PLC", name_en: "PLC Engineer", name_jp: "PLCエンジニア", rate: 750, color: "#0066CC" },
-  { id: "p3", name_th: "นักพัฒนา MES", name_en: "MES Developer", name_jp: "MES開発者", rate: 700, color: "#00AEEF" },
+  { id: "p3", name_th: "นักพัฒนา MES", name_en: "MES Developer", name_jp: "MES開発者", rate: 700, color: "#4DB5D6" },
   { id: "p4", name_th: "นักพัฒนาซอฟต์แวร์", name_en: "Software Developer", name_jp: "ソフトウェア開発者", rate: 650, color: "#6366F1" },
-  { id: "p5", name_th: "นักออกแบบ UI/UX", name_en: "UI/UX Designer", name_jp: "UI/UXデザイナー", rate: 550, color: "#F7941D" },
+  { id: "p5", name_th: "นักออกแบบ UI/UX", name_en: "UI/UX Designer", name_jp: "UI/UXデザイナー", rate: 550, color: "#F59E0B" },
   { id: "p6", name_th: "ผู้ทดสอบ QA", name_en: "QA Tester", name_jp: "QAテスター", rate: 500, color: "#EF4444" },
   { id: "p7", name_th: "วิศวกร DevOps", name_en: "DevOps Engineer", name_jp: "DevOpsエンジニア", rate: 750, color: "#10B981" },
   { id: "p8", name_th: "ที่ปรึกษาด้านเทคนิค", name_en: "Technical Consultant", name_jp: "技術コンサルタント", rate: 900, color: "#DC2626" },

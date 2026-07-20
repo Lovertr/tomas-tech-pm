@@ -95,7 +95,7 @@ const stageLabels: Record<string, Record<string, string>> = {
 
 const stageColors: Record<string, string> = {
   new_lead: '#0EA5E9', waiting_present: '#6B7280', contacted: '#3B82F6',
-  proposal_created: '#D97706', proposal_submitted: '#F59E0B', proposal_confirmed: '#8B5CF6', quotation: '#F7941D',
+  proposal_created: '#D97706', proposal_submitted: '#F59E0B', proposal_confirmed: '#8B5CF6', quotation: '#F59E0B',
   negotiation: '#EC4899', waiting_po: '#14B8A6', po_received: '#22C55E',
   payment_received: '#059669', cancelled: '#EF4444', refused: '#9CA3AF',
 };
@@ -535,7 +535,7 @@ export default function DealsPipelinePanel({
           <TranslateButton text={L('title')} />
           {canManage && (
             <button onClick={() => { resetForm(); setShowForm(true); }}
-              className="px-4 py-2 bg-[#F7941D] hover:bg-[#FF9D2D] text-gray-900 rounded-lg text-sm font-semibold flex items-center gap-2">
+              className="px-4 py-2 bg-[#F59E0B] hover:bg-[#FF9D2D] text-gray-900 rounded-lg text-sm font-semibold flex items-center gap-2">
               {L('addDeal')}
             </button>
           )}
@@ -545,11 +545,11 @@ export default function DealsPipelinePanel({
       {/* Search / filter bar */}
       <div className="flex flex-wrap items-center gap-2">
         <input type="text" placeholder={L('searchName')} value={searchName} onChange={(e) => setSearchName(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-full md:w-48 focus:ring-2 focus:ring-[#0072B8] placeholder:text-gray-500" />
         <input type="text" placeholder={L('searchCustomer')} value={searchCustomer} onChange={(e) => setSearchCustomer(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#003087] placeholder:text-gray-500" />
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-40 focus:ring-2 focus:ring-[#0072B8] placeholder:text-gray-500" />
         <select value={searchOwnerId} onChange={(e) => setSearchOwnerId(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-44 focus:ring-2 focus:ring-[#003087]">
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 text-sm w-[calc(50%-0.25rem)] md:w-44 focus:ring-2 focus:ring-[#0072B8]">
           <option value="">{L('searchOwner')}</option>
           {(() => {
             const ownerMap = new Map<string, string>();
@@ -560,7 +560,7 @@ export default function DealsPipelinePanel({
             ));
           })()}
         </select>
-        <button onClick={() => {}} className="p-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg"><Search size={16} /></button>
+        <button onClick={() => {}} className="p-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg"><Search size={16} /></button>
         <span className="text-sm text-gray-500 ml-1">{filteredDeals.length}/{deals.length}</span>
       </div>
 
@@ -634,9 +634,9 @@ export default function DealsPipelinePanel({
                         onDragEnd={handleDragEnd}
                         className={`rounded-lg p-3 border transition ${editable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${
                           isDragging ? 'opacity-50 ring-2 ring-blue-400 scale-95' :
-                          mine ? 'bg-[#FFF7ED] border-[#F7941D] hover:shadow-md'
+                          mine ? 'bg-[#FFF7ED] border-[#F59E0B] hover:shadow-md'
                           : isMyCollab(deal) ? 'bg-blue-50 border-blue-300 hover:shadow-md'
-                          : 'bg-white border-gray-200 hover:border-[#003087] hover:shadow-md'
+                          : 'bg-white border-gray-200 hover:border-[#0072B8] hover:shadow-md'
                         }`}
                         onClick={() => openDetail(deal)}>
                         {/* Drag handle + MY DEAL / COLLABORATOR badge */}
@@ -645,7 +645,7 @@ export default function DealsPipelinePanel({
                             <GripVertical size={14} className="text-gray-300 flex-shrink-0 -ml-1" />
                           )}
                           {mine && (
-                            <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F7941D] rounded px-1.5 py-0.5">
+                            <span className="inline-block text-[10px] font-bold text-gray-900 bg-[#F59E0B] rounded px-1.5 py-0.5">
                               {L('myDeal')}
                             </span>
                           )}
@@ -656,7 +656,7 @@ export default function DealsPipelinePanel({
                           )}
                         </div>
 
-                        <h4 className={`font-semibold text-sm leading-tight ${mine ? 'text-[#003087]' : 'text-gray-900'}`}>
+                        <h4 className={`font-semibold text-sm leading-tight ${mine ? 'text-[#0072B8]' : 'text-gray-900'}`}>
                           {deal.title}
                         </h4>
                         <p className="text-xs text-gray-500 mt-0.5">{deal.customer_name}</p>
@@ -680,7 +680,7 @@ export default function DealsPipelinePanel({
                         {canManage && editable && (
                           <div className="flex gap-1 pt-2 mt-2 border-t border-gray-100 opacity-0 hover:opacity-100 transition">
                             <button onClick={(e) => { e.stopPropagation(); handleEditDeal(deal); }}
-                              className="flex-1 px-2 py-1 bg-[#003087] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
+                              className="flex-1 px-2 py-1 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded text-xs flex items-center justify-center gap-1">
                               <Edit2 size={10} /> {L('edit')}
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteDeal(deal.id); }}
@@ -744,7 +744,7 @@ export default function DealsPipelinePanel({
                 {canManage && canEditDeal(detailDeal) && (
                   <div className="flex gap-2 mt-3">
                     <button onClick={() => { handleEditDeal(detailDeal); setDetailDeal(null); }}
-                      className="px-3 py-1.5 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                      className="px-3 py-1.5 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-xs font-medium flex items-center gap-1">
                       <Edit2 size={12} /> {L('edit')}
                     </button>
                     <button onClick={() => { handleDeleteDeal(detailDeal.id); setDetailDeal(null); }}
@@ -911,7 +911,7 @@ export default function DealsPipelinePanel({
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('dealTitle')} *</label>
                   <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
 
                 <div ref={customerSearchRef} className="relative">
@@ -921,7 +921,7 @@ export default function DealsPipelinePanel({
                     onChange={(e) => { setCustomerSearch(e.target.value); setShowCustomerDropdown(true); if (!e.target.value) setFormData({ ...formData, customer_id: '' }); }}
                     onFocus={() => setShowCustomerDropdown(true)}
                     placeholder={lang === 'th' ? 'พิมพ์ค้นหาลูกค้า...' : lang === 'jp' ? '顧客を検索...' : 'Search customer...'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                   {/* hidden required input for form validation */}
                   <input type="text" required value={formData.customer_id} onChange={() => {}} className="sr-only" tabIndex={-1} />
                   {showCustomerDropdown && (
@@ -932,7 +932,7 @@ export default function DealsPipelinePanel({
                         .map(c => (
                           <button key={c.id} type="button"
                             onClick={() => { setFormData({ ...formData, customer_id: c.id }); setCustomerSearch(c.company_name); setShowCustomerDropdown(false); }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 ${formData.customer_id === c.id ? 'bg-blue-100 font-semibold text-[#003087]' : 'text-gray-800'}`}>
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 ${formData.customer_id === c.id ? 'bg-blue-100 font-semibold text-[#0072B8]' : 'text-gray-800'}`}>
                             {c.company_name}
                           </button>
                         ))}
@@ -954,7 +954,7 @@ export default function DealsPipelinePanel({
                       className="w-full bg-gray-100 border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-700 text-sm cursor-not-allowed" />
                   ) : (
                     <select value={formData.owner_id} onChange={(e) => setFormData({ ...formData, owner_id: e.target.value })}
-                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]">
+                      className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]">
                       <option value="">{L('selectOwner')}</option>
                       {allMembers.map((m) => <option key={m.id} value={m.id}>{m.display_name || `${m.first_name_en ?? ''} ${m.last_name_en ?? ''}`}</option>)}
                     </select>
@@ -965,13 +965,13 @@ export default function DealsPipelinePanel({
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('value')}</label>
                   <input type="number" value={formData.value || ''} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
                     placeholder="0"
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('stage')} *</label>
                   <select value={formData.stage} onChange={(e) => setFormData({ ...formData, stage: e.target.value as Deal['stage'] })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]">
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]">
                     {stageKeys.map((s) => <option key={s} value={s}>{stageName(s)}</option>)}
                   </select>
                 </div>
@@ -979,51 +979,51 @@ export default function DealsPipelinePanel({
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('closeDate')}</label>
                   <input type="date" value={formData.expected_close_date} onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('probability')} *</label>
                   <input type="number" min="0" max="100" value={formData.probability} onChange={(e) => setFormData({ ...formData, probability: parseInt(e.target.value) })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('contactPerson')}</label>
                   <input type="text" value={formData.contact_person} onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('contactChannel')}</label>
                   <input type="text" value={formData.contact_channel} onChange={(e) => setFormData({ ...formData, contact_channel: e.target.value })}
                     placeholder={lang === 'th' ? 'เช่น LINE, โทรศัพท์, อีเมล' : lang === 'jp' ? '例: LINE, 電話, メール' : 'e.g. LINE, Phone, Email'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('notes')}</label>
                   <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={2} />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8] resize-none" rows={2} />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('workDone')}</label>
                   <textarea value={formData.work_done} onChange={(e) => setFormData({ ...formData, work_done: e.target.value })}
                     placeholder={lang === 'th' ? 'รายละเอียดที่ทำไปแล้ว...' : lang === 'jp' ? '完了済みの作業...' : 'Details of completed work...'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8] resize-none" rows={3} />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-600 mb-2">{L('nextSteps')}</label>
                   <textarea value={formData.next_steps} onChange={(e) => setFormData({ ...formData, next_steps: e.target.value })}
                     placeholder={lang === 'th' ? 'สิ่งที่จะต้องทำต่อ...' : lang === 'jp' ? '次のステップ...' : 'Next steps to take...'}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none" rows={3} />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8] resize-none" rows={3} />
                 </div>
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{saving ? '...' : L('save')}</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">{saving ? '...' : L('save')}</button>
                 <button type="button" onClick={() => { setShowForm(false); resetForm(); }}
                   className="flex-1 px-4 py-2 bg-[#E2E8F0] hover:bg-[#475569] text-gray-900 rounded-lg text-sm font-medium">{L('cancel')}</button>
               </div>

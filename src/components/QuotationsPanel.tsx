@@ -71,7 +71,7 @@ interface Customer { id: string; company_name?: string; company_name_en?: string
 
 /* ────── Constants ────── */
 const STATUS_COLORS: Record<string, string> = {
-  draft: "#94A3B8", sent: "#00AEEF", approved: "#22C55E", rejected: "#EF4444", expired: "#F7941D",
+  draft: "#94A3B8", sent: "#4DB5D6", approved: "#22C55E", rejected: "#EF4444", expired: "#F59E0B",
 };
 
 const fmtMoney = (n?: number | null, currency = "THB") => {
@@ -102,7 +102,7 @@ const panelText = {
   vat: { th: "VAT", en: "VAT", jp: "VAT" },
   totalAmount: { th: "รวมทั้งสิ้น", en: "Grand Total", jp: "合計" },
   salesAmount: { th: "Sales Amount", en: "Sales Amount", jp: "Sales Amount" },
-  createTitle: { th: "สร้างใบเสนอราคา - TOMAS TECH", en: "Create Quotation - TOMAS TECH", jp: "見積書作成 - TOMAS TECH" },
+  createTitle: { th: "สร้างใบเสนอราคา - CONSERTECH", en: "Create Quotation - CONSERTECH", jp: "見積書作成 - CONSERTECH" },
   to: { th: "ถึง (บริษัท)", en: "To (Company)", jp: "宛先（会社）" },
   attention: { th: "Attention", en: "Attention", jp: "ご担当者" },
   phone: { th: "โทรศัพท์", en: "Phone", jp: "電話" },
@@ -214,13 +214,13 @@ export default function QuotationsPanel({ projects, members, filterProjectId = "
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
           <Stat label={L("draft")} value={String(stats.draft)} color="#94A3B8" />
-          <Stat label={L("sent")} value={String(stats.sent)} color="#00AEEF" />
+          <Stat label={L("sent")} value={String(stats.sent)} color="#4DB5D6" />
           <Stat label={L("approved")} value={String(stats.approved)} color="#22C55E" />
-          <Stat label={L("totalValue")} value={fmtMoney(stats.total)} color="#003087" />
+          <Stat label={L("totalValue")} value={fmtMoney(stats.total)} color="#0072B8" />
         </div>
         {canManage && (
           <button onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
+            className="ml-3 px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2">
             <Plus size={16} /> {L("createQuotation")}
           </button>
         )}
@@ -400,7 +400,7 @@ function QuotationDetailView({ data, lang, L, quo }: { data: { quotation: Quotat
       {/* Items table */}
       <div className="bg-[#F8FAFC] rounded-lg overflow-hidden border border-[#E2E8F0]">
         <table className="w-full text-xs">
-          <thead className="bg-[#003087] text-white">
+          <thead className="bg-[#0072B8] text-white">
             <tr>
               <th className="px-3 py-2 text-center w-8">No.</th>
               <th className="px-3 py-2 text-left">Item Description</th>
@@ -570,33 +570,33 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
     finally { setBusy(false); }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-slate-900 text-sm focus:ring-2 focus:ring-[#003087] focus:outline-none";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-slate-900 text-sm focus:ring-2 focus:ring-[#0072B8] focus:outline-none";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] w-full max-w-3xl p-6 space-y-5 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#003087] flex items-center justify-center"><FileText size={16} className="text-white" /></div>
+            <div className="w-8 h-8 rounded-lg bg-[#0072B8] flex items-center justify-center"><FileText size={16} className="text-white" /></div>
             {isEditing ? "แก้ไข Quotation" : L("createTitle")}
           </h3>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
         {/* Company Header */}
-        <div className="bg-gradient-to-r from-[#003087] to-[#0050C8] rounded-xl p-4 flex items-center gap-4">
-          <img src="/logo.png" alt="TOMAS TECH" className="h-14 w-14 rounded-lg bg-white p-1 object-contain flex-shrink-0" />
+        <div className="bg-gradient-to-r from-[#0072B8] to-[#0050C8] rounded-xl p-4 flex items-center gap-4">
+          <img src="/logo.png" alt="CONSERTECH" className="h-14 w-14 rounded-lg bg-white p-1 object-contain flex-shrink-0" />
           <div className="text-white">
-            <div className="font-bold text-sm">TOMAS TECH CO., LTD.</div>
+            <div className="font-bold text-sm">CONSERTECH CO., LTD.</div>
             <div className="text-[10px] text-blue-200 leading-relaxed">
-              บจก. โทมัส เทค | 123/45 อาคาร ABC ชั้น 5 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง กรุงเทพฯ 10400<br/>
-              Tel: 02-XXX-XXXX | Email: info@tomastech.co.th | Tax ID: 0105XXXXXXXXX
+              บริษัท คันเซอร์เทคช์ จำกัด | 41/69 หมู่ 6 ถ.เลี่ยงเมืองนนทบุรี-ปากเกร็ด ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120<br/>
+              Tel: +66 6 4698 4240 | Email: ADMINS@CS-TH.COM | Tax ID: 0105XXXXXXXXX
             </div>
           </div>
         </div>
 
         {/* Customer */}
         <div className="bg-[#F8FAFC] rounded-xl p-4 space-y-3 border border-[#E2E8F0]">
-          <div className="text-xs font-semibold text-[#003087] uppercase tracking-wide">Customer Information</div>
+          <div className="text-xs font-semibold text-[#0072B8] uppercase tracking-wide">Customer Information</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Field label={L("to") + " *"}>
               <select className={inp} value={form.customer_id} onChange={e => onCustomerChange(e.target.value)}>
@@ -615,7 +615,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
 
         {/* Details */}
         <div className="bg-[#F8FAFC] rounded-xl p-4 space-y-3 border border-[#E2E8F0]">
-          <div className="text-xs font-semibold text-[#003087] uppercase tracking-wide">Quotation Details</div>
+          <div className="text-xs font-semibold text-[#0072B8] uppercase tracking-wide">Quotation Details</div>
           <Field label={L("projectName") + " / " + L("description") + " *"}>
             <input type="text" className={inp} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. MES System" />
           </Field>
@@ -629,11 +629,11 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
 
         {/* Items */}
         <div className="space-y-3">
-          <div className="text-xs font-semibold text-[#003087] uppercase tracking-wide">{L("items")} *</div>
+          <div className="text-xs font-semibold text-[#0072B8] uppercase tracking-wide">{L("items")} *</div>
           {formItems.map((item, idx) => (
             <div key={idx} className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#003087]">Item {idx + 1}</span>
+                <span className="text-xs font-bold text-[#0072B8]">Item {idx + 1}</span>
                 {formItems.length > 1 && <button onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700"><X size={14} /></button>}
               </div>
               <div className="grid grid-cols-12 gap-2">
@@ -642,7 +642,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
                 <div className="col-span-3 md:col-span-2"><input type="text" className={inp} value={item.unit} onChange={e => updateItem(idx, "unit", e.target.value)} placeholder="Unit" /></div>
                 <div className="col-span-4 md:col-span-3"><input type="number" className={inp} value={item.unit_price} onChange={e => updateItem(idx, "unit_price", Number(e.target.value))} min={0} /></div>
               </div>
-              <div className="text-right text-sm font-medium text-[#003087]">= {fmtNum(item.qty * item.unit_price)} {form.currency}</div>
+              <div className="text-right text-sm font-medium text-[#0072B8]">= {fmtNum(item.qty * item.unit_price)} {form.currency}</div>
               {item.sub_items.map((si, j) => (
                 <div key={j} className="flex items-center gap-2 pl-4">
                   <span className="text-slate-400 text-xs">*</span>
@@ -654,7 +654,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
               <input type="text" className={inp + " text-xs"} value={item.notes} onChange={e => updateItem(idx, "notes", e.target.value)} placeholder="Notes (optional)" />
             </div>
           ))}
-          <button onClick={addItem} className="text-xs text-[#003087] hover:text-blue-700 font-medium">{L("addItem")}</button>
+          <button onClick={addItem} className="text-xs text-[#0072B8] hover:text-blue-700 font-medium">{L("addItem")}</button>
         </div>
 
         {/* Notes */}
@@ -691,7 +691,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
               {discountAmt > 0 && <div className="flex justify-between text-orange-600"><span>{L("discount")} {form.discount_type === "percent" ? `(${form.discount_percent}%)` : ""}</span><span>-{fmtNum(discountAmt)}</span></div>}
               <div className="flex justify-between text-slate-600"><span>Sales Amount</span><span>{fmtNum(afterDiscount)}</span></div>
               <div className="flex justify-between text-slate-600"><span>VAT {form.vat_percent}%</span><span>{fmtNum(vat)}</span></div>
-              <div className="flex justify-between text-slate-900 font-bold text-base pt-2 border-t border-[#003087]">
+              <div className="flex justify-between text-slate-900 font-bold text-base pt-2 border-t border-[#0072B8]">
                 <span>Grand Total ({form.currency})</span><span>{fmtNum(total)}</span>
               </div>
             </div>
@@ -701,7 +701,7 @@ function CreateQuotationModal({ customers, lang = "th", onClose, onSaved, initia
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-500 hover:text-slate-900 text-sm">{L("cancel")}</button>
-          <button onClick={submit} disabled={busy} className="px-6 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center gap-2">
+          <button onClick={submit} disabled={busy} className="px-6 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center gap-2">
             <FileText size={14} /> {busy ? (isEditing ? "กำลังบันทึก..." : L("creating")) : (isEditing ? "บันทึก" : L("create"))}
           </button>
         </div>

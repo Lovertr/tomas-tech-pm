@@ -146,7 +146,7 @@ export default function DeptKPIPanel({ lang = "th" }: { lang?: Lang }) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <BarChart3 className="text-[#003087]" size={22} /> {L("title")}
+          <BarChart3 className="text-[#0072B8]" size={22} /> {L("title")}
         </h2>
         <button onClick={() => setShowHelp(!showHelp)}
           className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">
@@ -167,12 +167,12 @@ export default function DeptKPIPanel({ lang = "th" }: { lang?: Lang }) {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-          <Users size={20} className="mx-auto mb-1 text-[#003087]" />
+          <Users size={20} className="mx-auto mb-1 text-[#0072B8]" />
           <div className="text-2xl font-bold text-gray-800">{totalMembers}</div>
           <div className="text-xs text-gray-500">{L("members")}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-          <TrendingUp size={20} className="mx-auto mb-1 text-[#00AEEF]" />
+          <TrendingUp size={20} className="mx-auto mb-1 text-[#4DB5D6]" />
           <div className="text-2xl font-bold text-gray-800">{totalProjects}</div>
           <div className="text-xs text-gray-500">{L("projects")}</div>
         </div>
@@ -184,7 +184,7 @@ export default function DeptKPIPanel({ lang = "th" }: { lang?: Lang }) {
         <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
           {totalOverdue > 0
             ? <AlertTriangle size={20} className="mx-auto mb-1 text-red-500" />
-            : <Clock size={20} className="mx-auto mb-1 text-[#F7941D]" />}
+            : <Clock size={20} className="mx-auto mb-1 text-[#F59E0B]" />}
           <div className="text-2xl font-bold text-gray-800">{totalOverdue > 0 ? totalOverdue : totalHours.toLocaleString()}</div>
           <div className="text-xs text-gray-500">{totalOverdue > 0 ? L("overdue") : L("hours")}</div>
         </div>
@@ -200,7 +200,7 @@ export default function DeptKPIPanel({ lang = "th" }: { lang?: Lang }) {
               {/* Row header: dept name + completion % */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#003087] text-white">{k.dept_code}</span>
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#0072B8] text-white">{k.dept_code}</span>
                   <span className="font-semibold text-gray-800 truncate">{k.dept_name}</span>
                   <span className="text-xs text-gray-400 whitespace-nowrap">{k.member_count} {L("members")}</span>
                 </div>

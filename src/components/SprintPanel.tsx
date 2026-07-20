@@ -126,9 +126,9 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
               )}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-              <Stat label="งานทั้งหมด" value={tasks.length} color="#00AEEF" />
+              <Stat label="งานทั้งหมด" value={tasks.length} color="#4DB5D6" />
               <Stat label="เสร็จ" value={tasks.filter(t => t.status === "done").length} color="#22C55E" />
-              <Stat label="ชั่วโมงรวม" value={`${burndown.totalHours.toFixed(1)}h`} color="#F7941D" />
+              <Stat label="ชั่วโมงรวม" value={`${burndown.totalHours.toFixed(1)}h`} color="#F59E0B" />
               <Stat label="คงเหลือ" value={`${burndown.remaining.toFixed(1)}h`} color="#A855F7" />
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
           {/* Burndown chart */}
           <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingDown size={18} className="text-[#00AEEF]" />
+              <TrendingDown size={18} className="text-[#4DB5D6]" />
               <h3 className="text-sm font-semibold text-gray-900">Burndown</h3>
             </div>
             <Burndown burndown={burndown} sprint={sprint} tasks={tasks} />
@@ -145,7 +145,7 @@ export default function SprintPanel({ projects, filterProjectId, onTaskClick, re
           {/* Task list */}
           <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Activity size={18} className="text-[#F7941D]" />
+              <Activity size={18} className="text-[#F59E0B]" />
               <h3 className="text-sm font-semibold text-gray-900">Sprint Backlog</h3>
             </div>
             <div className="space-y-1">
@@ -225,16 +225,16 @@ function Burndown({ burndown, sprint, tasks }: { burndown: NonNullable<ReturnTyp
       {/* Ideal */}
       <path d={idealPath} stroke="#9CA3AF" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
       {/* Actual */}
-      <path d={actualPath} stroke="#F7941D" strokeWidth={2.5} fill="none" />
-      <circle cx={actualEndX} cy={yScale(burndown.remaining as number)} r={4} fill="#F7941D" />
+      <path d={actualPath} stroke="#F59E0B" strokeWidth={2.5} fill="none" />
+      <circle cx={actualEndX} cy={yScale(burndown.remaining as number)} r={4} fill="#F59E0B" />
       {/* Today line */}
-      <line x1={actualEndX} x2={actualEndX} y1={P} y2={H - P} stroke="#00AEEF" strokeWidth={1} strokeDasharray="2 3" opacity={0.5} />
+      <line x1={actualEndX} x2={actualEndX} y1={P} y2={H - P} stroke="#4DB5D6" strokeWidth={1} strokeDasharray="2 3" opacity={0.5} />
       {/* Legend */}
       <g transform={`translate(${W - P - 140}, ${P})`}>
         <rect width={140} height={42} fill="#F1F5F9" rx={4} />
         <line x1={8} x2={24} y1={14} y2={14} stroke="#94A3B8" strokeWidth={1.5} strokeDasharray="4 4" />
         <text x={28} y={17} fill="#475569" fontSize={10}>Ideal burn</text>
-        <line x1={8} x2={24} y1={30} y2={30} stroke="#F7941D" strokeWidth={2.5} />
+        <line x1={8} x2={24} y1={30} y2={30} stroke="#F59E0B" strokeWidth={2.5} />
         <text x={28} y={33} fill="#475569" fontSize={10}>Actual ({tasks.filter(t => t.status === "done").length}/{tasks.length} done)</text>
       </g>
     </svg>
@@ -287,7 +287,7 @@ function SprintModal({ projectId, onClose, onSaved, initial }: { projectId: stri
         {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-slate-700 hover:text-slate-900 text-sm">ยกเลิก</button>
-          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
+          <button onClick={submit} disabled={saving} className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50">
             {saving ? "กำลังบันทึก..." : (isEditing ? "บันทึก" : "สร้าง Sprint")}
           </button>
         </div>

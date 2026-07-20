@@ -1,4 +1,4 @@
-const CACHE_NAME = "tomas-pm-v3";
+const CACHE_NAME = "consertech-pm-v3";
 const STATIC_ASSETS = ["/logo.png", "/logo.svg"];
 
 self.addEventListener("install", (e) => {
@@ -40,7 +40,7 @@ self.addEventListener("push", (e) => {
       body: data.body || "",
       icon: data.icon || "/icon-192x192.png",
       badge: data.badge || "/icon-72x72.png",
-      tag: data.tag || "tomas-pm",
+      tag: data.tag || "consertech-pm",
       data: data.data || { url: "/" },
       vibrate: [100, 50, 100],
       actions: [
@@ -49,7 +49,7 @@ self.addEventListener("push", (e) => {
       ],
       requireInteraction: false,
     };
-    e.waitUntil(self.registration.showNotification(data.title || "TOMAS PM", options));
+    e.waitUntil(self.registration.showNotification(data.title || "CONSERTECH PM", options));
   } catch (err) {
     console.error("Push event error:", err);
   }

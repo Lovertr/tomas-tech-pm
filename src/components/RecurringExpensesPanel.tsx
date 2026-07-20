@@ -53,10 +53,10 @@ export default function RecurringExpensesPanel({ lang = "th", canManage = false 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><RefreshCw className="text-[#F7941D]" size={22} /> {L("title")}</h2>
+        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><RefreshCw className="text-[#F59E0B]" size={22} /> {L("title")}</h2>
         <div className="flex gap-2">
           {canManage && <button onClick={generate} className="px-3 py-2 bg-green-600 text-white rounded-xl text-sm flex items-center gap-1"><Play size={14} /> {L("generate")}</button>}
-          {canManage && <button onClick={() => setShowForm(true)} className="px-3 py-2 bg-[#003087] text-white rounded-xl text-sm flex items-center gap-1"><Plus size={16} /> {L("add")}</button>}
+          {canManage && <button onClick={() => setShowForm(true)} className="px-3 py-2 bg-[#0072B8] text-white rounded-xl text-sm flex items-center gap-1"><Plus size={16} /> {L("add")}</button>}
         </div>
       </div>
       {msg && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-xl text-sm">{msg}</div>}
@@ -104,7 +104,7 @@ export default function RecurringExpensesPanel({ lang = "th", canManage = false 
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Notes" rows={2} className="w-full border border-gray-300 rounded-xl px-3 py-2 mb-4 text-sm" />
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 text-gray-600 text-sm">Cancel</button>
-              <button onClick={submit} className="px-4 py-2 bg-[#003087] text-white rounded-xl text-sm">Save</button>
+              <button onClick={submit} className="px-4 py-2 bg-[#0072B8] text-white rounded-xl text-sm">Save</button>
             </div>
           </div>
         </div>

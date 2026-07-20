@@ -86,7 +86,7 @@ interface User {
 const activityTypeConfig = {
   event_out: { name_th: 'ออก Event', name_en: 'Event Out', name_jp: 'イベント出展', icon: CalendarCheck, color: '#7C3AED', lightBg: '#F5F3FF' },
   call_contact: { name_th: 'โทรติดต่อ', name_en: 'Call Contact', name_jp: '電話連絡', icon: Phone, color: '#8B5CF6', lightBg: '#FAF5FF' },
-  email_info: { name_th: 'อีเมล', name_en: 'Email', name_jp: 'メール', icon: Mail, color: '#F7941D', lightBg: '#FFFBF0' },
+  email_info: { name_th: 'อีเมล', name_en: 'Email', name_jp: 'メール', icon: Mail, color: '#F59E0B', lightBg: '#FFFBF0' },
   online_meeting: { name_th: 'ประชุม Online', name_en: 'Online Meeting', name_jp: 'オンライン会議', icon: Video, color: '#3B82F6', lightBg: '#EFF6FF' },
   site_meeting: { name_th: 'ประชุม On Site', name_en: 'On-Site Meeting', name_jp: '現地会議', icon: MapPin, color: '#0EA5E9', lightBg: '#F0F9FF' },
   create_proposal: { name_th: 'จัดทำ Proposal', name_en: 'Create Proposal', name_jp: '提案書作成', icon: FileCheck, color: '#F59E0B', lightBg: '#FFFAF0' },
@@ -1313,7 +1313,7 @@ export default function SalesActivitiesPanel({
                   return (
                     <div
                       key={activity.id}
-                      className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 hover:border-[#003087] transition"
+                      className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 hover:border-[#0072B8] transition"
                     >
                       <div className="flex items-start gap-4">
                         {/* Icon */}
@@ -1787,7 +1787,7 @@ export default function SalesActivitiesPanel({
                     value={actionItemInput}
                     onChange={e => setActionItemInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addActionItem(); } }} />
-                  <button type="button" onClick={addActionItem} className="px-3 py-2 bg-[#003087] text-white rounded-lg text-sm font-medium">
+                  <button type="button" onClick={addActionItem} className="px-3 py-2 bg-[#0072B8] text-white rounded-lg text-sm font-medium">
                     {lang === 'th' ? 'เพิ่ม' : 'Add'}
                   </button>
                 </div>

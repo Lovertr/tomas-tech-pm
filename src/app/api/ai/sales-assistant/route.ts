@@ -313,7 +313,7 @@ function buildSystemPrompt(
 
   const collaboratorsList = collaborators.map((c) => c.display_name + " (" + c.email + ")").join(", ");
 
-  let basePrompt = "You are a personal sales assistant for TOMAS TECH, an IT solutions company based in Thailand. Your role is to help sales professionals analyze deals, strategize, draft communications, and prepare for customer interactions.\n\nYou have access to the following sales data:";
+  let basePrompt = "You are a personal sales assistant for CONSERTECH, a Thai industrial equipment and automation company specializing in AGV, AMR, Robot, Industrial Sensors, and Factory Automation Software. Your role is to help sales professionals analyze deals, strategize, draft communications, and prepare for customer interactions.\n\nYou have access to the following sales data:";
 
   if (dealsSummary) {
     basePrompt += "\n\nDEALS:\n" + dealsSummary;
@@ -353,7 +353,7 @@ function buildSystemPrompt(
     }
     const knowledgeSummary = articleBlocks.join("\n\n");
 
-    basePrompt += "\n\n=== COMPANY KNOWLEDGE BASE (TOMAS TECH Products, Services & Strengths) ===\n"
+    basePrompt += "\n\n=== COMPANY KNOWLEDGE BASE (CONSERTECH Products, Services & Strengths) ===\n"
       + "Use this information to answer questions about our company, recommend solutions to customers, draft proposals, and support sales conversations.\n\n"
       + knowledgeSummary;
   }
@@ -368,7 +368,7 @@ function buildSystemPrompt(
       "- เตรียมการประชุมกับลูกค้า",
       "- ระบุความเสี่ยง, โอกาส, และพื้นที่สำหรับการปรับปรุง",
       "- ตอบคำถามเกี่ยวกับการจัดการสัมพันธ์ลูกค้า",
-      "- อธิบายผลิตภัณฑ์และบริการของ TOMAS TECH (PEGASUS, i-Reporter, Hardware, Infrastructure)",
+      "- อธิบายผลิตภัณฑ์และบริการของ CONSERTECH (AGV, AMR, Robot, Industrial Equipment, Sensors, Software)",
       "- แนะนำ solution ที่เหมาะกับอุตสาหกรรม/ปัญหาของลูกค้า",
       "- ร่างสคริปต์การขาย, ตอบข้อโต้แย้ง, เปรียบเทียบกับคู่แข่ง",
     ].join("\n");
@@ -383,7 +383,7 @@ function buildSystemPrompt(
       "- Meeting preparation",
       "- Risk and opportunity identification",
       "- Customer relationship management advice",
-      "- Explaining TOMAS TECH products and services (PEGASUS, i-Reporter, Hardware, Infrastructure, etc.)",
+      "- Explaining CONSERTECH products and services (AGV, AMR, Robot, Industrial Equipment, Sensors, Software)",
       "- Recommending solutions based on customer industry and pain points",
       "- Drafting sales scripts, handling objections, and competitive comparisons",
     ].join("\n");

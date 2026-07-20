@@ -60,15 +60,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   .page { max-width: 210mm; margin: 0 auto; padding: 15mm; }
 
   /* Header */
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 3px solid #003087; padding-bottom: 12px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 3px solid #0072B8; padding-bottom: 12px; }
   .logo-area { display: flex; align-items: center; gap: 12px; }
   .logo-img { width: 60px; height: 60px; border-radius: 8px; object-fit: contain; background: #fff; border: 1px solid #e2e8f0; padding: 2px; }
   .company-info { font-size: 9px; color: #555; }
-  .company-info .name { font-size: 14px; font-weight: bold; color: #003087; }
+  .company-info .name { font-size: 14px; font-weight: bold; color: #0072B8; }
   .company-info .addr { font-size: 8px; color: #777; line-height: 1.4; margin-top: 2px; }
   .company-info .tax-id { font-size: 8px; color: #888; }
   .doc-title { text-align: right; }
-  .doc-title h1 { font-size: 22px; color: #003087; margin-bottom: 2px; }
+  .doc-title h1 { font-size: 22px; color: #0072B8; margin-bottom: 2px; }
   .doc-title .doc-no { font-size: 10px; color: #666; }
   .sys-ref { font-size: 8px; color: #999; text-align: right; margin-top: 2px; }
 
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   /* Items table */
   .items-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px; }
-  .items-table thead th { background: #003087; color: #fff; padding: 6px 8px; text-align: center; font-weight: 600; font-size: 9px; text-transform: uppercase; }
+  .items-table thead th { background: #0072B8; color: #fff; padding: 6px 8px; text-align: center; font-weight: 600; font-size: 9px; text-transform: uppercase; }
   .items-table thead th:nth-child(2) { text-align: left; }
   .items-table tbody td { padding: 6px 8px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
   .items-table .center { text-align: center; }
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   .totals-table td { padding: 3px 0; }
   .totals-table .label { color: #555; }
   .totals-table .value { text-align: right; }
-  .totals-table .grand { font-size: 12px; font-weight: bold; color: #003087; border-top: 2px solid #003087; padding-top: 5px; }
+  .totals-table .grand { font-size: 12px; font-weight: bold; color: #0072B8; border-top: 2px solid #0072B8; padding-top: 5px; }
 
   /* Footer sections */
   .footer-grid { display: flex; gap: 20px; margin-bottom: 20px; font-size: 9px; }
@@ -109,13 +109,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   /* Notes / Remark */
   .notes-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 15px; font-size: 9px; }
-  .notes-title { font-weight: 700; color: #003087; margin-bottom: 3px; }
+  .notes-title { font-weight: 700; color: #0072B8; margin-bottom: 3px; }
 
   /* Signature */
   .signature-area { display: flex; justify-content: flex-end; margin-top: 40px; }
   .signature-block { text-align: center; width: 200px; }
   .sig-line { border-top: 1px solid #333; margin-top: 50px; padding-top: 5px; font-size: 9px; }
-  .sig-company { font-weight: 600; font-size: 10px; color: #003087; margin-top: 3px; }
+  .sig-company { font-weight: 600; font-size: 10px; color: #0072B8; margin-top: 3px; }
   .sig-date { font-size: 9px; color: #666; margin-top: 2px; }
 
   @media print {
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     .page { padding: 0; }
     .no-print { display: none !important; }
   }
-  .print-btn { position: fixed; top: 15px; right: 15px; background: #003087; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; z-index: 999; }
+  .print-btn { position: fixed; top: 15px; right: 15px; background: #0072B8; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; z-index: 999; }
   .print-btn:hover { background: #0040B0; }
 </style>
 </head>
@@ -133,12 +133,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   <!-- Header -->
   <div class="header">
     <div class="logo-area">
-      <img src="/logo.png" alt="TOMAS TECH" class="logo-img" />
+      <img src="/logo.png" alt="CONSERTECH" class="logo-img" />
       <div class="company-info">
-        <div class="name">TOMAS TECH CO., LTD.</div>
-        <div>บจก. โทมัส เทค</div>
-        <div class="addr">123/45 อาคาร ABC ชั้น 5 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง กรุงเทพฯ 10400</div>
-        <div class="addr">Tel: 02-XXX-XXXX | Email: info@tomastech.co.th</div>
+        <div class="name">CONSERTECH CO., LTD.</div>
+        <div>บริษัท คันเซอร์เทคช์ จำกัด</div>
+        <div class="addr">41/69 หมู่ 6 ถ.เลี่ยงเมืองนนทบุรี-ปากเกร็ด ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120</div>
+        <div class="addr">Tel: +66 6 4698 4240 | Email: ADMINS@CS-TH.COM</div>
         <div class="tax-id">Tax ID: 0105XXXXXXXXX</div>
       </div>
     </div>
@@ -226,7 +226,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     <div class="signature-block">
       <div style="font-size:9px;color:#666;">Yours Sincerely,</div>
       <div class="sig-line">Authorized Signature</div>
-      <div class="sig-company">TOMAS TECH CO., LTD.</div>
+      <div class="sig-company">CONSERTECH CO., LTD.</div>
       <div class="sig-date">Date: _______________</div>
     </div>
   </div>

@@ -140,7 +140,7 @@ export default function TransactionsPanel({ projects, members, filterProjectId =
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
           <Stat label={L('total_income')} value={fmtMoney(stats.totalIncome)} color="#22C55E" />
           <Stat label={L('total_expense')} value={fmtMoney(stats.totalExpense)} color="#EF4444" />
-          <Stat label={L('net_label')} value={fmtMoney(stats.net)} color={stats.net >= 0 ? "#00AEEF" : "#F7941D"} />
+          <Stat label={L('net_label')} value={fmtMoney(stats.net)} color={stats.net >= 0 ? "#4DB5D6" : "#F59E0B"} />
         </div>
         {canManage && (
           <button

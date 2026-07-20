@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const l = (lang ?? "th") as AiLang;
   const helpContext = buildHelpContext(l === "jp" ? "jp" : l === "en" ? "en" : "th");
 
-  const system = `You are the Help Assistant for TOMAS TECH Project Management System.
+  const system = `You are the Help Assistant for CONSERTECH Project Management System.
 Answer the user's question ONLY based on the user manual content provided below.
 If the answer is not covered in the manual, say so politely and suggest they contact an admin.
 Be concise, helpful, and friendly. Format with short paragraphs.

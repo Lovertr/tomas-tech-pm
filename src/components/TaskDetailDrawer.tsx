@@ -332,7 +332,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                 key={k}
                 onClick={() => setTab(k)}
                 className={`px-2.5 md:px-3 py-2 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                  tab === k ? "border-[#F7941D] text-gray-900" : "border-transparent text-slate-500 hover:text-gray-700"
+                  tab === k ? "border-[#F59E0B] text-gray-900" : "border-transparent text-slate-500 hover:text-gray-700"
                 }`}
               >
                 {label} {count !== null && count > 0 && <span className="ml-1 text-[10px] md:text-xs text-slate-500">{count}</span>}
@@ -382,7 +382,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               <div className="text-xs text-slate-500 pt-2 border-t border-[#E2E8F0]">
                 {"ชั่วโมงจริง"}: <span className="text-gray-700">{Number(task.actual_hours ?? 0).toFixed(1)}h</span>
                 {task.estimated_hours ? ` / ${Number(task.estimated_hours).toFixed(1)}h` : ""}
-                {saving && <span className="ml-2 text-[#00AEEF]">{"กำลังบันทึก..."}</span>}
+                {saving && <span className="ml-2 text-[#4DB5D6]">{"กำลังบันทึก..."}</span>}
               </div>
             </div>
           )}
@@ -397,7 +397,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
                 />
                 <button onClick={addComment} disabled={!newComment.trim() || commentSaving}
-                  className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
+                  className="px-3 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm self-start disabled:opacity-50 min-w-[48px]">
                   {commentSaving ? "..." : "ส่ง"}
                 </button>
               </div>
@@ -426,7 +426,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                   placeholder="เพิ่มรายการ..." value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addChecklist()} />
-                <button onClick={addChecklist} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm">
+                <button onClick={addChecklist} className="px-3 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm">
                   <Plus size={16} />
                 </button>
               </div>
@@ -438,7 +438,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               {checklist.map(item => (
                 <div key={item.id} className="flex items-center gap-2 group bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-2">
                   <input type="checkbox" checked={item.is_completed} onChange={() => toggleCheck(item)}
-                    className="w-4 h-4 accent-[#F7941D]" />
+                    className="w-4 h-4 accent-[#F59E0B]" />
                   <span className={`flex-1 text-sm ${item.is_completed ? "line-through text-slate-500" : "text-slate-800"}`}>
                     {item.title}
                   </span>
@@ -466,7 +466,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
                     <select className={inp + " flex-1"} value={newDepType} onChange={(e) => setNewDepType(e.target.value)}>
                       {DEP_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
-                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
+                    <button onClick={addDep} disabled={!newDepId} className="px-3 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50 whitespace-nowrap shrink-0">เพิ่ม</button>
                   </div>
                 </div>
               </div>
@@ -502,7 +502,7 @@ export default function TaskDetailDrawer({ open, taskId, onClose, onChange, memb
               {activity.length === 0 && <div className="text-slate-500 text-sm text-center py-8">ยังไม่มีประวัติ</div>}
               {activity.map(a => (
                 <div key={a.id} className="flex gap-3 text-sm bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3">
-                  <Activity size={14} className="text-[#00AEEF] mt-0.5 shrink-0" />
+                  <Activity size={14} className="text-[#4DB5D6] mt-0.5 shrink-0" />
                   <div className="flex-1">
                     <div className="text-slate-800">
                       <span className="font-medium">{authorLabel(a.actor)}</span>{" "}

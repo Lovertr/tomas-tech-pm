@@ -63,8 +63,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "#94A3B8",
-  sent: "#00AEEF",
-  partially_paid: "#F7941D",
+  sent: "#4DB5D6",
+  partially_paid: "#F59E0B",
   paid: "#22C55E",
   overdue: "#EF4444",
   cancelled: "#64748B",
@@ -209,15 +209,15 @@ export default function NewInvoicesPanel({ projects, members, filterProjectId = 
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 flex-1">
           <Stat label={L('draft_label')} value={String(stats.draft)} color="#94A3B8" />
-          <Stat label={L('sent_label')} value={String(stats.sent)} color="#00AEEF" />
+          <Stat label={L('sent_label')} value={String(stats.sent)} color="#4DB5D6" />
           <Stat label={L('paid_label')} value={String(stats.paid)} color="#22C55E" />
           <Stat label={L('overdue_label')} value={String(stats.overdue)} color="#EF4444" />
-          <Stat label={L('outstanding_label')} value={fmtMoney(stats.outstanding)} color="#F7941D" />
+          <Stat label={L('outstanding_label')} value={fmtMoney(stats.outstanding)} color="#F59E0B" />
         </div>
         {canManage && (
           <button
             onClick={() => setCreating(true)}
-            className="ml-3 px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
+            className="ml-3 px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-xl text-sm font-medium flex items-center gap-2"
           >
             <Plus size={16} /> {L('create_invoice')}
           </button>
@@ -481,7 +481,7 @@ function CreateInvoiceModal({
     }
   };
 
-  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-800 text-sm focus:ring-2 focus:ring-[#003087]";
+  const inp = "w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-800 text-sm focus:ring-2 focus:ring-[#0072B8]";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -676,7 +676,7 @@ function CreateInvoiceModal({
           <button
             onClick={submit}
             disabled={busy}
-            className="px-4 py-2 bg-[#003087] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-[#0072B8] hover:bg-[#0040B0] text-white rounded-lg text-sm disabled:opacity-50"
           >
             {busy ? L('creating') : L('create_button')}
           </button>

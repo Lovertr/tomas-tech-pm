@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "TOMAS TECH — Client Portal",
+  title: "CONSERTECH — Client Portal",
   description: "Track your project progress and submit requests",
 };
 

@@ -171,7 +171,7 @@ export default function ProjectModal({ open, onClose, initial, onSubmit }: Props
                         setCustomerSearch(c.company_name);
                         setShowCustomerDropdown(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 ${form.client_name === c.company_name ? "bg-blue-50 text-[#003087] font-medium" : "text-gray-700"}`}>
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 ${form.client_name === c.company_name ? "bg-blue-50 text-[#0072B8] font-medium" : "text-gray-700"}`}>
                       {c.company_name}
                     </button>
                   ))

@@ -49,7 +49,7 @@ export async function sendPushToUser(
       icon: payload.icon || "/icon-192x192.png",
       badge: payload.badge || "/icon-72x72.png",
       data: { url: payload.url || "/" },
-      tag: payload.tag || "tomas-pm",
+      tag: payload.tag || "consertech-pm",
     });
 
     await Promise.allSettled(

@@ -195,7 +195,7 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           self_test: true,
-          title: "TOMAS PM",
+          title: "CONSERTECH PM",
           body: lang === "th" ? "ทดสอบแจ้งเตือน — ระบบทำงานปกติ!" : "Test notification — system working!",
           url: "/",
         }),
@@ -255,7 +255,7 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-[#003087]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#0072B8]" />
       </div>
     );
   }
@@ -264,7 +264,7 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
     <div className="max-w-2xl mx-auto p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-1">
-        <Bell className="w-6 h-6 text-[#003087]" />
+        <Bell className="w-6 h-6 text-[#0072B8]" />
         <h2 className="text-lg font-bold text-gray-900">{L("title")}</h2>
         {saving && <span className="text-xs text-gray-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" />{L("saving")}</span>}
         {saved && <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" />{L("saved")}</span>}
@@ -285,7 +285,7 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
 
       {/* Push Notifications */}
       <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden mb-5">
-        <div className="px-4 py-2.5 bg-gradient-to-r from-[#003087] to-[#0050d0] flex items-center gap-2">
+        <div className="px-4 py-2.5 bg-gradient-to-r from-[#0072B8] to-[#0050d0] flex items-center gap-2">
           <Smartphone className="w-4 h-4 text-white" />
           <span className="text-sm font-semibold text-white">{L("push_title")}</span>
         </div>
@@ -314,9 +314,9 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
                   className="relative"
                 >
                   {pushLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-[#003087]" />
+                    <Loader2 className="w-5 h-5 animate-spin text-[#0072B8]" />
                   ) : (
-                    <div className={`w-10 rounded-full transition-colors ${pushSubscribed ? "bg-[#003087]" : "bg-gray-200"}`}
+                    <div className={`w-10 rounded-full transition-colors ${pushSubscribed ? "bg-[#0072B8]" : "bg-gray-200"}`}
                       style={{ width: 40, height: 22 }}>
                       <div className="absolute bg-white rounded-full shadow transition-transform"
                         style={{ width: 18, height: 18, top: 2, transform: pushSubscribed ? "translateX(20px)" : "translateX(2px)" }} />
@@ -330,7 +330,7 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
                   <span className="text-xs text-gray-400">{L("push_devices")}: {pushDeviceCount}</span>
                   {pushSubscribed && (
                     <button onClick={handlePushTest} disabled={pushTestSent}
-                      className="text-xs px-3 py-1 rounded-lg border border-[#003087] text-[#003087] hover:bg-[#003087] hover:text-white transition disabled:opacity-50">
+                      className="text-xs px-3 py-1 rounded-lg border border-[#0072B8] text-[#0072B8] hover:bg-[#0072B8] hover:text-white transition disabled:opacity-50">
                       {pushTestSent ? L("push_test_sent") : L("push_test")}
                     </button>
                   )}
@@ -353,13 +353,13 @@ export default function NotificationPreferencesPanel({ lang = "th" }: { lang?: L
                 <label key={item.field} className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[#F8FAFC] transition">
                   <div className="flex items-center gap-2.5">
                     {prefs[item.field]
-                      ? <Bell className="w-4 h-4 text-[#003087]" />
+                      ? <Bell className="w-4 h-4 text-[#0072B8]" />
                       : <BellOff className="w-4 h-4 text-gray-300" />}
                     <span className={prefs[item.field] ? "text-sm text-gray-800" : "text-sm text-gray-400"}>{L(item.label)}</span>
                   </div>
                   <div className="relative">
                     <input type="checkbox" className="sr-only" checked={prefs[item.field]} onChange={() => toggle(item.field)} />
-                    <div className={`w-10 h-5.5 rounded-full transition-colors ${prefs[item.field] ? "bg-[#003087]" : "bg-gray-200"}`}
+                    <div className={`w-10 h-5.5 rounded-full transition-colors ${prefs[item.field] ? "bg-[#0072B8]" : "bg-gray-200"}`}
                       style={{ width: 40, height: 22 }}>
                       <div className={`absolute top-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${prefs[item.field] ? "translate-x-5" : "translate-x-0.5"}`}
                         style={{ width: 18, height: 18, top: 2, transform: prefs[item.field] ? "translateX(20px)" : "translateX(2px)" }} />

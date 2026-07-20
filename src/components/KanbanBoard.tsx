@@ -26,7 +26,7 @@ const taskTitle = (t: BoardTask, lang: string) =>
 const COLS: { key: string; label: string; color: string }[] = [
   { key: "backlog",     label: "Backlog",     color: "#64748B" },
   { key: "todo",        label: "To Do",       color: "#3B82F6" },
-  { key: "in_progress", label: "In Progress", color: "#F7941D" },
+  { key: "in_progress", label: "In Progress", color: "#F59E0B" },
   { key: "review",      label: "Review",      color: "#A855F7" },
   { key: "done",        label: "Done",        color: "#22C55E" },
 ];
@@ -161,7 +161,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     onDragStart={(e) => onDragStart(e, task.id)}
                     onDragEnd={() => setDragId(null)}
                     onClick={() => onTaskClick(task.id)}
-                    className={`group bg-[#FFFFFF] rounded-xl p-3 border border-[#E5E7EB] cursor-pointer hover:border-[#00AEEF] transition-all ${PRIO_RING[task.priority] || ""} ${dragId === task.id ? "opacity-40" : ""} ${savingId === task.id ? "ring-2 ring-yellow-400" : ""}`}
+                    className={`group bg-[#FFFFFF] rounded-xl p-3 border border-[#E5E7EB] cursor-pointer hover:border-[#4DB5D6] transition-all ${PRIO_RING[task.priority] || ""} ${dragId === task.id ? "opacity-40" : ""} ${savingId === task.id ? "ring-2 ring-yellow-400" : ""}`}
                   >
                     {/* top row: project code + priority */}
                     <div className="flex items-center justify-between mb-2">
@@ -206,7 +206,7 @@ export default function KanbanBoard({ projects, members, filterProjectId = "all"
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2">
                         {asg ? (
-                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-slate-900 text-xs font-bold bg-gradient-to-br from-[#003087] to-[#00AEEF]" title={memberName(asg)}>
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-slate-900 text-xs font-bold bg-gradient-to-br from-[#0072B8] to-[#4DB5D6]" title={memberName(asg)}>
                             {memberInitial(asg)}
                           </div>
                         ) : (

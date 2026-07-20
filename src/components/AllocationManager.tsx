@@ -85,7 +85,7 @@ export default function AllocationManager({ projects, members, canEdit }: Props)
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-2 text-gray-900">
-          <Users size={20} className="text-[#00AEEF]" />
+          <Users size={20} className="text-[#4DB5D6]" />
           <h2 className="text-lg font-semibold">Project Member Allocation</h2>
           <span className="text-xs text-gray-500">({rows.length} รายการ)</span>
         </div>
@@ -159,7 +159,7 @@ export default function AllocationManager({ projects, members, canEdit }: Props)
                     </td>
                     {canEdit && (
                       <td className="px-4 py-3 text-right">
-                        <button className="p-1.5 text-gray-500 hover:text-[#00AEEF]" onClick={() => { setEditing(r); setModalOpen(true); }}>
+                        <button className="p-1.5 text-gray-500 hover:text-[#4DB5D6]" onClick={() => { setEditing(r); setModalOpen(true); }}>
                           <Pencil size={14} />
                         </button>
                         <button className="p-1.5 text-gray-500 hover:text-red-600" onClick={() => del(r.id)}>

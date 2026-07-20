@@ -152,8 +152,8 @@ export default function MyTasks({ onTaskClick, refreshKey = 0, lang = "th" }: Pr
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label={lang === "jp" ? "全タスク" : lang === "en" ? "All Tasks" : "งานทั้งหมด"} value={total} icon={CheckCircle2} color="#00AEEF" />
-        <StatCard label={lang === "jp" ? "進行中" : lang === "en" ? "In Progress" : "กำลังทำ"} value={inProgress} icon={Clock} color="#F7941D" />
+        <StatCard label={lang === "jp" ? "全タスク" : lang === "en" ? "All Tasks" : "งานทั้งหมด"} value={total} icon={CheckCircle2} color="#4DB5D6" />
+        <StatCard label={lang === "jp" ? "進行中" : lang === "en" ? "In Progress" : "กำลังทำ"} value={inProgress} icon={Clock} color="#F59E0B" />
         <StatCard label={lang === "jp" ? "本日期限" : lang === "en" ? "Due Today" : "ครบกำหนดวันนี้"} value={dueToday} icon={Calendar} color="#A855F7" />
         <StatCard label={lang === "jp" ? "期限超過" : lang === "en" ? "Overdue" : "เลยกำหนด"} value={overdue} icon={AlertCircle} color="#EF4444" />
       </div>
@@ -188,8 +188,8 @@ export default function MyTasks({ onTaskClick, refreshKey = 0, lang = "th" }: Pr
 
       <Section title={lang === "jp" ? "期限超過" : lang === "en" ? "Overdue" : "เลยกำหนด"} items={groups.overdue} accent="#EF4444" />
       <Section title={lang === "jp" ? "期限超過" : lang === "en" ? "Overdue" : "เลยกำหนด"} items={groups.overdue} accent="#EF4444" />
-      <Section title={lang === "jp" ? "今日" : lang === "en" ? "Today" : "วันนี้"} items={groups.today} accent="#F7941D" />
-      <Section title={lang === "jp" ? "3日以内" : lang === "en" ? "Next 3 Days" : "3 วันข้างหน้า"} items={groups.next3} accent="#00AEEF" />
+      <Section title={lang === "jp" ? "今日" : lang === "en" ? "Today" : "วันนี้"} items={groups.today} accent="#F59E0B" />
+      <Section title={lang === "jp" ? "3日以内" : lang === "en" ? "Next 3 Days" : "3 วันข้างหน้า"} items={groups.next3} accent="#4DB5D6" />
       <Section title={lang === "jp" ? "7日以内" : lang === "en" ? "Next 7 Days" : "7 วันข้างหน้า"} items={groups.next7} accent="#3B82F6" />
       <Section title={lang === "jp" ? "それ以降" : lang === "en" ? "Later" : "ภายหลัง"} items={groups.later} accent="#64748B" />
       <Section title={lang === "jp" ? "日付なし" : lang === "en" ? "No Date" : "ไม่กำหนดวัน"} items={groups.noDate} accent="#475569" />

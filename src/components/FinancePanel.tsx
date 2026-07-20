@@ -78,12 +78,12 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
       {tab === "pnl" && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
-            <KPI icon={DollarSign} label="รายได้" value={fmtMoney(t.revenue)} color="#00AEEF" />
+            <KPI icon={DollarSign} label="รายได้" value={fmtMoney(t.revenue)} color="#4DB5D6" />
             <KPI icon={TrendingDown} label="ต้นทุน" value={fmtMoney(t.cost)} color="#EF4444" />
             <KPI icon={t.profit >= 0 ? TrendingUp : TrendingDown} label="กำไรขั้นต้น" value={fmtMoney(t.profit)}
               color={t.profit >= 0 ? "#22C55E" : "#EF4444"} sub={fmtPct(totalMargin)} />
             <KPI icon={DollarSign} label="ชำระแล้ว" value={fmtMoney(t.paid)} color="#22C55E" />
-            <KPI icon={DollarSign} label="ค้างเก็บ" value={fmtMoney(t.outstanding)} color="#F7941D" />
+            <KPI icon={DollarSign} label="ค้างเก็บ" value={fmtMoney(t.outstanding)} color="#F59E0B" />
           </div>
 
           <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl overflow-hidden">
@@ -139,7 +139,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-3">
             <KPI icon={Target} label="โครงการ Healthy" value={String(evm.filter(e => e.health === "green").length)} color="#22C55E" />
-            <KPI icon={Activity} label="ต้องระวัง" value={String(evm.filter(e => e.health === "yellow").length)} color="#F7941D" />
+            <KPI icon={Activity} label="ต้องระวัง" value={String(evm.filter(e => e.health === "yellow").length)} color="#F59E0B" />
             <KPI icon={TrendingDown} label="ต้องแก้ไขด่วน" value={String(evm.filter(e => e.health === "red").length)} color="#EF4444" />
           </div>
 
@@ -150,7 +150,7 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
               </div>
             )}
             {evm.map(e => {
-              const healthColor = e.health === "green" ? "#22C55E" : e.health === "yellow" ? "#F7941D" : "#EF4444";
+              const healthColor = e.health === "green" ? "#22C55E" : e.health === "yellow" ? "#F59E0B" : "#EF4444";
               return (
                 <div key={e.project_id} className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -165,16 +165,16 @@ export default function FinancePanel({ filterProjectId = "all", refreshKey = 0 }
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3 mb-3">
                     <Metric label="BAC" value={fmtMoney(e.bac)} />
                     <Metric label="PV" value={fmtMoney(e.pv)} />
-                    <Metric label="EV" value={fmtMoney(e.ev)} color="#00AEEF" />
+                    <Metric label="EV" value={fmtMoney(e.ev)} color="#4DB5D6" />
                     <Metric label="AC" value={fmtMoney(e.ac)} color="#EF4444" />
-                    <Metric label="EAC" value={fmtMoney(e.eac)} color="#F7941D" />
+                    <Metric label="EAC" value={fmtMoney(e.eac)} color="#F59E0B" />
                     <Metric label="VAC" value={fmtMoney(e.vac)} color={e.vac >= 0 ? "#22C55E" : "#EF4444"} />
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-                    <Metric label="CPI" value={e.cpi.toFixed(2)} color={e.cpi >= 1 ? "#22C55E" : e.cpi >= 0.85 ? "#F7941D" : "#EF4444"} />
-                    <Metric label="SPI" value={e.spi.toFixed(2)} color={e.spi >= 1 ? "#22C55E" : e.spi >= 0.85 ? "#F7941D" : "#EF4444"} />
+                    <Metric label="CPI" value={e.cpi.toFixed(2)} color={e.cpi >= 1 ? "#22C55E" : e.cpi >= 0.85 ? "#F59E0B" : "#EF4444"} />
+                    <Metric label="SPI" value={e.spi.toFixed(2)} color={e.spi >= 1 ? "#22C55E" : e.spi >= 0.85 ? "#F59E0B" : "#EF4444"} />
                     <Metric label="Planned %" value={fmtPct(e.planned_pct)} />
-                    <Metric label="Actual %" value={fmtPct(e.actual_pct)} color="#00AEEF" />
+                    <Metric label="Actual %" value={fmtPct(e.actual_pct)} color="#4DB5D6" />
                   </div>
                   <div className="mt-4">
                     <div className="flex justify-between text-[10px] text-slate-500 mb-1">

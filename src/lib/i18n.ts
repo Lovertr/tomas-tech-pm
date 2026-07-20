@@ -2,7 +2,7 @@ export type Lang = "th" | "en" | "jp";
 
 export const translations: Record<Lang, Record<string, string>> = {
   th: {
-    appName: "TOMAS TECH PM", dashboard: "แดชบอร์ด", projects: "โปรเจค", tasks: "งาน",
+    appName: "CONSERTECH PM", dashboard: "แดชบอร์ด", projects: "โปรเจค", tasks: "งาน",
     team: "ทีมงาน", timeLog: "บันทึกเวลา", costs: "ค่าใช้จ่าย", reports: "รายงาน",
     settings: "ตั้งค่า", search: "ค้นหา...", notifications: "การแจ้งเตือน",
     totalProjects: "โปรเจคทั้งหมด", activeProjects: "กำลังดำเนินการ",
@@ -60,7 +60,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     departments: "แผนก", helpCenter: "ศูนย์ช่วยเหลือ", auditLog: "บันทึกการใช้งาน", notifPrefs: "ตั้งค่าแจ้งเตือน",
   },
   en: {
-    appName: "TOMAS TECH PM", dashboard: "Dashboard", projects: "Projects", tasks: "Tasks",
+    appName: "CONSERTECH PM", dashboard: "Dashboard", projects: "Projects", tasks: "Tasks",
     team: "Team", timeLog: "Time Log", costs: "Costs", reports: "Reports",
     settings: "Settings", search: "Search...", notifications: "Notifications",
     totalProjects: "Total Projects", activeProjects: "Active Projects",
@@ -118,7 +118,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     departments: "Departments", helpCenter: "Help Center", auditLog: "Audit Log", notifPrefs: "Notification Settings",
   },
   jp: {
-    appName: "TOMAS TECH PM", dashboard: "ダッシュボード", projects: "プロジェクト", tasks: "タスク",
+    appName: "CONSERTECH PM", dashboard: "ダッシュボード", projects: "プロジェクト", tasks: "タスク",
     team: "チーム", timeLog: "作業時間", costs: "コスト", reports: "レポート",
     settings: "設定", search: "検索...", notifications: "通知",
     totalProjects: "総プロジェクト", activeProjects: "進行中",

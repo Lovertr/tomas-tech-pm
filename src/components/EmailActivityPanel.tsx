@@ -62,7 +62,7 @@ export default function EmailActivityPanel({ lang, dealId, customerId }: { lang:
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-gray-800">{t.title}</h3>
-        <button onClick={() => setShowForm(!showForm)} className="px-3 py-1.5 bg-[#003087] text-white rounded-lg text-xs hover:bg-[#002266]">{t.log}</button>
+        <button onClick={() => setShowForm(!showForm)} className="px-3 py-1.5 bg-[#0072B8] text-white rounded-lg text-xs hover:bg-[#002266]">{t.log}</button>
       </div>
 
       {showForm && (

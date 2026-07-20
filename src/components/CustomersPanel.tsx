@@ -83,7 +83,7 @@ const pipelineStageColors: Record<string, string> = {
   proposal_created: '#D97706',
   proposal_submitted: '#F59E0B',
   proposal_confirmed: '#8B5CF6',
-  quotation: '#F7941D',
+  quotation: '#F59E0B',
   negotiation: '#EC4899',
   waiting_po: '#14B8A6',
   po_received: '#22C55E',
@@ -93,7 +93,7 @@ const pipelineStageColors: Record<string, string> = {
 };
 
 const getTextColorForBackground = (bgColor: string): string => {
-  const lightColors = ['#F7941D', '#F59E0B', '#6B7280', '#9CA3AF', '#14B8A6', '#22C55E', '#EC4899'];
+  const lightColors = ['#F59E0B', '#F59E0B', '#6B7280', '#9CA3AF', '#14B8A6', '#22C55E', '#EC4899'];
   const darkColors = ['#3B82F6', '#8B5CF6', '#EF4444', '#059669'];
   if (lightColors.includes(bgColor)) return '#1F2937';
   if (darkColors.includes(bgColor)) return '#FFFFFF';
@@ -691,7 +691,7 @@ export default function CustomersPanel({
             placeholder={L('searchPlaceholder', lang)}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg pl-10 pr-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+            className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg pl-10 pr-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -722,7 +722,7 @@ export default function CustomersPanel({
             <div
               key={customer.id}
               onClick={() => handleViewDetail(customer)}
-              className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 hover:border-[#003087] cursor-pointer transition"
+              className="bg-[#FFFFFF] rounded-xl border border-[#E2E8F0] p-4 hover:border-[#0072B8] cursor-pointer transition"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -806,7 +806,7 @@ export default function CustomersPanel({
                     onChange={(e) =>
                       setFormData({ ...formData, company_name: e.target.value })
                     }
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   />
                 </div>
                 <div>
@@ -819,7 +819,7 @@ export default function CustomersPanel({
                       if (e.target.value === '__custom__') return;
                       setFormData({ ...formData, industry: e.target.value });
                     }}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   >
                     {INDUSTRY_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{getIndustryLabel(opt, lang)}</option>
@@ -838,7 +838,7 @@ export default function CustomersPanel({
                     onChange={(e) =>
                       setFormData({ ...formData, status: e.target.value as any })
                     }
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   >
                     <option value="prospect">{L('prospect', lang)}</option>
                     <option value="active">{L('active', lang)}</option>
@@ -854,7 +854,7 @@ export default function CustomersPanel({
                     type="text"
                     value={formData.tax_id}
                     onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   />
                 </div>
                 <div>
@@ -865,7 +865,7 @@ export default function CustomersPanel({
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   />
                 </div>
                 <div>
@@ -876,7 +876,7 @@ export default function CustomersPanel({
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -887,7 +887,7 @@ export default function CustomersPanel({
                     type="url"
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   />
                 </div>
                 <div>
@@ -898,7 +898,7 @@ export default function CustomersPanel({
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -908,10 +908,10 @@ export default function CustomersPanel({
                   <input type="url" placeholder={L('googleMapPlaceholder', lang)}
                     value={formData.google_map_url}
                     onChange={(e) => setFormData({ ...formData, google_map_url: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                   {formData.google_map_url && (
                     <a href={formData.google_map_url} target="_blank" rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-2 text-sm text-[#003087] hover:underline">
+                      className="mt-2 inline-flex items-center gap-2 text-sm text-[#0072B8] hover:underline">
                       <MapPin className="w-4 h-4" /> {L('openMap', lang)}
                     </a>
                   )}
@@ -923,7 +923,7 @@ export default function CustomersPanel({
                   <input type="text" placeholder={L('referralCompanyPlaceholder', lang)}
                     value={formData.referral_company}
                     onChange={(e) => setFormData({ ...formData, referral_company: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -932,7 +932,7 @@ export default function CustomersPanel({
                   <input type="text" placeholder={L('referralPersonPlaceholder', lang)}
                     value={formData.referral_person}
                     onChange={(e) => setFormData({ ...formData, referral_person: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -941,7 +941,7 @@ export default function CustomersPanel({
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                    className="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8] resize-none"
                     rows={3}
                   />
                 </div>
@@ -1059,7 +1059,7 @@ export default function CustomersPanel({
                     onClick={() => setDetailTab(key)}
                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition flex items-center gap-2 ${
                       detailTab === key
-                        ? 'border-[#003087] text-[#003087]'
+                        ? 'border-[#0072B8] text-[#0072B8]'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1081,7 +1081,7 @@ export default function CustomersPanel({
                   {/* Basic Information */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <User size={20} className="text-[#003087]" />
+                      <User size={20} className="text-[#0072B8]" />
                       {L('basicInfo', lang)}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1144,11 +1144,11 @@ export default function CustomersPanel({
                           <p className="text-xs font-medium text-gray-500 uppercase">{L('googleMapLabel', lang)}</p>
                           <a href={selectedCustomer.google_map_url} target="_blank" rel="noopener noreferrer"
                             className="mt-1 flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors">
-                            <div className="flex-shrink-0 w-10 h-10 bg-[#003087] rounded-full flex items-center justify-center">
+                            <div className="flex-shrink-0 w-10 h-10 bg-[#0072B8] rounded-full flex items-center justify-center">
                               <MapPin className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#003087]">{L('openMap', lang)}</p>
+                              <p className="text-sm font-medium text-[#0072B8]">{L('openMap', lang)}</p>
                               <p className="text-xs text-gray-500 truncate">{selectedCustomer.google_map_url}</p>
                             </div>
                             <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -1186,13 +1186,13 @@ export default function CustomersPanel({
                   <div className="border-t border-[#E2E8F0] pt-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <Users size={20} className="text-[#003087]" />
+                        <Users size={20} className="text-[#0072B8]" />
                         {L('contactsList', lang)} ({contacts.length})
                       </h3>
                       {canManage && (
                         <button
                           onClick={() => setShowAddContact(true)}
-                          className="px-3 py-1 bg-[#003087] hover:bg-[#002060] text-white rounded text-xs flex items-center gap-1"
+                          className="px-3 py-1 bg-[#0072B8] hover:bg-[#002060] text-white rounded text-xs flex items-center gap-1"
                         >
                           <Plus size={14} />
                           {L('addContact', lang)}
@@ -1214,7 +1214,7 @@ export default function CustomersPanel({
                                 <div className="flex items-center gap-2 mb-2">
                                   <p className="font-semibold text-gray-900">{contact.first_name} {contact.last_name || ''}</p>
                                   {contact.is_primary && (
-                                    <span className="px-2 py-0.5 bg-[#F7941D] text-gray-900 text-xs rounded font-medium">
+                                    <span className="px-2 py-0.5 bg-[#F59E0B] text-gray-900 text-xs rounded font-medium">
                                       {L('primaryContact', lang)}
                                     </span>
                                   )}
@@ -1302,32 +1302,32 @@ export default function CustomersPanel({
                             <label className="block text-xs font-medium text-gray-700 mb-1">{L('name', lang)}</label>
                             <input type="text" required value={contactFormData.first_name}
                               onChange={(e) => setContactFormData({ ...contactFormData, first_name: e.target.value })}
-                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">{lang === 'th' ? 'นามสกุล' : 'Last Name'}</label>
                             <input type="text" value={contactFormData.last_name}
                               onChange={(e) => setContactFormData({ ...contactFormData, last_name: e.target.value })}
-                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                           </div>
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-700 mb-1">{L('emailRequired', lang)}</label>
                           <input type="email" value={contactFormData.email}
                             onChange={(e) => setContactFormData({ ...contactFormData, email: e.target.value })}
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-700 mb-1">{L('phoneOptional', lang)}</label>
                           <input type="tel" value={contactFormData.phone}
                             onChange={(e) => setContactFormData({ ...contactFormData, phone: e.target.value })}
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-700 mb-1">{L('position', lang)}</label>
                           <input type="text" value={contactFormData.position}
                             onChange={(e) => setContactFormData({ ...contactFormData, position: e.target.value })}
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]" />
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]" />
                         </div>
                         <label className="flex items-center gap-2 text-sm text-gray-700">
                           <input type="checkbox" checked={contactFormData.is_primary}
@@ -1336,7 +1336,7 @@ export default function CustomersPanel({
                           {L('isPrimary', lang)}
                         </label>
                         <div className="flex gap-2">
-                          <button type="submit" className="flex-1 px-3 py-2 bg-[#F7941D] hover:bg-[#E8850A] text-white rounded text-sm font-medium">{L('save', lang)}</button>
+                          <button type="submit" className="flex-1 px-3 py-2 bg-[#F59E0B] hover:bg-[#E8850A] text-white rounded text-sm font-medium">{L('save', lang)}</button>
                           <button type="button" onClick={() => { setEditingContact(null); setContactFormData({ first_name: '', last_name: '', email: '', phone: '', position: '', is_primary: false }); }}
                             className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 rounded text-sm font-medium">{L('cancel', lang)}</button>
                         </div>
@@ -1388,7 +1388,7 @@ export default function CustomersPanel({
                               onChange={(e) =>
                                 setContactFormData({ ...contactFormData, first_name: e.target.value })
                               }
-                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                             />
                           </div>
                           <div>
@@ -1402,7 +1402,7 @@ export default function CustomersPanel({
                               onChange={(e) =>
                                 setContactFormData({ ...contactFormData, last_name: e.target.value })
                               }
-                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                              className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                             />
                           </div>
                         </div>
@@ -1416,7 +1416,7 @@ export default function CustomersPanel({
                             onChange={(e) =>
                               setContactFormData({ ...contactFormData, email: e.target.value })
                             }
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                           />
                         </div>
                         <div>
@@ -1429,7 +1429,7 @@ export default function CustomersPanel({
                             onChange={(e) =>
                               setContactFormData({ ...contactFormData, phone: e.target.value })
                             }
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                           />
                         </div>
                         <div>
@@ -1442,7 +1442,7 @@ export default function CustomersPanel({
                             onChange={(e) =>
                               setContactFormData({ ...contactFormData, position: e.target.value })
                             }
-                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087]"
+                            className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8]"
                           />
                         </div>
                         <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -1459,7 +1459,7 @@ export default function CustomersPanel({
                         <div className="flex gap-2">
                           <button
                             type="submit"
-                            className="flex-1 px-3 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded text-sm font-medium"
+                            className="flex-1 px-3 py-2 bg-[#0072B8] hover:bg-[#002060] text-white rounded text-sm font-medium"
                           >
                             {L('save', lang)}
                           </button>
@@ -1481,7 +1481,7 @@ export default function CustomersPanel({
               ) : detailTab === 'deals' ? (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Briefcase size={20} className="text-[#003087]" />
+                    <Briefcase size={20} className="text-[#0072B8]" />
                     {L('deals', lang)}
                   </h3>
                   {deals.length === 0 ? (
@@ -1528,7 +1528,7 @@ export default function CustomersPanel({
               ) : detailTab === 'activity' ? (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Clock size={20} className="text-[#003087]" />
+                    <Clock size={20} className="text-[#0072B8]" />
                     {L('activity', lang)}
                   </h3>
                   {activities.length === 0 ? (
@@ -1568,7 +1568,7 @@ export default function CustomersPanel({
                   {/* Projects Section */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <Briefcase size={20} className="text-[#003087]" />
+                      <Briefcase size={20} className="text-[#0072B8]" />
                       {lang === 'th' ? 'โปรเจค' : lang === 'jp' ? 'プロジェクト' : 'Projects'}
                     </h3>
                     {customerProjects.length === 0 ? (
@@ -1592,7 +1592,7 @@ export default function CustomersPanel({
                                 <p className="text-sm font-semibold text-gray-900">{p.name_th || p.name_en || 'Untitled'}</p>
                               </div>
                               {p.budget_limit > 0 && (
-                                <span className="text-sm font-bold text-[#003087]">
+                                <span className="text-sm font-bold text-[#0072B8]">
                                   {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(p.budget_limit)}
                                 </span>
                               )}
@@ -1606,7 +1606,7 @@ export default function CustomersPanel({
                   {/* Quotations Section */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <FileCheck size={20} className="text-[#F7941D]" />
+                      <FileCheck size={20} className="text-[#F59E0B]" />
                       {lang === 'th' ? 'ใบเสนอราคา' : lang === 'jp' ? '見積書' : 'Quotations'}
                     </h3>
                     {customerQuotations.length === 0 ? (
@@ -1631,7 +1631,7 @@ export default function CustomersPanel({
                                 {q.created_at && <p className="text-xs text-gray-500 mt-1">{new Date(q.created_at).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</p>}
                               </div>
                               {q.total_amount > 0 && (
-                                <span className="text-sm font-bold text-[#F7941D]">
+                                <span className="text-sm font-bold text-[#F59E0B]">
                                   {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(q.total_amount)}
                                 </span>
                               )}
@@ -1645,7 +1645,7 @@ export default function CustomersPanel({
               ) : (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <MessageSquare size={20} className="text-[#003087]" />
+                    <MessageSquare size={20} className="text-[#0072B8]" />
                     {L('comments', lang)}
                   </h3>
 
@@ -1681,14 +1681,14 @@ export default function CustomersPanel({
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         placeholder={L('commentPlaceholder', lang)}
-                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#003087] resize-none"
+                        className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-gray-900 text-sm focus:ring-2 focus:ring-[#0072B8] resize-none"
                         rows={3}
                       />
                       <div className="mt-3 flex gap-2">
                         <button
                           type="submit"
                           disabled={!newComment.trim()}
-                          className="px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 bg-[#0072B8] hover:bg-[#002060] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {L('submit', lang)}
                         </button>
@@ -1704,7 +1704,7 @@ export default function CustomersPanel({
               <div className="flex-shrink-0 border-t border-[#E2E8F0] p-6 bg-gray-50 flex gap-2">
                 <button
                   onClick={() => handleEditCustomer(selectedCustomer)}
-                  className="flex-1 px-4 py-2 bg-[#003087] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
+                  className="flex-1 px-4 py-2 bg-[#0072B8] hover:bg-[#002060] text-white rounded-lg text-sm font-medium"
                 >
                   {L('edit', lang)}
                 </button>

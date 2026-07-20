@@ -401,7 +401,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
     } catch {}
   };
 
-  const inputCls = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-[#003087] outline-none transition bg-white text-gray-800";
+  const inputCls = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-[#0072B8] outline-none transition bg-white text-gray-800";
   const labelCls = "block text-xs font-medium text-gray-600 mb-1";
 
   const autoKpiItems = [
@@ -425,14 +425,14 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg" style={{ background: "linear-gradient(135deg,#0072B8,#4DB5D6)" }}>
           {(currentUser?.display_name ?? "U").charAt(0).toUpperCase()}
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{L.title}</h1>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-sm text-gray-500">@{currentUser?.username}</span>
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-[#003087]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-[#0072B8]">
               {L[currentUser?.role ?? "member"] ?? currentUser?.role}
             </span>
             {currentUser?.department && (
@@ -467,7 +467,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
       {/* Personal Info */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-          <User size={18} className="text-[#003087]" />
+          <User size={18} className="text-[#0072B8]" />
           <h2 className="text-base font-semibold text-gray-800">{L.personalInfo}</h2>
         </div>
         <div className="p-5 space-y-4">
@@ -507,7 +507,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
             </div>
           )}
           <div className="flex justify-end">
-            <button onClick={saveProfile} disabled={profileSaving} className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+            <button onClick={saveProfile} disabled={profileSaving} className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>
               {profileSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               {profileSaving ? L.saving : L.save}
             </button>
@@ -519,7 +519,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <button onClick={() => setPwOpen(!pwOpen)} className="w-full px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Lock size={18} className="text-[#003087]" />
+            <Lock size={18} className="text-[#0072B8]" />
             <h2 className="text-base font-semibold text-gray-800">{L.changePassword}</h2>
           </div>
           {pwOpen ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
@@ -556,7 +556,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
               </div>
             )}
             <div className="flex justify-end">
-              <button onClick={changePassword} disabled={pwSaving || !pwForm.oldPassword || !pwForm.newPassword} className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+              <button onClick={changePassword} disabled={pwSaving || !pwForm.oldPassword || !pwForm.newPassword} className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg transition disabled:opacity-50" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>
                 {pwSaving ? <Loader2 size={14} className="animate-spin" /> : <Lock size={14} />}
                 {pwSaving ? L.saving : L.changePassword}
               </button>
@@ -569,10 +569,10 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <button onClick={() => setKpiOpen(!kpiOpen)} className="w-full px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BarChart3 size={18} className="text-[#003087]" />
+            <BarChart3 size={18} className="text-[#0072B8]" />
             <h2 className="text-base font-semibold text-gray-800">{L.personalKpi}</h2>
             {manualKpis.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#003087]">
+              <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#0072B8]">
                 {Math.round(weightedScore)}%
               </span>
             )}
@@ -610,7 +610,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
                   <Target size={14} /> {L.manualKpi}
                 </h3>
                 {isManagerOrAdmin && (
-                  <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#003087] hover:text-blue-700 font-medium">
+                  <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#0072B8] hover:text-blue-700 font-medium">
                     <Plus size={14} /> {L.addKpi}
                   </button>
                 )}
@@ -651,7 +651,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
                     <button onClick={() => setAddingKpi(false)} className="px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
                       {lang === "th" ? "ยกเลิก" : lang === "jp" ? "キャンセル" : "Cancel"}
                     </button>
-                    <button onClick={addManualKpi} className="px-4 py-1.5 text-sm text-white rounded-lg" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+                    <button onClick={addManualKpi} className="px-4 py-1.5 text-sm text-white rounded-lg" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>
                       {L.save}
                     </button>
                   </div>
@@ -712,7 +712,7 @@ export default function MyProfilePanel({ lang, currentUser, onProfileUpdated }: 
                   {/* Overall score */}
                   <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
                     <span className="text-sm font-medium text-gray-600">{L.overallScore}:</span>
-                    <span className="text-xl font-bold text-[#003087]">{Math.round(weightedScore)}%</span>
+                    <span className="text-xl font-bold text-[#0072B8]">{Math.round(weightedScore)}%</span>
                   </div>
                 </div>
               )}

@@ -402,9 +402,9 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPI label={t.totalLinks} value={stats.total} color="#00AEEF" />
+        <KPI label={t.totalLinks} value={stats.total} color="#4DB5D6" />
         <KPI label={t.activeLinks} value={stats.active} color="#22C55E" />
-        <KPI label={t.clientViews} value={stats.views} color="#F7941D" />
+        <KPI label={t.clientViews} value={stats.views} color="#F59E0B" />
         <KPI label={t.pendingRequests} value={stats.pendingRequests} color={stats.pendingRequests > 0 ? "#EF4444" : "#94A3B8"} />
       </div>
 
@@ -434,7 +434,7 @@ export default function ClientPortalPanel({ filterProjectId = "all", refreshKey 
         <>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="text-sm text-slate-600">{loading ? t.loading : `${rows.length} ${t.links}`}</div>
-            <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium" style={{ background: "#003087" }}>
+            <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium" style={{ background: "#0072B8" }}>
               <Plus size={14} /> {t.createLink}
             </button>
           </div>
@@ -566,7 +566,7 @@ function RequestsManager({ requests, members, onRefresh, lang = "th" }: { reques
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               filter === f.key ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
-            style={filter === f.key ? { backgroundColor: "#003087" } : {}}
+            style={filter === f.key ? { backgroundColor: "#0072B8" } : {}}
           >
             {f.label}
             {f.key !== "all" && ` (${requests.filter(r => r.status === f.key).length})`}
@@ -809,7 +809,7 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
   return (
     <div className="border-t pt-3">
       <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-        <MessageSquare size={14} style={{ color: "#003087" }} />
+        <MessageSquare size={14} style={{ color: "#0072B8" }} />
         {t.chatWithClient}
       </p>
 
@@ -827,7 +827,7 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
                     ? "rounded-br-md text-white"
                     : "rounded-bl-md bg-gray-100 text-gray-900"
                 }`}
-                style={c.sender_type === "team" ? { backgroundColor: "#003087" } : {}}
+                style={c.sender_type === "team" ? { backgroundColor: "#0072B8" } : {}}
               >
                 <p className={`text-[10px] font-semibold mb-0.5 ${c.sender_type === "team" ? "text-blue-200" : "text-orange-600"}`}>
                   {c.sender_type === "client" ? `🧑 ${c.sender_name}` : c.sender_name}
@@ -921,7 +921,7 @@ function ChatThread({ requestId, lang = "th" }: { requestId: string; lang?: stri
           onClick={handleSend}
           disabled={(!newMsg.trim() && pendingFiles.length === 0) || sending}
           className="w-9 h-9 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
-          style={{ backgroundColor: "#003087" }}
+          style={{ backgroundColor: "#0072B8" }}
         >
           {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
         </button>
@@ -993,7 +993,7 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
         onClick={() => setShowModal(true)}
         disabled={isLoading}
         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50"
-        style={{ backgroundColor: "#F7941D" }}
+        style={{ backgroundColor: "#F59E0B" }}
       >
         <ArrowRightCircle size={12} /> {t.convertToTask}
       </button>
@@ -1031,7 +1031,7 @@ function ConvertToTaskButton({ requestId, members, isLoading, onAction, disabled
                   setShowModal(false);
                 }}
                 className="flex-1 py-2 rounded-lg text-sm font-medium text-white"
-                style={{ backgroundColor: "#003087" }}
+                style={{ backgroundColor: "#0072B8" }}
               >
                 {t.createTask}
               </button>
@@ -1113,7 +1113,7 @@ function CreateModal({ projects, defaultProjectId, onClose, onCreated, lang = "t
         </div>
         <div className="flex gap-2 mt-5">
           <button onClick={onClose} className="flex-1 px-4 py-2 rounded-xl border text-gray-700 text-sm">{t.cancel}</button>
-          <button onClick={submit} disabled={saving} className="flex-1 px-4 py-2 rounded-xl text-white text-sm font-medium disabled:opacity-50" style={{ background: "#003087" }}>
+          <button onClick={submit} disabled={saving} className="flex-1 px-4 py-2 rounded-xl text-white text-sm font-medium disabled:opacity-50" style={{ background: "#0072B8" }}>
             {saving ? t.creating : t.createLinkBtn}
           </button>
         </div>

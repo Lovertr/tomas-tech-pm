@@ -259,14 +259,14 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
     <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[#003087] font-bold text-lg flex items-center gap-2">
+        <h3 className="text-[#0072B8] font-bold text-lg flex items-center gap-2">
           <Briefcase size={20} />
           {L('title')}
         </h3>
         {isManager && (
           <button
             onClick={() => setShowManage(!showManage)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#003087] text-white rounded-lg text-xs font-medium hover:bg-[#002266] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0072B8] text-white rounded-lg text-xs font-medium hover:bg-[#002266] transition-colors"
           >
             <Settings size={14} />
             {L('manageTitle')}
@@ -283,7 +283,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
         <div className="mb-5 bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-4">
           {/* Pending Applications */}
           <div>
-            <h4 className="text-sm font-bold text-[#003087] mb-2 flex items-center gap-1.5">
+            <h4 className="text-sm font-bold text-[#0072B8] mb-2 flex items-center gap-1.5">
               <Users size={14} />
               {L('pendingApps')} ({manageApps.length})
             </h4>
@@ -304,7 +304,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                           </span>
                         )}
                         <span className="text-gray-500 mx-1.5">&rarr;</span>
-                        <span className="text-[#003087] font-medium">
+                        <span className="text-[#0072B8] font-medium">
                           {proj ? (proj.project_code ? `[${proj.project_code}] ` : '') + getProjectName(proj) : app.project_id.slice(0, 8)}
                         </span>
                         <span className="ml-2 inline-block bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">
@@ -336,7 +336,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
 
           {/* Enrollment Settings per project */}
           <div>
-            <h4 className="text-sm font-bold text-[#003087] mb-2 flex items-center gap-1.5">
+            <h4 className="text-sm font-bold text-[#0072B8] mb-2 flex items-center gap-1.5">
               <Settings size={14} />
               {lang === 'th' ? 'ตั้งค่าการรับสมัคร' : 'Enrollment Settings'}
             </h4>
@@ -362,7 +362,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                             if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                             return next;
                           })}
-                          className="text-[#003087] hover:bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-medium flex items-center gap-0.5"
+                          className="text-[#0072B8] hover:bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-medium flex items-center gap-0.5"
                         >
                           {L('setPositions')}
                           {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
@@ -375,7 +375,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                             type="checkbox"
                             checked={p.is_enrollment_open}
                             onChange={(e) => handleToggleEnrollment(p.id, e.target.checked)}
-                            className="w-4 h-4 rounded border-gray-300 text-[#003087] focus:ring-[#003087]"
+                            className="w-4 h-4 rounded border-gray-300 text-[#0072B8] focus:ring-[#0072B8]"
                           />
                         </label>
                       </div>
@@ -395,8 +395,8 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                                 onClick={() => togglePosition(p.id, role, positions)}
                                 className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
                                   selected
-                                    ? 'bg-[#00AEEF] text-white border-[#00AEEF]'
-                                    : 'bg-white text-gray-500 border-gray-200 hover:border-[#00AEEF] hover:text-[#00AEEF]'
+                                    ? 'bg-[#4DB5D6] text-white border-[#4DB5D6]'
+                                    : 'bg-white text-gray-500 border-gray-200 hover:border-[#4DB5D6] hover:text-[#4DB5D6]'
                                 }`}
                               >
                                 {ROLE_LABELS[role] || role}
@@ -432,7 +432,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
               >
                 {/* Project Code Badge */}
                 {p.project_code && (
-                  <span className="inline-block bg-[#003087]/10 text-[#003087] text-[10px] font-bold px-2 py-0.5 rounded mb-2">
+                  <span className="inline-block bg-[#0072B8]/10 text-[#0072B8] text-[10px] font-bold px-2 py-0.5 rounded mb-2">
                     {p.project_code}
                   </span>
                 )}
@@ -460,7 +460,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">{L('pm')}</span>
-                    <span className={`font-medium ${p.pm_name ? 'text-[#003087]' : 'text-gray-400 italic'}`}>
+                    <span className={`font-medium ${p.pm_name ? 'text-[#0072B8]' : 'text-gray-400 italic'}`}>
                       {p.pm_name || L('noPm')}
                     </span>
                   </div>
@@ -472,7 +472,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                     <span className="text-[10px] text-gray-500 block mb-1">{L('openPositions')}</span>
                     <div className="flex flex-wrap gap-1">
                       {p.open_positions.map(pos => (
-                        <span key={pos} className="bg-[#00AEEF]/10 text-[#00AEEF] text-[10px] px-1.5 py-0.5 rounded font-medium">
+                        <span key={pos} className="bg-[#4DB5D6]/10 text-[#4DB5D6] text-[10px] px-1.5 py-0.5 rounded font-medium">
                           {ROLE_LABELS[pos] || pos}
                         </span>
                       ))}
@@ -500,7 +500,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                     <select
                       value={selectedRoles[p.id] || roles[0] || 'developer'}
                       onChange={(e) => setSelectedRoles({ ...selectedRoles, [p.id]: e.target.value })}
-                      className="flex-1 bg-white border border-gray-300 rounded-lg px-2 py-2 text-gray-800 text-xs focus:ring-2 focus:ring-[#003087]"
+                      className="flex-1 bg-white border border-gray-300 rounded-lg px-2 py-2 text-gray-800 text-xs focus:ring-2 focus:ring-[#0072B8]"
                     >
                       {roles.map(r => (
                         <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>
@@ -509,7 +509,7 @@ export default function OpenProjectsPanel({ currentUserId, lang = 'th', userRole
                     <button
                       onClick={() => handleApply(p.id)}
                       disabled={applying}
-                      className="px-3 py-2 bg-[#F7941D] hover:bg-[#e0850f] text-gray-900 rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1"
+                      className="px-3 py-2 bg-[#F59E0B] hover:bg-[#e0850f] text-gray-900 rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-1"
                     >
                       <UserPlus size={12} />
                       {applying ? '...' : L('join')}

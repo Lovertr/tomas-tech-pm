@@ -12,25 +12,25 @@ interface Props { lang: Lang; }
 
 const t = {
   th: {
-    title: "ศูนย์ช่วยเหลือ", subtitle: "คู่มือผู้ใช้งาน TOMAS TECH PM",
+    title: "ศูนย์ช่วยเหลือ", subtitle: "คู่มือผู้ใช้งาน CONSERTECH PM",
     searchPlaceholder: "ค้นหาคู่มือ...", askAI: "ถาม AI", downloadPDF: "ดาวน์โหลดคู่มือ",
     askPlaceholder: "พิมพ์คำถามของคุณ...", noResults: "ไม่พบผลลัพธ์",
     aiThinking: "กำลังคิด...", aiTitle: "ถาม-ตอบ AI", backToList: "กลับ",
-    allTopics: "หัวข้อทั้งหมด", aiWelcome: "สวัสดีครับ! ผมพร้อมตอบคำถามเกี่ยวกับระบบ TOMAS TECH PM ครับ",
+    allTopics: "หัวข้อทั้งหมด", aiWelcome: "สวัสดีครับ! ผมพร้อมตอบคำถามเกี่ยวกับระบบ CONSERTECH PM ครับ",
   },
   en: {
-    title: "Help Center", subtitle: "TOMAS TECH PM User Manual",
+    title: "Help Center", subtitle: "CONSERTECH PM User Manual",
     searchPlaceholder: "Search manual...", askAI: "Ask AI", downloadPDF: "Download Manual",
     askPlaceholder: "Type your question...", noResults: "No results found",
     aiThinking: "Thinking...", aiTitle: "AI Q&A", backToList: "Back",
-    allTopics: "All Topics", aiWelcome: "Hello! I'm ready to answer your questions about TOMAS TECH PM.",
+    allTopics: "All Topics", aiWelcome: "Hello! I'm ready to answer your questions about CONSERTECH PM.",
   },
   jp: {
-    title: "ヘルプセンター", subtitle: "TOMAS TECH PM ユーザーマニュアル",
+    title: "ヘルプセンター", subtitle: "CONSERTECH PM ユーザーマニュアル",
     searchPlaceholder: "マニュアルを検索...", askAI: "AIに質問", downloadPDF: "マニュアルダウンロード",
     askPlaceholder: "質問を入力...", noResults: "結果が見つかりません",
     aiThinking: "考え中...", aiTitle: "AI Q&A", backToList: "戻る",
-    allTopics: "すべてのトピック", aiWelcome: "こんにちは！TOMAS TECH PMに関するご質問にお答えします。",
+    allTopics: "すべてのトピック", aiWelcome: "こんにちは！CONSERTECH PMに関するご質問にお答えします。",
   },
 };
 
@@ -118,18 +118,18 @@ export default function HelpPanel({ lang }: Props) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-[#003087] flex items-center gap-2">
+          <h2 className="text-xl font-bold text-[#0072B8] flex items-center gap-2">
             <BookOpen size={24} /> {l.title}
           </h2>
           <p className="text-sm text-gray-500 mt-1">{l.subtitle}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowAI(!showAI)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition ${showAI ? "bg-[#003087] text-white" : "bg-blue-50 text-[#003087] hover:bg-blue-100"}`}>
+            className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition ${showAI ? "bg-[#0072B8] text-white" : "bg-blue-50 text-[#0072B8] hover:bg-blue-100"}`}>
             <Bot size={16} /> {l.askAI}
           </button>
           <button onClick={downloadPDF}
-            className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 bg-orange-50 text-[#F7941D] hover:bg-orange-100 transition">
+            className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 bg-orange-50 text-[#F59E0B] hover:bg-orange-100 transition">
             <Download size={16} /> {l.downloadPDF}
           </button>
         </div>
@@ -138,7 +138,7 @@ export default function HelpPanel({ lang }: Props) {
       {/* Search */}
       <div className="relative">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20 focus:border-[#003087]"
+        <input type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20 focus:border-[#0072B8]"
           placeholder={l.searchPlaceholder} value={searchQ} onChange={e => { setSearchQ(e.target.value); setSelectedArticle(null); setSelectedSection(null); }} />
       </div>
 
@@ -152,7 +152,7 @@ export default function HelpPanel({ lang }: Props) {
               {filtered.length === 0 && <p className="text-sm text-gray-400">{l.noResults}</p>}
               {filtered.map(a => (
                 <button key={a.id} onClick={() => { setSelectedArticle(a.id); setSelectedSection(a.sectionId); }}
-                  className={`w-full text-left p-2.5 rounded-lg text-sm transition ${selectedArticle === a.id ? "bg-blue-50 text-[#003087] font-medium" : "hover:bg-gray-50 text-gray-700"}`}>
+                  className={`w-full text-left p-2.5 rounded-lg text-sm transition ${selectedArticle === a.id ? "bg-blue-50 text-[#0072B8] font-medium" : "hover:bg-gray-50 text-gray-700"}`}>
                   {a.title[lk]}
                 </button>
               ))}
@@ -169,9 +169,9 @@ export default function HelpPanel({ lang }: Props) {
                 return (
                   <div key={s.id} className="border-b border-gray-50 last:border-0">
                     <button onClick={() => toggleSection(s.id)}
-                      className={`w-full flex items-center gap-2 p-3 text-sm text-left transition ${selectedSection === s.id ? "bg-blue-50 text-[#003087]" : "hover:bg-gray-50 text-gray-700"}`}>
+                      className={`w-full flex items-center gap-2 p-3 text-sm text-left transition ${selectedSection === s.id ? "bg-blue-50 text-[#0072B8]" : "hover:bg-gray-50 text-gray-700"}`}>
                       {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                      <Icon size={16} className="text-[#003087]" />
+                      <Icon size={16} className="text-[#0072B8]" />
                       <span className="font-medium">{s.title[lk]}</span>
                       <span className="ml-auto text-xs text-gray-400">{s.articles.length}</span>
                     </button>
@@ -179,7 +179,7 @@ export default function HelpPanel({ lang }: Props) {
                       <div className="pl-9 pb-2 space-y-0.5">
                         {s.articles.map(a => (
                           <button key={a.id} onClick={() => { setSelectedArticle(a.id); setSelectedSection(s.id); }}
-                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition ${selectedArticle === a.id ? "bg-blue-100 text-[#003087] font-medium" : "hover:bg-gray-50 text-gray-600"}`}>
+                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition ${selectedArticle === a.id ? "bg-blue-100 text-[#0072B8] font-medium" : "hover:bg-gray-50 text-gray-600"}`}>
                             {a.title[lk]}
                           </button>
                         ))}
@@ -196,7 +196,7 @@ export default function HelpPanel({ lang }: Props) {
         <div className={`${showAI ? "lg:col-span-1" : "lg:col-span-2"}`}>
           {currentArticle ? (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-lg font-bold text-[#003087] mb-4">{currentArticle.title[lk]}</h3>
+              <h3 className="text-lg font-bold text-[#0072B8] mb-4">{currentArticle.title[lk]}</h3>
               {renderContent(currentArticle)}
             </div>
           ) : (
@@ -206,10 +206,10 @@ export default function HelpPanel({ lang }: Props) {
                 const Icon = ICON_MAP[s.icon] || BookOpen;
                 return (
                   <button key={s.id} onClick={() => { toggleSection(s.id); setSelectedSection(s.id); if (s.articles[0]) setSelectedArticle(s.articles[0].id); }}
-                    className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:shadow-md hover:border-[#003087]/30 transition group">
+                    className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:shadow-md hover:border-[#0072B8]/30 transition group">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-[#003087] transition">
-                        <Icon size={20} className="text-[#003087] group-hover:text-white transition" />
+                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-[#0072B8] transition">
+                        <Icon size={20} className="text-[#0072B8] group-hover:text-white transition" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-800 text-sm">{s.title[lk]}</h4>
@@ -228,23 +228,23 @@ export default function HelpPanel({ lang }: Props) {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl border border-gray-200 flex flex-col h-[500px]">
               <div className="p-3 border-b border-gray-100 flex items-center gap-2">
-                <Bot size={18} className="text-[#003087]" />
-                <h3 className="text-sm font-semibold text-[#003087]">{l.aiTitle}</h3>
+                <Bot size={18} className="text-[#0072B8]" />
+                <h3 className="text-sm font-semibold text-[#0072B8]">{l.aiTitle}</h3>
               </div>
               {/* Chat messages */}
               <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 {chatMsgs.map((m, i) => (
                   <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    {m.role === "ai" && <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0"><Bot size={14} className="text-[#003087]" /></div>}
-                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${m.role === "user" ? "bg-[#003087] text-white" : "bg-gray-50 text-gray-700"}`}>
+                    {m.role === "ai" && <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0"><Bot size={14} className="text-[#0072B8]" /></div>}
+                    <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${m.role === "user" ? "bg-[#0072B8] text-white" : "bg-gray-50 text-gray-700"}`}>
                       {m.text.split("\n").map((line, j) => <p key={j} className={j > 0 ? "mt-1" : ""}>{line}</p>)}
                     </div>
-                    {m.role === "user" && <div className="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0"><User size={14} className="text-[#F7941D]" /></div>}
+                    {m.role === "user" && <div className="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0"><User size={14} className="text-[#F59E0B]" /></div>}
                   </div>
                 ))}
                 {aiLoading && (
                   <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center"><Bot size={14} className="text-[#003087]" /></div>
+                    <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center"><Bot size={14} className="text-[#0072B8]" /></div>
                     <div className="bg-gray-50 rounded-xl px-3 py-2 text-sm text-gray-500 flex items-center gap-2">
                       <Loader2 size={14} className="animate-spin" /> {l.aiThinking}
                     </div>
@@ -255,12 +255,12 @@ export default function HelpPanel({ lang }: Props) {
               {/* Chat input */}
               <div className="p-3 border-t border-gray-100">
                 <div className="flex gap-2">
-                  <input type="text" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003087]/20"
+                  <input type="text" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0072B8]/20"
                     placeholder={l.askPlaceholder} value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAI(); }}} />
                   <button onClick={sendAI} disabled={aiLoading || !chatInput.trim()}
-                    className="px-3 py-2 bg-[#003087] text-white rounded-lg hover:bg-[#002266] disabled:opacity-50 disabled:cursor-not-allowed transition">
+                    className="px-3 py-2 bg-[#0072B8] text-white rounded-lg hover:bg-[#002266] disabled:opacity-50 disabled:cursor-not-allowed transition">
                     <Send size={16} />
                   </button>
                 </div>

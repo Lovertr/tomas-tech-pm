@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --tt-blue: #003087;
-  --tt-orange: #F7941D;
-  --tt-light-blue: #00AEEF;
-  --tt-dark: #0F172A;
-  --tt-bg: #F1F5F9;
-  --tt-card: #FFFFFF;
-  --tt-border: #E2E8F0;
-  --tt-text: #1E293B;
-  --tt-sub: #64748B;
+  --ct-blue: #0072B8;
+  --ct-orange: #F59E0B;
+  --ct-light-blue: #4DB5D6;
+  --ct-dark: #0F172A;
+  --ct-bg: #F1F5F9;
+  --ct-card: #FFFFFF;
+  --ct-border: #E2E8F0;
+  --ct-text: #1E293B;
+  --ct-sub: #64748B;
 }
 
 @theme inline {
@@ -17,9 +17,9 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-tt-blue: #003087;
-  --color-tt-orange: #F7941D;
-  --color-tt-light-blue: #00AEEF;
+  --color-ct-blue: #0072B8;
+  --color-ct-orange: #F59E0B;
+  --color-ct-light-blue: #4DB5D6;
 }
 
 * { box-sizing: border-box; }

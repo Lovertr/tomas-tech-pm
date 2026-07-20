@@ -255,13 +255,13 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
     : "";
 
   const totalAlloc = allocations.filter(a => a.is_active).reduce((s, a) => s + a.allocation_pct, 0);
-  const allocColor = totalAlloc > 100 ? "#EF4444" : totalAlloc > 80 ? "#F7941D" : "#10B981";
+  const allocColor = totalAlloc > 100 ? "#EF4444" : totalAlloc > 80 ? "#F59E0B" : "#10B981";
 
   const initials = name ? name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "??";
 
   const statusColors: Record<string, string> = {
     todo: "#94A3B8", in_progress: "#6366F1", review: "#F59E0B", done: "#10B981",
-    planning: "#94A3B8", active: "#003087", on_hold: "#F59E0B", completed: "#10B981",
+    planning: "#94A3B8", active: "#0072B8", on_hold: "#F59E0B", completed: "#10B981",
   };
 
   // KPI calculations
@@ -281,14 +281,14 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
     { key: "deal_revenue", label: L("dealRevenue"), icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50", unit: "฿" },
   ];
 
-  const inputCls = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-[#003087] outline-none transition bg-white text-gray-800";
+  const inputCls = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-[#0072B8] outline-none transition bg-white text-gray-800";
   const labelCls = "block text-xs font-medium text-gray-600 mb-1";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="relative px-6 py-5 border-b border-[#E2E8F0]" style={{ background: "linear-gradient(135deg, #003087 0%, #00AEEF 100%)" }}>
+        <div className="relative px-6 py-5 border-b border-[#E2E8F0]" style={{ background: "linear-gradient(135deg, #0072B8 0%, #4DB5D6 100%)" }}>
           <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white"><X size={20} /></button>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center text-white text-xl font-bold">{initials}</div>
@@ -308,7 +308,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
         <div className="flex border-b border-[#E2E8F0]">
           {(["info", "work", ...(canViewPrivate ? ["kpi" as const] : [])] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-3 text-sm font-medium ${tab === t ? "text-[#003087] border-b-2 border-[#003087]" : "text-gray-500"}`}>
+              className={`flex-1 py-3 text-sm font-medium ${tab === t ? "text-[#0072B8] border-b-2 border-[#0072B8]" : "text-gray-500"}`}>
               {t === "info" ? L("personalInfo") : t === "work" ? L("myWork") : L("kpi")}
             </button>
           ))}
@@ -328,8 +328,8 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                 ...(canViewPrivate ? [{ icon: Phone, label: L("phone"), value: member?.phone || "-" }] : []),
               ].map((row, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className="w-9 h-9 rounded-lg bg-[#003087]/10 flex items-center justify-center">
-                    <row.icon size={16} className="text-[#003087]" />
+                  <div className="w-9 h-9 rounded-lg bg-[#0072B8]/10 flex items-center justify-center">
+                    <row.icon size={16} className="text-[#0072B8]" />
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">{row.label}</div>
@@ -344,7 +344,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                   <div className="text-xs text-gray-500 mb-2">{L("skills")}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {member.skills.map((s, i) => (
-                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#003087]/10 text-[#003087]">{s}</span>
+                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#0072B8]/10 text-[#0072B8]">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -367,7 +367,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
               {/* Active Allocations */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <BarChart3 size={16} className="text-[#003087]" /> {L("projects")} ({allocations.filter(a => a.is_active).length})
+                  <BarChart3 size={16} className="text-[#0072B8]" /> {L("projects")} ({allocations.filter(a => a.is_active).length})
                 </h3>
                 {allocations.filter(a => a.is_active).length === 0 ? (
                   <p className="text-sm text-gray-400 text-center py-4">{L("noData")}</p>
@@ -380,7 +380,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                         : alloc.project_id.slice(0, 8);
                       return (
                         <div key={alloc.id}
-                          className="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#003087]/30 cursor-pointer transition-colors"
+                          className="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#0072B8]/30 cursor-pointer transition-colors"
                           onClick={() => onNavigateProject?.(alloc.project_id)}>
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
@@ -397,7 +397,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="text-right">
-                                <div className="text-sm font-bold" style={{ color: alloc.allocation_pct > 50 ? "#003087" : "#94A3B8" }}>
+                                <div className="text-sm font-bold" style={{ color: alloc.allocation_pct > 50 ? "#0072B8" : "#94A3B8" }}>
                                   {alloc.allocation_pct}%
                                 </div>
                               </div>
@@ -414,7 +414,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
               {/* Tasks */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <Clock size={16} className="text-[#F7941D]" /> {L("tasks")} ({tasks.length})
+                  <Clock size={16} className="text-[#F59E0B]" /> {L("tasks")} ({tasks.length})
                 </h3>
                 {tasks.length === 0 ? (
                   <p className="text-sm text-gray-400 text-center py-4">{L("noData")}</p>
@@ -443,9 +443,9 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
               {/* Period selector */}
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <BarChart3 size={16} className="text-[#003087]" /> {L("kpi")}
+                  <BarChart3 size={16} className="text-[#0072B8]" /> {L("kpi")}
                   {manualKpis.length > 0 && (
-                    <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#003087]">
+                    <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#0072B8]">
                       {Math.round(weightedScore)}%
                     </span>
                   )}
@@ -494,7 +494,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                         <Target size={13} /> {L("manualKpi")}
                       </h4>
                       {isAdminManager && (
-                        <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#003087] hover:text-blue-700 font-medium">
+                        <button onClick={() => setAddingKpi(!addingKpi)} className="flex items-center gap-1 text-xs text-[#0072B8] hover:text-blue-700 font-medium">
                           <Plus size={14} /> {L("addKpi")}
                         </button>
                       )}
@@ -535,7 +535,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                           <button onClick={() => setAddingKpi(false)} className="px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
                             {L("cancel")}
                           </button>
-                          <button onClick={addManualKpi} className="px-4 py-1.5 text-sm text-white rounded-lg" style={{ background: "linear-gradient(135deg,#003087,#0050B3)" }}>
+                          <button onClick={addManualKpi} className="px-4 py-1.5 text-sm text-white rounded-lg" style={{ background: "linear-gradient(135deg,#0072B8,#0050B3)" }}>
                             {L("save")}
                           </button>
                         </div>
@@ -603,7 +603,7 @@ export default function MemberProfileModal({ open, onClose, memberId, lang = "th
                         {/* Overall score */}
                         <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
                           <span className="text-sm font-medium text-gray-600">{L("overallScore")}:</span>
-                          <span className="text-xl font-bold text-[#003087]">{Math.round(weightedScore)}%</span>
+                          <span className="text-xl font-bold text-[#0072B8]">{Math.round(weightedScore)}%</span>
                         </div>
                       </div>
                     )}

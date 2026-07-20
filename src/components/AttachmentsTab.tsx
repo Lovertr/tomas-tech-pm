@@ -94,7 +94,7 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
-            ${dragOver ? "border-[#00AEEF] bg-blue-50" : "border-[#E2E8F0] hover:border-[#475569] bg-gray-50"}`}
+            ${dragOver ? "border-[#4DB5D6] bg-blue-50" : "border-[#E2E8F0] hover:border-[#475569] bg-gray-50"}`}
         >
           <input ref={inputRef} type="file" multiple className="hidden"
             onChange={(e) => e.target.files && upload(e.target.files)} />
@@ -130,7 +130,7 @@ export default function AttachmentsTab({ taskId, canManage = true, onChange }: P
                 <img src={a.url} alt={a.file_name} className="w-12 h-12 rounded object-cover shrink-0" />
               ) : (
                 <div className="w-12 h-12 rounded bg-[#FFFFFF] flex items-center justify-center shrink-0">
-                  <Icon size={20} className="text-[#00AEEF]" />
+                  <Icon size={20} className="text-[#4DB5D6]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">

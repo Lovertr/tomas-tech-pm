@@ -17,7 +17,7 @@ export default function PositionModal({ open, onClose, initial, onSubmit }: Prop
 
   useEffect(() => {
     if (open) {
-      setForm(initial ?? { default_hourly_rate: 0, color: "#003087", sort_order: 0 });
+      setForm(initial ?? { default_hourly_rate: 0, color: "#0072B8", sort_order: 0 });
       setErr(null);
     }
   }, [open, initial]);
@@ -60,7 +60,7 @@ export default function PositionModal({ open, onClose, initial, onSubmit }: Prop
           </div>
           <div>
             <label className={fieldLabel}>สี</label>
-            <input type="color" className={fieldInput + " h-10"} value={form.color ?? "#003087"} onChange={(e) => set("color", e.target.value)} />
+            <input type="color" className={fieldInput + " h-10"} value={form.color ?? "#0072B8"} onChange={(e) => set("color", e.target.value)} />
           </div>
           <div>
             <label className={fieldLabel}>ลำดับ</label>

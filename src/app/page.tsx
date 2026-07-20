@@ -25,7 +25,7 @@ import { type CommandItem } from "@/components/CommandPalette";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 
 // ── Lazy-loaded components (only loaded when needed) ──
-const Loading = () => <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003087]" /></div>;
+const Loading = () => <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0072B8]" /></div>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dyn = <T extends React.ComponentType<any>>(imp: () => Promise<{ default: T }>) => dynamic(imp, { loading: Loading, ssr: false }) as unknown as T;
 
@@ -103,14 +103,14 @@ const VehicleBookingPanel = dyn(() => import("@/components/VehicleBookingPanel")
 // Helpers
 const fmt = (n: number) => `฿${n.toLocaleString()}`;
 const statusColor: Record<string, string> = {
-  planning: "#6B7280", in_progress: "#003087", on_hold: "#F7941D",
+  planning: "#6B7280", in_progress: "#0072B8", on_hold: "#F59E0B",
   completed: "#10B981", cancelled: "#EF4444", backlog: "#9CA3AF",
   todo: "#6366F1", review: "#F59E0B", done: "#10B981",
 };
 const prioColor: Record<string, string> = {
-  low: "#10B981", medium: "#F7941D", high: "#EF4444", urgent: "#DC2626",
+  low: "#10B981", medium: "#F59E0B", high: "#EF4444", urgent: "#DC2626",
 };
-const COLORS = ["#003087", "#F7941D", "#00AEEF", "#10B981", "#6366F1", "#EF4444", "#8B5CF6"];
+const COLORS = ["#0072B8", "#F59E0B", "#4DB5D6", "#10B981", "#6366F1", "#EF4444", "#8B5CF6"];
 
 export default function App() {
   const router = useRouter();
@@ -261,7 +261,7 @@ export default function App() {
   const tipStyle = { background: "#FFFFFF", border: "none", borderRadius: 12, color: "#F8FAFC", boxShadow: "0 4px 20px rgba(0,0,0,0.4)" };
 
   // ── Stat Card ──
-  const Stat = ({ icon: I, label, value, sub, color = "#003087", trend }: { icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string; trend?: string }) => (
+  const Stat = ({ icon: I, label, value, sub, color = "#0072B8", trend }: { icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string; trend?: string }) => (
     <div className="bg-[#FFFFFF] rounded-2xl p-3 md:p-5 border border-[#E2E8F0] hover:shadow-lg transition-all">
       <div className="flex items-start justify-between">
         <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center" style={{ background: `${color}25` }}><I size={18} className="md:hidden" style={{ color }} /><I size={22} className="hidden md:block" style={{ color }} /></div>
@@ -390,28 +390,28 @@ export default function App() {
       <div className="flex items-center justify-between flex-wrap gap-2 md:gap-3">
         <div><h1 className="text-lg md:text-2xl font-bold text-gray-800">{t.welcome}, {currentUser?.display_name ?? "..."}!</h1>
           <p className="text-xs md:text-base text-gray-500">{t.overview} — {new Date().toLocaleDateString(lang === "th" ? "th-TH" : lang === "jp" ? "ja-JP" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
-        {canCreate("projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
+        {canCreate("projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" style={{ background: "#0072B8" }}><Plus size={14} />{t.addProject}</button>}
       </div>
       <DailyStandupCard lang={lang} />
       <OpenProjectsPanel currentUserId={currentUser?.id} lang={lang} userRole={currentUser?.role || "member"} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Stat icon={FolderKanban} label={t.totalProjects} value={mockProjects.length} sub={`${mockProjects.filter(p => p.status === "in_progress").length} ${t.activeProjects}`} color="#003087" trend="+2" />
-        <Stat icon={ListTodo} label={t.totalTasks} value={tasks.length} sub={`${tasks.filter(tk => tk.status === "done").length} ${t.completedTasks}`} color="#00AEEF" />
+        <Stat icon={FolderKanban} label={t.totalProjects} value={mockProjects.length} sub={`${mockProjects.filter(p => p.status === "in_progress").length} ${t.activeProjects}`} color="#0072B8" trend="+2" />
+        <Stat icon={ListTodo} label={t.totalTasks} value={tasks.length} sub={`${tasks.filter(tk => tk.status === "done").length} ${t.completedTasks}`} color="#4DB5D6" />
         {canView("costs")
-          ? <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} sub={`${totalHrs.toFixed(1)} ${t.hours}`} color="#F7941D" trend="+12%" />
-          : <Stat icon={Clock} label={t.hours} value={totalHrs.toFixed(1)} sub={t.approval} color="#F7941D" />}
+          ? <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} sub={`${totalHrs.toFixed(1)} ${t.hours}`} color="#F59E0B" trend="+12%" />
+          : <Stat icon={Clock} label={t.hours} value={totalHrs.toFixed(1)} sub={t.approval} color="#F59E0B" />}
         <Stat icon={Users} label={t.teamMembers} value={mockMembers.length} sub={`${mockPositions.length} ${t.position}`} color="#10B981" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {canView("costs") && (
           <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.costByProject}</h3>
-            <ResponsiveContainer width="100%" height={250}><BarChart data={costByProject}><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Bar dataKey="cost" fill="#003087" radius={[8, 8, 0, 0]} name={t.cost} /><Bar dataKey="budget" fill="#F7941D" radius={[8, 8, 0, 0]} name={t.budget} opacity={0.4} /></BarChart></ResponsiveContainer></div>
+            <ResponsiveContainer width="100%" height={250}><BarChart data={costByProject}><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Bar dataKey="cost" fill="#0072B8" radius={[8, 8, 0, 0]} name={t.cost} /><Bar dataKey="budget" fill="#F59E0B" radius={[8, 8, 0, 0]} name={t.budget} opacity={0.4} /></BarChart></ResponsiveContainer></div>
         )}
         <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.taskDistribution}</h3>
           <ResponsiveContainer width="100%" height={250}><PieChart><Pie data={taskStats} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={4} dataKey="value" label={({ name, value }: { name?: string; value: number }) => `${name || ''}: ${value}`}>{taskStats.map((e, i) => <Cell key={i} fill={e.fill} />)}</Pie><Tooltip contentStyle={tipStyle} /></PieChart></ResponsiveContainer></div>
         {canView("costs") && (
           <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.monthlyCost}</h3>
-            <ResponsiveContainer width="100%" height={250}><AreaChart data={monthlyCostData}><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#003087" stopOpacity={0.3} /><stop offset="95%" stopColor="#003087" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 12 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Area type="monotone" dataKey="cost" stroke="#003087" fill="url(#cg)" strokeWidth={2.5} name={t.cost} /></AreaChart></ResponsiveContainer></div>
+            <ResponsiveContainer width="100%" height={250}><AreaChart data={monthlyCostData}><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0072B8" stopOpacity={0.3} /><stop offset="95%" stopColor="#0072B8" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 12 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip contentStyle={tipStyle} /><Area type="monotone" dataKey="cost" stroke="#0072B8" fill="url(#cg)" strokeWidth={2.5} name={t.cost} /></AreaChart></ResponsiveContainer></div>
         )}
         {canView("costs") && (
           <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.costByPosition}</h3>
@@ -431,10 +431,10 @@ export default function App() {
           <div className="flex items-center gap-2 md:gap-3 overflow-x-auto">
             <div className="flex rounded-xl overflow-hidden border border-[#E2E8F0] flex-shrink-0">
               {["all", "planning", "in_progress", "on_hold", "completed"].map(s => (
-                <button key={s} onClick={() => setProjFilter(s)} className={`px-2 md:px-3 py-1.5 text-[10px] md:text-xs font-medium whitespace-nowrap ${projFilter === s ? "text-white" : "text-gray-500"}`} style={projFilter === s ? { background: "#003087" } : { background: "#F1F5F9" }}>{t[s]}</button>
+                <button key={s} onClick={() => setProjFilter(s)} className={`px-2 md:px-3 py-1.5 text-[10px] md:text-xs font-medium whitespace-nowrap ${projFilter === s ? "text-white" : "text-gray-500"}`} style={projFilter === s ? { background: "#0072B8" } : { background: "#F1F5F9" }}>{t[s]}</button>
               ))}
             </div>
-            {canCreate("projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addProject}</button>}
+            {canCreate("projects") && <button onClick={openAddProject} className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#0072B8" }}><Plus size={14} />{t.addProject}</button>}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -460,20 +460,20 @@ export default function App() {
                 </div>
                 <p className="text-sm text-gray-500 mb-3">{t.client}: {p.client}</p>
                 <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-gray-500">{t.progress}</span><span className="text-gray-800 font-semibold">{p.progress}%</span></div>
-                  <div className="w-full h-2 rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: p.progress === 100 ? "#10B981" : "linear-gradient(90deg,#003087,#00AEEF)" }} /></div></div>
+                  <div className="w-full h-2 rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: p.progress === 100 ? "#10B981" : "linear-gradient(90deg,#0072B8,#4DB5D6)" }} /></div></div>
                 <div className={`grid ${canView("costs") ? "grid-cols-3" : "grid-cols-2"} gap-2 mb-3`}>
                   <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.tasks}</div><div className="text-sm font-semibold text-gray-800">{dt}/{pt.length}</div></div>
                   <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.hours}</div><div className="text-sm font-semibold text-gray-800">{ph.toFixed(1)}</div></div>
                   {canView("costs") && (
-                    <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">{fmt(pc)}</div></div>
+                    <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.cost}</div><div className="text-sm font-semibold text-[#F59E0B]">{fmt(pc)}</div></div>
                   )}
                 </div>
                 {canView("costs") && (
                   <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-gray-500">{t.budget}: {fmt(p.budget)}</span><span style={{ color: pct > 80 ? "#EF4444" : "#10B981" }}>{pct.toFixed(0)}%</span></div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 80 ? "#EF4444" : "#F7941D" }} /></div></div>
+                    <div className="w-full h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 80 ? "#EF4444" : "#F59E0B" }} /></div></div>
                 )}
                 <div className="flex items-center justify-between">
-                  <div className="flex -space-x-2">{p.members.slice(0, 4).map(mId => { const mem = mockMembers.find(m => m.id === mId); return mem ? <div key={mId} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-[#FFFFFF]" style={{ background: getPos(mem.position_id)?.color || "#003087" }}>{mem.avatar}</div> : null; })}</div>
+                  <div className="flex -space-x-2">{p.members.slice(0, 4).map(mId => { const mem = mockMembers.find(m => m.id === mId); return mem ? <div key={mId} className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-[#FFFFFF]" style={{ background: getPos(mem.position_id)?.color || "#0072B8" }}>{mem.avatar}</div> : null; })}</div>
                   <div className="flex items-center gap-1.5 text-xs text-gray-500"><Calendar size={12} />{p.endDate}</div>
                 </div>
                 <div className="mt-3 flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ background: prioColor[p.priority] }} /><span className="text-xs" style={{ color: prioColor[p.priority] }}>{t[p.priority]}</span></div>
@@ -758,7 +758,7 @@ export default function App() {
               <option value="all">{t.all} {t.projects}</option>
               {mockProjects.map(p => <option key={p.id} value={p.id}>{getName(p)}</option>)}
             </select>
-            {projPerms.canManageInProject(taskFilter) && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#003087" }}><Plus size={14} />{t.addTask}</button>}
+            {projPerms.canManageInProject(taskFilter) && <button onClick={openAddTask} className="px-3 py-2 rounded-xl text-white text-xs md:text-sm font-medium flex items-center gap-1.5 flex-shrink-0" style={{ background: "#0072B8" }}><Plus size={14} />{t.addTask}</button>}
           </div>
         </div>
         <KanbanBoard
@@ -779,9 +779,9 @@ export default function App() {
   const Team = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.team}</h1>
-        {canCreate("team") && (teamTab === "members" || isManager) && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
+        {canCreate("team") && (teamTab === "members" || isManager) && <button onClick={teamTab === "members" ? openAddMember : openAddPosition} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#0072B8" }}><Plus size={16} />{teamTab === "members" ? t.addMember : t.addPosition}</button>}</div>
       {isManager && <div className="flex gap-2">{["members", "positions"].map(tb => (
-        <button key={tb} onClick={() => setTeamTab(tb)} className={`px-4 py-2 rounded-xl text-sm font-medium ${teamTab === tb ? "text-white" : "text-gray-500"}`} style={teamTab === tb ? { background: "#003087" } : {}}>{tb === "members" ? t.teamMembers : t.positionMgmt}</button>
+        <button key={tb} onClick={() => setTeamTab(tb)} className={`px-4 py-2 rounded-xl text-sm font-medium ${teamTab === tb ? "text-white" : "text-gray-500"}`} style={teamTab === tb ? { background: "#0072B8" } : {}}>{tb === "members" ? t.teamMembers : t.positionMgmt}</button>
       ))}</div>}
       {(teamTab === "members" || !isManager) ? (
         <>
@@ -790,7 +790,7 @@ export default function App() {
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-[#003087]"
+              className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-[#0072B8]"
             >
               <option value="all">{lang === "th" ? "\u0e17\u0e38\u0e01\u0e41\u0e1c\u0e19\u0e01" : "All Departments"}</option>
               {uniqueDepts.map(d => <option key={d} value={d}>{d}</option>)}
@@ -805,21 +805,21 @@ export default function App() {
             return (
               <div key={mem.id} className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0] cursor-pointer hover:shadow-lg transition-shadow" onClick={() => { setMemberProfileId(mem.id); setMemberProfileOpen(true); }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: `linear-gradient(135deg,${pos?.color || "#003087"},${pos?.color || "#003087"}88)` }}>{mem.avatar}</div>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: `linear-gradient(135deg,${pos?.color || "#0072B8"},${pos?.color || "#0072B8"}88)` }}>{mem.avatar}</div>
                   <div><h3 className="font-semibold text-gray-800">{getName(mem)}</h3><p className="text-sm" style={{ color: pos?.color }}>{pos ? getName(pos) : ""}</p></div>
                 </div>
                 <div className="text-xs text-gray-500 mb-3">{mem.dept}</div>
                 <div className={`grid ${isManager ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
                   <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.hours}</div><div className="text-sm font-semibold text-gray-800">{mh.toFixed(1)}</div></div>
                   {isManager && (
-                    <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.cost}</div><div className="text-sm font-semibold text-[#F7941D]">฿{mc.toLocaleString()}</div></div>
+                    <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.cost}</div><div className="text-sm font-semibold text-[#F59E0B]">฿{mc.toLocaleString()}</div></div>
                   )}
                   <div className="text-center p-2 rounded-lg bg-slate-100/50"><div className="text-xs text-gray-500">{t.projects}</div><div className="text-sm font-semibold text-gray-800">{mp}</div></div>
                 </div>
                 {/* Workload bar */}
                 {(() => {
                   const pct = memberAllocations[mem.id] ?? 0;
-                  const color = pct > 100 ? "#EF4444" : pct > 80 ? "#F7941D" : "#10B981";
+                  const color = pct > 100 ? "#EF4444" : pct > 80 ? "#F59E0B" : "#10B981";
                   return (
                     <div className="mt-2 px-3 pb-2">
                       <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">
@@ -834,7 +834,7 @@ export default function App() {
                 })()}
                 <div className="mt-3 flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
                   {isManager
-                    ? <span className="text-sm font-semibold text-[#003087]">฿{mem.rate}{t.perHour}</span>
+                    ? <span className="text-sm font-semibold text-[#0072B8]">฿{mem.rate}{t.perHour}</span>
                     : <span className="text-xs text-slate-500">{mem.dept}</span>}
                   <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                     {canEdit("team") && <button onClick={() => openEditMember(mem.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
@@ -856,9 +856,9 @@ export default function App() {
               const pc = approvedLogs.filter(l => pm.some(m => m.id === l.member_id)).reduce((s, l) => s + l.hours * l.rate, 0);
               return (<tr key={pos.id} className="border-t border-[#E2E8F0] hover:bg-slate-100/30">
                 <td className="px-5 py-4"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${pos.color}20` }}><Briefcase size={16} style={{ color: pos.color }} /></div><span className="font-medium text-gray-800">{getName(pos)}</span></div></td>
-                {isManager && <td className="px-5 py-4 text-[#003087] font-semibold">฿{pos.rate}{t.perHour}</td>}
+                {isManager && <td className="px-5 py-4 text-[#0072B8] font-semibold">฿{pos.rate}{t.perHour}</td>}
                 <td className="px-5 py-4 text-gray-800">{pm.length}</td>
-                {isManager && <td className="px-5 py-4 text-[#F7941D] font-semibold">{fmt(pc)}</td>}
+                {isManager && <td className="px-5 py-4 text-[#F59E0B] font-semibold">{fmt(pc)}</td>}
                 <td className="px-5 py-4 text-right"><div className="flex justify-end gap-1">
                   {canEdit("team") && <button onClick={() => openEditPosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-gray-500"><Edit3 size={14} /></button>}
                   {isAdmin && <button onClick={() => handleDeletePosition(pos.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-red-600"><Trash2 size={14} /></button>}
@@ -875,10 +875,10 @@ export default function App() {
   const TimeLog = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.timeLog}</h1>
-        {projPerms.isMemberOfAnyProject && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#003087" }}><Plus size={16} />{t.logTime}</button>}</div>
+        {projPerms.isMemberOfAnyProject && <button onClick={() => setTimelogModalOpen(true)} className="px-4 py-2 rounded-xl text-white text-sm font-medium flex items-center gap-2" style={{ background: "#0072B8" }}><Plus size={16} />{t.logTime}</button>}</div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
-        {canView("costs") && <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />}
+        <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#0072B8" />
+        {canView("costs") && <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F59E0B" />}
         <Stat icon={CheckCircle2} label={t.approved} value={mockTimeLogs.filter(l => l.status === "approved").length} color="#10B981" />
         <Stat icon={AlertCircle} label={t.pending} value={mockTimeLogs.filter(l => l.status === "pending").length} color="#F59E0B" />
       </div>
@@ -891,13 +891,13 @@ export default function App() {
             const pos = mem ? getPos(mem.position_id) : null;
             const proj = mockProjects.find(p => p.id === log.project_id);
             return (<tr key={log.id} className="border-t border-[#E2E8F0]">
-              <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: pos?.color || "#003087" }}>{mem?.avatar?.[0]}</div><span className="text-sm text-gray-800">{mem ? getName(mem) : ""}</span></div></td>
+              <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: pos?.color || "#0072B8" }}>{mem?.avatar?.[0]}</div><span className="text-sm text-gray-800">{mem ? getName(mem) : ""}</span></div></td>
               <td className="px-4 py-3 text-sm text-gray-500">{pos ? getName(pos) : ""}</td>
               <td className="px-4 py-3 text-sm text-gray-800">{proj ? getName(proj).substring(0, 20) : ""}</td>
               <td className="px-4 py-3 text-sm text-gray-500">{log.date}</td>
               <td className="px-4 py-3 text-sm font-semibold text-gray-800">{Number(log.hours).toFixed(1)}h</td>
               {canView("costs") && <td className="px-4 py-3 text-sm text-gray-500">฿{log.rate}</td>}
-              {canView("costs") && <td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">฿{(log.hours * log.rate).toLocaleString()}</td>}
+              {canView("costs") && <td className="px-4 py-3 text-sm font-semibold text-[#F59E0B]">฿{(log.hours * log.rate).toLocaleString()}</td>}
               <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${log.status === "approved" ? "bg-emerald-100 text-emerald-600" : "bg-yellow-100 text-yellow-600"}`}>{t[log.status]}</span></td>
             </tr>);
           })}
@@ -910,12 +910,12 @@ export default function App() {
   const Costs = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.costs}</h1>
-        <button className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 bg-[#003087] text-white"><Download size={16} />{t.export}</button></div>
+        <button className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 bg-[#0072B8] text-white"><Download size={16} />{t.export}</button></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F7941D" />
-        <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#003087" />
+        <Stat icon={DollarSign} label={t.totalCost} value={fmt(totalCost)} color="#F59E0B" />
+        <Stat icon={Clock} label={t.totalHours} value={totalHrs} color="#0072B8" />
         <Stat icon={Target} label={t.totalBudget} value={fmt(mockProjects.reduce((s, p) => s + p.budget, 0))} color="#10B981" />
-        <Stat icon={Activity} label={t.remaining} value={fmt(mockProjects.reduce((s, p) => s + p.budget, 0) - totalCost)} color="#00AEEF" />
+        <Stat icon={Activity} label={t.remaining} value={fmt(mockProjects.reduce((s, p) => s + p.budget, 0) - totalCost)} color="#4DB5D6" />
       </div>
       <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] p-5"><h3 className="font-semibold text-gray-800 mb-4">{t.projectCost}</h3>
         <div className="space-y-4">{mockProjects.map(p => {
@@ -924,8 +924,8 @@ export default function App() {
           const mc = [...new Set(approvedLogs.filter(l => l.project_id === p.id).map(l => l.member_id))].length;
           const pct = p.budget > 0 ? (pc / p.budget) * 100 : 0;
           return (<div key={p.id} className="p-4 rounded-xl border border-[#E2E8F0]">
-            <div className="flex items-center justify-between mb-2"><div><span className="font-medium text-gray-800">{getName(p)}</span><span className="text-xs text-gray-500 ml-2">{p.code}</span></div><div className="text-right"><span className="font-semibold text-[#F7941D]">{fmt(pc)}</span><span className="text-xs text-gray-500 ml-1">/ {fmt(p.budget)}</span></div></div>
-            <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 90 ? "#EF4444" : pct > 70 ? "#F7941D" : "linear-gradient(90deg,#003087,#00AEEF)" }} /></div>
+            <div className="flex items-center justify-between mb-2"><div><span className="font-medium text-gray-800">{getName(p)}</span><span className="text-xs text-gray-500 ml-2">{p.code}</span></div><div className="text-right"><span className="font-semibold text-[#F59E0B]">{fmt(pc)}</span><span className="text-xs text-gray-500 ml-1">/ {fmt(p.budget)}</span></div></div>
+            <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pct > 90 ? "#EF4444" : pct > 70 ? "#F59E0B" : "linear-gradient(90deg,#0072B8,#4DB5D6)" }} /></div>
             <div className="flex justify-between mt-2 text-xs text-gray-500"><span>{mc} {t.teamMembers} · {ph.toFixed(1)} {t.hours}</span><span className={pct > 90 ? "text-red-600" : pct > 70 ? "text-yellow-600" : "text-emerald-600"}>{pct.toFixed(1)}% {t.budgetUsed}</span></div>
           </div>);
         })}</div>
@@ -934,7 +934,7 @@ export default function App() {
         <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.costByPosition}</h3>
           <ResponsiveContainer width="100%" height={280}><BarChart data={costByPos} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis type="number" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis dataKey="name" type="category" tick={{ fill: "#94A3B8", fontSize: 11 }} width={130} /><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /><Bar dataKey="value" radius={[0, 8, 8, 0]} name={t.cost}>{costByPos.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Bar></BarChart></ResponsiveContainer></div>
         <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.monthlyCost}</h3>
-          <ResponsiveContainer width="100%" height={280}><LineChart data={monthlyCostData}><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 12 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /><Line type="monotone" dataKey="cost" stroke="#003087" strokeWidth={3} dot={{ fill: "#F7941D", r: 5 }} name={t.cost} /></LineChart></ResponsiveContainer></div>
+          <ResponsiveContainer width="100%" height={280}><LineChart data={monthlyCostData}><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 12 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /><Line type="monotone" dataKey="cost" stroke="#0072B8" strokeWidth={3} dot={{ fill: "#F59E0B", r: 5 }} name={t.cost} /></LineChart></ResponsiveContainer></div>
       </div>
     </div>
   );
@@ -949,11 +949,11 @@ export default function App() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-800">{t.reports}</h1>
-          <button className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 text-white" style={{ background: "#003087" }}><Download size={16} />{t.export} PDF</button></div>
+          <button className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 text-white" style={{ background: "#0072B8" }}><Download size={16} />{t.export} PDF</button></div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Stat icon={BarChart3} label={t.avgCostProject} value={fmt(Math.round(totalCost / Math.max(mockProjects.filter(p => p.status !== "planning").length, 1)))} color="#003087" />
-          <Stat icon={Clock} label={t.avgHrsPerson} value={Math.round(totalHrs / mockMembers.length)} color="#00AEEF" />
-          <Stat icon={TrendingUp} label={t.avgRateHr} value={`฿${Math.round(totalCost / Math.max(totalHrs, 1))}`} color="#F7941D" />
+          <Stat icon={BarChart3} label={t.avgCostProject} value={fmt(Math.round(totalCost / Math.max(mockProjects.filter(p => p.status !== "planning").length, 1)))} color="#0072B8" />
+          <Stat icon={Clock} label={t.avgHrsPerson} value={Math.round(totalHrs / mockMembers.length)} color="#4DB5D6" />
+          <Stat icon={TrendingUp} label={t.avgRateHr} value={`฿${Math.round(totalCost / Math.max(totalHrs, 1))}`} color="#F59E0B" />
           <Stat icon={Target} label={t.budgetUsed} value={`${((totalCost / mockProjects.reduce((s, p) => s + p.budget, 0)) * 100).toFixed(1)}%`} color="#10B981" />
         </div>
         <div className="bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] p-5"><h3 className="font-semibold text-gray-800 mb-4">{t.memberCost}</h3>
@@ -962,18 +962,18 @@ export default function App() {
           </tr></thead><tbody>
             {mr.map((r, i) => (<tr key={i} className="border-t border-[#E2E8F0]">
               <td className="px-4 py-3 text-sm text-gray-500">{i + 1}</td><td className="px-4 py-3 text-sm font-medium text-gray-800">{r.name}</td>
-              <td className="px-4 py-3 text-sm text-gray-500">{r.position}</td><td className="px-4 py-3 text-sm text-[#003087]">฿{r.rate}</td>
-              <td className="px-4 py-3 text-sm text-gray-800">{Number(r.hours).toFixed(1)}h</td><td className="px-4 py-3 text-sm font-semibold text-[#F7941D]">{fmt(r.cost)}</td>
+              <td className="px-4 py-3 text-sm text-gray-500">{r.position}</td><td className="px-4 py-3 text-sm text-[#0072B8]">฿{r.rate}</td>
+              <td className="px-4 py-3 text-sm text-gray-800">{Number(r.hours).toFixed(1)}h</td><td className="px-4 py-3 text-sm font-semibold text-[#F59E0B]">{fmt(r.cost)}</td>
               <td className="px-4 py-3 text-sm text-gray-800">{r.projects}</td>
             </tr>))}
           </tbody><tfoot><tr className="border-t-2 border-[#E2E8F0]">
             <td colSpan={4} className="px-4 py-3 text-sm font-bold text-gray-800">{t.total}</td>
             <td className="px-4 py-3 text-sm font-bold text-gray-800">{mr.reduce((s, r) => s + r.hours, 0).toFixed(1)}h</td>
-            <td className="px-4 py-3 text-sm font-bold text-[#F7941D]">{fmt(mr.reduce((s, r) => s + r.cost, 0))}</td><td></td>
+            <td className="px-4 py-3 text-sm font-bold text-[#F59E0B]">{fmt(mr.reduce((s, r) => s + r.cost, 0))}</td><td></td>
           </tr></tfoot></table></div>
         </div>
         <div className="bg-[#FFFFFF] rounded-2xl p-5 border border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-4">{t.budgetVsActual}</h3>
-          <ResponsiveContainer width="100%" height={300}><BarChart data={costByProject}><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /><Legend /><Bar dataKey="budget" fill="#003087" radius={[8, 8, 0, 0]} name={t.budget} opacity={0.5} /><Bar dataKey="cost" fill="#F7941D" radius={[8, 8, 0, 0]} name={t.cost} /></BarChart></ResponsiveContainer></div>
+          <ResponsiveContainer width="100%" height={300}><BarChart data={costByProject}><CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" /><XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} /><YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} /><Tooltip formatter={(v: unknown) => fmt(Number(v))} contentStyle={tipStyle} /><Legend /><Bar dataKey="budget" fill="#0072B8" radius={[8, 8, 0, 0]} name={t.budget} opacity={0.5} /><Bar dataKey="cost" fill="#F59E0B" radius={[8, 8, 0, 0]} name={t.cost} /></BarChart></ResponsiveContainer></div>
       </div>
     );
   };
@@ -985,11 +985,11 @@ export default function App() {
       <div className="bg-[#FFFFFF] rounded-2xl p-6 border border-[#E2E8F0] space-y-6">
         <div><label className="text-sm font-semibold text-gray-800 block mb-3">{t.language}</label>
           <div className="flex gap-3">{([["th", "ไทย", "🇹🇭"], ["en", "English", "🇬🇧"], ["jp", "日本語", "🇯🇵"]] as const).map(([v, label, flag]) => (
-            <button key={v} onClick={() => setLang(v)} className={`flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium transition-all ${lang === v ? "text-white border-transparent shadow-lg" : "text-gray-700 border-[#E2E8F0]"}`} style={lang === v ? { background: "#003087" } : {}}><span className="text-lg">{flag}</span>{label}</button>
+            <button key={v} onClick={() => setLang(v)} className={`flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium transition-all ${lang === v ? "text-white border-transparent shadow-lg" : "text-gray-700 border-[#E2E8F0]"}`} style={lang === v ? { background: "#0072B8" } : {}}><span className="text-lg">{flag}</span>{label}</button>
           ))}</div>
         </div>
-        <div className="pt-6 border-t border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-2">TOMAS TECH Project Manager</h3>
-          <div className="text-sm text-gray-500 space-y-1"><p>Version 1.0.0</p><p>TOMAS TECH CO., LTD.</p><p>www.tomastc.com</p></div></div>
+        <div className="pt-6 border-t border-[#E2E8F0]"><h3 className="font-semibold text-gray-800 mb-2">CONSERTECH Project Manager</h3>
+          <div className="text-sm text-gray-500 space-y-1"><p>Version 1.0.0</p><p>CONSERTECH CO., LTD.</p><p>cs-th.com</p></div></div>
       </div>
     </div>
   );
@@ -1045,8 +1045,8 @@ export default function App() {
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <div className="absolute inset-y-0 left-0 w-72 bg-white border-r border-[#E2E8F0] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-4 flex items-center gap-3 border-b border-[#E2E8F0]">
-              <Image src="/logo.png" alt="TOMAS TECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
-              <div><div className="font-bold text-sm text-gray-800">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>
+              <Image src="/logo.png" alt="CONSERTECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
+              <div><div className="font-bold text-sm text-gray-800">CONSERTECH</div><div className="text-xs text-[#F59E0B]">Project Manager</div></div>
               <button onClick={() => setMobileMenuOpen(false)} className="ml-auto text-gray-500 hover:text-gray-700"><X size={20} /></button>
             </div>
             <nav className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -1061,8 +1061,8 @@ export default function App() {
                     </button>
                     {!collapsed && g.items.map(item => (
                       <button key={item.id} onClick={() => { if (item.id === "proposal_gen") { window.open("https://lin.ee/O9LF81d", "_blank"); } else if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } setMobileMenuOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${item.id === "proposal_gen" ? "text-[#06C755] hover:bg-[#06C755]/10" : page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
-                        style={page === item.id && item.id !== "proposal_gen" ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${item.id === "proposal_gen" ? "text-[#06C755] hover:bg-[#06C755]/10" : page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#0072B8] hover:bg-blue-50"}`}
+                        style={page === item.id && item.id !== "proposal_gen" ? { background: "linear-gradient(135deg,#0072B8,#0050B3)" } : {}}>
                         <item.icon size={20} /><span className="truncate">{item.label}</span>
                       </button>
                     ))}
@@ -1073,7 +1073,7 @@ export default function App() {
             {/* Mobile user info + logout */}
             <div className="p-3 border-t border-[#E2E8F0] space-y-2">
               <div className="flex items-center gap-2 px-3 py-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#0072B8,#4DB5D6)" }}>
                   {(currentUser?.display_name ?? "U").charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -1100,8 +1100,8 @@ export default function App() {
       {/* Desktop Sidebar - hidden on mobile, collapsible on landscape tablet */}
       <div className={`hidden md:flex ${sidebarOpen ? "w-52 lg:w-64" : "w-16 lg:w-20"} flex-col border-r border-[#E2E8F0] bg-white transition-all duration-300 flex-shrink-0`}>
         <div className="p-4 flex items-center gap-3 border-b border-[#E2E8F0]">
-          <Image src="/logo.png" alt="TOMAS TECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
-          {sidebarOpen && <div><div className="font-bold text-sm text-gray-800">TOMAS TECH</div><div className="text-xs text-[#F7941D]">Project Manager</div></div>}
+          <Image src="/logo.png" alt="CONSERTECH" width={40} height={40} className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
+          {sidebarOpen && <div><div className="font-bold text-sm text-gray-800">CONSERTECH</div><div className="text-xs text-[#F59E0B]">Project Manager</div></div>}
         </div>
         <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3 sidebar-scroll">
           {groupedNav.map(g => {
@@ -1119,8 +1119,8 @@ export default function App() {
                 )}
                 {!collapsed && g.items.map(item => (
                   <button key={item.id} onClick={() => { if (item.id === "proposal_gen") { window.open("https://lin.ee/O9LF81d", "_blank"); } else if (item.id === "user_management") { router.push("/admin/users"); } else { setPage(item.id); } }} title={!sidebarOpen ? item.label : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${item.id === "proposal_gen" ? "text-[#06C755] hover:bg-[#06C755]/10" : page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#003087] hover:bg-blue-50"}`}
-                    style={page === item.id && item.id !== "proposal_gen" ? { background: "linear-gradient(135deg,#003087,#0050B3)" } : {}}>
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${item.id === "proposal_gen" ? "text-[#06C755] hover:bg-[#06C755]/10" : page === item.id ? "text-white shadow-lg" : "text-gray-600 hover:text-[#0072B8] hover:bg-blue-50"}`}
+                    style={page === item.id && item.id !== "proposal_gen" ? { background: "linear-gradient(135deg,#0072B8,#0050B3)" } : {}}>
                     <item.icon size={20} />{sidebarOpen && <span className="truncate">{item.label}</span>}
                   </button>
                 ))}
@@ -1128,7 +1128,7 @@ export default function App() {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-[#E2E8F0]"><button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:text-[#003087] hover:bg-blue-50 text-sm transition">{sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}</button></div>
+        <div className="p-3 border-t border-[#E2E8F0]"><button onClick={() => setSidebarOpen(!sidebarOpen)} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:text-[#0072B8] hover:bg-blue-50 text-sm transition">{sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}</button></div>
       </div>
 
       {/* Main */}
@@ -1137,7 +1137,7 @@ export default function App() {
         <div className="h-14 md:h-16 bg-white border-b border-[#E2E8F0] flex items-center justify-between px-3 md:px-6 flex-shrink-0">
           {/* Mobile: hamburger + logo */}
           <div className="flex items-center gap-2 md:hidden">
-            <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-1 text-gray-500 hover:text-[#003087]">
+            <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-1 text-gray-500 hover:text-[#0072B8]">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
             <Image src="/logo.png" alt="TT" width={28} height={28} className="w-7 h-7 object-contain" />
@@ -1146,10 +1146,10 @@ export default function App() {
           <div className="relative flex-1 max-w-md hidden md:block"><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" /><input placeholder={t.search} className="w-full pl-10 pr-4 py-2 rounded-xl text-sm bg-[#F1F5F9] text-gray-800 placeholder-gray-400 outline-none border border-[#E2E8F0] focus:ring-2 focus:ring-blue-500 focus:border-blue-500" /></div>
           <div className="flex items-center gap-2 md:gap-3">
             <div className="flex items-center gap-0.5 md:gap-1 rounded-lg p-0.5 md:p-1 bg-[#F1F5F9] border border-[#E2E8F0]">{(["th", "en", "jp"] as const).map(l => (
-              <button key={l} onClick={() => setLang(l)} className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-gray-500"}`} style={lang === l ? { background: "#003087" } : {}}>{l.toUpperCase()}</button>
+              <button key={l} onClick={() => setLang(l)} className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "text-white shadow" : "text-gray-500"}`} style={lang === l ? { background: "#0072B8" } : {}}>{l.toUpperCase()}</button>
             ))}</div>
             <button onClick={() => setPaletteOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] text-gray-500 hover:border-[#003087] hover:text-[#003087] text-xs transition"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] text-gray-500 hover:border-[#0072B8] hover:text-[#0072B8] text-xs transition"
               title="Command Palette (Ctrl+K)">
               <span>ค้นหา / คำสั่ง</span>
               <kbd className="text-[10px] font-mono border border-[#E2E8F0] rounded px-1.5 py-0.5">Ctrl K</kbd>
@@ -1169,8 +1169,8 @@ export default function App() {
             }} />
             {/* Desktop user menu */}
             <div className="relative hidden md:block">
-              <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] hover:border-[#003087] text-gray-700 text-sm transition">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#003087,#00AEEF)" }}>
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] hover:border-[#0072B8] text-gray-700 text-sm transition">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: "linear-gradient(135deg,#0072B8,#4DB5D6)" }}>
                   {(currentUser?.display_name ?? "U").charAt(0).toUpperCase()}
                 </div>
                 <span className="font-medium">{currentUser?.display_name ?? "..."}</span>
@@ -1215,7 +1215,7 @@ export default function App() {
         <div className="flex items-center justify-around h-14">
           {MOBILE_NAV.map(item => (
             <button key={item.id} onClick={() => setPage(item.id)}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${page === item.id ? "text-[#00AEEF]" : "text-slate-500"}`}>
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${page === item.id ? "text-[#4DB5D6]" : "text-slate-500"}`}>
               <item.icon size={20} />
               <span className="text-[10px] font-medium">{item.label}</span>
             </button>

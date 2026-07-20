@@ -12,10 +12,10 @@ interface Issue {
 interface Project { id: string; project_code?: string | null; name_th?: string | null; name_en?: string | null; }
 interface Member { id: string; first_name_th?: string | null; last_name_th?: string | null; first_name_en?: string | null; last_name_en?: string | null; }
 
-const SEV_COLOR: Record<string, string> = { critical: "#EF4444", high: "#F7941D", medium: "#FACC15", low: "#22C55E" };
+const SEV_COLOR: Record<string, string> = { critical: "#EF4444", high: "#F59E0B", medium: "#FACC15", low: "#22C55E" };
 const SEV_LBL: Record<string, string> = { critical: "วิกฤต", high: "สูง", medium: "กลาง", low: "ต่ำ" };
 const STATUS_LBL: Record<string, string> = { open: "เปิด", investigating: "กำลังตรวจสอบ", in_progress: "กำลังแก้", resolved: "แก้แล้ว", closed: "ปิด" };
-const STATUS_COLOR: Record<string, string> = { open: "#EF4444", investigating: "#F7941D", in_progress: "#3B82F6", resolved: "#22C55E", closed: "#94A3B8" };
+const STATUS_COLOR: Record<string, string> = { open: "#EF4444", investigating: "#F59E0B", in_progress: "#3B82F6", resolved: "#22C55E", closed: "#94A3B8" };
 
 const memberName = (m?: Member | null) =>
   m ? (m.first_name_th ? `${m.first_name_th} ${m.last_name_th ?? ""}`.trim() : `${m.first_name_en ?? ""} ${m.last_name_en ?? ""}`.trim()) : "—";
@@ -76,7 +76,7 @@ export default function IssuesPanel({ projects, members, filterProjectId = "all"
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 flex-1">
           <Stat label="วิกฤต" value={stats.critical} color="#EF4444" />
-          <Stat label="เปิดใหม่" value={stats.open} color="#F7941D" />
+          <Stat label="เปิดใหม่" value={stats.open} color="#F59E0B" />
           <Stat label="กำลังแก้" value={stats.inprog} color="#3B82F6" />
           <Stat label="แก้แล้ว" value={stats.resolved} color="#22C55E" />
         </div>

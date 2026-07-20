@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const wsData: (string | number | null)[][] = [];
 
   // Header rows
-  wsData.push(["TOMAS TECH CO., LTD."]);
+  wsData.push(["CONSERTECH CO., LTD."]);
   wsData.push(["QUOTATION"]);
   wsData.push([]);
 

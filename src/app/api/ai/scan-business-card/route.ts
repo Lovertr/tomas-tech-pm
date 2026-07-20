@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (!apiKey) throw new AiNotConfiguredError("gemini");
 
     const systemText = [
-      "You are a business card OCR engine for Tomas Tech, a Thai engineering/IT company.",
+      "You are a business card OCR engine for Consertech, a Thai industrial equipment and automation company.",
       "Extract contact information from the business card image.",
       "Return ONLY valid JSON with these fields (use null for fields not found):",
       '{ "first_name": string|null, "last_name": string|null, "position": string|null, "department": string|null, "company_name": string|null, "email": string|null, "phone": string|null, "line_id": string|null, "website": string|null, "address": string|null }',

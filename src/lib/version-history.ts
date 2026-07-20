@@ -1,5 +1,5 @@
 /**
- * Version history / changelog for the TOMAS TECH PM system.
+ * Version history / changelog for the CONSERTECH PM system.
  * Add new entries at the TOP of the array.
  * The banner will show the latest entry if the user hasn't dismissed it.
  */
@@ -22,15 +22,15 @@ export const VERSION_HISTORY: VersionEntry[] = [
     },
     highlights: {
       th: [
-        "AI ผู้ช่วยขายดึงข้อมูลจากฐานความรู้ (PEGASUS, i-Reporter, Hardware, Infrastructure, จุดแข็งบริษัท) มาช่วยแนะนำ Sales",
+        "AI ผู้ช่วยขายดึงข้อมูลจากฐานความรู้ (AGV, AMR, Robot, Industrial Equipment, Sensors, Software, จุดแข็งบริษัท) มาช่วยแนะนำ Sales",
         "สามารถอธิบายผลิตภัณฑ์ แนะนำ solution ตามอุตสาหกรรมลูกค้า ร่างสคริปต์การขาย และตอบข้อโต้แย้งได้",
       ],
       en: [
-        "AI Sales Assistant now pulls company knowledge base (PEGASUS, i-Reporter, Hardware, Infrastructure, strengths) to advise sales reps",
+        "AI Sales Assistant now pulls company knowledge base (AGV, AMR, Robot, Industrial Equipment, Sensors, Software, strengths) to advise sales reps",
         "Can explain products, recommend solutions by industry, draft sales scripts, and handle objections",
       ],
       jp: [
-        "AI営業アシスタントがナレッジベース（PEGASUS、i-Reporter、ハードウェア、インフラ、強み）を参照して営業をサポート",
+        "AI営業アシスタントがナレッジベース（AGV、AMR、Robot、産業機器、センサー、ソフトウェア、強み）を参照して営業をサポート",
         "製品説明、業界別ソリューション提案、営業スクリプト作成、反論対応が可能に",
       ],
     },

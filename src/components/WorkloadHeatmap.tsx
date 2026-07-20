@@ -113,7 +113,7 @@ export default function WorkloadHeatmap({ weeks: weeksCount = 8 }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-2 text-gray-900">
-          <Activity size={20} className="text-[#00AEEF]" />
+          <Activity size={20} className="text-[#4DB5D6]" />
           <h2 className="text-lg font-semibold">Workload Heatmap</h2>
           <span className="text-xs text-gray-500">{fmtDate(rangeStart)} → {fmtDate(rangeEnd)}</span>
         </div>

@@ -35,7 +35,7 @@ export const PERM_COLOR: Record<PermLevel, string> = {
   0: "#475569",
   1: "#3B82F6",
   2: "#06B6D4",
-  3: "#F7941D",
+  3: "#F59E0B",
   4: "#A855F7",
   5: "#22C55E",
 };

@@ -35,9 +35,9 @@ const STATUS_LBL: Record<string, string> = {
   pending: "รอ",
 };
 const STATUS_COLOR: Record<string, string> = {
-  planning: "#64748B", in_progress: "#00AEEF", on_hold: "#F7941D",
+  planning: "#64748B", in_progress: "#4DB5D6", on_hold: "#F59E0B",
   completed: "#22C55E", done: "#22C55E", cancelled: "#EF4444",
-  todo: "#64748B", draft: "#64748B", sent: "#00AEEF", paid: "#22C55E", overdue: "#EF4444",
+  todo: "#64748B", draft: "#64748B", sent: "#4DB5D6", paid: "#22C55E", overdue: "#EF4444",
   pending: "#64748B",
 };
 
@@ -89,7 +89,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs text-blue-600 mb-2">
-                <Building2 size={14} /> TOMAS TECH CO., LTD.
+                <Building2 size={14} /> CONSERTECH CO., LTD.
               </div>
               <div className="text-[10px] font-mono text-gray-500">{p.project_code}</div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{p.name_th || p.name_en}</h1>
@@ -114,14 +114,14 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         <div className="bg-white border border-gray-300 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-gray-600"><TrendingUp size={16} /> ความคืบหน้าโครงการ</div>
-            <div className="text-2xl font-bold" style={{ color: "#F7941D" }}>{completion}%</div>
+            <div className="text-2xl font-bold" style={{ color: "#F59E0B" }}>{completion}%</div>
           </div>
           <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full transition-all" style={{ width: `${completion}%`, background: "linear-gradient(90deg, #003087, #00AEEF, #F7941D)" }} />
+            <div className="h-full transition-all" style={{ width: `${completion}%`, background: "linear-gradient(90deg, #0072B8, #4DB5D6, #F59E0B)" }} />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 text-center">
-            <StatCard label="งานทั้งหมด" value={data.task_stats.total} color="#00AEEF" icon={FileText} />
-            <StatCard label="กำลังทำ" value={data.task_stats.in_progress} color="#F7941D" icon={Clock} />
+            <StatCard label="งานทั้งหมด" value={data.task_stats.total} color="#4DB5D6" icon={FileText} />
+            <StatCard label="กำลังทำ" value={data.task_stats.in_progress} color="#F59E0B" icon={Clock} />
             <StatCard label="เสร็จแล้ว" value={data.task_stats.done} color="#22C55E" icon={CheckCircle2} />
             <StatCard label="คงเหลือ" value={data.task_stats.todo} color="#94A3B8" icon={Target} />
           </div>
@@ -308,9 +308,9 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         <div className="bg-white border border-gray-300 rounded-2xl p-6">
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><DollarSign size={16} className="text-green-600" /> สรุปการเงิน</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-            <FinKPI label="ยอดวางบิลทั้งหมด" value={fmtMoney(data.finance.billed)} color="#00AEEF" />
+            <FinKPI label="ยอดวางบิลทั้งหมด" value={fmtMoney(data.finance.billed)} color="#4DB5D6" />
             <FinKPI label="ชำระแล้ว" value={fmtMoney(data.finance.paid)} color="#22C55E" />
-            <FinKPI label="คงค้าง" value={fmtMoney(data.finance.outstanding)} color="#F7941D" />
+            <FinKPI label="คงค้าง" value={fmtMoney(data.finance.outstanding)} color="#F59E0B" />
           </div>
           {!data.invoices.length ? (
             <div className="text-center py-6 text-gray-500 text-sm">ยังไม่มีใบแจ้งหนี้</div>
@@ -348,7 +348,7 @@ export default function ClientPortalPage({ params }: { params: Promise<{ token: 
         </div>
 
         <div className="text-center text-xs text-gray-500 py-6 border-t border-gray-300">
-          © {new Date().getFullYear()} TOMAS TECH CO., LTD. · ลิงก์นี้เป็นข้อมูลสรุปสำหรับลูกค้าเท่านั้น
+          © {new Date().getFullYear()} CONSERTECH CO., LTD. · ลิงก์นี้เป็นข้อมูลสรุปสำหรับลูกค้าเท่านั้น
         </div>
       </div>
     </div>

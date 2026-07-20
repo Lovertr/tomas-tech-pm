@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       title,
       body: msgBody || "",
       url: url || "/",
-      tag: tag || "tomas-pm",
+      tag: tag || "consertech-pm",
     };
 
     // Allow any user to send a test push to themselves
